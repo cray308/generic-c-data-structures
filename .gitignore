@@ -1,0 +1,5 @@
+*.h.gch
+lib/
+bin/test_*
+*.o
+vgcore.*
