@@ -300,27 +300,3 @@ uint64_t fnv(const void *k, size_t n) {
     }
     return hash;
 }
-
-void _iter_begin(Map *m) {
-    if (!(m->size)) {
-        m->it.curr = NULL;
-        m->it.idx = m->cap;
-        return;
-    } else {
-        unsigned idx = 0;
-        for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);
-        m->it.idx = idx;
-        m->it.curr = m->buckets[m->it.idx];
-    }
-}
-
-void _iter_next(Map *m) {
-    if (m->it.curr->next) {
-        m->it.curr = m->it.curr->next;
-    } else {
-        unsigned idx = m->it.idx + 1;
-        for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);
-        m->it.idx = idx;
-        m->it.curr = (m->it.idx >= m->cap) ? NULL : m->buckets[m->it.idx];
-    }
-}

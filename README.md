@@ -5,24 +5,36 @@
 This was mainly a personal project to see if I could create some generic data structures
 in C, a language where generic anything is somewhat difficult to implement. I got
 inspiration from the [UThash library](https://github.com/troydhanson/uthash) by Troy D.
-Hanson.
+Hanson. The code uses the C99 standard, and is designed to run on Linux. I designed this
+to be used as a shared library (see the `Makefile` for details). To use it, clone the 
+repository, and run `make`. At this point, you may:
+
+ - add `$REPOSITORY_FOLDER/lib` to `LD_LIBRARY_PATH` (recommended)
+ - copy `$REPOSITORY_FOLDER/lib/libds.so` into `/usr/local/lib`
 
 ## Included Data Structures
 
- - Array (analogous to a C++ vector, named `Array`)
+Documentation is provided in the header files (in the `include` folder).
 
- - List (analogous to a C++ list, uses a doubly-linked list internally, named `List`)
+ - Array (named `Array`). This is analogous to a C++ vector.
 
- - Queue (named `Queue`)
+ - List (named `List`). This is analogous to a C++ list and uses a doubly-linked list
+ internally. This can also function as a deque.
 
- - Stack (named `Stack`)
+ - Queue (named `Queue`). In contrast to `List`, this only allows pushing to the back and
+ popping from the front).
 
- - Red-black tree (named `Tree`)
+ - Stack (named `Stack`).
 
- - String (similar to a C++ string, named `String`)
+ - Red-black tree (named `Tree`). __Note__: in the future, I may implement set operations
+ (such as union, intersection, difference, symmetric difference, etc.) so that this data
+ structure can function as a set.
 
- - Hash table (analogous to a C++ `unordered_map`, capable of using integer or
-   string keys, named `Map`)
+ - String (named `String`). This is similar to a C++ string, and also includes a function
+ for inserting a printf-style format string.
+
+ - Hash table (named `Map`). This is analogous to a C++ `unordered_map` and is capable of
+ using integer or string keys.
 
 ## How the Data Structures Work
 

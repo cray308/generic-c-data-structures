@@ -36,6 +36,31 @@ typedef struct {
 } Map;
 
 
+inline void _iter_begin(Map *m) {
+    if (!(m->size)) {
+        m->it.curr = NULL;
+        m->it.idx = m->cap;
+        return;
+    } else {
+        unsigned idx = 0;
+        for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);
+        m->it.idx = idx;
+        m->it.curr = m->buckets[m->it.idx];
+    }
+}
+
+inline void _iter_next(Map *m) {
+    if (m->it.curr->next) {
+        m->it.curr = m->it.curr->next;
+    } else {
+        unsigned idx = m->it.idx + 1;
+        for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);
+        m->it.idx = idx;
+        m->it.curr = (m->it.idx >= m->cap) ? NULL : m->buckets[m->it.idx];
+    }
+}
+
+
 /**
  * The number of entries in the map.
  *
@@ -178,8 +203,5 @@ void _map_insert_str(Map *m, const char *key, const void *value);
 
 void _map_erase_int(Map *m, const int32_t key);
 void _map_erase_str(Map *m, const char *key);
-
-void _iter_begin(Map *m);
-void _iter_next(Map *m);
 
 #endif // MAP_H

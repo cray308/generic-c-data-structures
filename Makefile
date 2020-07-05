@@ -26,7 +26,7 @@ all: $(DEFAULTS_OBJ) $(LIBRARY) $(TEST_BINARIES)
 %.h.gch: %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.c $(HEADERS)
+%.o: %.c $(DEFAULTS_OBJ) $(HEADERS)
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 $(LIBRARY): $(OBJS)

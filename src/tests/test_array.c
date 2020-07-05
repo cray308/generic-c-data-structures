@@ -139,12 +139,12 @@ void test_insert(void) {
     Array *a = array_new(&int_helper);
     int value = 2;
 
-    int rv = array_insert(a, 0, &value);
+    int rv = array_insert(a, -1, &value);
     assert(rv == 0);
 
     value = 4;
-    rv = array_insert(a, 15, &value);
-    assert(rv == 1);
+    rv = array_insert(a, -1, &value);
+    assert(rv == 0);
 
     value = 1;
     rv = array_insert(a, 0, &value);
@@ -155,7 +155,7 @@ void test_insert(void) {
     assert(rv == 2);
 
     value = 5;
-    rv = array_insert(a, array_size(a), &value);
+    rv = array_insert(a, ARRAY_END(a), &value);
     assert(rv == array_size(a) - 1);
 
     array_free(a);
@@ -175,20 +175,22 @@ void test_insert_arr(void) {
     rv = array_insert_arr(a1, 0, a2, 2, 0);
     assert(rv == ARRAY_ERROR);
 
-    rv = array_insert_arr(a1, 0, a2, 0, 5);
+    rv = array_insert_arr(a1, -1, a2, 0, 5);
     assert(rv == 0);
     assert(array_size(a1) == 5);
-    assert(array_size(a2) == 0);
+    assert(array_size(a2) == 5);
+
+    array_clear(a2);
 
     for (int i = 0; i < 5; ++i) {
         array_push_back(a2, &i);
     }
 
-    rv = array_insert_arr(a1, 1, a2, 0, 2);
+    rv = array_insert_arr(a1, -4, a2, 0, 2);
     assert(rv == 1);
 
     assert(array_size(a1) == 7);
-    assert(array_size(a2) == 3);
+    assert(array_size(a2) == 5);
 
     int *ptr = array_at(a1, 0);
     assert(*ptr == 0);
@@ -214,9 +216,9 @@ void test_insert_arr(void) {
 }
 
 void test_erase(void) {
-    Array *a = array_new(&int_helper);
+    Array *a = array_new(&str_ptr_helper);
     for (int i = 0; i < 10; ++i) {
-        array_push_back(a, &i);
+        array_push_back(a, &words[i]);
     }
 
     int rv = array_erase(a, 15, 2);
@@ -227,11 +229,11 @@ void test_erase(void) {
     rv = array_erase(a, 0, 2);
     assert(rv == 0);
 
-    int *ptr = array_at(a, 0);
-    assert(*ptr == 2);
+    char **ptr = array_at(a, 0);
+    assert(streq(*ptr, words[2]));
 
-    rv = array_erase(a, 6, 2);
-    assert(rv == ARRAY_END);
+    rv = array_erase(a, -2, -1);
+    assert(rv == ARRAY_END(a));
 
     rv = array_erase(a, 2, 2);
     assert(rv == 2);
@@ -278,6 +280,41 @@ void test_utility(void) {
     array_free(a);
 }
 
+void test_subarr(void) {
+    Array *a = array_new(&int_helper);
+    int i = 0;
+    for (; i < 10; ++i) {
+        array_push_back(a, &i);
+    }
+    Array *a2 = array_subarr(a, 0, -1, 1);
+    assert(a2->size == a->size);
+    int *ptr;
+    i = 0;
+    array_iter(a2, ptr) {
+        assert(*ptr == i++);
+    }
+
+    array_free(a2);
+    a2 = array_subarr(a, -2, -1, -1);
+    assert(a2->size == 9);
+    i = 8;
+    array_iter(a2, ptr) {
+        assert(*ptr == i--);
+    }
+    array_free(a2);
+
+    a2 = array_subarr(a, -2, -1, -2);
+    assert(a2->size == 5);
+    i = 8;
+    array_iter(a2, ptr) {
+        assert(*ptr == i);
+        i -= 2;
+    }
+    array_free(a2);
+
+    array_free(a);
+}
+
 int main(void) {
     test_macros();
     test_resizing();
@@ -286,5 +323,6 @@ int main(void) {
     test_erase();
     test_shrink();
     test_utility();
+    test_subarr();
     return 0;
 }

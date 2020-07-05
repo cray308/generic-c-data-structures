@@ -177,7 +177,6 @@ DLLNode *list_insert_sorted(List *l, void *value);
 
 /**
  * Inserts elements from another list in the range [start, end) into the first list BEFORE pos.
- *   The inserted elements from are removed from the other list.
  *
  * @param   l      Pointer to list.
  * @param   pos    ListEntry in "l" before which elements should be inserted. If this is NULL,

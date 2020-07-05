@@ -83,7 +83,6 @@ void test_resizing(void) {
         counter++;
     }
     assert(counter == 26);
-    // g is at index 6
 
     string_resize(s, 7, 0);
     assert(string_len(s) == 7);
@@ -124,7 +123,6 @@ void test_resizing(void) {
 
 void test_erase(void) {
     String *s = string_new();
-    //const char *mystring = "abcdefghijklmnopqrstuvwxyz";
 
     for (unsigned char i = 0x30; i < 0x3A; ++i) {
         string_push_back(s, i);
@@ -169,7 +167,6 @@ void test_replace(void) {
         "abcdefghijklmnopqrstuvwxxx",
         "abcdefghijklmnopqrxxxxxxxxxxxx",
         "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
-    // before 18
 
     string_append(s, mystring, 26);
     string_replace(s, 0, "xxx", 3);
@@ -212,9 +209,8 @@ void test_insert(void) {
         "abcxxxdefghijklmnopqrstuvwxyz",
         "abcdefghijklmnopqrstuvwxxxxyz",
         "abcdefghijklmnopqrxxxxxxxxxxxxstuvwxyz",
-        "abcdefghijklmnopqrstuvwxyzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        "abcdefghijklmnopqrstuvwxyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz"
     };
-    // before 18
 
     string_append(s, mystring, 26);
     string_insert(s, 0, "xxx", 3);
@@ -241,7 +237,7 @@ void test_insert(void) {
     string_clear(s);
 
     string_append(s, mystring, 26);
-    string_insert(s, 26, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 43);
+    string_insert(s, -1, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 43);
     assert(string_len(s) == 69);
     assert(streq(s->s, comparison[4]));
 
@@ -253,7 +249,7 @@ void test_printf(void) {
     const char *comparison[] = {"10 is a cool number.",
     "pi is about 3.14, and 10 is a cool number."};
 
-    string_printf(s, 0, "%d is a cool number.", 10);
+    string_printf(s, STRING_END(s), "%d is a cool number.", 10);
     assert(streq(s->s, comparison[0]));
 
     string_printf(s, 0, "pi is about %.2f, and ", 3.14);
@@ -290,13 +286,13 @@ void test_find(void) {
     pos = string_find(s, 0, "onions", 6);
     assert(pos == 3);
 
-    pos = string_rfind(s, string_len(s), "onion", 6);
+    pos = string_rfind(s, -1, "onion", 6);
     assert(pos == 3);
 
     pos = string_rfind(s, 5, "onion", 6);
     assert(pos == 0);
 
-    pos = string_rfind(s, 3, "onion", 6);
+    pos = string_rfind(s, pos, "onion", 6);
     assert(pos == -1);
 
     string_free(s);
@@ -359,43 +355,69 @@ void test_substr(void) {
     String *s = string_new();
     string_append(s, "We think in generalities, but we live in details.", 60);
 
-    char *s2 = string_substr(s, 3, 5);
-    assert(streq(s2, "think"));
+    String *s2 = string_substr(s, 3, 5, 1);
+    assert(streq(string_c_str(s2), "think"));
 
     int pos = string_find(s, 0, "live", 4);
     assert(pos >= 0);
 
-    char *s3 = string_substr(s, pos, -1);
-    assert(streq(s3, "live in details."));
+    String *s3 = string_substr(s, pos, -1, 1);
+    assert(streq(string_c_str(s3), "live in details."));
 
     string_clear(s);
-    string_printf(s, 0, "%s %s", s2, s3);
+    string_printf(s, 0, "%s %s", string_c_str(s2), string_c_str(s3));
 
-    free(s2);
-    free(s3);
+    string_free(s2);
+    string_free(s3);
 
     assert(streq(string_c_str(s), "think live in details."));
+    String *s4 = string_substr(s, 7, -1, -2);
+    assert(streq(string_c_str(s4), "kite"));
+    string_free(s4);
 
     string_free(s);
 }
 
 void test_split(void) {
+    const char *cmp1[] = {
+        "this has several words",
+        " definitely more than eight words"
+    };
+    const char *cmp2[] = {
+        "this",
+        "has",
+        "several",
+        "words,",
+        "definitely",
+        "more",
+        "than",
+        "eight",
+        "words"
+    };
+
     String *s = string_new();
     const char *mystring = "this has several words, definitely more than eight words";
     string_append(s, mystring, 56);
 
     int len = 0;
-    char **split = str_split(string_c_str(s), ":", &len);
+    String **split = string_split(s, ":", &len);
     assert(len == 1);
-    str_split_free(split, len);
+    assert(streq(string_c_str(split[0]), string_c_str(s)));
+    string_split_free(split, len);
 
-    split = str_split(string_c_str(s), ",", &len);
+    split = string_split(s, ",", &len);
     assert(len == 2);
-    str_split_free(split, len);
+    for (int i = 0; i < len; ++i) {
+        assert(streq(string_c_str(split[i]), cmp1[i]));
+    }
+    string_split_free(split, len);
 
-    split = str_split(string_c_str(s), " ", &len);
+    split = string_split(s, " ", &len);
     assert(len == 9);
-    str_split_free(split, len);
+    for (int i = 0; i < len; ++i) {
+        assert(streq(string_c_str(split[i]), cmp2[i]));
+    }
+    string_split_free(split, len);
 
     string_free(s);
 }

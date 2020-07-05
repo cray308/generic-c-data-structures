@@ -13,12 +13,18 @@ typedef struct {
 } String;
 
 
+#define STRING_END(s) ((s)->len)
+#define STRING_NPOS (-1)
+
+
 /**
  * The c-string representation of the provided String.
  *
  * @param   s  Pointer to string struct.
  */
-#define string_c_str(s) ((s)->s)
+inline char *string_c_str(String *s) {
+    return s->s;
+}
 
 
 /**
@@ -60,7 +66,10 @@ typedef struct {
  * @param   s  Pointer to string struct.
  * @param   i  Index in string.
  */
-#define string_ref(s, i) (((i) < (s)->len) ? &((s)->s[i]) : NULL)
+inline char *string_ref(String *s, int i) {
+    int _idx = modulo(i, s->len);
+    return (_idx >= 0) ? &(s->s[_idx]) : NULL;
+}
 
 /**
  * The char located at index i of the string.
@@ -68,7 +77,10 @@ typedef struct {
  * @param   s  Pointer to string struct.
  * @param   i  Index in string.
  */
-#define string_at(s, i) (((i) < (s)->len) ? ((s)->s[i]) : 0)
+inline char string_at(String *s, int i) {
+    int _idx = modulo(i, s->len);
+    return (_idx >= 0) ? s->s[_idx] : 0;
+}
 
 
 /**
@@ -159,9 +171,10 @@ void string_clear(String *s);
  *
  * @param  s      Pointer to string.
  * @param  start  The first index to delete.
- * @param  n      The number of characters to delete.
+ * @param  n      The number of characters to delete. If this is -1, all characters
+ *                  from "start" until the end will be removed.
  */
-void string_erase(String *s, size_t start, size_t n);
+void string_erase(String *s, int start, int n);
 
 
 /**
@@ -196,20 +209,23 @@ void string_pop_back(String *s);
  * @param  s      Pointer to string.
  * @param  pos    Index in s where the replacement will occur.
  * @param  other  C-string used as the replacement.
- * @param  len    Number of characters from other that will be used.
+ * @param  len    Number of characters from other that will be used. If this is -1,
+ *                  all characters from "other" will be used.
  */
-void string_replace(String *s, size_t pos, const char *other, size_t len);
+void string_replace(String *s, int pos, const char *other, int len);
 
 
 /**
  * Inserts "len" characters from the c-string "other" into "s" before "pos".
  *
  * @param  s      Pointer to string.
- * @param  pos    Index in "s" before which characters will be inserted.
+ * @param  pos    Index in "s" before which characters will be inserted. If this is STRING_END,
+ *                  characters from "other" will be appended to s.
  * @param  other  C-string from which characters will be inserted.
- * @param  len    Number of characters from "other" to insert.
+ * @param  len    Number of characters from "other" to insert. If this is -1,
+ *                  all characters from "other" will be used.
  */
-void string_insert(String *s, size_t pos, const char *other, size_t len);
+void string_insert(String *s, int pos, const char *other, int len);
 
 
 /**
@@ -217,20 +233,21 @@ void string_insert(String *s, size_t pos, const char *other, size_t len);
  *
  * @param  s      Pointer to string.
  * @param  other  C-string from which characters will be inserted.
- * @param  len    Number of characters from "other" to insert.
+ * @param  len    Number of characters from "other" to insert. If this is -1,
+ *                  all characters from "other" will be used.
  */
-void string_append(String *s, const char *other, size_t len);
+void string_append(String *s, const char *other, int len);
 
 
 /**
- * Inserts a format string into "s" before "pos". If "pos" is after the last index, the format
- *   string will be appended to "s".
+ * Inserts a format string into "s" before "pos".
  *
  * @param  s       Pointer to string.
- * @param  pos     Index in "s" before which characters will be inserted.
+ * @param  pos     Index in "s" before which characters will be inserted. If this is STRING_END,
+ *                  characters from the format string will be appended to s.
  * @param  format  Format string.
  */
-void string_printf(String *s, size_t pos, const char *format, ...);
+void string_printf(String *s, int pos, const char *format, ...);
 
 
 /**
@@ -239,12 +256,13 @@ void string_printf(String *s, size_t pos, const char *format, ...);
  * @param   s           Pointer to string.
  * @param   start_pos   First index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len_needle  Number of characters to match from needle.
+ * @param   len_needle  Number of characters to match from needle. If this is -1,
+ *                        all characters from "needle" will be used.
  *
  * @return              The index in "s", corresponding to needle[0], where needle was found,
  *                          or -1 if it was not found.
  */
-int string_find(String *s, size_t start_pos, const char *needle, size_t len_needle);
+int string_find(String *s, int start_pos, const char *needle, int len_needle);
 
 
 /**
@@ -253,12 +271,13 @@ int string_find(String *s, size_t start_pos, const char *needle, size_t len_need
  * @param   s           Pointer to string.
  * @param   end_pos     Last index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len_needle  Number of characters to match from needle.
+ * @param   len_needle  Number of characters to match from needle. If this is -1,
+ *                        all characters from "needle" will be used.
  *
  * @return              The index in "s", corresponding to needle[0], where needle was found,
  *                          or -1 if it was not found.
  */
-int string_rfind(String *s, size_t end_pos, const char *needle, size_t len_needle);
+int string_rfind(String *s, int end_pos, const char *needle, int len_needle);
 
 
 /**
@@ -271,7 +290,7 @@ int string_rfind(String *s, size_t end_pos, const char *needle, size_t len_needl
  * @return         The first index at or after "pos" where one of the supplied characters was
  *                     found, or -1 if no such character was found.
  */
-int string_find_first_of(String *s, size_t pos, const char *chars);
+int string_find_first_of(String *s, int pos, const char *chars);
 
 
 /**
@@ -297,7 +316,7 @@ int string_find_last_of(String *s, int pos, const char *chars);
  * @return         The first index at or after "pos" where a different character was found, or -1
  *                     if no such character was found.
  */
-int string_find_first_not_of(String *s, size_t pos, const char *chars);
+int string_find_first_not_of(String *s, int pos, const char *chars);
 
 
 /**
@@ -314,37 +333,42 @@ int string_find_last_not_of(String *s, int pos, const char *chars);
 
 
 /**
- * Returns a dynamically allocated string starting at "pos", using "len" characters total.
+ * Creates a substring from "s" with "n" characters, starting at "start" and moving to
+ * the next character to include with a step size of "step_size".
  *
- * @param   s    Pointer to string.
- * @param   pos  Index where the substring should start.
- * @param   len  Number of characters in the substring. If this is -1, the substring will
- *                 comprise all characters from "pos" to the end of the string.
+ * @param   s          Pointer to string.
+ * @param   start      Index where the substring should start.
+ * @param   n          Maximum number of characters in the substring. -1 implies to
+ *                       include as many elements as the start and step size allow.
+ * @param   step_size  How to adjust the index when copying characters. 1 means move forward 1 index
+ *                       at a time, -1 means move backwards one index at a time, 2 would mean every
+ *                       other index, etc.
  *
- * @return       [description]
+ * @return       Newly allocated String.
  */
-char *string_substr(String *s, size_t pos, int len);
+String *string_substr(String *s, int start, int n, int step_size);
 
 
 /**
- * Splits the c-string into substrings based on the provided delimiter.
+ * Splits "s" into substrings based on the provided delimiter and stores them as
+ * newly allocated String pointers in an array.
  *
- * @param   str    C-string.
+ * @param   s      Pointer to string.
  * @param   delim  The delimiter to use to split the string.
  * @param   n      Pointer to int which will be assigned the size of the array.
  *
- * @return         The array of substrings.
+ * @return         The array of pointers to String, each of which is a substring of "s".
  */
-char **str_split(const char *str, const char *delim, int *n);
+String **string_split(String *s, const char *delim, int *n);
 
 
 /**
- * Frees the memory allocated by str_split.
+ * Frees the memory allocated by string_split.
  *
- * @param  arr  Array allocated by str_split.
+ * @param  arr  Array allocated by string_split.
  * @param  n    Size of the array.
  */
-void str_split_free(char **arr, int n);
+void string_split_free(String **arr, int n);
 
 
 /**

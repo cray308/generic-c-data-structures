@@ -228,7 +228,7 @@ void test_insert_list(List *l) {
     ListEntry start2 = list_find(l2, &str);
     list_insert_list(l, pos, l2, start2, NULL);
     assert(list_size(l) == 20);
-    assert(list_size(l2) == 3);
+    assert(list_size(l2) == 10);
 
     list_free(l2);
 }

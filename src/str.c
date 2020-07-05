@@ -4,7 +4,7 @@
 #define SPLIT_INITIAL_SIZE 8
 #define INITIAL_STR_CAP 64
 
-void _str_printf_va(String *s, size_t pos, const char *format, va_list args);
+void _str_printf_va(String *s, int pos, const char *format, va_list args);
 int *create_prefix_table(const char *needle, size_t len);
 int *create_prefix_table_rev(const char *needle, size_t len);
 
@@ -44,10 +44,6 @@ void string_reserve(String *s, size_t n) {
 }
 
 void string_resize(String *s, size_t n, char c) {
-    if (n == s->len) { // nothing to do
-        return;
-    }
-
     if (n > s->len) {
         string_reserve(s, n + 1);
         memset(&s->s[s->len], c, n - s->len);
@@ -58,25 +54,33 @@ void string_resize(String *s, size_t n, char c) {
 }
 
 void string_clear(String *s) {
-    if (!(s->len)) {
+    if (!(s->s)) {
         return;
     }
     s->s[0] = 0;
     s->len = 0;
 }
 
-void string_erase(String *s, size_t start, size_t n) {
-    if (start >= s->len || n == 0) {
+void string_erase(String *s, int start, int n) {
+    if (!n || s->len == 0) {
         return;
     }
 
-    size_t end = min(s->len, start + n);
-    n = end - start;
+    start = modulo(start, s->len);
+    if (start < 0) return;
+
+    if (n < 0) {
+        n = (int) s->len - start;
+    } else {
+        n = min(n, (int) s->len - start);
+    }
+
+    int end = start + n;
     
     if (end < s->len) { // move any characters after end to start
-        memmove(&s->s[start], &s->s[end], s->len - end);
+        memmove(&s->s[start], &s->s[end], s->len - (size_t) end);
     }
-    s->len -= n;
+    s->len -= (size_t) n;
     s->s[s->len] = 0;
 }
 
@@ -108,65 +112,96 @@ void string_pop_back(String *s) {
     s->s[s->len-- - 1] = 0;
 }
 
-void string_replace(String *s, size_t pos, const char *other, size_t len) {
-    if (!len) {
+void string_replace(String *s, int pos, const char *other, int len) {
+    if (!other || (*other == '\0') || !len) {
         return;
     }
-    len = min(len, strlen(other)); // account for if len is larger than the supplied string
 
-    if (pos >= s->len) { // assume that an out-of-bounds index means append
+    if (pos >= (int) s->len) {
         string_append(s, other, len);
         return;
     }
 
-    string_reserve(s, pos + len + 1);
+    pos = modulo(pos, s->len);
+    if (pos < 0) {
+        return;
+    }
+
+    const int l_other = strlen(other);
+
+    if (len < 0) { // use all characters from other
+        len = l_other;
+    } else {
+        len = min(len, l_other); // account for if len is larger than the supplied string
+    }
+
+    string_reserve(s, (size_t) (pos + len + 1));
     memcpy(&s->s[pos], other, len);
 
-    if (pos + len >= s->len) {
-        s->len = pos + len;
+    if (pos + len > (int) s->len) {
+        s->len = (size_t) pos + (size_t) len;
         s->s[s->len] = 0;
     }
 }
 
-void string_insert(String *s, size_t pos, const char *other, size_t len) {
-    if (!len) {
+void string_insert(String *s, int pos, const char *other, int len) {
+    if (!other || (*other == '\0') || !len) {
         return;
     }
-    len = min(len, strlen(other)); // account for if len is larger than the supplied string
 
-    if (pos >= s->len) { // assume that an out-of-bounds index means append
+    if (pos >= (int) s->len) {
         string_append(s, other, len);
         return;
     }
 
-    string_reserve(s, len + s->len + 1);
-    size_t nBytes = s->len - pos;
-    // move characters that were at pos to after the inserted portion
-    memmove(&s->s[pos + len], &s->s[pos], nBytes);
-    memcpy(&s->s[pos], other, len);
-    s->len += len;
-    s->s[s->len] = 0;
-}
-
-void string_append(String *s, const char *other, size_t len) {
-    if (!len) {
+    pos = modulo(pos, s->len);
+    if (pos < 0) {
         return;
     }
-    len = min(len, strlen(other)); // account for if len is larger than the supplied string
-    string_reserve(s, s->len + len + 1);
-    memcpy(&s->s[s->len], other, len);
-    s->len += len;
+
+    const int l_other = strlen(other);
+
+    if (len < 0) {
+        len = l_other;
+    } else {
+        len = min(len, l_other); // account for if len is larger than the supplied string
+    }
+
+    string_reserve(s, s->len + (size_t) len + 1);
+    size_t nBytes = s->len - (size_t) pos;
+    memmove(&s->s[pos + len], &s->s[pos], nBytes);
+    memcpy(&s->s[pos], other, len);
+    s->len += (size_t) len;
     s->s[s->len] = 0;
 }
 
-void string_printf(String *s, size_t pos, const char *format, ...) {
+void string_append(String *s, const char *other, int len) {
+    if (!other || (*other == '\0') || !len) {
+        return;
+    }
+
+    const int l_other = strlen(other);
+
+    if (len < 0) {
+        len = l_other;
+    } else {
+        len = min(len, l_other); // account for if len is larger than the supplied string
+    }
+
+    string_reserve(s, s->len + (size_t) len + 1);
+    memcpy(&s->s[s->len], other, len);
+    s->len += (size_t) len;
+    s->s[s->len] = 0;
+}
+
+void string_printf(String *s, int pos, const char *format, ...) {
     va_list args;
     va_start(args, format);
     _str_printf_va(s, pos, format, args);
     va_end(args);
 }
 
-void _str_printf_va(String *s, size_t pos, const char *format, va_list args) {
+void _str_printf_va(String *s, int pos, const char *format, va_list args) {
     int n = 0;
     va_list cp_args;
     size_t buf_size = 256;
@@ -178,7 +213,7 @@ void _str_printf_va(String *s, size_t pos, const char *format, va_list args) {
         va_end(cp_args);
 
         if ((n > -1) && ((size_t) n < buf_size)) { // vsnprintf was successful
-            string_insert(s, pos, buf, (size_t) n);
+            string_insert(s, pos, buf, n);
             free(buf);
             return;
         } else if (n > -1) { // buffer was too small
@@ -193,17 +228,27 @@ void _str_printf_va(String *s, size_t pos, const char *format, va_list args) {
     }
 }
 
-int string_find(String *s, size_t start_pos, const char *needle, size_t len_needle) {
-    if (start_pos >= s->len || !needle) {
+int string_find(String *s, int start_pos, const char *needle, int len_needle) {
+    if (!needle || !s->len) {
         return -1;
-    }
-    
-    len_needle = min(len_needle, strlen(needle));
-    if (!len_needle) {
-        return start_pos;
+    } else if (*needle == '\0' || !len_needle) {
+        return (int) start_pos;
     }
 
-    int len_haystack = s->len - start_pos;
+    start_pos = modulo(start_pos, s->len);
+    if (start_pos < 0) {
+        return -1;
+    }
+
+    const int ln = strlen(needle);
+
+    if (len_needle < 0) {
+        len_needle = ln;
+    } else {
+        len_needle = min(len_needle, ln);
+    }
+
+    int len_haystack = (int) s->len - start_pos;
     if (len_needle > len_haystack) {
         return -1;
     }
@@ -211,7 +256,7 @@ int string_find(String *s, size_t start_pos, const char *needle, size_t len_need
     char *haystack = s->s + start_pos; // for easier indexing
     int i = 0;
     int j = 0;
-    int *table = create_prefix_table(needle, len_needle);
+    int *table = create_prefix_table(needle, (size_t) len_needle);
     int res = -1;
 
     while (i < len_haystack) {
@@ -226,8 +271,8 @@ int string_find(String *s, size_t start_pos, const char *needle, size_t len_need
             }
         }
 
-        if (j == (int) len_needle) { // found the substring
-            res = (int) start_pos + (i - j);
+        if (j == len_needle) { // found the substring
+            res = start_pos + (i - j);
             break;
         }
     }
@@ -262,26 +307,35 @@ int *create_prefix_table(const char *needle, size_t len) {
     return table;
 }
 
-int string_rfind(String *s, size_t end_pos, const char *needle, size_t len_needle) {
-    if (!end_pos || !needle) {
+int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
+    if (!needle || !s->len) {
         return -1;
-    }
-
-    end_pos = min(s->len - 1, end_pos);
-    len_needle = min(len_needle, strlen(needle));
-    if (!len_needle) {
+    } else if (*needle == '\0' || !len_needle) {
         return end_pos;
     }
 
-    size_t len_haystack = end_pos + 1;
+    end_pos = modulo(end_pos, s->len);
+    if (end_pos < 0) {
+        return -1;
+    }
+
+    const int ln = strlen(needle);
+
+    if (len_needle < 0) {
+        len_needle = ln;
+    } else if (len_needle > ln) {
+        len_needle = min(len_needle, ln);
+    }
+
+    int len_haystack = end_pos + 1;
     if (len_needle > len_haystack) {
         return -1;
     }
 
     char *haystack = s->s;
-    int i = (int) end_pos;
-    int j = (int) len_needle - 1;
-    int *table = create_prefix_table_rev(needle, len_needle);
+    int i = end_pos;
+    int j = len_needle - 1;
+    int *table = create_prefix_table_rev(needle, (size_t) len_needle);
     int res = -1;
 
     while (i >= 0) {
@@ -289,7 +343,7 @@ int string_rfind(String *s, size_t end_pos, const char *needle, size_t len_needl
             i--;
             j--;
         } else {
-            if (j != ((int) len_needle - 1)) {
+            if (j != (len_needle - 1)) {
                 j = table[j + 1];
             } else {
                 i--;
@@ -332,15 +386,20 @@ int *create_prefix_table_rev(const char *needle, size_t len) {
     return table;
 }
 
-int string_find_first_of(String *s, size_t pos, const char *chars) {
-    if (pos >= s->len || !chars) {
+int string_find_first_of(String *s, int pos, const char *chars) {
+    if (!s->len || !chars) {
         return -1;
     } else if (*chars == '\0') {
         return pos;
     }
 
+    pos = modulo(pos, s->len);
+    if (pos < 0) {
+        return -1;
+    }
+
     const char *c;
-    int i = (int) pos;
+    int i = pos;
 
     for (c = chars; *c; ++c) {
         if (s->s[i] == *c) {
@@ -364,19 +423,19 @@ int string_find_first_of(String *s, size_t pos, const char *chars) {
 }
 
 int string_find_last_of(String *s, int pos, const char *chars) {
-    if (!chars) {
+    if (!s->len || !chars) {
         return -1;
-    } else if (pos < 0) {
-        return -1;
-    }
-
-    pos = min(pos, s->len - 1);
-    if (*chars == '\0') {
+    } else if (*chars == '\0') {
         return pos;
     }
 
+    pos = modulo(pos, s->len);
+    if (pos < 0) {
+        return -1;
+    }
+
     const char *c;
-    int i = (int) pos;
+    int i = pos;
 
     for (c = chars; *c; ++c) {
         if (s->s[i] == *c) {
@@ -398,15 +457,20 @@ int string_find_last_of(String *s, int pos, const char *chars) {
     return -1;
 }
 
-int string_find_first_not_of(String *s, size_t pos, const char *chars) {
-    if (pos >= s->len || !chars) {
+int string_find_first_not_of(String *s, int pos, const char *chars) {
+    if (!s->len || !chars) {
         return -1;
     } else if (*chars == '\0') {
         return pos;
     }
 
+    pos = modulo(pos, s->len);
+    if (pos < 0) {
+        return -1;
+    }
+
     const char *c;
-    int i = (int) pos;
+    int i = pos;
 
     for (c = chars; *c; ++c) {
         if (s->s[i] == *c) {
@@ -437,15 +501,15 @@ int string_find_first_not_of(String *s, size_t pos, const char *chars) {
 }
 
 int string_find_last_not_of(String *s, int pos, const char *chars) {
-    if (!chars) {
+    if (!s->len || !chars) {
         return -1;
-    } else if (pos < 0) {
-        return -1;
+    } else if (*chars == '\0') {
+        return pos;
     }
 
-    pos = min(pos, s->len - 1);
-    if (*chars == '\0') {
-        return pos;
+    pos = modulo(pos, s->len);
+    if (pos < 0) {
+        return -1;
     }
 
     const char *c;
@@ -479,68 +543,75 @@ int string_find_last_not_of(String *s, int pos, const char *chars) {
     return -1;
 }
 
-char *string_substr(String *s, size_t pos, int len) {
-    if (pos >= s->len) {
-        pos = s->len;
+String *string_substr(String *s, int start, int n, int step_size) {
+    if (!s->len || !n) {
+        return NULL;
+    } else if (step_size == 0) {
+        step_size = 1;
     }
 
-    len = (len < 0) ? (s->len - pos) : len;
-    size_t end = min(s->len, pos + (size_t) len);
-    size_t nChars = end - pos;
-
-    char *substr = malloc(nChars + 1);
-    if (!substr) {
-        DS_OOM();
+    start = modulo(start, s->len);
+    if (start < 0) {
+        return NULL;
     }
 
-    if (nChars) {
-        strncpy(substr, &(s->s[pos]), nChars);
+    String *sub = string_new();
+    int end;
+
+    if (step_size < 0) {
+        end = (n < 0) ? -1 : max(-1, start + (n * step_size));
+    } else {
+        end = (n < 0) ? STRING_END(s) : min(STRING_END(s), start + (n * step_size));
     }
-    substr[nChars] = 0;
-    return substr;
+
+    if (step_size < 0) {
+        for (int i = start; i > end; i += step_size) {
+            string_push_back(sub, s->s[i]);
+        }
+    } else {
+        for (int i = start; i < end; i += step_size) {
+            string_push_back(sub, s->s[i]);
+        }
+    }
+    return sub;
 }
 
-char **str_split(const char *str, const char *delim, int *n) {
-    if (!delim || *delim == '\0') {
+String **string_split(String *s, const char *delim, int *n) {
+    if (!delim || *delim == '\0' || !s->len) {
         return NULL;
     }
 
     int len_delim = strlen(delim);
-    const char *start = str;
-    const char *str_end = str + strlen(str);
-
-    size_t d = 0;
+    const char *start = s->s;
+    const char *str_end = s->s + s->len;
+    int d = 0;
 
     size_t arr_len = SPLIT_INITIAL_SIZE;
-    char **arr = malloc(arr_len * sizeof(char*));
-    if (!arr) DS_OOM();
+    String **arr = malloc(arr_len * sizeof(String *));
+    if (!arr) {
+        DS_OOM();
+    }
 
-    memset(arr, 0, sizeof(char*) * arr_len);
+    memset(arr, 0, sizeof(String *) * arr_len);
     size_t index = 0;
-    char *substring = NULL;
+    String *substring = NULL;
     char *end = strstr(start, delim);
+
     while (end) {
         if (index == arr_len) {
             arr_len <<= 1;
-            char **temp = realloc(arr, arr_len * sizeof(char*));
+            String **temp = realloc(arr, arr_len * sizeof(String *));
             if (!temp) {
                 DS_OOM();
             }
 
             arr = temp;
-            memset(&arr[index], 0, (arr_len - index) * sizeof(char*));
+            memset(&arr[index], 0, (arr_len - index) * sizeof(String *));
         }
 
         d = end - start;
-        substring = malloc(d + 1);
-        if (!substring) {
-            DS_OOM();
-        }
-
-        if (d) {
-            strncpy(substring, start, d);
-        }
-        substring[d] = 0;
+        substring = string_new();
+        string_insert(substring, 0, start, d);
         arr[index++] = substring;
         start = end + len_delim;
         end = strstr(start, delim);
@@ -548,33 +619,26 @@ char **str_split(const char *str, const char *delim, int *n) {
 
     if (index == arr_len) {
             arr_len <<= 1;
-            char **temp = realloc(arr, arr_len * sizeof(char*));
+            String **temp = realloc(arr, arr_len * sizeof(String *));
             if (!temp) {
                 DS_OOM();
             }
 
             arr = temp;
-            memset(&arr[index], 0, (arr_len - index) * sizeof(char*));
+            memset(&arr[index], 0, (arr_len - index) * sizeof(String *));
     }
 
     d = str_end - start;
-    substring = malloc(d + 1);
-    if (!substring) {
-        DS_OOM();
-    }
-
-    if (d) {
-        strncpy(substring, start, d);
-    }
-    substring[d] = 0;
+    substring = string_new();
+    string_insert(substring, 0, start, d);
     arr[index++] = substring;
     *n = (int) index;
     return arr;    
 }
 
-void str_split_free(char **arr, int n) {
+void string_split_free(String **arr, int n) {
     for (int i = 0; i < n; ++i) {
-        free(arr[i]);
+        string_free(arr[i]);
     }
     free(arr);
 }

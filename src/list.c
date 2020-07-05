@@ -212,7 +212,6 @@ DLLNode *list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DL
         pos = list_insert_after(l, pos, curr->data);
         curr = curr->next;
     }
-    list_erase(other, start, end);
     return rv;
 }
 

@@ -5,6 +5,42 @@
 #include <stdio.h>
 #include <string.h>
 
+
+/**
+ * Checks whether an index is reasonable.
+ 
+ * @param   index  Index in data structure.
+ * @param   size   Size of data structure to be indexed.
+ * 
+ * @return         -If the index is positive, whether it is less than the size.
+ *                 -If the index is negative, whether subtracting it from the size is at least 0.
+ */
+inline bool check_index(int index, size_t size) {
+    if (index < 0) {
+        return ((int) size + (int) index) >= 0;
+    } else {
+        return index < (int) size;
+    }
+}
+
+
+/**
+ * If successful, returns the positive modulus.
+ *
+ * @param   index  Index in data structure.
+ * @param   size   Size of data structure to be indexed.
+ *
+ * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
+ */
+inline int modulo(int index, size_t size) {
+    if (!check_index(index, size)) {
+        return -1;
+    }
+
+    int m = index % (int) size;
+    return (m < 0) ? (m + (int) size) : m;
+}
+
 /**
  * After casting to the appropriate types, should return:
  *   -1 if _e1 < _e2
@@ -58,7 +94,7 @@ struct Node {
  *
  * @return        Pointer to newly created node.
  */
-static DS_UNUSED Node *node_new(size_t size) {
+static __attribute__((__unused__)) Node *node_new(size_t size) {
     size_t bytes = sizeof(Node) + size;
     Node *node = malloc(bytes);
     if (!node) {
@@ -116,8 +152,8 @@ int ds_str_cmp(const void *_e1, const void *_e2);
  */
 int ds_int_cmp(const void *_e1, const void *_e2);
 
-static const DSHelper int_helper DS_UNUSED = {sizeof(int), NULL, NULL, ds_int_cmp};
-static const DSHelper str_val_helper DS_UNUSED = {sizeof(char *), ds_str_val_copy, ds_str_val_del, ds_str_cmp};
-static const DSHelper str_ptr_helper DS_UNUSED = {sizeof(char *), ds_str_ptr_copy, NULL, ds_str_cmp};
+static const DSHelper int_helper __attribute__((__unused__)) = {sizeof(int), NULL, NULL, ds_int_cmp};
+static const DSHelper str_val_helper __attribute__((__unused__)) = {sizeof(char *), ds_str_val_copy, ds_str_val_del, ds_str_cmp};
+static const DSHelper str_ptr_helper __attribute__((__unused__)) = {sizeof(char *), ds_str_ptr_copy, NULL, ds_str_cmp};
 
 #endif

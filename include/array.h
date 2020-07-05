@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define ARRAY_ERROR (-1)
-#define ARRAY_END (-2)
+#define ARRAY_END(a) ((a)->size)
 
 typedef struct {
     size_t size;
@@ -22,7 +22,10 @@ typedef struct {
  * @param   a  Pointer to array.
  * @param   i  The index in the array.
  */
-#define array_at(a,i) (((i) < (a)->size) ? (void *) ((a)->arr + ((a)->helper.size * (i))) : NULL)
+void *array_at(Array *a, int i) {
+    int _idx = modulo(i, a->size);
+    return (_idx >= 0) ? (a->arr + (a->helper.size * _idx)) : NULL;
+}
 
 
 /**
@@ -30,7 +33,7 @@ typedef struct {
  *
  * @param   a  Pointer to array.
  */
-#define array_front(a) (((a)->size) ? (void *) ((a)->arr) : NULL)
+#define array_front(a) (((a)->size) ? (void *)((a)->arr) : NULL)
 
 
 /**
@@ -38,7 +41,7 @@ typedef struct {
  *
  * @param   a  Pointer to array.
  */
-#define array_back(a) (((a)->size) ? (void *) ((a)->arr + ((a)->helper.size * ((a)->size - 1))) : NULL)
+#define array_back(a) (((a)->size) ? (void *)((a)->arr + ((a)->helper.size * ((a)->size - 1))) : NULL)
 
 
 /**
@@ -147,28 +150,30 @@ void array_push_back(Array *a, void *e);
  * index. If the index is equal to the array's size, this is equivalent to a push_back operation.
  *
  * @param  a      Pointer to array.
- * @param  index  Index before which the element will be inserted.
+ * @param  index  Index before which the element will be inserted. If this is specified as
+ *                  ARRAY_END(a), this is equivalent to push_back.
  * @param  value  Pointer to the element to be inserted.
  *
  * @return        The index where the item was inserted, or ARRAY_ERROR if there was an error.
  */
-int array_insert(Array *a, size_t index, void *value);
+int array_insert(Array *a, int index, void *value);
 
 
 /**
  * Inserts "nelem" elements, starting with "first", from another array into "a" BEFORE "index".
- *   The inserted elements from are removed from "other".
  *
  * @param   l      Pointer to array.
- * @param   index  Index in "a" before which the elements from "other" will be inserted.
+ * @param   index  Index in "a" before which the elements from "other" will be inserted. If this is specified as
+ *                  ARRAY_END(a), this is equivalent to push_back.
  * @param   other  The other array from which elements will be inserted.
  * @param   first  The first index in "other" from which elements will be inserted.
- * @param   nelem  The number of elements from "other" to insert.
+ * @param   nelem  The number of elements from "other" to insert. If this is -1, it means to insert
+ *                   all elements from "first" until the end of "other".
  *
  * @return         The index of the first of the newly inserted elements, or ARRAY_ERROR if there
  *                     was an error.
  */
-int array_insert_arr(Array *a, size_t index, Array *other, size_t first, size_t nelem);
+int array_insert_arr(Array *a, int index, Array *other, int first, int nelem);
 
 
 /**
@@ -192,13 +197,14 @@ void array_clear(Array *a);
  *
  * @param  a      Pointer to array.
  * @param  first  The first index to delete.
- * @param  nelem  The number of elements to delete.
+ * @param  nelem  The number of elements to delete. If this is -1, it means to erase all elements
+ *                  from "first" to the end of the array.
  *
  * @return        The index after the last element to be deleted. If the last element to be deleted
- *                    was the end of the array, returns ARRAY_END. If an error occurred, returns
+ *                    was the end of the array, returns ARRAY_END(a). If an error occurred, returns
  *                    ARRAY_ERROR.
  */
-int array_erase(Array *a, size_t first, size_t nelem);
+int array_erase(Array *a, int first, int nelem);
 
 
 /**
@@ -229,5 +235,21 @@ void array_sort(Array *a);
  * @return       Pointer to the array element if it was found, or NULL if it was not found.
  */
 void *array_find(Array *a, const void *key);
+
+
+/**
+ * Creates a subarray from "a" with "n" elements, starting at index "start" and moving to
+ * the next element to include with a step size of "step_size".
+ *
+ * @param   start      Index to start the subarray
+ * @param   n          Maximum number of elements to include in the new subarray. -1 implies to
+ *                       include as many elements as the start and step size allow.
+ * @param   step_size  How to adjust the index when copying elements. 1 means move forward 1 index
+ *                       at a time, -1 means move backwards one index at a time, 2 would mean every
+ *                       other index, etc.
+ *
+ * @return             A newly allocated subarray, or NULL if an error occurred.
+ */
+Array *array_subarr(Array *a, int start, int n, int step_size);
 
 #endif
