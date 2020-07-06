@@ -3,8 +3,13 @@
 
 #include "ds.h"
 #include <ctype.h>
-#include <stdarg.h>
 #include <stdbool.h>
+
+typedef enum {
+    STR_INIT_NONE,
+    STR_INIT_CSTR,
+    STR_INIT_STRING
+} StringInitializer;
 
 typedef struct {
     size_t len;
@@ -123,10 +128,17 @@ inline char string_at(String *s, int i) {
 
 /**
  * Creates a new string.
+ * In (1), an empty String is created.
+ * In (2), a String is initialized from a c-string (const char *).
+ * In (3), a String is initialized from another pointer to String.
+ * 
+ * (1) init = STR_INIT_EMPTY:   string_new(StringInitializer init)
+ * (2) init = STR_INIT_CSTR:    string_new(StringInitializer init, const char *str)
+ * (3) init = STR_INIT_STRING:  string_new(StringInitializer init, const String *s)
  *
  * @return    Pointer to newly created string.
  */
-String *string_new(void);
+String *string_new(StringInitializer init, ...);
 
 
 /**

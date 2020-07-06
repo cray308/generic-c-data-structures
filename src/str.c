@@ -7,15 +7,59 @@
 void _str_printf_va(String *s, int pos, const char *format, va_list args);
 int *create_prefix_table(const char *needle, size_t len);
 int *create_prefix_table_rev(const char *needle, size_t len);
-
-String *string_new(void) {
+/**
+ * 
+ *  * Creates a new string.
+ * In (1), an empty String is created.
+ * In (2), a String is initialized from a c-string (const char *).
+ * In (3), a String is initialized from another pointer to String.
+ * 
+ * (1) init = STR_INIT_EMPTY:   string_new(StringInitializer init)
+ * (2) init = STR_INIT_CSTR:    string_new(StringInitializer init, const char *str)
+ * (3) init = STR_INIT_STRING:  string_new(StringInitializer init, const String *s)
+ */
+String *string_new(StringInitializer init, ...) {
     String *s = malloc(sizeof(String));
     if (!s) {
         DS_OOM();
     }
     memset(s, 0, sizeof(String));
     string_reserve(s, INITIAL_STR_CAP);
-    s->s[0] = 0;
+
+    if (init == STR_INIT_NONE) {
+        s->s[0] = 0;
+        return s;
+
+    }
+
+    const void *val;
+    const char *str;
+    const String *other;
+
+    // parse arguments
+    va_list args;
+    va_start(args, init);
+
+    val = va_arg(args, void *);
+
+    va_end(args);
+
+    if (val == NULL) {
+        return s;
+    }
+
+    if (init == STR_INIT_CSTR) {
+        str = (const char *) val;
+        string_append(s, str, strlen(str));
+        //_arr_init_builtin(a, other, n);
+    } else {
+        other = (const String *) val;
+        string_append(s, other->s, other->len);
+
+        //_arr_init_array(a, (Array *) other);
+    }
+
+    //s->s[0] = 0;
     return s;
 }
 
@@ -555,7 +599,7 @@ String *string_substr(String *s, int start, int n, int step_size) {
         return NULL;
     }
 
-    String *sub = string_new();
+    String *sub = string_new(STR_INIT_NONE);
     int end;
 
     if (step_size < 0) {
@@ -610,7 +654,7 @@ String **string_split(String *s, const char *delim, int *n) {
         }
 
         d = end - start;
-        substring = string_new();
+        substring = string_new(STR_INIT_NONE);
         string_insert(substring, 0, start, d);
         arr[index++] = substring;
         start = end + len_delim;
@@ -629,7 +673,7 @@ String **string_split(String *s, const char *delim, int *n) {
     }
 
     d = str_end - start;
-    substring = string_new();
+    substring = string_new(STR_INIT_NONE);
     string_insert(substring, 0, start, d);
     arr[index++] = substring;
     *n = (int) index;

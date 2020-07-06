@@ -7,6 +7,18 @@
 #define ARRAY_ERROR (-1)
 #define ARRAY_END(a) ((a)->size)
 
+typedef enum {
+    INIT_EMPTY,
+    INIT_BUILTIN, // like int nums[] = {1, 2, 3}
+    INIT_ARRAY // like Array *nums
+} ArrayInitializer;
+
+typedef enum {
+    INSERT_SINGLE, // void *
+    INSERT_BUILTIN, // like int nums[] = {1, 2, 3}
+    INSERT_ARRAY // like Array *nums
+} ArrayInsertType;
+
 typedef struct {
     size_t size;
     size_t capacity;
@@ -33,7 +45,9 @@ void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_front(a) (((a)->size) ? (void *)((a)->arr) : NULL)
+inline void *array_front(Array *a) {
+    return a->size ? a->arr : NULL;
+}
 
 
 /**
@@ -41,7 +55,9 @@ void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_back(a) (((a)->size) ? (void *)((a)->arr + ((a)->helper.size * ((a)->size - 1))) : NULL)
+inline void *array_back(Array *a) {
+    return a->size ? (a->arr + (a->helper.size * (a->size - 1))) : NULL;
+}
 
 
 /**
@@ -75,7 +91,9 @@ void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_size(a) ((a)->size)
+inline size_t array_size(Array *a) {
+    return a->size;
+}
 
 
 /**
@@ -83,7 +101,9 @@ void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_capacity(a) ((a)->capacity)
+inline size_t array_capacity(Array *a) {
+    return a->capacity;
+}
 
 
 /**
@@ -91,17 +111,28 @@ void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_empty(a) (!((a)->size))
+inline bool array_empty(Array *a) {
+    return !a->size;
+}
 
 
 /**
  * Creates a new empty array.
+ * In (1), an empty Array is created.
+ * In (2), an Array is initialized from a built-in array data type, passed as a pointer to the
+ *   function, composed of at most n elements.
+ * In (3), an Array is initialized from another Array pointer.
+ * 
+ * (1) init = INIT_EMPTY:    array_new(const DSHelper *helper, ArrayInitializer init)
+ * (2) init = INIT_BUILTIN:  array_new(const DSHelper *helper, ArrayInitializer init, void *arr, int n)
+ * (3) init = INIT_ARRAY:    array_new(const DSHelper *helper, ArrayInitializer init, Array *other)
  *
  * @param   helper  Pointer to DSHelper struct.
+ * @param   init    Type of initializer to execute
  *
  * @return          Pointer to the newly created array.
  */
-Array *array_new(const DSHelper *helper);
+Array *array_new(const DSHelper *helper, ArrayInitializer init, ...);
 
 
 /**
@@ -145,35 +176,29 @@ void array_push_back(Array *a, void *e);
 
 
 /**
- * Inserts a new element BEFORE the specified index. Any elements after this index will be shifted
- * one position to the right. After insertion, the new element will be located at the specified
- * index. If the index is equal to the array's size, this is equivalent to a push_back operation.
+ * Inserts new elements BEFORE the specified index. Any elements after this index
+ * will be shifted one position to the right. After insertion, the first of the new elements
+ * (if there are multiple) will be located at the specified index. If the index is equal to the
+ * array's size, this is equivalent to a push_back operation.
+ * In (1), a single element is inserted.
+ * In (2), elements from a built-in array data type are inserted, starting at index "start" and
+ *   using "n" elements. "start" MUST be a zero-based index and "n" MUST be positive.
+ * In (3), elements from another Array struct are inserted, starting at "start" and using "n"
+ *   elements. "start" may be positive or negative, and "n" may be -1.
+ * 
+ * (1) type = INSERT_SINGLE:   array_insert(Array *a, int index, void *value)
+ * (2) type = INSERT_BUILTIN:  array_insert(Array *a, int index, void *arr, int start, int n)
+ * (3) type = INSERT_ARRAY:    array_insert(Array *a, int index, Array *other, int start, int n)
  *
- * @param  a      Pointer to array.
- * @param  index  Index before which the element will be inserted. If this is specified as
+ * @param  a      Pointer to Array.
+ * @param  index  Index before which the element(s) will be inserted. If this is specified as
  *                  ARRAY_END(a), this is equivalent to push_back.
- * @param  value  Pointer to the element to be inserted.
+ * @param  type   Type of insertion to execute.
  *
- * @return        The index where the item was inserted, or ARRAY_ERROR if there was an error.
+ * @return        The index where the first item was inserted, or ARRAY_ERROR if there was
+ *                  an error.
  */
-int array_insert(Array *a, int index, void *value);
-
-
-/**
- * Inserts "nelem" elements, starting with "first", from another array into "a" BEFORE "index".
- *
- * @param   l      Pointer to array.
- * @param   index  Index in "a" before which the elements from "other" will be inserted. If this is specified as
- *                  ARRAY_END(a), this is equivalent to push_back.
- * @param   other  The other array from which elements will be inserted.
- * @param   first  The first index in "other" from which elements will be inserted.
- * @param   nelem  The number of elements from "other" to insert. If this is -1, it means to insert
- *                   all elements from "first" until the end of "other".
- *
- * @return         The index of the first of the newly inserted elements, or ARRAY_ERROR if there
- *                     was an error.
- */
-int array_insert_arr(Array *a, int index, Array *other, int first, int nelem);
+int array_insert(Array *a, int index, ArrayInsertType type, ...);
 
 
 /**

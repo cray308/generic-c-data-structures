@@ -32,6 +32,8 @@ typedef struct {
     DSHelper helper;
 } Tree;
 
+typedef Tree Set;
+
 /**
  * Creates a new RB-Tree.
  *
