@@ -135,6 +135,8 @@ inline char string_at(String *s, int i) {
  * (1) init = STR_INIT_EMPTY:   string_new(StringInitializer init)
  * (2) init = STR_INIT_CSTR:    string_new(StringInitializer init, const char *str)
  * (3) init = STR_INIT_STRING:  string_new(StringInitializer init, const String *s)
+ * 
+ * @param   init  Type of initializer to execute.
  *
  * @return    Pointer to newly created string.
  */

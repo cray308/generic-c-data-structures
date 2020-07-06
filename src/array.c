@@ -192,7 +192,7 @@ Array *array_new(const DSHelper *helper, ArrayInitializer init, ...) {
     memset(a, 0, sizeof(Array));
     a->helper = *helper;
     array_reserve(a, INITIAL_CAPACITY);
-    if (init == INIT_EMPTY) { // nothing more to do in this case
+    if (init == ARR_INIT_EMPTY) { // nothing more to do in this case
         return a;
     }
 
@@ -205,13 +205,13 @@ Array *array_new(const DSHelper *helper, ArrayInitializer init, ...) {
 
     other = va_arg(args, void *);
 
-    if (init == INIT_BUILTIN) {
+    if (init == ARR_INIT_BUILTIN) {
         n = va_arg(args, int);
     }
 
     va_end(args);
 
-    if (init == INIT_BUILTIN) {
+    if (init == ARR_INIT_BUILTIN) {
         _arr_init_builtin(a, other, n);
     } else {
         _arr_init_array(a, (Array *) other);
@@ -284,7 +284,7 @@ int array_insert(Array *a, int index, ArrayInsertType type, ...) {
 
     other = va_arg(args, void *);
 
-    if (type != INSERT_SINGLE) {
+    if (type != ARR_INSERT_SINGLE) {
         start = va_arg(args, int);
         n = va_arg(args, int);
     }
@@ -294,13 +294,13 @@ int array_insert(Array *a, int index, ArrayInsertType type, ...) {
     int rv = 0;
 
     switch (type) {
-        case INSERT_SINGLE:
+        case ARR_INSERT_SINGLE:
             rv = _arr_insert_elem(a, index, other);
             break;
-        case INSERT_BUILTIN:
+        case ARR_INSERT_BUILTIN:
             rv = _arr_insert_builtin(a, index, other, start, n);
             break;
-        case INSERT_ARRAY:
+        case ARR_INSERT_ARRAY:
             rv = _arr_insert_array(a, index, (Array *) other, start, n);
             break;
     }
@@ -453,7 +453,7 @@ Array *array_subarr(Array *a, int start, int n, int step_size) {
         return NULL;
     }
 
-    Array *sub = array_new(&(a->helper), INIT_EMPTY);
+    Array *sub = array_new(&(a->helper), ARR_INIT_EMPTY);
     int end;
 
     if (step_size < 0) {

@@ -4,7 +4,17 @@
 int list_length(DLLNode *curr);
 void merge(DLLNode **leftStart, DLLNode **leftEnd, DLLNode **rightStart, DLLNode **rightEnd, comparison cmp);
 void mergeSort(DLLNode **front, comparison cmp);
+void _list_init_builtin(List *l, void *arr, int n);
+void _list_init_list(List *l, List *other);
+DLLNode *_list_insert_elem(List *l, DLLNode *pos, void *value, bool sorted);
+DLLNode *_list_insert_builtin(List *l, DLLNode *pos, void *arr, int start, int n, bool sorted);
+DLLNode *_list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DLLNode *end, bool sorted);
+DLLNode *_list_insert_elem_sorted(List *l, void *value);
+DLLNode *_list_insert_after(List *l, DLLNode *pos, void *value);
 DLLNode *dll_node_new(size_t size);
+
+// *****************************************************************
+// helper functions
 
 inline void list_copy(List *l, DLLNode *n, const void *value) {
     if (l->helper.copy) {
@@ -30,7 +40,175 @@ DLLNode *dll_node_new(size_t size) {
     return node;
 }
 
-List *list_new(const DSHelper *helper) {
+// *****************************************************************************************
+// va_args functions to handle initialization and insertion
+
+void _list_init_builtin(List *l, void *arr, int n) {
+    if (!arr || !n) {
+        return;
+    }
+
+    char *ptr = (char *) arr;
+    for (int i = 0; i < n; ++i) {
+        list_push_back(l, ptr);
+        ptr += l->helper.size;
+    }
+}
+
+void _list_init_list(List *l, List *other) {
+    if (!other || !other->size) {
+        return;
+    }
+
+    DLLNode *curr = other->front;
+    while (curr) {
+        list_push_back(l, curr->data);
+        curr = curr->next;
+    }
+}
+
+DLLNode *_list_insert_elem(List *l, DLLNode *pos, void *value, bool sorted) {
+    if (!value) {
+        return LIST_ERROR;
+    } else if (sorted) {
+        return _list_insert_elem_sorted(l, value);
+    } else if (!pos || pos == LIST_END) {
+        list_push_back(l, value);
+        return l->back;
+    }
+
+    DLLNode *prev = pos->prev;
+    DLLNode *new = dll_node_new(l->helper.size);
+    list_copy(l, new, value);
+
+    new->next = pos;
+    pos->prev = new;
+    new->prev = prev;
+
+    if (prev) {
+        prev->next = new;
+    } else {
+        l->front = new;
+    }
+    l->size++;
+    return new;
+}
+
+DLLNode *_list_insert_elem_sorted(List *l, void *value) {
+    if (!value) {
+        return LIST_ERROR;
+    }
+    DLLNode *curr = l->front;
+
+    if (!curr || l->helper.cmp(value, curr->data) <= 0) {
+        list_push_front(l, value);
+        return l->front;
+    } else {
+        int res = 0;
+        DLLNode *prev = l->front;
+        curr = curr->next;
+        while (curr != NULL) {
+            res = l->helper.cmp(value, curr->data);
+            if ((res == 0) || ((res < 0) && (l->helper.cmp(value, prev->data) > 0))) {
+                return _list_insert_elem(l, curr, value, false);
+            }
+            prev = prev->next;
+            curr = curr->next;
+        }
+        list_push_back(l, value);
+        return l->back;
+    }
+}
+
+DLLNode *_list_insert_builtin(List *l, DLLNode *pos, void *arr, int start, int n, bool sorted) {
+    if (!arr || !n) {
+        return LIST_ERROR;
+    }
+
+    char *ptr = (char *) arr + (start * l->helper.size);
+    DLLNode *rv = LIST_END; // ListEntry where first element from arr was inserted
+    int endIdx = start + n;
+    int i = start;
+
+    if (sorted) {
+        for (; i < endIdx; ++i) {
+            _list_insert_elem_sorted(l, ptr);
+            ptr += l->helper.size;
+        }
+        rv = l->front;
+    } else {
+        pos = _list_insert_elem(l, pos, ptr, false);
+        ptr += l->helper.size;
+        rv = pos;
+
+        for (++i; i < endIdx; ++i) {
+            _list_insert_after(l, pos, ptr);
+            ptr += l->helper.size;
+        }
+    }
+    return rv;
+}
+
+DLLNode *_list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DLLNode *end, bool sorted) {
+    if (!other || !(other->front)) {
+        return LIST_ERROR;
+    } else if (!start) {
+        start = other->front;
+    } else if (end && end == LIST_END) {
+        end = NULL;
+    }
+
+    DLLNode *curr = start;
+    DLLNode *rv = NULL;
+
+    if (sorted) {
+        while (curr != end) {
+            _list_insert_elem_sorted(l, curr);
+            curr = curr->next;
+        }
+        rv = l->front;
+    } else {
+        pos = _list_insert_elem(l, pos, curr->data, false);
+        rv = pos;
+        curr = curr->next;
+
+        while (curr != end) {
+            pos = _list_insert_after(l, pos, curr->data);
+            curr = curr->next;
+        }
+    }
+    return rv;
+}
+
+DLLNode *_list_insert_after(List *l, DLLNode *pos, void *value) {
+    if (!value) {
+        return LIST_ERROR;
+    } else if (!pos) {
+        list_push_back(l, value);
+        return l->back;
+    }
+
+    DLLNode *next = pos->next;
+    DLLNode *new = dll_node_new(l->helper.size);
+    list_copy(l, new, value);
+
+    pos->next = new;
+    new->prev = pos;
+    new->next = next;
+
+    if (next) {
+        next->prev = new;
+    } else {
+        l->back = new;
+    }
+    l->size++;
+    return new;
+}
+
+// *****************************************************************************************
+// main list functions
+
+List *list_new(const DSHelper *helper, ListInitializer init, ...) {
     if (!helper || helper->size == 0) {
         return NULL;
     }
@@ -41,6 +219,31 @@ List *list_new(const DSHelper *helper) {
     }
     memset(l, 0, sizeof(List));
     l->helper = *(helper);
+
+    if (init == LIST_INIT_EMPTY) { // nothing more to do in this case
+        return l;
+    }
+
+    int n;
+    void *other;
+
+    // parse arguments
+    va_list args;
+    va_start(args, init);
+
+    other = va_arg(args, void *);
+
+    if (init == LIST_INIT_BUILTIN) {
+        n = va_arg(args, int);
+    }
+
+    va_end(args);
+
+    if (init == LIST_INIT_BUILTIN) {
+        _list_init_builtin(l, other, n);
+    } else {
+        _list_init_list(l, (List *) other);
+    }
     return l;
 }
 
@@ -123,94 +326,42 @@ void list_pop_back(List *l) {
     l->size--;
 }
 
-DLLNode *list_insert_after(List *l, DLLNode *pos, void *value) {
-    if (!value) {
-        return LIST_ERROR;
-    } else if (!pos) {
-        list_push_back(l, value);
-        return l->back;
+
+
+DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ...) {    
+    void *value;
+    int builtin_start;
+    int builtin_n;
+    void *l_start;
+    void *l_end;
+
+    va_list args;
+    va_start(args, type);
+
+    value = va_arg(args, void *);
+
+    if (type == LIST_INSERT_BUILTIN) {
+        builtin_start = va_arg(args, int);
+        builtin_n = va_arg(args, int);
+    } else if (type == LIST_INSERT_LIST) {
+        l_start = va_arg(args, void *);
+        l_end = va_arg(args, void *);
     }
 
-    DLLNode *next = pos->next;
-    DLLNode *new = dll_node_new(l->helper.size);
-    list_copy(l, new, value);
+    va_end(args);
 
-    pos->next = new;
-    new->prev = pos;
-    new->next = next;
+    DLLNode *rv = LIST_END;
 
-    if (next) {
-        next->prev = new;
-    } else {
-        l->back = new;
-    }
-    l->size++;
-    return new;
-}
-
-DLLNode *list_insert_before(List *l, DLLNode *pos, void *value) {
-    if (!value) {
-        return LIST_ERROR;
-    } else if (!pos) {
-        list_push_back(l, value);
-        return l->back;
-    }
-
-    DLLNode *prev = pos->prev;
-    DLLNode *new = dll_node_new(l->helper.size);
-    list_copy(l, new, value);
-
-    new->next = pos;
-    pos->prev = new;
-    new->prev = prev;
-
-    if (prev) {
-        prev->next = new;
-    } else {
-        l->front = new;
-    }
-    l->size++;
-    return new;
-}
-
-DLLNode *list_insert_sorted(List *l, void *value) {
-    DLLNode *curr = l->front;
-
-    if (!curr || l->helper.cmp(value, curr->data) <= 0) {
-        list_push_front(l, value);
-        return l->front;
-    } else {
-        int res = 0;
-        DLLNode *prev = l->front;
-        curr = curr->next;
-        while (curr != NULL) {
-            res = l->helper.cmp(value, curr->data);
-            if ((res == 0) || ((res < 0) && (l->helper.cmp(value, prev->data) > 0))) {
-                return list_insert_before(l, curr, value);
-            }
-            prev = prev->next;
-            curr = curr->next;
-        }
-        list_push_back(l, value);
-        return l->back;
-    }
-}
-
-DLLNode *list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DLLNode *end) {
-    if (!other || !(other->front)) {
-        return LIST_ERROR;
-    } else if (!start) {
-        start = other->front;
-    }
-
-    DLLNode *curr = start;
-    pos = list_insert_before(l, pos, curr->data);
-    DLLNode *rv = pos;
-    curr = curr->next;
-
-    while (curr != end) {
-        pos = list_insert_after(l, pos, curr->data);
-        curr = curr->next;
+    switch (type) {
+        case LIST_INSERT_SINGLE:
+            rv = _list_insert_elem(l, pos, (DLLNode *)value, sorted);
+            break;
+        case LIST_INSERT_BUILTIN:
+            rv = _list_insert_builtin(l, pos, value, builtin_start, builtin_n, sorted);
+            break;
+        case LIST_INSERT_LIST:
+            rv = _list_insert_list(l, pos, (List *) value, (DLLNode *) l_start, (DLLNode *) l_end, sorted);
+            break;
     }
     return rv;
 }

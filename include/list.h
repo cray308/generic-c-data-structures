@@ -9,6 +9,18 @@
 
 typedef int (*meetsCondition)(const void *_val);
 
+typedef enum {
+    LIST_INIT_EMPTY,
+    LIST_INIT_BUILTIN, // like int nums[] = {1, 2, 3}
+    LIST_INIT_LIST // like List *nums
+} ListInitializer;
+
+typedef enum {
+    LIST_INSERT_SINGLE, // void *
+    LIST_INSERT_BUILTIN, // like int nums[] = {1, 2, 3}
+    LIST_INSERT_LIST // like List *nums
+} ListInsertType;
+
 typedef struct DLLNode DLLNode;
 struct DLLNode {
     DLLNode *prev;
@@ -32,7 +44,9 @@ typedef DLLNode *ListEntry;
  *
  * @param   l  The List struct pointer.
  */
-#define list_front(l) (void*)(((l)->front) ? ((l)->front->data) : NULL)
+inline void *list_front(List *l) {
+    return l->front ? l->front->data : NULL;
+}
 
 
 /**
@@ -40,7 +54,9 @@ typedef DLLNode *ListEntry;
  *
  * @param   l  The List struct pointer.
  */
-#define list_back(l) (void*)(((l)->back) ? ((l)->back->data) : NULL)
+inline void *list_back(List *l) {
+    return l->back ? l->back->data : NULL;
+}
 
 
 /**
@@ -48,7 +64,9 @@ typedef DLLNode *ListEntry;
  *
  * @param   l  The List struct pointer.
  */
-#define list_empty(l) (!((l)->front))
+inline bool list_empty(List *l) {
+    return !l->front;
+}
 
 
 /**
@@ -56,7 +74,9 @@ typedef DLLNode *ListEntry;
  *
  * @param   l  The List struct pointer.
  */
-#define list_size(l) ((l)->size)
+inline size_t list_size(List *l) {
+    return l->size;
+}
 
 
 /**
@@ -84,13 +104,22 @@ typedef DLLNode *ListEntry;
 
 
 /**
- * Creates a new empty list.
+ * Creates a new list.
+ * In (1), an empty List is created.
+ * In (2), a List is initialized from a built-in array data type, passed as a pointer to the
+ *   function, composed of at most n elements.
+ * In (3), a List is initialized from another List.
+ * 
+ * (1) init = LIST_INIT_EMPTY:    list_new(const DSHelper *helper, ListInitializer init)
+ * (2) init = LIST_INIT_BUILTIN:  list_new(const DSHelper *helper, ListInitializer init, void *arr, int n)
+ * (3) init = LIST_INIT_ARRAY:    list_new(const DSHelper *helper, ListInitializer init, List *other)
  *
  * @param   helper  Pointer to DSHelper struct.
+ * @param   init    Type of initializer to execute.
  *
  * @return          A pointer to the newly allocated list.
  */
-List *list_new(const DSHelper *helper);
+List *list_new(const DSHelper *helper, ListInitializer init, ...);
 
 
 /**
@@ -136,74 +165,31 @@ void list_pop_back(List *l);
 
 
 /**
- * Inserts the provided element before the ListEntry at pos.
+ * Inserts new elements BEFORE the ListEntry at "pos".
+ * In (1), a single element is inserted.
+ * In (2), elements from a built-in array data type are inserted, starting at index "start" and
+ *   using "n" elements. "start" MUST be a zero-based index and "n" MUST be positive.
+ * In (3), elements from another List are inserted in the range [start, end). If "start" is NULL,
+ *   it defaults to the front of the other list. If "end" is LIST_END, then all elements from
+ *   "start" through the end of the other list will be inserted.
+ * 
+ * (1) type = LIST_INSERT_SINGLE:   list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, void *value)
+ * (2) type = LIST_INSERT_BUILTIN:  list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, void *arr, int start, int n)
+ * (3) type = LIST_INSERT_LIST:     list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, List *other, DLLNode *start, DLLNode *end)
  *
- * @param   l      Pointer to list.
- * @param   pos    ListEntry where the element should be inserted before. If this is NULL, it
- *                   defaults to list_push_back.
- * @param   value  Pointer to the element to be inserted.
+ * @param   l       Pointer to list.
+ * @param   pos     ListEntry before which the element(s) should be inserted. If this is LIST_END,
+ *                    it defaults to list_push_back.
+ * @param   sorted  Whether elements should be inserted in sorted order. If this is true, "pos" is
+ *                    ignored.
+ * @param   type    Type of insertion to execute.
  *
- * @return         If successful, returns a ListEntry corresponding to the inserted element. If an
- *                    error occurred, returns LIST_ERROR.
+ * @return         If successful, and "sorted" is false, returns a ListEntry corresponding to the
+ *                   first inserted element. If "sorted" is true and multiple elements were
+ *                   inserted, returns the front ListEntry in the list. If an error occurred,
+ *                   returns LIST_ERROR.
  */
-DLLNode *list_insert_before(List *l, DLLNode *pos, void *value);
-
-
-/**
- * Inserts the provided element after the ListEntry at pos.
- *
- * @param   l      Pointer to list.
- * @param   pos    ListEntry where the element should be inserted after. If this is NULL, it
- *                   defaults to list_push_back.
- * @param   value  Pointer to the element to be inserted.
- *
- * @return         If successful, returns a ListEntry corresponding to the inserted element. If an
- *                    error occurred, returns LIST_ERROR.
- */
-DLLNode *list_insert_after(List *l, DLLNode *pos, void *value);
-
-
-/**
- * Inserts the provided element into the list in sorted order, according to the comparison
- *   function in the provided DSHelper struct.
- *
- * @param   l      Pointer to list.
- * @param   value  Pointer to the element to be inserted.
- *
- * @return         If successful, returns a ListEntry corresponding to the inserted element.
- */
-DLLNode *list_insert_sorted(List *l, void *value);
-
-
-/**
- * Inserts elements from another list in the range [start, end) into the first list BEFORE pos.
- *
- * @param   l      Pointer to list.
- * @param   pos    ListEntry in "l" before which elements should be inserted. If this is NULL,
- *                   elements will be appended.
- * @param   other  The other list from which elements will be inserted.
- * @param   start  ListEntry of the first element to insert from the other list. If this is NULL,
- *                   it defaults to the front of the other list.
- * @param   end    ListEntry AFTER the last element to be inserted. If this is NULL, then
- *                   all elements from "start" through the end of the other list will be inserted.
- *
- * @return         If successful, returns a ListEntry corresponding to the first element which
- *                    was inserted. If an error occurred, returns LIST_ERROR.
- */
-DLLNode *list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DLLNode *end);
-
-
-/**
- * Removes the provided ListEntry from the list.
- *
- * @param   l     Pointer to list.
- * @param   elem  ListEntry to be removed.
- *
- * @return        If successful, returns a ListEntry corresponding to the element after the
- *                   deleted element. If an error occurred, returns LIST_ERROR. If the deleted
- *                   element was the end of the list, returns LIST_END.
- */
-//DLLNode *list_remove(List *l, DLLNode *elem);
+DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ...);
 
 
 /**

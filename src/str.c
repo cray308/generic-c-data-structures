@@ -7,17 +7,7 @@
 void _str_printf_va(String *s, int pos, const char *format, va_list args);
 int *create_prefix_table(const char *needle, size_t len);
 int *create_prefix_table_rev(const char *needle, size_t len);
-/**
- * 
- *  * Creates a new string.
- * In (1), an empty String is created.
- * In (2), a String is initialized from a c-string (const char *).
- * In (3), a String is initialized from another pointer to String.
- * 
- * (1) init = STR_INIT_EMPTY:   string_new(StringInitializer init)
- * (2) init = STR_INIT_CSTR:    string_new(StringInitializer init, const char *str)
- * (3) init = STR_INIT_STRING:  string_new(StringInitializer init, const String *s)
- */
+
 String *string_new(StringInitializer init, ...) {
     String *s = malloc(sizeof(String));
     if (!s) {
@@ -51,15 +41,11 @@ String *string_new(StringInitializer init, ...) {
     if (init == STR_INIT_CSTR) {
         str = (const char *) val;
         string_append(s, str, strlen(str));
-        //_arr_init_builtin(a, other, n);
     } else {
         other = (const String *) val;
         string_append(s, other->s, other->len);
-
-        //_arr_init_array(a, (Array *) other);
     }
 
-    //s->s[0] = 0;
     return s;
 }
 

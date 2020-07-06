@@ -16,7 +16,7 @@ char *words[] = {"religiosos", "literature", "uncleansed", "skittishly", "accept
 #define LEN_WORDS 10
 
 void test_macros(void) {
-    Array *a = array_new(&str_val_helper, INIT_EMPTY);
+    Array *a = array_new(&str_val_helper, ARR_INIT_EMPTY);
     // test macros with empty array
 
     assert(array_size(a) == 0);
@@ -87,7 +87,7 @@ void test_macros(void) {
 }
 
 void test_resizing(void) {
-    Array *a = array_new(&int_helper, INIT_EMPTY);
+    Array *a = array_new(&int_helper, ARR_INIT_EMPTY);
 
     size_t old = array_capacity(a);
 
@@ -136,7 +136,7 @@ void test_resizing(void) {
 }
 
 void test_custom_initializers(void) {
-    Array *a = array_new(&str_ptr_helper, INIT_BUILTIN, &words, 10);
+    Array *a = array_new(&str_ptr_helper, ARR_INIT_BUILTIN, &words, 10);
     assert(array_size(a) == 10);
 
     char **ptr;
@@ -145,7 +145,7 @@ void test_custom_initializers(void) {
         assert(streq(*ptr, words[i++]));
     }
 
-    Array *a2 = array_new(&str_ptr_helper, INIT_ARRAY, a);
+    Array *a2 = array_new(&str_ptr_helper, ARR_INIT_ARRAY, a);
     assert(array_size(a2) == 10);
 
     char **ptr2;
@@ -160,26 +160,26 @@ void test_custom_initializers(void) {
 }
 
 void test_insert(void) {
-    Array *a = array_new(&int_helper, INIT_EMPTY);
+    Array *a = array_new(&int_helper, ARR_INIT_EMPTY);
     int value = 2;
 
-    int rv = array_insert(a, -1, INSERT_SINGLE, &value);
+    int rv = array_insert(a, -1, ARR_INSERT_SINGLE, &value);
     assert(rv == 0);
 
     value = 4;
-    rv = array_insert(a, -1, INSERT_SINGLE, &value);
+    rv = array_insert(a, -1, ARR_INSERT_SINGLE, &value);
     assert(rv == 0);
 
     value = 1;
-    rv = array_insert(a, 0, INSERT_SINGLE, &value);
+    rv = array_insert(a, 0, ARR_INSERT_SINGLE, &value);
     assert(rv == 0);
 
     value = 3;
-    rv = array_insert(a, 2, INSERT_SINGLE, &value);
+    rv = array_insert(a, 2, ARR_INSERT_SINGLE, &value);
     assert(rv == 2);
 
     value = 5;
-    rv = array_insert(a, ARRAY_END(a), INSERT_SINGLE, &value);
+    rv = array_insert(a, ARRAY_END(a), ARR_INSERT_SINGLE, &value);
     assert(rv == array_size(a) - 1);
 
     array_free(a);
@@ -187,27 +187,27 @@ void test_insert(void) {
 
 void test_insert_arr(void) {
     int vals[] = {0, 1, 2, 3, 4};
-    Array *a1 = array_new(&int_helper, INIT_EMPTY);
-    Array *a2 = array_new(&int_helper, INIT_BUILTIN, &vals, 5);
+    Array *a1 = array_new(&int_helper, ARR_INIT_EMPTY);
+    Array *a2 = array_new(&int_helper, ARR_INIT_BUILTIN, &vals, 5);
     assert(array_size(a2) == 5);
 
-    int rv = array_insert(a1, 0, INSERT_ARRAY, a2, 10, 5);
+    int rv = array_insert(a1, 0, ARR_INSERT_ARRAY, a2, 10, 5);
     assert(rv == ARRAY_ERROR);
 
-    rv = array_insert(a1, 0, INSERT_ARRAY, a2, 2, 0);
+    rv = array_insert(a1, 0, ARR_INSERT_ARRAY, a2, 2, 0);
     assert(rv == ARRAY_ERROR);
 
-    rv = array_insert(a1, -1, INSERT_ARRAY, a2, 0, 5);
+    rv = array_insert(a1, -1, ARR_INSERT_ARRAY, a2, 0, 5);
     assert(rv == 0);
     assert(array_size(a1) == 5);
     assert(array_size(a2) == 5);
 
     array_clear(a2);
-    rv = array_insert(a2, -1, INSERT_BUILTIN, &vals, 0, 5);
+    rv = array_insert(a2, -1, ARR_INSERT_BUILTIN, &vals, 0, 5);
     assert(rv == 0);
     assert(array_size(a2) == 5);
 
-    rv = array_insert(a1, -4, INSERT_ARRAY, a2, 0, 2);
+    rv = array_insert(a1, -4, ARR_INSERT_ARRAY, a2, 0, 2);
     assert(rv == 1);
 
     assert(array_size(a1) == 7);
@@ -236,7 +236,7 @@ void test_insert_arr(void) {
 }
 
 void test_erase(void) {
-    Array *a = array_new(&str_ptr_helper, INIT_BUILTIN, &words, 10);
+    Array *a = array_new(&str_ptr_helper, ARR_INIT_BUILTIN, &words, 10);
 
     int rv = array_erase(a, 15, 2);
     assert(rv == ARRAY_ERROR);
@@ -260,7 +260,7 @@ void test_erase(void) {
 }
 
 void test_shrink(void) {
-    Array *a = array_new(&int_helper, INIT_EMPTY);
+    Array *a = array_new(&int_helper, ARR_INIT_EMPTY);
     array_shrink_to_fit(a);
     assert(array_capacity(a) > array_size(a));
 
@@ -272,7 +272,7 @@ void test_shrink(void) {
 }
 
 void test_utility(void) {
-    Array *a = array_new(&str_val_helper, INIT_BUILTIN, &names, 23);
+    Array *a = array_new(&str_val_helper, ARR_INIT_BUILTIN, &names, 23);
 
     char **curr = NULL;
     char **prev = NULL;
@@ -296,7 +296,7 @@ void test_utility(void) {
 
 void test_subarr(void) {
     int vals[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    Array *a = array_new(&int_helper, INIT_BUILTIN, &vals, 10);
+    Array *a = array_new(&int_helper, ARR_INIT_BUILTIN, &vals, 10);
     Array *a2 = array_subarr(a, 0, -1, 1);
     assert(a2->size == a->size);
     int *ptr;

@@ -8,15 +8,15 @@
 #define ARRAY_END(a) ((a)->size)
 
 typedef enum {
-    INIT_EMPTY,
-    INIT_BUILTIN, // like int nums[] = {1, 2, 3}
-    INIT_ARRAY // like Array *nums
+    ARR_INIT_EMPTY,
+    ARR_INIT_BUILTIN, // like int nums[] = {1, 2, 3}
+    ARR_INIT_ARRAY // like Array *nums
 } ArrayInitializer;
 
 typedef enum {
-    INSERT_SINGLE, // void *
-    INSERT_BUILTIN, // like int nums[] = {1, 2, 3}
-    INSERT_ARRAY // like Array *nums
+    ARR_INSERT_SINGLE, // void *
+    ARR_INSERT_BUILTIN, // like int nums[] = {1, 2, 3}
+    ARR_INSERT_ARRAY // like Array *nums
 } ArrayInsertType;
 
 typedef struct {
@@ -117,18 +117,18 @@ inline bool array_empty(Array *a) {
 
 
 /**
- * Creates a new empty array.
+ * Creates a new array.
  * In (1), an empty Array is created.
  * In (2), an Array is initialized from a built-in array data type, passed as a pointer to the
  *   function, composed of at most n elements.
  * In (3), an Array is initialized from another Array pointer.
  * 
- * (1) init = INIT_EMPTY:    array_new(const DSHelper *helper, ArrayInitializer init)
- * (2) init = INIT_BUILTIN:  array_new(const DSHelper *helper, ArrayInitializer init, void *arr, int n)
- * (3) init = INIT_ARRAY:    array_new(const DSHelper *helper, ArrayInitializer init, Array *other)
+ * (1) init = ARR_INIT_EMPTY:    array_new(const DSHelper *helper, ArrayInitializer init)
+ * (2) init = ARR_INIT_BUILTIN:  array_new(const DSHelper *helper, ArrayInitializer init, void *arr, int n)
+ * (3) init = ARR_INIT_ARRAY:    array_new(const DSHelper *helper, ArrayInitializer init, Array *other)
  *
  * @param   helper  Pointer to DSHelper struct.
- * @param   init    Type of initializer to execute
+ * @param   init    Type of initializer to execute.
  *
  * @return          Pointer to the newly created array.
  */
@@ -186,9 +186,9 @@ void array_push_back(Array *a, void *e);
  * In (3), elements from another Array struct are inserted, starting at "start" and using "n"
  *   elements. "start" may be positive or negative, and "n" may be -1.
  * 
- * (1) type = INSERT_SINGLE:   array_insert(Array *a, int index, void *value)
- * (2) type = INSERT_BUILTIN:  array_insert(Array *a, int index, void *arr, int start, int n)
- * (3) type = INSERT_ARRAY:    array_insert(Array *a, int index, Array *other, int start, int n)
+ * (1) type = ARR_INSERT_SINGLE:   array_insert(Array *a, int index, void *value)
+ * (2) type = ARR_INSERT_BUILTIN:  array_insert(Array *a, int index, void *arr, int start, int n)
+ * (3) type = ARR_INSERT_ARRAY:    array_insert(Array *a, int index, Array *other, int start, int n)
  *
  * @param  a      Pointer to Array.
  * @param  index  Index before which the element(s) will be inserted. If this is specified as
