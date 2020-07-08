@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "rbtree.h"
+#include <assert.h>
 
 int ints[] = {58490, 13829, 44828, 35725, 20384, 46283, 56369, 21807, 15590, 1520, 60285, 11387,
               34372, 49312, 52170, 30455, 52223, 41564, 53018, 3098, 25875, 45077, 36617, 58448,
@@ -23,33 +24,26 @@ char *strs_sorted[] = {"avahi", "bin", "chrisray", "colord", "daemon", "dbus", "
 Tree *t1 = NULL;
 Tree *t2 = NULL;
 
-int int_counter = 0;
-int str_counter = 0;
-
-void print_int(const void *_val) {
-    const int *val = (const int *) _val;
-    assert(*val == ints_sorted[int_counter++]);
-    //printf("%d\t", *val);
-}
-
-void print_str(const void *_val) {
-    const char **val = (const char **) _val;
-    assert(streq(*val, strs_sorted[str_counter++]));
-    //puts(*val);
-}
-
 void test_01(void) {
+    int int_counter = 0;
+    int str_counter = 0;
     for (int i = 0; i < LEN_INTS; ++i) {
         tree_insert(t1, &ints[i]);
     }
+    int *iptr;
+    char **sptr;
 
-    tree_inorder(t1, print_int);
+    tree_inorder(t1, iptr) {
+        assert(*iptr == ints_sorted[int_counter++]);
+    }
 
     for (int i = 0; i < LEN_STRS; ++i) {
         tree_insert(t2, &strs[i]);
     }
 
-    tree_inorder(t2, print_str);
+    tree_inorder(t2, sptr) {
+        assert(streq(*sptr, strs_sorted[str_counter++]));
+    }
 }
 
 void test_02(void) {
@@ -63,7 +57,7 @@ void test_02(void) {
     assert(n1 == NULL);
 
     test_int = 3098;
-    tree_deleteByVal(t1, &test_int);
+    tree_delete_by_val(t1, &test_int);
     n1 = tree_find(t1, &test_int);
     assert(n1 == NULL);
 
@@ -74,7 +68,7 @@ void test_02(void) {
     assert(n2 == NULL);
 
     test_str = "git";
-    tree_deleteByVal(t2, &test_str);
+    tree_delete_by_val(t2, &test_str);
     n2 = tree_find(t2, &test_str);
     assert(n2 == NULL);
 }

@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "str.h"
+#include <ctype.h>
 
 #define SPLIT_INITIAL_SIZE 8
 #define INITIAL_STR_CAP 64

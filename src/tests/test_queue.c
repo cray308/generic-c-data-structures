@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "queue.h"
+#include <assert.h>
 
 char *strs[] = {"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"};
 

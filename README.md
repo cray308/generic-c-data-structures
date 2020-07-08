@@ -26,9 +26,11 @@ Documentation is provided in the header files (in the `include` folder).
 
  - Stack (named `Stack`).
 
- - Red-black tree (named `Tree`). __Note__: in the future, I may implement set operations
- (such as union, intersection, difference, symmetric difference, etc.) so that this data
- structure can function as a set.
+ - Red-black tree (named `Tree`).
+
+ - Set (named `Set`). In this implementation, a `Set` is simply a `Tree`, but the latter portion
+ of `include/rbtree.h` defines functions that are oriented towards sets (i.e. union, intersection,
+ difference, symmetric difference, etc.)
 
  - String (named `String`). This is similar to a C++ string, and also includes a function
  for inserting a printf-style format string.
@@ -85,7 +87,7 @@ List *l = list_new(&int_helper);
 // add some elements
 int find_val = 5;
 
-ListEntry e = list_find(l, find_val); // WRONG!!!
+ListEntry *e = list_find(l, find_val); // WRONG!!!
 
 e = list_find(l, &find_val); // this works
 ```

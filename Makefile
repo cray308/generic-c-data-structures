@@ -10,14 +10,12 @@ CFLAGS += -funsigned-char
 LDFLAGS = -Llib
 
 DEFAULTS_OBJ = include/defaults.h.gch
-HEADERS = include/ds.h include/stack.h include/queue.h include/array.h
-HEADERS += include/list.h include/rbtree.h include/str.h
-SOURCES = src/ds.c src/stack.c src/queue.c src/array.c src/list.c src/rbtree.c
-SOURCES += src/str.c src/map.c
+HEADERS = $(wildcard include/*.h)
+SOURCES = $(wildcard src/*.c)
 OBJS = $(SOURCES:.c=.o)
 LIBRARY = lib/libds.so
 TEST_BINARIES = bin/test_stack bin/test_queue bin/test_list bin/test_array
-TEST_BINARIES += bin/test_rbtree bin/test_str bin/test_map
+TEST_BINARIES += bin/test_rbtree bin/test_str bin/test_map bin/test_set
 
 .SECONDARY: $(OBJS) $(TEST_OBJS)
 

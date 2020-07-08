@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "stack.h"
+#include <assert.h>
 
 typedef struct {
     double val;

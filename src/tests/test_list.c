@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "list.h"
+#include <assert.h>
 
 List *l = NULL;
 
@@ -9,6 +10,15 @@ char *names[] = {"root","bin","daemon","mail","ftp","http","nobody","dbus","syst
 
 char *strs[] = {"Ten", "Nine", "Eight", "Seven", "Six", "Five",
                 "Four", "Three", "Two", "One"};
+
+int ints[] = {58490, 13829, 44828, 35725, 20384, 46283, 56369, 21807, 15590, 1520, 60285, 11387,
+              34372, 49312, 52170, 30455, 52223, 41564, 53018, 3098, 25875, 45077, 36617, 58448,
+              42128, 13655, 7077, 62936, 46937, 14427};
+
+int ints_sorted[] = {1520, 3098, 5000, 7077, 10000, 11387, 13655, 13829, 14427, 15000, 15590, 20000,
+                     20384, 21807, 25000, 25875, 30000, 30455, 34372, 35000, 35725, 36617, 41564,
+                     42128, 44828, 45077, 46283, 46937, 49312, 52170, 52223, 53018, 56369, 58448,
+                     58490, 60285, 62936};
 
 int testCond(const void *_val) {
     int *val = (int *) _val;
@@ -31,7 +41,7 @@ void test_macros_insertion(void) {
     ptr = list_back(l);
     assert(strcmp(*ptr, names[1]) == 0);
 
-    ListEntry e = l->front;
+    ListEntry *e = l->front;
     int i = 0;
     for (; i < 10; ++i) {
         e = list_insert(l, e->next, false, LIST_INSERT_SINGLE, &strs[i]);
@@ -205,10 +215,10 @@ void test_sort(List *l) {
 
 void test_find_erase(List *l) {
     char *str = "nobody";
-    ListEntry res = list_find(l, &str);
+    ListEntry *res = list_find(l, &str);
     assert(res != NULL);
 
-    ListEntry polkit = list_erase(l, res, res->next);
+    ListEntry *polkit = list_erase(l, res, res->next);
     assert(polkit != NULL);
     assert(list_size(l) == 22);
 
@@ -218,20 +228,94 @@ void test_find_erase(List *l) {
 
 void test_insert_list(List *l) {
     List *l2 = list_new(&str_val_helper, LIST_INIT_EMPTY);
-    ListEntry iter = LIST_END;
+    ListEntry *iter = LIST_END;
     for (int i = 0; i < 10; ++i) {
         iter = list_insert(l2, iter, false, LIST_INSERT_SINGLE, &strs[i]);
     }
 
     char *str = "chrisray";
-    ListEntry pos = list_find(l, &str);
+    ListEntry *pos = list_find(l, &str);
     str = "Four";
-    ListEntry start2 = list_find(l2, &str);
+    ListEntry *start2 = list_find(l2, &str);
     list_insert(l, pos, false, LIST_INSERT_LIST, l2, start2, LIST_END);
     assert(list_size(l) == 20);
     assert(list_size(l2) == 10);
 
     list_free(l2);
+}
+
+void test_string(void) {
+    DSHelper myhelper = {sizeof(char), NULL, NULL, NULL};
+    const char mystr[] = "Hello there";
+    List *l = list_new(&myhelper, LIST_INIT_BUILTIN, &mystr, 11);
+    assert(list_size(l) == 11);
+    int i = 0;
+    char *ptr;
+
+    list_iter(l, ptr) {
+        assert(*ptr == mystr[i++]);
+    }
+    
+    list_free(l);
+}
+
+void test_merge(void) {
+    const int len_sorted = 37;
+    int ints_2[] = {35000, 30000, 25000, 20000, 15000, 10000, 5000};
+    List *l = list_new(&int_helper, LIST_INIT_BUILTIN, &ints, 30);
+    List *l2 = list_new(&int_helper, LIST_INIT_BUILTIN, &ints_2, 7);
+
+    list_sort(l);
+    list_sort(l2);
+
+    list_merge(l, l2);
+    assert(list_size(l) == len_sorted);
+    assert(list_size(l2) == 0);
+    int i = 0;
+    int *ptr;
+
+    list_iter(l, ptr) {
+        assert(*ptr == ints_sorted[i++]);
+    }
+
+    i = len_sorted - 1;
+    list_riter(l, ptr) {
+        assert(*ptr == ints_sorted[i--]);
+    }
+    list_free(l);
+    list_free(l2);
+}
+
+void test_sublist(void) {
+    int vals[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    List *l = list_new(&int_helper, LIST_INIT_BUILTIN, &vals, 10);
+
+    List *l2 = list_sublist(l, NULL, LIST_END);
+    assert(l2 == NULL);
+
+    l2 = list_sublist(l, l->front, l->front);
+    assert(l2 == NULL);
+
+    l2 = list_sublist(l, l->front, LIST_END);
+    assert(l2 && l2->size == l->size);
+    int i = 0;
+    int *ptr;
+    list_iter(l2, ptr) {
+        assert(*ptr == i++);
+    }
+    list_free(l2);
+
+    ListEntry *e = list_find(l, &(int){2});
+    assert(e != NULL);
+
+    l2 = list_sublist(l, e, LIST_END);
+    assert(l2 && l2->size == 8);
+    i = 2;
+    list_iter(l2, ptr) {
+        assert(*ptr == i++);
+    }
+    list_free(l2);
+    list_free(l);
 }
 
 int main(int argc, char *argv[]) {
@@ -251,6 +335,9 @@ int main(int argc, char *argv[]) {
     test_find_erase(l);
     test_insert_list(l);
     list_free(l);
+    test_string();
+    test_merge();
+    test_sublist();
 
     return 0;
 }

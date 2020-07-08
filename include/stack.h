@@ -2,7 +2,6 @@
 #define STACK_H
 
 #include "ds.h"
-#include <stdbool.h>
 
 typedef struct {
     size_t size;

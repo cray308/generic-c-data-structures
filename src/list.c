@@ -4,17 +4,15 @@
 int list_length(DLLNode *curr);
 void merge(DLLNode **leftStart, DLLNode **leftEnd, DLLNode **rightStart, DLLNode **rightEnd, comparison cmp);
 void mergeSort(DLLNode **front, comparison cmp);
-void _list_init_builtin(List *l, void *arr, int n);
-void _list_init_list(List *l, List *other);
 DLLNode *_list_insert_elem(List *l, DLLNode *pos, void *value, bool sorted);
 DLLNode *_list_insert_builtin(List *l, DLLNode *pos, void *arr, int start, int n, bool sorted);
 DLLNode *_list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DLLNode *end, bool sorted);
 DLLNode *_list_insert_elem_sorted(List *l, void *value);
 DLLNode *_list_insert_after(List *l, DLLNode *pos, void *value);
-DLLNode *dll_node_new(size_t size);
 
-// *****************************************************************
-// helper functions
+/* ------------------------------------------------------------------------- */
+/*  Copy/remove helper functions    */
+/* ------------------------------------------------------------------------- */
 
 inline void list_copy(List *l, DLLNode *n, const void *value) {
     if (l->helper.copy) {
@@ -30,6 +28,10 @@ inline void list_rm(List *l, DLLNode *n) {
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/*  DLLNode initializer    */
+/* ------------------------------------------------------------------------- */
+
 DLLNode *dll_node_new(size_t size) {
     size_t bytes = sizeof(DLLNode) + size;
     DLLNode *node = malloc(bytes);
@@ -40,32 +42,9 @@ DLLNode *dll_node_new(size_t size) {
     return node;
 }
 
-// *****************************************************************************************
-// va_args functions to handle initialization and insertion
-
-void _list_init_builtin(List *l, void *arr, int n) {
-    if (!arr || !n) {
-        return;
-    }
-
-    char *ptr = (char *) arr;
-    for (int i = 0; i < n; ++i) {
-        list_push_back(l, ptr);
-        ptr += l->helper.size;
-    }
-}
-
-void _list_init_list(List *l, List *other) {
-    if (!other || !other->size) {
-        return;
-    }
-
-    DLLNode *curr = other->front;
-    while (curr) {
-        list_push_back(l, curr->data);
-        curr = curr->next;
-    }
-}
+/* ------------------------------------------------------------------------- */
+/*  va_args functions to handle initialization and insertion  */
+/* ------------------------------------------------------------------------- */
 
 DLLNode *_list_insert_elem(List *l, DLLNode *pos, void *value, bool sorted) {
     if (!value) {
@@ -142,7 +121,7 @@ DLLNode *_list_insert_builtin(List *l, DLLNode *pos, void *arr, int start, int n
         rv = pos;
 
         for (++i; i < endIdx; ++i) {
-            _list_insert_after(l, pos, ptr);
+            pos = _list_insert_after(l, pos, ptr);
             ptr += l->helper.size;
         }
     }
@@ -205,8 +184,9 @@ DLLNode *_list_insert_after(List *l, DLLNode *pos, void *value) {
     return new;
 }
 
-// *****************************************************************************************
-// main list functions
+/* ------------------------------------------------------------------------- */
+/*  Main list functions    */
+/* ------------------------------------------------------------------------- */
 
 List *list_new(const DSHelper *helper, ListInitializer init, ...) {
     if (!helper || helper->size == 0) {
@@ -240,9 +220,9 @@ List *list_new(const DSHelper *helper, ListInitializer init, ...) {
     va_end(args);
 
     if (init == LIST_INIT_BUILTIN) {
-        _list_init_builtin(l, other, n);
+        _list_insert_builtin(l, LIST_END, other, 0, n, false);
     } else {
-        _list_init_list(l, (List *) other);
+        _list_insert_list(l, LIST_END, (List *) other, ((List *) other)->front, LIST_END, false);
     }
     return l;
 }
@@ -326,8 +306,6 @@ void list_pop_back(List *l) {
     l->size--;
 }
 
-
-
 DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ...) {    
     void *value;
     int builtin_start;
@@ -367,19 +345,20 @@ DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ..
 }
 
 DLLNode *list_erase(List *l, DLLNode *first, DLLNode *last) {
-    if (!first) {
+    if (!first || !l->front || (first == last)) {
         return LIST_ERROR;
+    } else if (last == LIST_END) {
+        last = NULL;
     }
 
     DLLNode *before = first->prev;
-    DLLNode *curr = first;
     DLLNode *tmp;
 
-    while (curr != last) {
-        tmp = curr->next;
-        list_rm(l, curr);
-        free(curr);
-        curr = tmp;
+    while (first != last) {
+        tmp = first->next;
+        list_rm(l, first);
+        free(first);
+        first = tmp;
         l->size--;
     }
 
@@ -415,6 +394,10 @@ void list_clear(List *l) {
     l->back = NULL;
     l->size = 0;
 }
+
+/* ------------------------------------------------------------------------- */
+/*  List utility functions    */
+/* ------------------------------------------------------------------------- */
 
 void list_reverse(List *l) {
     DLLNode *newFront = l->back;
@@ -565,6 +548,95 @@ DLLNode *list_find(List *l, void *val) {
     }
     return NULL;
 }
+
+List *list_sublist(List *this, DLLNode *first, DLLNode *last) {
+    if (!this->front || !first || (first == last)) {
+        return NULL;
+    } else if (last == LIST_END) {
+        last = NULL;
+    }
+
+    List *sub = list_new(&(this->helper), LIST_INIT_EMPTY);
+
+    while (first != last) {
+        list_push_back(sub, first->data);
+        first = first->next;
+    }
+    return sub;
+}
+
+void list_merge(List *this, List *other) {
+    if (!other || !other->front) { // nothing to merge
+        return;
+    } else if (!this->front) { // "this" is empty, set it to other and return
+        this->front = other->front;
+        this->back = other->back;
+        this->size = other->size;
+        other->front = NULL;
+        other->back = NULL;
+        other->size = 0;
+        return;
+    }
+
+    DLLNode *mergedFront, *curr, *prev = NULL;
+    DLLNode *left = this->front, *right = other->front;
+    int res = this->helper.cmp(left->data, right->data);
+
+    if (res <= 0) {
+        mergedFront = left;
+        left = left->next;
+    } else {
+        mergedFront = right;
+        right = right->next;
+    }
+    curr = mergedFront;
+
+    while (left && right) {
+        res = this->helper.cmp(left->data, right->data);
+        if (res <= 0) {
+            curr->next = left;
+            left = left->next;
+
+        } else {
+            curr->next = right;
+            right = right->next;
+
+        }
+        curr->prev = prev;
+        prev = curr;
+        curr = curr->next;
+    }
+
+    while (left) {
+        curr->next = left;
+        left = left->next;
+        curr->prev = prev;
+        prev = curr;
+        curr = curr->next;
+    }
+
+    while (right) {
+        curr->next = right;
+        right = right->next;
+        curr->prev = prev;
+        prev = curr;
+        curr = curr->next;
+    }
+
+    curr->prev = prev;
+    curr->next = NULL;
+
+    this->front = mergedFront;
+    this->back = curr;
+    this->size += other->size;
+    other->front = NULL;
+    other->back = NULL;
+    other->size = 0;
+}
+
+/* ------------------------------------------------------------------------- */
+/*  Sorting helper functions    */
+/* ------------------------------------------------------------------------- */
 
 void mergeSort(DLLNode **front, comparison cmp) {
     if (*front == NULL || (*front)->next == NULL) {

@@ -1,5 +1,7 @@
 #include "defaults.h"
 #include "str.h"
+#include <ctype.h>
+#include <assert.h>
 
 void test_macros(void) {
     String *s = string_new(STR_INIT_NONE);

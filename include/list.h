@@ -2,7 +2,6 @@
 #define LIST_H
 
 #include "ds.h"
-#include <stdbool.h>
 
 #define LIST_ERROR (DLLNode *)(-1)
 #define LIST_END (DLLNode *)(-2)
@@ -37,16 +36,14 @@ typedef struct {
 } List;
 
 
-typedef DLLNode *ListEntry;
+typedef DLLNode ListEntry;
 
 /**
  * Pointer to the front element's data, or NULL if the list is empty.
  *
  * @param   l  The List struct pointer.
  */
-inline void *list_front(List *l) {
-    return l->front ? l->front->data : NULL;
-}
+#define list_front(l) ((l)->front ? (void *)((l)->front->data) : NULL)
 
 
 /**
@@ -54,9 +51,7 @@ inline void *list_front(List *l) {
  *
  * @param   l  The List struct pointer.
  */
-inline void *list_back(List *l) {
-    return l->back ? l->back->data : NULL;
-}
+#define list_back(l) ((l)->back ? (void *)((l)->back->data) : NULL)
 
 
 /**
@@ -64,9 +59,7 @@ inline void *list_back(List *l) {
  *
  * @param   l  The List struct pointer.
  */
-inline bool list_empty(List *l) {
-    return !l->front;
-}
+#define list_empty(l) (!((l)->front))
 
 
 /**
@@ -74,9 +67,7 @@ inline bool list_empty(List *l) {
  *
  * @param   l  The List struct pointer.
  */
-inline size_t list_size(List *l) {
-    return l->size;
-}
+#define list_size(l) ((l)->size)
 
 
 /**
@@ -112,7 +103,7 @@ inline size_t list_size(List *l) {
  * 
  * (1) init = LIST_INIT_EMPTY:    list_new(const DSHelper *helper, ListInitializer init)
  * (2) init = LIST_INIT_BUILTIN:  list_new(const DSHelper *helper, ListInitializer init, void *arr, int n)
- * (3) init = LIST_INIT_ARRAY:    list_new(const DSHelper *helper, ListInitializer init, List *other)
+ * (3) init = LIST_INIT_LIST:     list_new(const DSHelper *helper, ListInitializer init, List *other)
  *
  * @param   helper  Pointer to DSHelper struct.
  * @param   init    Type of initializer to execute.
@@ -198,7 +189,7 @@ DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ..
  *
  * @param   l      Pointer to list.
  * @param   first  The first ListEntry to be removed - must be provided.
- * @param   last   ListEntry AFTER the last element to be deleted. If this is NULL, then
+ * @param   last   ListEntry AFTER the last element to be deleted. If this is LIST_END, then
  *                   all elements from start through the end of the list will be removed.
  *
  * @return        If successful, returns a ListEntry corresponding to the element after the
@@ -272,5 +263,30 @@ void list_remove_if(List *l, meetsCondition condition);
  *                  not found, returns NULL.
  */
 DLLNode *list_find(List *l, void *val);
+
+
+/**
+ * Creates a sublist from "this" in the range [first,last) (non-inclusive for "last").
+ *
+ * @param   this   Pointer to list.
+ * @param   first  Element to start the sublist.
+ * @param   last   Element at which the sublist will stop. If this is LIST_END, the sublist will
+ *                   include all elements from "first" to the end of the list.
+ *
+ * @return         Newly created sublist from the list. If "this" is empty or "first" is NULL,
+ *                   returns NULL.
+ */
+List *list_sublist(List *this, DLLNode *first, DLLNode *last);
+
+
+/**
+ * Merges "other" into "this", both of which must be in sorted order prior to this operation.
+ *  "other" is left with a size of 0, and "this" grows by as many elements as "other" previously
+ *  contained.
+ *
+ * @param   this   Pointer to list.
+ * @param   other  Pointer to other list, which will be merged with "this".
+ */
+void list_merge(List *this, List *other);
 
 #endif

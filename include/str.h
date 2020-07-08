@@ -2,8 +2,6 @@
 #define STR_H
 
 #include "ds.h"
-#include <ctype.h>
-#include <stdbool.h>
 
 typedef enum {
     STR_INIT_NONE,
@@ -25,105 +23,103 @@ typedef struct {
 /**
  * The c-string representation of the provided String.
  *
- * @param   s  Pointer to string struct.
+ * @param   str  Pointer to string struct.
  */
-inline char *string_c_str(String *s) {
-    return s->s;
-}
+#define string_c_str(str) ((str)->s)
 
 
 /**
  * The number of characters in the string (analogous to strlen, but O(1) time complexity in
  *   this case).
  *
- * @param   s  Pointer to string struct.
+ * @param   str  Pointer to string struct.
  */
-#define string_len(s) ((s)->len)
+#define string_len(str) ((str)->len)
 
 
 /**
  * The capacity of the string (maximum size + 1, to account for the null character).
  *
- * @param   s  Pointer to string struct.
+ * @param   str  Pointer to string struct.
  */
-#define string_capacity(s) ((s)->cap)
+#define string_capacity(str) ((str)->cap)
 
 
 /**
  * Tests whether the size of the string is 0.
  *
- * @param   s  Pointer to string struct.
+ * @param   str  Pointer to string struct.
  */
-#define string_empty(s) (!((s)->len))
+#define string_empty(str) (!((str)->len))
 
 
 /**
  * The numeric index in the string from a char pointer.
  *
- * @param   s    Pointer to string struct.
+ * @param   str  Pointer to string struct.
  * @param   chr  The char pointer whose index you wish to find.
  */
-#define string_index(s, chr) ((chr) - (s)->s)
+#define string_index(str, chr) ((chr) - (str)->s)
 
 /**
  * Reference to the string starting at index i.
  *
- * @param   s  Pointer to string struct.
- * @param   i  Index in string.
+ * @param   str  Pointer to string struct.
+ * @param   i    Index in string.
  */
-inline char *string_ref(String *s, int i) {
-    int _idx = modulo(i, s->len);
-    return (_idx >= 0) ? &(s->s[_idx]) : NULL;
+inline char *string_ref(String *str, int i) {
+    int _idx = modulo(i, str->len);
+    return (_idx >= 0) ? &(str->s[_idx]) : NULL;
 }
 
 /**
  * The char located at index i of the string.
  *
- * @param   s  Pointer to string struct.
- * @param   i  Index in string.
+ * @param   str  Pointer to string struct.
+ * @param   i    Index in string.
  */
-inline char string_at(String *s, int i) {
-    int _idx = modulo(i, s->len);
-    return (_idx >= 0) ? s->s[_idx] : 0;
+inline char string_at(String *str, int i) {
+    int _idx = modulo(i, str->len);
+    return (_idx >= 0) ? str->s[_idx] : 0;
 }
 
 
 /**
  * A char pointer to the front of the string.
  *
- * @param   s  Pointer to string struct.
+ * @param   str  Pointer to string struct.
  */
-#define string_front(s) (((s)->len) ? &((s)->s[0]) : NULL)
+#define string_front(str) (((str)->len) ? &((str)->s[0]) : NULL)
 
 
 /**
  * A char pointer to the back of the string.
  *
- * @param   s  Pointer to string struct.
+ * @param   str  Pointer to string struct.
  */
-#define string_back(s) (((s)->len) ? &((s)->s[(s)->len - 1]) : NULL)
+#define string_back(str) (((str)->len) ? &((str)->s[(str)->len - 1]) : NULL)
 
 
 /**
  * Iterates through each character in the string from beginning to end.
  *
- * @param   s    Pointer to string struct.
- * @param   chr  Char pointer to use during iteration.
+ * @param   str    Pointer to string struct.
+ * @param   chr    Char pointer to use during iteration.
  */
-#define string_iter(s, chr) \
-    for ((chr) = ((s)->len) ? &((s)->s[0]) : NULL; (chr) != NULL; \
-    (chr) = ((chr) != &(((s)->s[(s)->len - 1]))) ? (chr) + 1 : NULL)
+#define string_iter(str, chr) \
+    for ((chr) = ((str)->len) ? &((str)->s[0]) : NULL; (chr) != NULL; \
+    (chr) = ((chr) != &(((str)->s[(str)->len - 1]))) ? (chr) + 1 : NULL)
 
 
 /**
  * Iterates through each character in the string from end to the beginning.
  *
- * @param   s    Pointer to string struct.
- * @param   chr  Char pointer to use during iteration.
+ * @param   str    Pointer to string struct.
+ * @param   chr    Char pointer to use during iteration.
  */
-#define string_riter(s, chr) \
-    for ((chr) = ((s)->len) ? &((s)->s[(s)->len - 1]) : NULL; (chr) != NULL; \
-    (chr) = ((chr) != &(((s)->s[0]))) ? (chr) - 1 : NULL)
+#define string_riter(str, chr) \
+    for ((chr) = ((str)->len) ? &((str)->s[(str)->len - 1]) : NULL; (chr) != NULL; \
+    (chr) = ((chr) != &(((str)->s[0]))) ? (chr) - 1 : NULL)
 
 
 /**

@@ -3,7 +3,6 @@
 
 #include "ds.h"
 #include <stdint.h>
-#include <stdbool.h>
 
 typedef enum {
     NUMBER,

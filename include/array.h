@@ -2,7 +2,6 @@
 #define ARRAY_H
 
 #include "ds.h"
-#include <stdbool.h>
 
 #define ARRAY_ERROR (-1)
 #define ARRAY_END(a) ((a)->size)
@@ -34,7 +33,7 @@ typedef struct {
  * @param   a  Pointer to array.
  * @param   i  The index in the array.
  */
-void *array_at(Array *a, int i) {
+inline void *array_at(Array *a, int i) {
     int _idx = modulo(i, a->size);
     return (_idx >= 0) ? (a->arr + (a->helper.size * _idx)) : NULL;
 }
@@ -45,9 +44,7 @@ void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-inline void *array_front(Array *a) {
-    return a->size ? a->arr : NULL;
-}
+#define array_front(a) ((a)->size ? (void *)((a)->arr) : NULL)
 
 
 /**
@@ -55,9 +52,7 @@ inline void *array_front(Array *a) {
  *
  * @param   a  Pointer to array.
  */
-inline void *array_back(Array *a) {
-    return a->size ? (a->arr + (a->helper.size * (a->size - 1))) : NULL;
-}
+#define array_back(a) ((a)->size ? (void *)((a)->arr + ((a)->helper.size * ((a)->size - 1))) : NULL)
 
 
 /**
@@ -91,9 +86,7 @@ inline void *array_back(Array *a) {
  *
  * @param   a  Pointer to array.
  */
-inline size_t array_size(Array *a) {
-    return a->size;
-}
+#define array_size(a) ((a)->size)
 
 
 /**
@@ -101,9 +94,7 @@ inline size_t array_size(Array *a) {
  *
  * @param   a  Pointer to array.
  */
-inline size_t array_capacity(Array *a) {
-    return a->capacity;
-}
+#define array_capacity(a) ((a)->capacity)
 
 
 /**
@@ -111,9 +102,7 @@ inline size_t array_capacity(Array *a) {
  *
  * @param   a  Pointer to array.
  */
-inline bool array_empty(Array *a) {
-    return !a->size;
-}
+#define array_empty(a) (!((a)->size))
 
 
 /**
@@ -186,9 +175,9 @@ void array_push_back(Array *a, void *e);
  * In (3), elements from another Array struct are inserted, starting at "start" and using "n"
  *   elements. "start" may be positive or negative, and "n" may be -1.
  * 
- * (1) type = ARR_INSERT_SINGLE:   array_insert(Array *a, int index, void *value)
- * (2) type = ARR_INSERT_BUILTIN:  array_insert(Array *a, int index, void *arr, int start, int n)
- * (3) type = ARR_INSERT_ARRAY:    array_insert(Array *a, int index, Array *other, int start, int n)
+ * (1) type = ARR_INSERT_SINGLE:   array_insert(Array *a, int index, ArrayInsertType type, void *value)
+ * (2) type = ARR_INSERT_BUILTIN:  array_insert(Array *a, int index, ArrayInsertType type, void *arr, int start, int n)
+ * (3) type = ARR_INSERT_ARRAY:    array_insert(Array *a, int index, ArrayInsertType type, Array *other, int start, int n)
  *
  * @param  a      Pointer to Array.
  * @param  index  Index before which the element(s) will be inserted. If this is specified as

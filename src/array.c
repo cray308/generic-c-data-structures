@@ -11,14 +11,13 @@
 #define arr_next(a,eptr) (((arr_find_idx(a,eptr) + 1) == (a)->size) ? NULL : arr_idx(a,(arr_find_idx(a,eptr) + 1)))
 #define arr_prev(a,eptr) ((arr_find_idx(a,eptr) == 0) ? NULL : arr_idx(a,(arr_find_idx(a,eptr) - 1)))
 
-void _arr_init_builtin(Array *a, void *arr, int n);
-void _arr_init_array(Array *a, Array *other);
 int _arr_insert_elem(Array *a, int index, void *value);
 int _arr_insert_builtin(Array *a, int index, void *arr, int start, int nelem);
 int _arr_insert_array(Array *a, int index, Array *other, int start, int nelem);
 
-// *****************************************************************************************
-// copy and delete functions for brevity
+/*  --------------------------------------------  */
+/* copy and delete functions for brevity */
+/*  --------------------------------------------  */
 
 inline void arr_copy(Array *a, int index, const void *value) {
     if (a->helper.copy) { // copy using function
@@ -34,33 +33,9 @@ inline void arr_rm(Array *a, size_t index) {
     }
 }
 
-
-// *****************************************************************************************
-// va_args functions to handle initialization and insertion
-
-void _arr_init_builtin(Array *a, void *arr, int n) {
-    if (!arr || !n) {
-        return;
-    }
-
-    char *ptr = (char *) arr;
-    
-    for (int i = 0; i < n; ++i) {
-        array_push_back(a, (void *) ptr);
-        ptr += a->helper.size;
-    }
-
-}
-
-void _arr_init_array(Array *a, Array *other) {
-    if (!other || !other->size) {
-        return;
-    }
-
-    for (int i = 0; i < (int) other->size; ++i) {
-        array_push_back(a, arr_idx(other, i));
-    }
-}
+/*  --------------------------------------------  */
+/* va_args functions to handle initialization and insertion */
+/*  --------------------------------------------  */
 
 int _arr_insert_elem(Array *a, int index, void *value) {
     if (!value) { // check invalid arguments
@@ -176,8 +151,9 @@ int _arr_insert_array(Array *a, int index, Array *other, int start, int n) {
     return res;
 }
 
-// *****************************************************************************************
-// main array functions
+/*  --------------------------------------------  */
+/* main array functions */
+/*  --------------------------------------------  */
 
 Array *array_new(const DSHelper *helper, ArrayInitializer init, ...) {
     if (!helper || helper->size == 0) {
@@ -212,9 +188,9 @@ Array *array_new(const DSHelper *helper, ArrayInitializer init, ...) {
     va_end(args);
 
     if (init == ARR_INIT_BUILTIN) {
-        _arr_init_builtin(a, other, n);
+        _arr_insert_builtin(a, 0, other, 0, n);
     } else {
-        _arr_init_array(a, (Array *) other);
+        _arr_insert_array(a, 0, (Array *) other, 0, ((Array *) other)->size);
     }
 
     return a;
@@ -307,55 +283,6 @@ int array_insert(Array *a, int index, ArrayInsertType type, ...) {
 
     return rv;
 }
-
-/*int array_insert_arr(Array *a, int index, Array *other, int first, int nelem) {
-    if (!other || other->size == 0 || !nelem) {
-        return ARRAY_ERROR;
-    }
-
-    bool append = (!a->size || index >= (int) a->size);
-    if (!append) {
-        index = modulo(index, a->size);
-        if (index < 0) {
-            return ARRAY_ERROR;
-        }
-    }
-
-    first = modulo(first, other->size);
-    if (first < 0) {
-        return ARRAY_ERROR;
-    }
-
-    if (nelem < 0) { // insert from first until end of other array
-        nelem = (int) other->size - first;
-    } else {
-        nelem = min(nelem, (int) other->size - first);
-    }
-
-    int res; // index where first element from other was inserted
-    int currIdx;
-    int endIdx = first + nelem;
-    int i = first;
-
-    if (append) { // append to a
-        array_push_back(a, arr_idx(other, i));
-        res = (int) a->size - 1;
-
-        for (++i; i < endIdx; ++i) {
-            array_push_back(a, arr_idx(other, i));
-        }
-    } else { // insert one after another, starting at index
-        currIdx = index;
-        res = array_insert(a, currIdx++, arr_idx(other, i));
-
-        for (++i; i < endIdx; ++i) {
-            array_insert(a, currIdx++, arr_idx(other, i));
-        }
-    }
-
-    //array_erase(other, first, nelem);
-    return res;
-}*/
 
 void array_pop_back(Array *a) {
     if (!(a->size)) {

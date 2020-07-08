@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "map.h"
+#include <assert.h>
 
 char *days[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
 

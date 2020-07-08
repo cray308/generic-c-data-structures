@@ -1,5 +1,6 @@
 #include "defaults.h"
 #include "array.h"
+#include <assert.h>
 
 char *strs[] = {"Ten", "Nine", "Eight", "Seven", "Six", "Five",
                 "Four", "Three", "Two", "One"};
