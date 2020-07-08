@@ -27,7 +27,7 @@ String *string_new(StringInitializer init, ...) {
     const char *str;
     const String *other;
 
-    // parse arguments
+    /* parse arguments */
     va_list args;
     va_start(args, init);
 
@@ -63,7 +63,7 @@ void string_reserve(String *s, size_t n) {
     }
 
     size_t val = s->cap ? s->cap : 1;
-    while (val < n) { // double the capacity from what it was before
+    while (val < n) { /* double the capacity from what it was before */
         val <<= 1;
     }
     char *tmp = realloc(s->s, val);
@@ -108,7 +108,7 @@ void string_erase(String *s, int start, int n) {
 
     int end = start + n;
     
-    if (end < s->len) { // move any characters after end to start
+    if (end < s->len) { /* move any characters after end to start */
         memmove(&s->s[start], &s->s[end], s->len - (size_t) end);
     }
     s->len -= (size_t) n;
@@ -119,7 +119,7 @@ void string_shrink_to_fit(String *s) {
     if (s->len + 1 == s->cap || s->len == 0) {
         return;
     }
-    char *tmp = realloc(s->s, s->len + 1); // realloc only enough space for string and '\0'
+    char *tmp = realloc(s->s, s->len + 1); /* realloc only enough space for string and '\0' */
     if (!tmp) {
         DS_OOM();
     }
@@ -128,7 +128,7 @@ void string_shrink_to_fit(String *s) {
 }
 
 void string_push_back(String *s, char c) {
-    if (c == 0) { // doesn't make sense to push back a null character
+    if (c == 0) { /* doesn't make sense to push back a null character */
         return;
     }
     string_reserve(s, s->len + 1);
@@ -160,10 +160,10 @@ void string_replace(String *s, int pos, const char *other, int len) {
 
     const int l_other = strlen(other);
 
-    if (len < 0) { // use all characters from other
+    if (len < 0) { /* use all characters from other */
         len = l_other;
     } else {
-        len = min(len, l_other); // account for if len is larger than the supplied string
+        len = min(len, l_other); /* account for if len is larger than the supplied string */
     }
 
     string_reserve(s, (size_t) (pos + len + 1));
@@ -195,7 +195,7 @@ void string_insert(String *s, int pos, const char *other, int len) {
     if (len < 0) {
         len = l_other;
     } else {
-        len = min(len, l_other); // account for if len is larger than the supplied string
+        len = min(len, l_other); /* account for if len is larger than the supplied string */
     }
 
     string_reserve(s, s->len + (size_t) len + 1);
@@ -216,7 +216,7 @@ void string_append(String *s, const char *other, int len) {
     if (len < 0) {
         len = l_other;
     } else {
-        len = min(len, l_other); // account for if len is larger than the supplied string
+        len = min(len, l_other); /* account for if len is larger than the supplied string */
     }
 
     string_reserve(s, s->len + (size_t) len + 1);
@@ -234,25 +234,26 @@ void string_printf(String *s, int pos, const char *format, ...) {
 
 void _str_printf_va(String *s, int pos, const char *format, va_list args) {
     int n = 0;
-    va_list cp_args;
+    va_list args_copy; /* in case vsnprintf doesn't succeed initially */
+    /* use temporary buffer, then insert it into the string afterwards */
     size_t buf_size = 256;
-    char *buf = malloc(buf_size); // use temporary buffer, then insert it into the string afterwards
+    char *buf = malloc(buf_size);
 
     while (1) {
-        va_copy(cp_args, args);
-        n = vsnprintf(buf, buf_size, format, cp_args);
-        va_end(cp_args);
+        va_copy(args_copy, args);
+        n = vsnprintf(buf, buf_size, format, args_copy);
+        va_end(args_copy);
 
-        if ((n > -1) && ((size_t) n < buf_size)) { // vsnprintf was successful
+        if ((n > -1) && ((size_t) n < buf_size)) { /* vsnprintf was successful */
             string_insert(s, pos, buf, n);
             free(buf);
             return;
-        } else if (n > -1) { // buffer was too small
+        } else if (n > -1) { /* buffer was too small */
             buf_size <<= 1;
             char *temp = realloc(buf, buf_size);
             if (!temp) DS_OOM();
             buf = temp;
-        } else { // some error with vsnprintf, stop the function
+        } else { /* some error with vsnprintf, stop the function */
             free(buf);
             return;
         }
@@ -284,14 +285,14 @@ int string_find(String *s, int start_pos, const char *needle, int len_needle) {
         return -1;
     }
 
-    char *haystack = s->s + start_pos; // for easier indexing
+    char *haystack = s->s + start_pos; /* for easier indexing */
     int i = 0;
     int j = 0;
     int *table = create_prefix_table(needle, (size_t) len_needle);
     int res = -1;
 
     while (i < len_haystack) {
-        if (haystack[i] == needle[j]) { // match
+        if (haystack[i] == needle[j]) { /* match */
             i++;
             j++;
         } else {
@@ -302,7 +303,7 @@ int string_find(String *s, int start_pos, const char *needle, int len_needle) {
             }
         }
 
-        if (j == len_needle) { // found the substring
+        if (j == len_needle) { /* found the substring */
             res = start_pos + (i - j);
             break;
         }
@@ -317,19 +318,19 @@ int *create_prefix_table(const char *needle, size_t len) {
         DS_OOM();
     }
 
-    int cnd = 0; // needle position
-    int index = 1; // table position
+    int cnd = 0; /* needle position */
+    int index = 1; /* table position */
     table[0] = 0;
 
     while (index < (int) len) {
-        if (needle[index] == needle[cnd]) { // matching characters
+        if (needle[index] == needle[cnd]) { /* matching characters */
             table[index] = cnd + 1;
             cnd++;
             index++;
-        } else { // not a match
-            if (cnd != 0) { // get previous table index
+        } else { /* not a match */
+            if (cnd != 0) { /* get previous table index */
                 cnd = table[cnd - 1];
-            } else { // set it to 0 (default)
+            } else { /* set it to 0 (default) */
                 table[index] = 0;
                 index++;
             }
@@ -370,7 +371,7 @@ int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
     int res = -1;
 
     while (i >= 0) {
-        if (haystack[i] == needle[j]) { // found matching character
+        if (haystack[i] == needle[j]) { /* found matching character */
             i--;
             j--;
         } else {
@@ -381,7 +382,7 @@ int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
             }
         }
 
-        if (j == -1) { // found the substring
+        if (j == -1) { /* found the substring */
             res = i + 1;
             break;
         }
@@ -396,19 +397,19 @@ int *create_prefix_table_rev(const char *needle, size_t len) {
         DS_OOM();
     }
 
-    int cnd = len - 1; // needle position
-    int index = cnd - 1; // table position
+    int cnd = len - 1; /* needle position */
+    int index = cnd - 1; /* table position */
     table[cnd] = cnd;
 
     while (index >= 0) {
-        if (needle[index] == needle[cnd]) { // matching characters
+        if (needle[index] == needle[cnd]) { /* matching characters */
             table[index] = cnd - 1;
             cnd--;
             index--;
-        } else { // not a match
-            if (cnd != (int) (len - 1)) { // get previous table index
+        } else { /* not a match */
+            if (cnd != (int) (len - 1)) { /* get previous table index */
                 cnd = table[cnd + 1];
-            } else { // set it to 0 (default)
+            } else { /* set it to 0 (default) */
                 table[index] = (int) len - 1;
                 index--;
             }
@@ -439,7 +440,7 @@ int string_find_first_of(String *s, int pos, const char *chars) {
     }
 
     for (++i; i < (int) s->len; ++i) {
-        // if the previous character didn't match and this is the same, there won't be a match
+        /* if the previous character didn't match and this is the same, there won't be a match */
         if (s->s[i] == s->s[i - 1]) {
             continue;
         }
@@ -509,7 +510,7 @@ int string_find_first_not_of(String *s, int pos, const char *chars) {
         }
     }
 
-    if (!(*c)) { // if *c is 0, we must have iterated through all of the characters
+    if (!(*c)) { /* if *c is 0, we must have iterated through all of the characters */
         return i;
     }
 
@@ -588,6 +589,7 @@ String *string_substr(String *s, int start, int n, int step_size) {
 
     String *sub = string_new(STR_INIT_NONE);
     int end;
+    int i;
 
     if (step_size < 0) {
         end = (n < 0) ? -1 : max(-1, start + (n * step_size));
@@ -596,11 +598,11 @@ String *string_substr(String *s, int start, int n, int step_size) {
     }
 
     if (step_size < 0) {
-        for (int i = start; i > end; i += step_size) {
+        for (i = start; i > end; i += step_size) {
             string_push_back(sub, s->s[i]);
         }
     } else {
-        for (int i = start; i < end; i += step_size) {
+        for (i = start; i < end; i += step_size) {
             string_push_back(sub, s->s[i]);
         }
     }
@@ -668,41 +670,47 @@ String **string_split(String *s, const char *delim, int *n) {
 }
 
 void string_split_free(String **arr, int n) {
-    for (int i = 0; i < n; ++i) {
+    int i;
+    for (i = 0; i < n; ++i) {
         string_free(arr[i]);
     }
     free(arr);
 }
 
-bool isAlphaNum(const char *s) {
-    for (const char *c = s; *c; ++c) {
-        if (!isalnum(*c)) return false;
+int isAlphaNum(const char *s) {
+    const char *c;
+    for (c = s; *c; ++c) {
+        if (!isalnum(*c)) return 0;
     }
-    return true;
+    return 1;
 }
 
-bool isAlpha(const char *s) {
-    for (const char *c = s; *c; ++c) {
-        if (!isalpha(*c)) return false;
+int isAlpha(const char *s) {
+    const char *c;
+    for (c = s; *c; ++c) {
+        if (!isalpha(*c)) return 0;
     }
-    return true;
+    return 1;
 }
 
-bool isDigit(const char *s) {
-    for (const char *c = s; *c; ++c) {
-        if (!isdigit(*c)) return false;
+int isDigit(const char *s) {
+    const char *c;
+    for (c = s; *c; ++c) {
+        if (!isdigit(*c)) return 0;
     }
-    return true;
+    return 1;
 }
 
 void toLowercase(char *s) {
-    for (char *c = s; *c; ++c) {
+    char *c;
+    for (c = s; *c; ++c) {
         *c = tolower(*c);
     }
 }
 
 void toUppercase(char *s) {
-    for (char *c = s; *c; ++c) {
+    char *c;
+    for (c = s; *c; ++c) {
         *c = toupper(*c);
     }
 }

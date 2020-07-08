@@ -67,7 +67,7 @@ typedef struct {
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-inline char *string_ref(String *str, int i) {
+static __attribute__((__unused__)) char *string_ref(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? &(str->s[_idx]) : NULL;
 }
@@ -78,7 +78,7 @@ inline char *string_ref(String *str, int i) {
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-inline char string_at(String *str, int i) {
+static __attribute__((__unused__)) char string_at(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? str->s[_idx] : 0;
 }
@@ -384,25 +384,25 @@ void string_split_free(String **arr, int n);
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are alphanumeric.
+ * @return     Whether or not all characters in s are alphanumeric (1 if yes, 0 if no).
  */
-bool isAlphaNum(const char *s);
+int isAlphaNum(const char *s);
 
 
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are letters.
+ * @return     Whether or not all characters in s are letters (1 if yes, 0 if no).
  */
-bool isAlpha(const char *s);
+int isAlpha(const char *s);
 
 
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are digits.
+ * @return     Whether or not all characters in s are digits (1 if yes, 0 if no).
  */
-bool isDigit(const char *s);
+int isDigit(const char *s);
 
 
 /**
@@ -420,4 +420,4 @@ void toLowercase(char *s);
  */
 void toUppercase(char *s);
 
-#endif // STR_H
+#endif /* STR_H */

@@ -8,14 +8,14 @@
 
 typedef enum {
     ARR_INIT_EMPTY,
-    ARR_INIT_BUILTIN, // like int nums[] = {1, 2, 3}
-    ARR_INIT_ARRAY // like Array *nums
+    ARR_INIT_BUILTIN, /* like int nums[] = {1, 2, 3} */
+    ARR_INIT_ARRAY /* like Array *nums */
 } ArrayInitializer;
 
 typedef enum {
-    ARR_INSERT_SINGLE, // void *
-    ARR_INSERT_BUILTIN, // like int nums[] = {1, 2, 3}
-    ARR_INSERT_ARRAY // like Array *nums
+    ARR_INSERT_SINGLE, /* void *  */
+    ARR_INSERT_BUILTIN, /* like int nums[] = {1, 2, 3} */
+    ARR_INSERT_ARRAY /* like Array *nums   */
 } ArrayInsertType;
 
 typedef struct {
@@ -33,7 +33,7 @@ typedef struct {
  * @param   a  Pointer to array.
  * @param   i  The index in the array.
  */
-inline void *array_at(Array *a, int i) {
+static __attribute__((__unused__)) void *array_at(Array *a, int i) {
     int _idx = modulo(i, a->size);
     return (_idx >= 0) ? (a->arr + (a->helper.size * _idx)) : NULL;
 }

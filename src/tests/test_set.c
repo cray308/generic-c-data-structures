@@ -1,5 +1,5 @@
 #include "defaults.h"
-#include "rbtree.h"
+#include "set.h"
 #include <assert.h>
 
 void test_init_clear(void) {

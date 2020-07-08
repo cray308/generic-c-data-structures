@@ -5,9 +5,13 @@
 This was mainly a personal project to see if I could create some generic data structures
 in C, a language where generic anything is somewhat difficult to implement. I got
 inspiration from the [UThash library](https://github.com/troydhanson/uthash) by Troy D.
-Hanson. The code uses the C99 standard, and is designed to run on Linux. I designed this
-to be used as a shared library (see the `Makefile` for details). To use it, clone the 
-repository, and run `make`. At this point, you may:
+Hanson. For better portability, most of this code conforms to the C89 standard
+(with the exception of `include/str.h` - the function `string_printf` uses `vsnprintf` to
+avoid a buffer overflow). When I wrote this library, I designed it to run on Linux; if anyone
+ends up using this in their projects with non-GNU compilers, I will work on
+making it compatible with other compilers. I designed this to be used as a shared library
+(see the `Makefile` for details). To use it, clone the repository, and run `make`. At this point,
+you may:
 
  - add `$REPOSITORY_FOLDER/lib` to `LD_LIBRARY_PATH` (recommended)
  - copy `$REPOSITORY_FOLDER/lib/libds.so` into `/usr/local/lib`
@@ -28,9 +32,9 @@ Documentation is provided in the header files (in the `include` folder).
 
  - Red-black tree (named `Tree`).
 
- - Set (named `Set`). In this implementation, a `Set` is simply a `Tree`, but the latter portion
- of `include/rbtree.h` defines functions that are oriented towards sets (i.e. union, intersection,
- difference, symmetric difference, etc.)
+ - Set (named `Set`). In this implementation, a `Set` is simply a typedef for `Tree`.
+ However, `include/set.h` defines additional functions that are oriented towards sets (i.e. union, 
+ intersection, difference, symmetric difference, etc.).
 
  - String (named `String`). This is similar to a C++ string, and also includes a function
  for inserting a printf-style format string.
@@ -84,12 +88,12 @@ this scenario.
 
 ```c
 List *l = list_new(&int_helper);
-// add some elements
+/* add some elements */
 int find_val = 5;
 
-ListEntry *e = list_find(l, find_val); // WRONG!!!
+ListEntry *e = list_find(l, find_val); /* WRONG!!! */
 
-e = list_find(l, &find_val); // this works
+e = list_find(l, &find_val); /* this works */
 ```
 
 Some `DSHelper` templates are provided at the bottom of `include/ds.h`:

@@ -1,7 +1,7 @@
 #include "defaults.h"
 #include "array.h"
 
-// Internal macros
+/* Internal macros  */
 
 #define INITIAL_CAPACITY 8
 #define arr_offset(a,i) ((a)->helper.size * (i))
@@ -19,35 +19,37 @@ int _arr_insert_array(Array *a, int index, Array *other, int start, int nelem);
 /* copy and delete functions for brevity */
 /*  --------------------------------------------  */
 
-inline void arr_copy(Array *a, int index, const void *value) {
-    if (a->helper.copy) { // copy using function
-        a->helper.copy(arr_idx(a, index), value);
-    } else { // copy the raw bytes
-        memcpy(arr_idx(a, index), value, a->helper.size);
-    }
-}
+#define arr_copy(a, index, value) \
+    do { \
+        if ((a)->helper.copy) { \
+            (a)->helper.copy(arr_idx((a), (index)), (value)); \
+        } else { \
+            memcpy(arr_idx((a), (index)), (value), (a)->helper.size); \
+        } \
+    } while(0)
 
-inline void arr_rm(Array *a, size_t index) {
-    if (a->helper.del) { // call custom delete function if it's provided
-        a->helper.del(arr_idx(a, index));
-    }
-}
+#define arr_rm(a, index) \
+    do { \
+        if ((a)->helper.del) { \
+            (a)->helper.del(arr_idx((a), (index))); \
+        } \
+    } while(0)
 
 /*  --------------------------------------------  */
 /* va_args functions to handle initialization and insertion */
 /*  --------------------------------------------  */
 
 int _arr_insert_elem(Array *a, int index, void *value) {
-    if (!value) { // check invalid arguments
+    if (!value) { /* check invalid arguments */
         return ARRAY_ERROR;
     }
 
-    if (!a->size || index >= (int) a->size) { // append
+    if (!a->size || index >= (int) a->size) { /* append */
         array_push_back(a, value);
         return a->size - 1;
     }
 
-    index = modulo(index, a->size); // account for possible negative index
+    index = modulo(index, a->size); /* account for possible negative index */
     if (index < 0) {
         return ARRAY_ERROR;
     }
@@ -65,7 +67,7 @@ int _arr_insert_builtin(Array *a, int index, void *arr, int start, int n) {
         return ARRAY_ERROR;
     }
 
-    bool append = (!a->size || index >= (int) a->size);
+    int append = (!a->size || index >= (int) a->size);
     if (!append) {
         index = modulo(index, a->size);
         if (index < 0) {
@@ -75,12 +77,12 @@ int _arr_insert_builtin(Array *a, int index, void *arr, int start, int n) {
 
     char *ptr = (char *) arr + (start * a->helper.size);
 
-    int res; // index where first element from other was inserted
+    int res; /* index where first element from other was inserted */
     int currIdx;
     int endIdx = start + n;
     int i = start;
 
-    if (append) { // append to a
+    if (append) { /* append to a */
         array_push_back(a, ptr);
         ptr += a->helper.size;
         res = (int) a->size - 1;
@@ -89,7 +91,7 @@ int _arr_insert_builtin(Array *a, int index, void *arr, int start, int n) {
             array_push_back(a, ptr);
             ptr += a->helper.size;
         }
-    } else { // insert one after another, starting at index
+    } else { /* insert one after another, starting at index */
         currIdx = index;
         res = _arr_insert_elem(a, currIdx++, ptr);
         ptr += a->helper.size;
@@ -108,7 +110,7 @@ int _arr_insert_array(Array *a, int index, Array *other, int start, int n) {
         return ARRAY_ERROR;
     }
 
-    bool append = (!a->size || index >= (int) a->size);
+    int append = (!a->size || index >= (int) a->size);
     if (!append) {
         index = modulo(index, a->size);
         if (index < 0) {
@@ -121,25 +123,25 @@ int _arr_insert_array(Array *a, int index, Array *other, int start, int n) {
         return ARRAY_ERROR;
     }
 
-    if (n < 0) { // insert from first until end of other array
+    if (n < 0) { /* insert from first until end of other array */
         n = (int) other->size - start;
     } else {
         n = min(n, (int) other->size - start);
     }
 
-    int res; // index where first element from other was inserted
+    int res; /* index where first element from other was inserted */
     int currIdx;
     int endIdx = start + n;
     int i = start;
 
-    if (append) { // append to a
+    if (append) { /* append to a */
         array_push_back(a, arr_idx(other, i));
         res = (int) a->size - 1;
 
         for (++i; i < endIdx; ++i) {
             array_push_back(a, arr_idx(other, i));
         }
-    } else { // insert one after another, starting at index
+    } else { /* insert one after another, starting at index */
         currIdx = index;
         res = _arr_insert_elem(a, currIdx++, arr_idx(other, i));
 
@@ -168,14 +170,14 @@ Array *array_new(const DSHelper *helper, ArrayInitializer init, ...) {
     memset(a, 0, sizeof(Array));
     a->helper = *helper;
     array_reserve(a, INITIAL_CAPACITY);
-    if (init == ARR_INIT_EMPTY) { // nothing more to do in this case
+    if (init == ARR_INIT_EMPTY) { /* nothing more to do in this case */
         return a;
     }
 
     int n;
     void *other;
 
-    // parse arguments
+    /* parse arguments */
     va_list args;
     va_start(args, init);
 
@@ -205,17 +207,18 @@ void array_free(Array *a) {
 }
 
 void array_resize(Array *a, size_t n, void *value) {
-    if (n <= a->size) { // shrink array
+    size_t i;
+    if (n <= a->size) { /* shrink array */
         if (a->helper.del) {
-            for (size_t i = n; i < a->size; ++i) {
+            for (i = n; i < a->size; ++i) {
                 a->helper.del(arr_idx(a,i));
             }
         }
-    } else { // expand array
+    } else { /* expand array */
         array_reserve(a, n);
 
         if (value) {
-            for (size_t i = a->size; i < n; ++i) {
+            for (i = a->size; i < n; ++i) {
                 arr_copy(a, i, value);
             }
         } else {
@@ -227,12 +230,12 @@ void array_resize(Array *a, size_t n, void *value) {
 }
 
 void array_reserve(Array *a, size_t n) {
-    if (n <= a->capacity) { // don't realloc smaller than the current capacity
+    if (n <= a->capacity) { /* don't realloc smaller than the current capacity */
         return;
     }
     size_t ncap = a->capacity ? a->capacity : 1;
     while (ncap < n) {
-        ncap <<= 1; // use multiple of 2
+        ncap <<= 1; /* use multiple of 2 */
     }
 
     char *tmp = realloc(a->arr, ncap * a->helper.size);
@@ -245,8 +248,9 @@ void array_reserve(Array *a, size_t n) {
 
 void array_push_back(Array *a, void *e) {
     if (!e) return;
-    array_reserve(a, a->size + 1); // allocate more space
-    arr_copy(a, a->size++, e);
+    array_reserve(a, a->size + 1); /* allocate more space */
+    arr_copy(a, a->size, e);
+    a->size++;
 }
 
 int array_insert(Array *a, int index, ArrayInsertType type, ...) {
@@ -254,7 +258,7 @@ int array_insert(Array *a, int index, ArrayInsertType type, ...) {
     int start;
     void *other;
 
-    // parse arguments
+    /* parse arguments */
     va_list args;
     va_start(args, type);
 
@@ -288,12 +292,14 @@ void array_pop_back(Array *a) {
     if (!(a->size)) {
         return;
     }
-    arr_rm(a, a->size-- - 1);
+    arr_rm(a, a->size - 1);
+    a->size--;
 }
 
 void array_clear(Array *a) {
+    size_t i;
     if (a->helper.del) {
-        for (size_t i = 0; i < a->size; ++i) {
+        for (i = 0; i < a->size; ++i) {
             a->helper.del(arr_idx(a,i));
         }
     }
@@ -310,7 +316,7 @@ int array_erase(Array *a, int first, int nelem) {
         return ARRAY_ERROR;
     }
 
-    if (nelem < 0) { // erase from first to end of array
+    if (nelem < 0) { /* erase from first to end of array */
         nelem = (int) a->size - first;
     } else {
         nelem = min(nelem, (int) a->size - first);
@@ -318,14 +324,15 @@ int array_erase(Array *a, int first, int nelem) {
 
     int endIdx = first + nelem;
     int res;
+    int i;
 
     if (a->helper.del) {
-        for (int i = first; i < endIdx; ++i) {
+        for (i = first; i < endIdx; ++i) {
             a->helper.del(arr_idx(a, i));
         }
     }    
 
-    if (endIdx < (int) a->size) { // move elements from endIdx onward back to first
+    if (endIdx < (int) a->size) { /* move elements from endIdx onward back to first */
         memmove(arr_idx(a, first), arr_idx(a, endIdx), a->helper.size * (a->size - endIdx));
         res = first;
     } else {
@@ -336,7 +343,7 @@ int array_erase(Array *a, int first, int nelem) {
 }
 
 void array_shrink_to_fit(Array *a) {
-    if (a->size == a->capacity || a->size == 0) { // can't shrink any more
+    if (a->size == a->capacity || a->size == 0) { /* can't shrink any more */
         return;
     }
 
@@ -349,16 +356,16 @@ void array_shrink_to_fit(Array *a) {
 }
 
 void array_sort(Array *a) {
-    if (a->size <= 1) { // nothing to sort
+    if (a->size <= 1) { /* nothing to sort */
         return;
     }
     qsort(a->arr, a->size, a->helper.size, a->helper.cmp);
 }
 
 void *array_find(Array *a, const void *key) {
-    if (a->size == 0) { // nothing to find
+    if (a->size == 0) { /* nothing to find */
         return NULL;
-    } else if (a->size == 1) { // check it here rather than calling sort and bsearch
+    } else if (a->size == 1) { /* check it here rather than calling sort and bsearch */
         if (a->helper.cmp(array_at(a, 0), key) == 0) {
             return array_at(a, 0);
         }
@@ -382,6 +389,7 @@ Array *array_subarr(Array *a, int start, int n, int step_size) {
 
     Array *sub = array_new(&(a->helper), ARR_INIT_EMPTY);
     int end;
+    int i;
 
     if (step_size < 0) {
         end = (n < 0) ? -1 : max(-1, start + (n * step_size));
@@ -390,11 +398,11 @@ Array *array_subarr(Array *a, int start, int n, int step_size) {
     }
 
     if (step_size < 0) {
-        for (int i = start; i > end; i += step_size) {
+        for (i = start; i > end; i += step_size) {
             array_push_back(sub, arr_idx(a, i));
         }
     } else {
-        for (int i = start; i < end; i += step_size) {
+        for (i = start; i < end; i += step_size) {
             array_push_back(sub, arr_idx(a, i));
         }
     }

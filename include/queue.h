@@ -61,9 +61,9 @@ void queue_free(Queue *queue);
  * @param   queue   Pointer to queue.
  * @param   result  Pointer to where the dequeued value will be copied.
  *
- * @return          True if an item was popped, false if the queue is empty.
+ * @return          1 if an item was popped, 0 if the queue is empty.
  */
-bool queue_pop(Queue *queue, void *result);
+int queue_pop(Queue *queue, void *result);
 
 /**
  * Pushes a new element to the back of the queue.
@@ -73,4 +73,4 @@ bool queue_pop(Queue *queue, void *result);
  */
 void queue_push(Queue *queue, const void *item);
 
-#endif // QUEUE_H
+#endif /* QUEUE_H */

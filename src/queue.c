@@ -18,7 +18,7 @@ Queue *queue_new(const DSHelper *helper) {
 
 void queue_free(Queue *queue) {
     Node *curr = queue->front, *temp = NULL;
-    while (curr != NULL) { // iterate and remove any elements
+    while (curr != NULL) { /* iterate and remove any elements */
         temp = curr->next;
 
         if (queue->helper.del) {
@@ -39,7 +39,7 @@ void queue_push(Queue *queue, const void *item) {
         memcpy(new->data, item, queue->helper.size);
     }
 
-    // set this element to be at the back (and also the front, if the queue is empty)
+    /* set this element to be at the back (and also the front, if the queue is empty) */
     if (queue_empty(queue)) {
         queue->front = new;
         queue->back = new;
@@ -50,15 +50,15 @@ void queue_push(Queue *queue, const void *item) {
     queue->size++;
 }
 
-bool queue_pop(Queue *queue, void *result) {
-    if (queue_empty(queue)) { // nothing to pop
-        return false;
+int queue_pop(Queue *queue, void *result) {
+    if (queue_empty(queue)) { /* nothing to pop */
+        return 0;
     }
 
     Node *front = queue->front;
     queue->front = front->next;
 
-    // only copy if result is provided
+    /* only copy if result is provided */
     if (result) {
         if (queue->helper.copy) {
             queue->helper.copy(result, front->data);
@@ -67,11 +67,11 @@ bool queue_pop(Queue *queue, void *result) {
         }
     }
     
-    // delete front element
+    /* delete front element */
     if (queue->helper.del) {
         queue->helper.del(front->data);
     }
     free(front);
     queue->size--;
-    return true;
+    return 1;
 }

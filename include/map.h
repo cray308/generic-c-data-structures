@@ -2,7 +2,15 @@
 #define MAP_H
 
 #include "ds.h"
-#include <stdint.h>
+#include <limits.h>
+
+#if UINT_MAX == 0xffffffffu
+typedef unsigned int map_uint32_t;
+typedef signed int map_int32_t;
+#elif ULONG_MAX == 0xffffffffu
+typedef unsigned long map_uint32_t;
+typedef signed long map_int32_t;
+#endif
 
 typedef enum {
     NUMBER,
@@ -14,7 +22,7 @@ struct Entry {
     Entry *next;
     union {
         char *k_str;
-        int32_t k_int;
+        map_int32_t k_int;
     } key;
     char data[];
 };
@@ -35,11 +43,10 @@ typedef struct {
 } Map;
 
 
-inline void _iter_begin(Map *m) {
+static __attribute__((__unused__)) void _map_iter_begin(Map *m) {
     if (!(m->size)) {
         m->it.curr = NULL;
         m->it.idx = m->cap;
-        return;
     } else {
         unsigned idx = 0;
         for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);
@@ -48,7 +55,7 @@ inline void _iter_begin(Map *m) {
     }
 }
 
-inline void _iter_next(Map *m) {
+static __attribute__((__unused__)) void _map_iter_next(Map *m) {
     if (m->it.curr->next) {
         m->it.curr = m->it.curr->next;
     } else {
@@ -67,6 +74,7 @@ inline void _iter_next(Map *m) {
  */
 #define map_size(m) ((m)->size)
 
+
 /**
  * The current value of the map's max load factor.
  *
@@ -82,8 +90,9 @@ inline void _iter_next(Map *m) {
  */
 #define map_empty(m) (!((m)->size))
 
+
 /**
- * [map_at(m,k) description]
+ * Macro for map_find(m, k).
  *
  * @param   m  Pointer to map.
  * @param   k  [description]
@@ -101,9 +110,9 @@ inline void _iter_next(Map *m) {
  * @param   e  Pointer which will point to an entry's data.
  */
 #define map_iter(m,e) \
-    for (_iter_begin((m)), (e) = (void*)(((m)->it.curr != NULL) ? (m)->it.curr->data : NULL); \
+    for (_map_iter_begin((m)), (e) = (void*)(((m)->it.curr != NULL) ? (m)->it.curr->data : NULL); \
          !(_map_end((m))); \
-         _iter_next(m), (e) = (void*)(((m)->it.curr != NULL) ? (m)->it.curr->data : NULL))
+         _map_iter_next(m), (e) = (void*)(((m)->it.curr != NULL) ? (m)->it.curr->data : NULL))
 
 
 /**
@@ -115,9 +124,7 @@ inline void _iter_next(Map *m) {
  *               key type is INT).
  * @param   v  Pointer to value to be inserted.
  */
-#define map_insert(m, k, v) \
-    (((m)->kt == NUMBER) ? _map_insert_int((m), *(int32_t *) (k), (v)) : \
-    _map_insert_str((m), (char *) (k), (v)))
+void map_insert(Map *m, const void *key, const void *value);
 
 
 /**
@@ -130,9 +137,7 @@ inline void _iter_next(Map *m) {
  * @return     If the key is found, returns a pointer to the data corresponding to that key. If
  *                the key does not exist, returns NULL.
  */
-#define map_find(m, k) \
-    (((m)->kt == NUMBER) ? _map_find_int((m), *(int32_t *) (k)) : \
-    _map_find_str((m), (char *) (k)))
+void *map_find(Map *m, const void *key);
 
 
 /**
@@ -142,9 +147,7 @@ inline void _iter_next(Map *m) {
  * @param   k  Pointer to key: either (char *) (if the key type is STRING) or (int *) (if the
  *               key type is INT).
  */
-#define map_erase_key(m,k) \
-    (((m)->kt == NUMBER) ? _map_erase_int((m), *(int32_t *) (k)) : \
-    _map_erase_str((m), (char *) (k)))
+void map_erase_key(Map *m, const void *key);
 
 
 /**
@@ -193,14 +196,4 @@ void map_set_load_factor(Map *m, double lf);
  */
 void map_clear(Map *m);
 
-
-void *_map_find_int(Map *m, const int32_t key);
-void *_map_find_str(Map *m, const char *key);
-
-void _map_insert_int(Map *m, const int32_t key, const void *value);
-void _map_insert_str(Map *m, const char *key, const void *value);
-
-void _map_erase_int(Map *m, const int32_t key);
-void _map_erase_str(Map *m, const char *key);
-
-#endif // MAP_H
+#endif /* MAP_H */

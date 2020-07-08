@@ -10,14 +10,14 @@ typedef int (*meetsCondition)(const void *_val);
 
 typedef enum {
     LIST_INIT_EMPTY,
-    LIST_INIT_BUILTIN, // like int nums[] = {1, 2, 3}
-    LIST_INIT_LIST // like List *nums
+    LIST_INIT_BUILTIN, /* like int nums[] = {1, 2, 3} */
+    LIST_INIT_LIST /* like List *nums */
 } ListInitializer;
 
 typedef enum {
-    LIST_INSERT_SINGLE, // void *
-    LIST_INSERT_BUILTIN, // like int nums[] = {1, 2, 3}
-    LIST_INSERT_LIST // like List *nums
+    LIST_INSERT_SINGLE, /* void */
+    LIST_INSERT_BUILTIN, /* like int nums[] = {1, 2, 3} */
+    LIST_INSERT_LIST /* like List *nums */
 } ListInsertType;
 
 typedef struct DLLNode DLLNode;
@@ -164,15 +164,15 @@ void list_pop_back(List *l);
  *   it defaults to the front of the other list. If "end" is LIST_END, then all elements from
  *   "start" through the end of the other list will be inserted.
  * 
- * (1) type = LIST_INSERT_SINGLE:   list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, void *value)
- * (2) type = LIST_INSERT_BUILTIN:  list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, void *arr, int start, int n)
- * (3) type = LIST_INSERT_LIST:     list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, List *other, DLLNode *start, DLLNode *end)
+ * (1) type = LIST_INSERT_SINGLE:   list_insert(List *l, DLLNode *pos, int sorted, ListInsertType type, void *value)
+ * (2) type = LIST_INSERT_BUILTIN:  list_insert(List *l, DLLNode *pos, int sorted, ListInsertType type, void *arr, int start, int n)
+ * (3) type = LIST_INSERT_LIST:     list_insert(List *l, DLLNode *pos, int sorted, ListInsertType type, List *other, DLLNode *start, DLLNode *end)
  *
  * @param   l       Pointer to list.
  * @param   pos     ListEntry before which the element(s) should be inserted. If this is LIST_END,
  *                    it defaults to list_push_back.
- * @param   sorted  Whether elements should be inserted in sorted order. If this is true, "pos" is
- *                    ignored.
+ * @param   sorted  Whether elements should be inserted in sorted order (1 if sorted, 0 if not).
+ *                   If this is 1, "pos" is ignored.
  * @param   type    Type of insertion to execute.
  *
  * @return         If successful, and "sorted" is false, returns a ListEntry corresponding to the
@@ -180,7 +180,7 @@ void list_pop_back(List *l);
  *                   inserted, returns the front ListEntry in the list. If an error occurred,
  *                   returns LIST_ERROR.
  */
-DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ...);
+DLLNode *list_insert(List *l, DLLNode *pos, int sorted, ListInsertType type, ...);
 
 
 /**

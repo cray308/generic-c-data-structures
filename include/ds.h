@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
-#include <stdbool.h>
-
 
 /**
  * Checks whether an index is reasonable.
@@ -17,13 +14,8 @@
  * @return         -If the index is positive, whether it is less than the size.
  *                 -If the index is negative, whether subtracting it from the size is at least 0.
  */
-inline bool check_index(int index, size_t size) {
-    if (index < 0) {
-        return ((int) size + (int) index) >= 0;
-    } else {
-        return index < (int) size;
-    }
-}
+#define check_index(index, size) \
+    (((index) < 0) ? ((int) (size) + (index) >= 0) : ((index) < (int) (size)))
 
 
 /**
@@ -34,7 +26,7 @@ inline bool check_index(int index, size_t size) {
  *
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
-inline int modulo(int index, size_t size) {
+static __attribute__((__unused__)) int modulo(int index, size_t size) {
     if (!check_index(index, size)) {
         return -1;
     }
@@ -42,6 +34,7 @@ inline int modulo(int index, size_t size) {
     int m = index % (int) size;
     return (m < 0) ? (m + (int) size) : m;
 }
+
 
 /**
  * After casting to the appropriate types, should return:
@@ -51,10 +44,12 @@ inline int modulo(int index, size_t size) {
  */
 typedef int (*comparison)(const void *_e1, const void *_e2);
 
+
 /**
  * After casting, this should copy _src to _dst (either a pointer or the value).
  */
 typedef void (*copy_ds)(void *_dst, const void *_src);
+
 
 /**
  * After casting, this should free any dynamically allocated memory associated with the
@@ -82,8 +77,6 @@ struct Node {
         exit(1); \
     } while(0)
 #endif
-
-#define DS_UNUSED __attribute__((__unused__))
 
 #define min(a,b) (((a) <= (b)) ? (a) : (b))
 #define max(a,b) (((a) >= (b)) ? (a) : (b))

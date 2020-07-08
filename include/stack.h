@@ -53,9 +53,9 @@ void stack_free(Stack *stack);
  * @param   stack   Pointer to stack.
  * @param   result  Pointer to where the popped value will be copied.
  *
- * @return          True if an item was popped, false if the stack is empty.
+ * @return          1 if an item was popped, 0 if the stack is empty.
  */
-bool stack_pop(Stack *stack, void *result);
+int stack_pop(Stack *stack, void *result);
 
 /**
  * Pushes a new element to the top of the stack.
@@ -65,4 +65,4 @@ bool stack_pop(Stack *stack, void *result);
  */
 void stack_push(Stack *stack, const void *item);
 
-#endif // STACK_H
+#endif /* STACK_H */

@@ -18,7 +18,7 @@ Stack *stack_new(const DSHelper *helper) {
 
 void stack_free(Stack *stack) {
     Node *curr = stack->top, *temp = NULL;
-    while (curr != NULL) { // iterate and remove any elements
+    while (curr != NULL) { /* iterate and remove any elements */
         temp = curr->next;
 
         if (stack->helper.del) {
@@ -31,15 +31,15 @@ void stack_free(Stack *stack) {
     free(stack);
 }
 
-bool stack_pop(Stack *stack, void *result) {
-    if (stack_empty(stack)) { // nothing to pop
-        return false;
+int stack_pop(Stack *stack, void *result) {
+    if (stack_empty(stack)) { /* nothing to pop */
+        return 0;
     }
 
     Node *top = stack->top;
     stack->top = top->next;
 
-    // only copy if the result pointer is provided
+    /* only copy if the result pointer is provided */
     if (result) {
         if (stack->helper.copy) {
             stack->helper.copy(result, top->data);
@@ -48,13 +48,13 @@ bool stack_pop(Stack *stack, void *result) {
         }
     }
 
-    // delete top element
+    /* delete top element */
     if (stack->helper.del) {
         stack->helper.del(top->data);
     }
     free(top);
     stack->size--;
-    return true;
+    return 1;
 }
 
 void stack_push(Stack *stack, const void *item) {
@@ -65,7 +65,7 @@ void stack_push(Stack *stack, const void *item) {
         memcpy(new->data, item, stack->helper.size);
     }
 
-    // set this element to be the top
+    /* set this element to be the top */
     new->next = stack->top;
     stack->top = new;
     stack->size++;
