@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "stack.h"
 #include <assert.h>
 
@@ -75,7 +74,7 @@ void test_pop(Stack *s) {
     assert(stack_size(s) == 0);
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     Stack *s = stack_new(&dblstr_helper);
     test_push(s);
     test_pop(s);

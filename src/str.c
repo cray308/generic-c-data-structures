@@ -1,6 +1,5 @@
-#include "defaults.h"
 #include "str.h"
-#include <ctype.h>
+#include <stdarg.h>
 
 #define SPLIT_INITIAL_SIZE 8
 #define INITIAL_STR_CAP 64
@@ -108,7 +107,7 @@ void string_erase(String *s, int start, int n) {
 
     int end = start + n;
     
-    if (end < s->len) { /* move any characters after end to start */
+    if (end < string_len(s)) { /* move any characters after end to start */
         memmove(&s->s[start], &s->s[end], s->len - (size_t) end);
     }
     s->len -= (size_t) n;
@@ -262,14 +261,14 @@ void _str_printf_va(String *s, int pos, const char *format, va_list args) {
 
 int string_find(String *s, int start_pos, const char *needle, int len_needle) {
     if (!needle || !s->len) {
-        return -1;
+        return STRING_ERROR;
     } else if (*needle == '\0' || !len_needle) {
         return (int) start_pos;
     }
 
     start_pos = modulo(start_pos, s->len);
     if (start_pos < 0) {
-        return -1;
+        return STRING_ERROR;
     }
 
     const int ln = strlen(needle);
@@ -282,14 +281,14 @@ int string_find(String *s, int start_pos, const char *needle, int len_needle) {
 
     int len_haystack = (int) s->len - start_pos;
     if (len_needle > len_haystack) {
-        return -1;
+        return STRING_NPOS;
     }
 
     char *haystack = s->s + start_pos; /* for easier indexing */
     int i = 0;
     int j = 0;
     int *table = create_prefix_table(needle, (size_t) len_needle);
-    int res = -1;
+    int res = STRING_NPOS;
 
     while (i < len_haystack) {
         if (haystack[i] == needle[j]) { /* match */
@@ -341,14 +340,14 @@ int *create_prefix_table(const char *needle, size_t len) {
 
 int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
     if (!needle || !s->len) {
-        return -1;
+        return STRING_ERROR;
     } else if (*needle == '\0' || !len_needle) {
         return end_pos;
     }
 
     end_pos = modulo(end_pos, s->len);
     if (end_pos < 0) {
-        return -1;
+        return STRING_ERROR;
     }
 
     const int ln = strlen(needle);
@@ -361,14 +360,14 @@ int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
 
     int len_haystack = end_pos + 1;
     if (len_needle > len_haystack) {
-        return -1;
+        return STRING_NPOS;
     }
 
     char *haystack = s->s;
     int i = end_pos;
     int j = len_needle - 1;
     int *table = create_prefix_table_rev(needle, (size_t) len_needle);
-    int res = -1;
+    int res = STRING_NPOS;
 
     while (i >= 0) {
         if (haystack[i] == needle[j]) { /* found matching character */
@@ -418,161 +417,66 @@ int *create_prefix_table_rev(const char *needle, size_t len) {
     return table;
 }
 
-int string_find_first_of(String *s, int pos, const char *chars) {
+int _string_find_x_of(String *s, int pos, const char *chars, bool first, bool match) {
     if (!s->len || !chars) {
-        return -1;
+        return STRING_NPOS;
     } else if (*chars == '\0') {
         return pos;
     }
 
     pos = modulo(pos, s->len);
     if (pos < 0) {
-        return -1;
+        return STRING_ERROR;
     }
 
     const char *c;
     int i = pos;
 
-    for (c = chars; *c; ++c) {
-        if (s->s[i] == *c) {
-            return i;
-        }
-    }
-
-    for (++i; i < (int) s->len; ++i) {
-        /* if the previous character didn't match and this is the same, there won't be a match */
-        if (s->s[i] == s->s[i - 1]) {
-            continue;
-        }
-
+    if (match) {
         for (c = chars; *c; ++c) {
-            if (s->s[i] == *c) {
-                return i;
+            if (s->s[i] == *c) return i;
+        }
+        if (first) {
+            for (++i; i < (int) s->len; ++i) {
+                /* if the previous character didn't match and this is the same, there won't be a match */
+                if (s->s[i] == s->s[i - 1]) continue;
+                for (c = chars; *c; ++c) {
+                    if (s->s[i] == *c) return i;
+                }
+            }
+        } else {
+            for (--i; i >= 0; --i) {
+                if (s->s[i] == s->s[i + 1]) continue;
+                for (c = chars; *c; ++c) {
+                    if (s->s[i] == *c) return i;
+                }
             }
         }
-    }
-    return -1;
-}
-
-int string_find_last_of(String *s, int pos, const char *chars) {
-    if (!s->len || !chars) {
-        return -1;
-    } else if (*chars == '\0') {
-        return pos;
-    }
-
-    pos = modulo(pos, s->len);
-    if (pos < 0) {
-        return -1;
-    }
-
-    const char *c;
-    int i = pos;
-
-    for (c = chars; *c; ++c) {
-        if (s->s[i] == *c) {
-            return i;
-        }
-    }
-
-    for (--i; i >= 0; --i) {
-        if (s->s[i] == s->s[i + 1]) {
-            continue;
-        }
-
+    } else {
         for (c = chars; *c; ++c) {
-            if (s->s[i] == *c) {
-                return i;
+            if (s->s[i] == *c) break;
+        }
+        /* if *c is 0, we must have iterated through all of the characters */
+        if (!(*c)) return i;
+        if (first) {
+            for (++i; i < (int) s->len; ++i) {
+                if (s->s[i] == s->s[i - 1]) continue;
+                for (c = chars; *c; ++c) {
+                    if (s->s[i] == *c) break;
+                }
+                if (!(*c)) return i;
             }
+        } else {
+            for (--i; i >= 0; --i) {
+                if (s->s[i] == s->s[i + 1]) continue;
+                for (c = chars; *c; ++c) {
+                    if (s->s[i] == *c) break;
+                }
+                if (!(*c)) return i;
+            }   
         }
     }
-    return -1;
-}
-
-int string_find_first_not_of(String *s, int pos, const char *chars) {
-    if (!s->len || !chars) {
-        return -1;
-    } else if (*chars == '\0') {
-        return pos;
-    }
-
-    pos = modulo(pos, s->len);
-    if (pos < 0) {
-        return -1;
-    }
-
-    const char *c;
-    int i = pos;
-
-    for (c = chars; *c; ++c) {
-        if (s->s[i] == *c) {
-            break;
-        }
-    }
-
-    if (!(*c)) { /* if *c is 0, we must have iterated through all of the characters */
-        return i;
-    }
-
-    for (++i; i < (int) s->len; ++i) {
-        if (s->s[i] == s->s[i - 1]) {
-            continue;
-        }
-
-        for (c = chars; *c; ++c) {
-            if (s->s[i] == *c) {
-                break;
-            }
-        }
-
-        if (!(*c)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-int string_find_last_not_of(String *s, int pos, const char *chars) {
-    if (!s->len || !chars) {
-        return -1;
-    } else if (*chars == '\0') {
-        return pos;
-    }
-
-    pos = modulo(pos, s->len);
-    if (pos < 0) {
-        return -1;
-    }
-
-    const char *c;
-    int i = (int) pos;
-
-    for (c = chars; *c; ++c) {
-        if (s->s[i] == *c) {
-            break;
-        }
-    }
-
-    if (!(*c)) {
-        return i;
-    }
-
-    for (--i; i >= 0; --i) {
-        if (s->s[i] == s->s[i + 1]) {
-            continue;
-        }
-
-        for (c = chars; *c; ++c) {
-            if (s->s[i] == *c) {
-                break;
-            }
-        }
-
-        if (!(*c)) {
-            return i;
-        }
-    }
-    return -1;
+    return STRING_NPOS;
 }
 
 String *string_substr(String *s, int start, int n, int step_size) {
@@ -593,15 +497,11 @@ String *string_substr(String *s, int start, int n, int step_size) {
 
     if (step_size < 0) {
         end = (n < 0) ? -1 : max(-1, start + (n * step_size));
-    } else {
-        end = (n < 0) ? STRING_END(s) : min(STRING_END(s), start + (n * step_size));
-    }
-
-    if (step_size < 0) {
         for (i = start; i > end; i += step_size) {
             string_push_back(sub, s->s[i]);
         }
     } else {
+        end = (n < 0) ? STRING_END(s) : min(STRING_END(s), start + (n * step_size));
         for (i = start; i < end; i += step_size) {
             string_push_back(sub, s->s[i]);
         }
@@ -651,14 +551,14 @@ String **string_split(String *s, const char *delim, int *n) {
     }
 
     if (index == arr_len) {
-            arr_len <<= 1;
-            String **temp = realloc(arr, arr_len * sizeof(String *));
-            if (!temp) {
-                DS_OOM();
-            }
+        arr_len <<= 1;
+        String **temp = realloc(arr, arr_len * sizeof(String *));
+        if (!temp) {
+            DS_OOM();
+        }
 
-            arr = temp;
-            memset(&arr[index], 0, (arr_len - index) * sizeof(String *));
+        arr = temp;
+        memset(&arr[index], 0, (arr_len - index) * sizeof(String *));
     }
 
     d = str_end - start;
@@ -670,47 +570,8 @@ String **string_split(String *s, const char *delim, int *n) {
 }
 
 void string_split_free(String **arr, int n) {
-    int i;
-    for (i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
         string_free(arr[i]);
     }
     free(arr);
-}
-
-int isAlphaNum(const char *s) {
-    const char *c;
-    for (c = s; *c; ++c) {
-        if (!isalnum(*c)) return 0;
-    }
-    return 1;
-}
-
-int isAlpha(const char *s) {
-    const char *c;
-    for (c = s; *c; ++c) {
-        if (!isalpha(*c)) return 0;
-    }
-    return 1;
-}
-
-int isDigit(const char *s) {
-    const char *c;
-    for (c = s; *c; ++c) {
-        if (!isdigit(*c)) return 0;
-    }
-    return 1;
-}
-
-void toLowercase(char *s) {
-    char *c;
-    for (c = s; *c; ++c) {
-        *c = tolower(*c);
-    }
-}
-
-void toUppercase(char *s) {
-    char *c;
-    for (c = s; *c; ++c) {
-        *c = toupper(*c);
-    }
 }

@@ -2,6 +2,7 @@
 #define STACK_H
 
 #include "ds.h"
+#include <stdbool.h>
 
 typedef struct {
     size_t size;
@@ -14,7 +15,7 @@ typedef struct {
  *
  * @param   s  Pointer to stack.
  */
-#define stack_size(s) ((s)->size)
+#define stack_size(s) ((int) (s)->size)
 
 /**
  * A pointer to the top element in the stack.
@@ -53,9 +54,9 @@ void stack_free(Stack *stack);
  * @param   stack   Pointer to stack.
  * @param   result  Pointer to where the popped value will be copied.
  *
- * @return          1 if an item was popped, 0 if the stack is empty.
+ * @return          True if an item was popped, false if the stack is empty.
  */
-int stack_pop(Stack *stack, void *result);
+bool stack_pop(Stack *stack, void *result);
 
 /**
  * Pushes a new element to the top of the stack.

@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "stack.h"
 
 Stack *stack_new(const DSHelper *helper) {
@@ -31,9 +30,9 @@ void stack_free(Stack *stack) {
     free(stack);
 }
 
-int stack_pop(Stack *stack, void *result) {
+bool stack_pop(Stack *stack, void *result) {
     if (stack_empty(stack)) { /* nothing to pop */
-        return 0;
+        return false;
     }
 
     Node *top = stack->top;
@@ -54,7 +53,7 @@ int stack_pop(Stack *stack, void *result) {
     }
     free(top);
     stack->size--;
-    return 1;
+    return true;
 }
 
 void stack_push(Stack *stack, const void *item) {

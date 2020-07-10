@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "queue.h"
 #include <assert.h>
 
@@ -47,7 +46,7 @@ void test_pop(Queue *q) {
     assert(queue_empty(q));
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     Queue *q = queue_new(&str_ptr_helper);
     test_push(q);
     test_pop(q);

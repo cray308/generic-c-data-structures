@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "set.h"
 #include <assert.h>
 

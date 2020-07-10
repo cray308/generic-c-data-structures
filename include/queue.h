@@ -2,6 +2,7 @@
 #define QUEUE_H
 
 #include "ds.h"
+#include <stdbool.h>
 
 typedef struct {
     size_t size;
@@ -15,7 +16,7 @@ typedef struct {
  *
  * @param   q  Pointer to queue.
  */
-#define queue_size(q) ((q)->size)
+#define queue_size(q) ((int) (q)->size)
 
 /**
  * A pointer to the front element in the queue.
@@ -61,9 +62,9 @@ void queue_free(Queue *queue);
  * @param   queue   Pointer to queue.
  * @param   result  Pointer to where the dequeued value will be copied.
  *
- * @return          1 if an item was popped, 0 if the queue is empty.
+ * @return          True if an item was popped, false if the queue is empty.
  */
-int queue_pop(Queue *queue, void *result);
+bool queue_pop(Queue *queue, void *result);
 
 /**
  * Pushes a new element to the back of the queue.

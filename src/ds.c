@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "ds.h"
 
 void ds_str_val_copy(void *_dst, const void *_src) {

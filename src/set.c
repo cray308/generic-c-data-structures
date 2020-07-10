@@ -1,6 +1,6 @@
-#include "defaults.h"
 #include "set.h"
 #include "array.h"
+#include <stdarg.h>
 
 /*  --------------------------------------------  */
 /* Set va_args insertion functions */
@@ -37,11 +37,9 @@ void _set_insert_builtin(Set *this, void *arr, int start, int n) {
 	}
 }
 
-
 /*  --------------------------------------------  */
 /* main set functions */
 /*  --------------------------------------------  */
-
 
 Set *set_new(const DSHelper *helper, SetInitializer init, ...) {
 	Set *s = tree_new(helper);
@@ -129,145 +127,60 @@ void set_erase(Set *this, SetEntry *begin, SetEntry *end) {
 		curr = inorder_successor(curr);
 	}
 
-	size_t i;
-	for (i = 0; i < array_size(vals); ++i) {
+	for (int i = 0; i < array_size(vals); ++i) {
 		tree_delete_by_val(this, array_at(vals, i));
 	}
 	array_free(vals);
 }
 
-Set *set_union(Set *this, Set *other) {
+Set *_set_creation_ops(Set *this, Set *other, unsigned char op) {
 	if (!other) {
 		return NULL;
 	}
 
-	Set *s_union = tree_new(&(this->helper));
-	RBNode *n1 = this->root;
-	if (this->root) {
-		n1 = successor(this->root);
-	}
-	
-	RBNode *n2 = other->root;
-	if (other->root) {
-		n2 = successor(other->root);
-	}
-	int res;
-	while (n1 && n2) {
-		res = this->helper.cmp(n1->data, n2->data);
-		if (res == 0) { /* common */
-			tree_insert(s_union, n1->data);
-			n1 = inorder_successor(n1);
-			n2 = inorder_successor(n2);
-		} else if (res > 0) { /* n2 not in "this" */
-			tree_insert(s_union, n2->data);
-			n2 = inorder_successor(n2);
-		} else { /* n1 not in "other" */
-			tree_insert(s_union, n1->data);
-			n1 = inorder_successor(n1);
-		}
-	}
-
-	while (n1) {
-		tree_insert(s_union, n1->data);
-		n1 = inorder_successor(n1);
-	}
-	while (n2) {
-		tree_insert(s_union, n2->data);
-		n2 = inorder_successor(n2);
-	}
-	return s_union;
-}
-
-Set *set_intersection(Set *this, Set *other) {
-	if (!other) {
-		return NULL;
-	}
-
-	Set *s_inter = tree_new(&(this->helper));
+	Set *s_new = tree_new(&(this->helper));
 	RBNode *n1 = this->root ? successor(this->root) : this->root;
 	RBNode *n2 = other->root ? successor(other->root) : other->root;
 	int res;
+
 	while (n1 && n2) {
 		res = this->helper.cmp(n1->data, n2->data);
 		if (res == 0) { /* common */
-			tree_insert(s_inter, n1->data);
+			if (op & 0x10) {
+				tree_insert(s_new, n1->data);
+			}
 			n1 = inorder_successor(n1);
 			n2 = inorder_successor(n2);
 		} else if (res > 0) { /* n2 not in "this" */
+			if (op & 0x08) {
+				tree_insert(s_new, n2->data);
+			}
 			n2 = inorder_successor(n2);
 		} else { /* n1 not in "other" */
+			if (op & 0x04) {
+				tree_insert(s_new, n1->data);
+			}
 			n1 = inorder_successor(n1);
 		}
 	}
-	return s_inter;
-}
-
-Set *set_difference(Set *this, Set *other) {
-	if (!other) {
-		return NULL;
-	}
-
-	Set *s_diff = tree_new(&(this->helper));
-	RBNode *n1 = this->root ? successor(this->root) : this->root;
-	RBNode *n2 = other->root ? successor(other->root) : other->root;
-	int res;
-	while (n1 && n2) {
-		res = this->helper.cmp(n1->data, n2->data);
-		if (res == 0) { /* common */
-			n1 = inorder_successor(n1);
-			n2 = inorder_successor(n2);
-		} else if (res > 0) { /* n2 not in "this" */
-			n2 = inorder_successor(n2);
-		} else { /* n1 not in "other" */
-			tree_insert(s_diff, n1->data);
+	if (op & 0x02) {
+		while (n1) {
+			tree_insert(s_new, n1->data);
 			n1 = inorder_successor(n1);
 		}
 	}
-
-	while (n1) {
-		tree_insert(s_diff, n1->data);
-		n1 = inorder_successor(n1);
-	}
-	return s_diff;
-}
-
-Set *set_symmetric_difference(Set *this, Set *other) {
-	if (!other) {
-		return NULL;
-	}
-
-	Set *s_symm = tree_new(&(this->helper));
-	RBNode *n1 = this->root ? successor(this->root) : this->root;
-	RBNode *n2 = other->root ? successor(other->root) : other->root;
-	int res;
-	while (n1 && n2) {
-		res = this->helper.cmp(n1->data, n2->data);
-		if (res == 0) { /* common */
-			n1 = inorder_successor(n1);
+	if (op & 0x01) {
+		while (n2) {
+			tree_insert(s_new, n2->data);
 			n2 = inorder_successor(n2);
-		} else if (res > 0) { /* n2 not in "this" */
-			tree_insert(s_symm, n2->data);
-			n2 = inorder_successor(n2);
-		} else { /* n1 not in "other" */
-			tree_insert(s_symm, n1->data);
-			n1 = inorder_successor(n1);
 		}
 	}
-
-	while (n1) {
-		tree_insert(s_symm, n1->data);
-		n1 = inorder_successor(n1);
-	}
-	while (n2) {
-		tree_insert(s_symm, n2->data);
-		n2 = inorder_successor(n2);
-	}
-	return s_symm;
+	return s_new;
 }
 
-int set_issubset(Set *this, Set *other) {
+bool _set_bool_ops(Set *this, Set *other, bool subset) {
 	if (!other) {
-		return 0;
+		return false;
 	}
 
 	RBNode *n1 = this->root ? successor(this->root) : this->root;
@@ -276,34 +189,15 @@ int set_issubset(Set *this, Set *other) {
 	while (n1 && n2) {
 		res = this->helper.cmp(n1->data, n2->data);
 		if (res == 0) { /* common */
+			if (!subset) return false;
 			n1 = inorder_successor(n1);
 			n2 = inorder_successor(n2);
 		} else if (res > 0) { /* n2 not in "this" */
 			n2 = inorder_successor(n2);
 		} else { /* n1 not in "other" */
-			return 0;
-		}
-	}
-	return n1 == NULL;
-}
-
-int set_isdisjoint(Set *this, Set *other) {
-	if (!other) {
-		return 0;
-	}
-
-	RBNode *n1 = this->root ? successor(this->root) : this->root;
-	RBNode *n2 = other->root ? successor(other->root) : other->root;
-	int res;
-	while (n1 && n2) {
-		res = this->helper.cmp(n1->data, n2->data);
-		if (res == 0) { /* common */
-			return 0;
-		} else if (res > 0) { /* n2 not in "this" */
-			n2 = inorder_successor(n2);
-		} else { /* n1 not in "other" */
+			if (subset) return false;
 			n1 = inorder_successor(n1);
 		}
 	}
-	return 1;
+	return subset ? (n1 == NULL) : true;
 }

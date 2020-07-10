@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "map.h"
 
 #define FNV_PRIME 0x01000193UL
@@ -6,17 +5,15 @@
 #define DEFAULT_LOAD_FACTOR 0.750
 #define INITIAL_NBUCKETS 32
 
-typedef unsigned char map_uint8_t;
-
-map_uint32_t fnv(const void *k, size_t n);
+uint32_t fnv(const void *k, size_t n);
 Entry *entry_new(size_t size);
-Entry *_find_int_index(Map *m, const map_int32_t key, map_uint32_t index);
-Entry *_find_str_index(Map *m, const char *key, map_uint32_t index);
-void *_map_find_int(Map *m, const map_int32_t key);
+Entry *_find_int_index(Map *m, const int32_t key, uint32_t index);
+Entry *_find_str_index(Map *m, const char *key, uint32_t index);
+void *_map_find_int(Map *m, const int32_t key);
 void *_map_find_str(Map *m, const char *key);
-void _map_insert_int(Map *m, const map_int32_t key, const void *value);
+void _map_insert_int(Map *m, const int32_t key, const void *value);
 void _map_insert_str(Map *m, const char *key, const void *value);
-void _map_erase_int(Map *m, const map_int32_t key);
+void _map_erase_int(Map *m, const int32_t key);
 void _map_erase_str(Map *m, const char *key);
 
 #define map_copy(m, e, value) \
@@ -78,8 +75,7 @@ void map_free(Map *m) {
 
 void map_clear(Map *m) {
     Entry *e = NULL, *temp = NULL;
-    size_t i;
-    for (i = 0; i < m->cap; ++i) { /* iterate over all buckets */
+    for (size_t i = 0; i < m->cap; ++i) { /* iterate over all buckets */
         e = m->buckets[i];
 
         while (e) { /* iterate through linked list */
@@ -99,7 +95,7 @@ void map_clear(Map *m) {
 void map_insert(Map *m, const void *key, const void *value) {
     switch (m->kt) {
         case NUMBER:
-            _map_insert_int(m, *(map_int32_t *) key, value);
+            _map_insert_int(m, *(int32_t *) key, value);
             break;
         case STRING:
             _map_insert_str(m, (const char *) key, value);
@@ -107,14 +103,14 @@ void map_insert(Map *m, const void *key, const void *value) {
     }
 }
 
-void _map_insert_int(Map *m, const map_int32_t key, const void *value) {
+void _map_insert_int(Map *m, const int32_t key, const void *value) {
     double lf = (double) m->size / m->cap; /* check load factor */
     if (lf > m->lf) {
         map_rehash(m, m->cap << 1);
     }
 
     /* get index and entry at that index */
-    map_uint32_t index = fnv(&key, sizeof(map_int32_t)) % m->cap;
+    uint32_t index = fnv(&key, sizeof(int32_t)) % m->cap;
     Entry *e = _find_int_index(m, key, index);
 
     if (e) {
@@ -140,7 +136,7 @@ void _map_insert_str(Map *m, const char *key, const void *value) {
 
     /* get index and entry at that index */
     size_t nBytes = strlen(key);
-    map_uint32_t index = fnv(key, nBytes) % m->cap;
+    uint32_t index = fnv(key, nBytes) % m->cap;
     Entry *e = _find_str_index(m, key, index);
 
     if (e) {
@@ -166,7 +162,7 @@ void *map_find(Map *m, const void *key) {
     void *rv = NULL;
     switch (m->kt) {
         case NUMBER:
-            rv = _map_find_int(m, *(map_int32_t *) key);
+            rv = _map_find_int(m, *(int32_t *) key);
             break;
         case STRING:
             rv = _map_find_str(m, (const char *) key);
@@ -175,15 +171,15 @@ void *map_find(Map *m, const void *key) {
     return rv;
 }
 
-void *_map_find_int(Map *m, const map_int32_t key) {
-    map_uint32_t index = fnv(&key, sizeof(map_int32_t)) % m->cap;
+void *_map_find_int(Map *m, const int32_t key) {
+    uint32_t index = fnv(&key, sizeof(int32_t)) % m->cap;
     Entry *e = _find_int_index(m, key, index);
     return e ? e->data : NULL;
 }
 
 void *_map_find_str(Map *m, const char *key) {
     size_t nBytes = strlen(key);
-    map_uint32_t index = fnv(key, nBytes) % m->cap;
+    uint32_t index = fnv(key, nBytes) % m->cap;
     Entry *e = _find_str_index(m, key, index);
     return e ? e->data : NULL;
 }
@@ -191,7 +187,7 @@ void *_map_find_str(Map *m, const char *key) {
 void map_erase_key(Map *m, const void *key) {
     switch (m->kt) {
         case NUMBER:
-            _map_erase_int(m, *(map_int32_t *) key);
+            _map_erase_int(m, *(int32_t *) key);
             break;
         case STRING:
             _map_erase_str(m, (const char *) key);
@@ -199,8 +195,8 @@ void map_erase_key(Map *m, const void *key) {
     }
 }
 
-void _map_erase_int(Map *m, const map_int32_t key) {
-    map_uint32_t index = fnv(&key, sizeof(map_int32_t)) % m->cap;
+void _map_erase_int(Map *m, const int32_t key) {
+    uint32_t index = fnv(&key, sizeof(int32_t)) % m->cap;
     if (!(m->buckets[index])) return; /* this entry does not exist */
 
     Entry* prev = m->buckets[index];
@@ -229,7 +225,7 @@ void _map_erase_int(Map *m, const map_int32_t key) {
 }
 
 void _map_erase_str(Map *m, const char *key) {
-    map_uint32_t index = fnv(key, strlen(key)) % m->cap;
+    uint32_t index = fnv(key, strlen(key)) % m->cap;
     if (!(m->buckets[index])) return; /* this entry does not exist */
 
     Entry* prev = m->buckets[index];
@@ -262,25 +258,21 @@ void _map_erase_str(Map *m, const char *key) {
  * inserting, finding, or removing elements.
 */
 
-Entry *_find_int_index(Map *m, const map_int32_t key, map_uint32_t index) {
+Entry *_find_int_index(Map *m, const int32_t key, uint32_t index) {
     Entry *e = m->buckets[index];
-
     while (e) {
         if (e->key.k_int == key) return e;
         e = e->next;
     }
-
     return NULL;
 }
 
-Entry *_find_str_index(Map *m, const char *key, map_uint32_t index) {
+Entry *_find_str_index(Map *m, const char *key, uint32_t index) {
     Entry *e = m->buckets[index];
-
     while (e) {
         if (streq(e->key.k_str, key)) return e;
         e = e->next;
     }
-
     return NULL;
 }
 
@@ -297,10 +289,9 @@ void map_rehash(Map *m, size_t nbuckets) {
 
     memset(new, 0, n * sizeof(Entry*));
     Entry *e = NULL, *temp = NULL;
-    map_uint32_t index = 0;
-    size_t i;
+    uint32_t index = 0;
 
-    for (i = 0; i < m->cap; ++i) {
+    for (size_t i = 0; i < m->cap; ++i) {
         e = m->buckets[i];
 
         while (e) {
@@ -308,7 +299,7 @@ void map_rehash(Map *m, size_t nbuckets) {
 
             switch (m->kt) { /* find index based on the new number of buckets */
                 case NUMBER:
-                    index = fnv(&(e->key.k_int), sizeof(map_int32_t)) % n;
+                    index = fnv(&(e->key.k_int), sizeof(int32_t)) % n;
                     break;
                 case STRING:
                     index = fnv(e->key.k_str, strlen(e->key.k_str)) % n;
@@ -337,12 +328,11 @@ void map_set_load_factor(Map *m, double lf) {
     }
 }
 
-map_uint32_t fnv(const void *k, size_t n) {
-    const map_uint8_t *key = (const map_uint8_t *) k;
-    map_uint32_t hash = FNV_OFFSET_BASIS;
-    size_t i;
+uint32_t fnv(const void *k, size_t n) {
+    const unsigned char *key = (const unsigned char *) k;
+    uint32_t hash = FNV_OFFSET_BASIS;
 
-    for (i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         hash ^= key[i];
         hash *= FNV_PRIME;
     }

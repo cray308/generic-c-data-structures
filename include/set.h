@@ -3,6 +3,7 @@
 
 #include "ds.h"
 #include "rbtree.h"
+#include <stdbool.h>
 
 typedef Tree Set;
 typedef RBNode SetEntry;
@@ -20,13 +21,15 @@ typedef enum {
     SET_INSERT_SET /* Set *nums = ...; set_insert(..., nums, begin, end) */
 } SetInsertType;
 
+bool _set_bool_ops(Set *this, Set *other, bool subset);
+Set *_set_creation_ops(Set *this, Set *other, unsigned char op);
 
 /**
  * The number of elements in the set.
  * 
  * @param   s  Pointer to set.
  */
-#define set_len(s) ((s)->size)
+#define set_len(s) ((int) (s)->size)
 
 
 /**
@@ -154,7 +157,7 @@ void set_erase(Set *this, SetEntry *begin, SetEntry *end);
  * @return         Newly created set which is the union of "this" and "other", or NULL if "other"
  *                   is NULL.
  */
-Set *set_union(Set *this, Set *other);
+#define set_union(this, other) _set_creation_ops((this), (other), 0x1F)
 
 
 /**
@@ -167,7 +170,7 @@ Set *set_union(Set *this, Set *other);
  * @return         Newly created set which is the union of "this" and "other", or NULL if "other"
  *                   is NULL.
  */
-Set *set_intersection(Set *this, Set *other);
+#define set_intersection(this, other) _set_creation_ops((this), (other), 0x10)
 
 
 /**
@@ -180,7 +183,7 @@ Set *set_intersection(Set *this, Set *other);
  * @return         Newly created set which is the union of "this" and "other", or NULL if "other"
  *                   is NULL.
  */
-Set *set_difference(Set *this, Set *other);
+#define set_difference(this, other) _set_creation_ops((this), (other), 0x06)
 
 
 /**
@@ -193,7 +196,7 @@ Set *set_difference(Set *this, Set *other);
  * @return         Newly created set which is the symmetric difference of "this" and "other", or
  *                   NULL if "other" is NULL.
  */
-Set *set_symmetric_difference(Set *this, Set *other);
+#define set_symmetric_difference(this, other) _set_creation_ops((this), (other), 0x0F)
 
 
 /**
@@ -203,9 +206,9 @@ Set *set_symmetric_difference(Set *this, Set *other);
  * @param   this   Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         1 if each element in "this" is in "other", 0 if not.
+ * @return         True if each element in "this" is in "other", false if not.
  */
-int set_issubset(Set *this, Set *other);
+#define set_issubset(this, other) _set_bool_ops((this), (other), true)
 
 
 /**
@@ -215,9 +218,9 @@ int set_issubset(Set *this, Set *other);
  * @param   this   Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         1 if "this" contains each element in "other", 0 if not.
+ * @return         True if "this" contains each element in "other", false if not.
  */
-#define set_issuperset(this, other) set_issubset((other), (this))
+#define set_issuperset(this, other) _set_bool_ops((other), (this), true)
 
 
 /**
@@ -226,8 +229,8 @@ int set_issubset(Set *this, Set *other);
  * @param   this   Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         1 if "this" and "other" have no common elements, 0 if they do.
+ * @return         True if "this" and "other" have no common elements, false if they do.
  */
-int set_isdisjoint(Set *this, Set *other);
+#define set_isdisjoint(this, other) _set_bool_ops((this), (other), false)
 
 #endif

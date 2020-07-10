@@ -1,10 +1,9 @@
-#include "defaults.h"
 #include "rbtree.h"
-#include "array.h"
+#include <stdbool.h>
 
-/* ------------------------------------------------------------------------- */
-/*  RBNode functions    */
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+ *  RBNode functions
+ * ------------------------------------------------------------------------- */
 
 #define isOnLeft(n) ((n) == (n)->parent->left)
 
@@ -18,34 +17,21 @@
 #define getSibling(n) \
 	(((n)->parent == NULL) ? NULL : (isOnLeft((n)) ? (n)->parent->right : (n)->parent->left))
 
-#define moveDown(self, nParent) \
+#define moveDown(s, np) \
 	do { \
-		if ((self)->parent != NULL) { \
-			if (isOnLeft((self))) { \
-				(self)->parent->left = (nParent); \
+		if ((s)->parent != NULL) { \
+			if (isOnLeft((s))) { \
+				(s)->parent->left = (np); \
 			} else { \
-				(self)->parent->right = (nParent); \
+				(s)->parent->right = (np); \
 			} \
 		} \
-		(nParent)->parent = (self)->parent; \
-		(self)->parent = (nParent); \
+		(np)->parent = (s)->parent; \
+		(s)->parent = (np); \
 	} while (0)
 
-RBNode* BSTreplace(RBNode *x) {
-	if (x->left && x->right) {
-		return successor(x->right);
-	}
-	
-	if (!x->left && !x->right) {
-		return NULL;
-	}
-
-	if (x->left != NULL) {
-		return x->left;
-	} else {
-		return x->right;
-	}
-}
+#define BSTreplace(x) \
+	(((x)->left && (x)->right) ? (successor((x)->right)) : ((!((x)->left) && !((x)->right)) ? (NULL) : (((x)->left != NULL) ? ((x)->left) : ((x)->right))))
 
 #define swapColors(x1, x2) \
 	do { \
@@ -70,12 +56,66 @@ RBNode *rb_node_new(size_t size) {
 /*  Tree functions    */
 /* ------------------------------------------------------------------------- */
 
-void leftRotate(Tree *t, RBNode *x);
-void rightRotate(Tree *t, RBNode *x);
-void swapValues(Tree *t, RBNode *u, RBNode *v);
+#define tree_copy(t, n, value) \
+    do { \
+        if ((t)->helper.copy) { \
+            (t)->helper.copy((n)->data, (value)); \
+        } else { \
+            memcpy((n)->data, (value), (t)->helper.size); \
+        } \
+    } while(0)
+
+#define tree_rm(t, n) \
+    do { \
+        if ((t)->helper.del) { \
+            (t)->helper.del((n)->data); \
+        } \
+    } while(0)
+
+#define swapValues(t, u, v) \
+	do { \
+		Node *_temp = node_new((t)->helper.size); \
+		tree_copy((t), (_temp), ((u)->data)); \
+		tree_rm((t), (u)); \
+		tree_copy((t), (u), ((v)->data)); \
+		tree_rm((t), (v)); \
+		tree_copy((t), (v), (_temp->data)); \
+		tree_rm((t), (_temp)); \
+		free(_temp); \
+	} while (0)
+
+#define leftRotate(t, x) \
+	do { \
+		RBNode *_nParent; \
+		_nParent = (x)->right; \
+		if ((x) == (t)->root) { \
+			(t)->root = _nParent; \
+		} \
+		moveDown((x), _nParent); \
+		(x)->right = _nParent->left; \
+		if (_nParent->left) { \
+			_nParent->left->parent = (x); \
+		} \
+		_nParent->left = (x); \
+	} while (0)
+
+
+#define rightRotate(t, x) \
+	do { \
+		RBNode *_nParent = (x)->left; \
+		if ((x) == (t)->root) { \
+			(t)->root = _nParent; \
+		} \
+		moveDown((x), _nParent); \
+		(x)->left = _nParent->right; \
+		if (_nParent->right) { \
+			_nParent->right->parent = (x); \
+		} \
+		_nParent->right = (x); \
+	} while (0)
+
 void fixRedRed(Tree *t, RBNode *x);
 void fixDoubleBlack(Tree *t, RBNode *x);
-RBNode* tree_search(Tree *t, const void *val);
 
 Tree *tree_new(const DSHelper *helper) {
     if (!helper || helper->size == 0 || !(helper->cmp)) {
@@ -97,81 +137,13 @@ void tree_free(Tree *t) {
 }
 
 void tree_clear(Tree *this) {
-	if (!this->root) {
-		return;
-	}
 	RBNode *curr = this->root;
-
 	while (curr) {
 		tree_delete_node(this, curr);
 		curr = this->root;
 	}
 	this->root = NULL;
 }
-
-void leftRotate(Tree *t, RBNode *x) { 
-	RBNode *nParent = x->right;
-
-	if (x == t->root) {
-		t->root = nParent; 
-	}
-
-	moveDown(x, nParent);
-	x->right = nParent->left;
-
-	if (nParent->left) {
-		nParent->left->parent = x;
-	}
-	nParent->left = x;
-} 
-
-void rightRotate(Tree *t, RBNode *x) {
-	RBNode *nParent = x->left;
-
-	if (x == t->root) {
-		t->root = nParent; 
-	}
-	
-	moveDown(x, nParent);
-	x->left = nParent->right;
-
-	if (nParent->right != NULL) {
-		nParent->right->parent = x;
-	}
-	nParent->right = x;
-}
-
-void swapValues(Tree *t, RBNode *u, RBNode *v) {
-	Node *temp = node_new(t->helper.size);
-	if (t->helper.copy) {
-        t->helper.copy(temp->data, u->data);
-    } else {
-        memcpy(temp->data, u->data, t->helper.size);
-    }
-	
-	if (t->helper.del) {
-        t->helper.del(u->data);
-    }
-	if (t->helper.copy) {
-        t->helper.copy(u->data, v->data);
-    } else {
-        memcpy(u->data, v->data, t->helper.size);
-    }
-
-	if (t->helper.del) {
-        t->helper.del(v->data);
-    }
-	if (t->helper.copy) {
-        t->helper.copy(v->data, temp->data);
-    } else {
-        memcpy(v->data, temp->data, t->helper.size);
-    }
-
-	if (t->helper.del) {
-        t->helper.del(temp->data);
-    }
-	free(temp);
-} 
 
 void fixRedRed(Tree *t, RBNode *x) { 
 	if (x == t->root) {
@@ -180,7 +152,6 @@ void fixRedRed(Tree *t, RBNode *x) {
 	}
 
 	RBNode *parent = x->parent, *grandparent = parent->parent, *uncle = get_uncle(x);
-
 	if (parent->color != BLACK) {
 		if (uncle && uncle->color == RED) {
 			parent->color = BLACK;
@@ -212,9 +183,8 @@ void fixRedRed(Tree *t, RBNode *x) {
 void tree_delete_node(Tree *t, RBNode *v) {
 	RBNode *u = BSTreplace(v);
 
-	int uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));
+	bool uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));
 	RBNode *parent = v->parent;
-	
 	if (!u) {
 		if (v == t->root) {
 			t->root = NULL;
@@ -234,32 +204,20 @@ void tree_delete_node(Tree *t, RBNode *v) {
 				parent->right = NULL;
 			}
 		}
-		if (t->helper.del) {
-			t->helper.del(v->data);
-		}
-		t->size--;
+		tree_rm(t, v);
 		free(v);
+		t->size--;
 		return;
 	}
 
 	if (!v->left || !v->right) {
 		if (v == t->root) {
-			if (t->helper.del) {
-				t->helper.del(v->data);
-			}
-
-			if (t->helper.copy) {
-				t->helper.copy(v->data, u->data);
-			} else {
-				memcpy(v->data, u->data, t->helper.size);
-			}
-			v->left = v->right = NULL;
-
-			if (t->helper.del) {
-				t->helper.del(u->data);
-			}
-			t->size--;
+			tree_rm(t, v);
+			tree_copy(t, v, u->data);
+			tree_rm(t, u);
 			free(u);
+			v->left = v->right = NULL;
+			t->size--;
 		} else {
 			if (isOnLeft(v)) {
 				parent->left = u;
@@ -267,11 +225,9 @@ void tree_delete_node(Tree *t, RBNode *v) {
 				parent->right = u;
 			}
 
-			if (t->helper.del) {
-				t->helper.del(v->data);
-			}
-			t->size--;
+			tree_rm(t, v);
 			free(v);
+			t->size--;
 
 			u->parent = parent; 
 			if (uvBlack) {
@@ -343,14 +299,15 @@ void fixDoubleBlack(Tree *t, RBNode *x) {
 	}
 }
 
-RBNode* tree_search(Tree *t, const void *val) {
+RBNode* _tree_search(Tree *t, const void *val, bool candidate) {
 	RBNode *temp = t->root;
 	int res;
 	while (temp) {
 		res = t->helper.cmp(val, temp->data);
 		if (res < 0) {
 			if (!temp->left) {
-				break;
+				if (candidate) break;
+				else return NULL;
 			} else {
 				temp = temp->left;
 			}
@@ -358,7 +315,8 @@ RBNode* tree_search(Tree *t, const void *val) {
 			break;
 		} else {
 			if (!temp->right) {
-				break;
+				if (candidate) break;
+				else return NULL;
 			} else {
 				temp = temp->right;
 			}
@@ -367,53 +325,19 @@ RBNode* tree_search(Tree *t, const void *val) {
 	return temp; 
 }
 
-RBNode* tree_find(Tree *t, const void *val) {
-	RBNode *temp = t->root;
-	int res;
-	while (temp) {
-		res = t->helper.cmp(val, temp->data);
-		if (res < 0) {
-			if (!temp->left) {
-				return NULL;
-			} else {
-				temp = temp->left;
-			}
-		} else if (res == 0) {
-			break;
-		} else {
-			if (!temp->right) {
-				return NULL;
-			} else {
-				temp = temp->right;
-			}
-		}
-	}
-	return temp; 
-} 
-
 void tree_insert(Tree *t, const void *val) {
 	RBNode *newNode = rb_node_new(t->helper.size);
 	if (!t->root) {
-		if (t->helper.copy) {
-			t->helper.copy(newNode->data, val);
-		} else {
-			memcpy(newNode->data, val, t->helper.size);
-		}
+		tree_copy(t, newNode, val);
 		newNode->color = BLACK;
 		t->root = newNode;
 	} else {
-		RBNode *temp = tree_search(t, val);
+		RBNode *temp = _tree_search(t, val, true);
 		if (t->helper.cmp(temp->data, val) == 0) {
 			free(newNode);
 			return;
 		}
-
-		if (t->helper.copy) {
-			t->helper.copy(newNode->data, val);
-		} else {
-			memcpy(newNode->data, val, t->helper.size);
-		}
-
+		tree_copy(t, newNode, val);
 		newNode->parent = temp;
 
 		if (t->helper.cmp(val, temp->data) < 0) {
@@ -430,9 +354,7 @@ void tree_delete_by_val(Tree *t, const void *val) {
 	if (!t->root || !val) {
 		return;
 	}
-
-	RBNode *v = tree_search(t, val);
-
+	RBNode *v = _tree_search(t, val, true);
 	if (t->helper.cmp(v->data, val) != 0) {
 		return;
 	}

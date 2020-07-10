@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "rbtree.h"
 #include <assert.h>
 

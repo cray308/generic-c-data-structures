@@ -2,15 +2,7 @@
 #define MAP_H
 
 #include "ds.h"
-#include <limits.h>
-
-#if UINT_MAX == 0xffffffffu
-typedef unsigned int map_uint32_t;
-typedef signed int map_int32_t;
-#elif ULONG_MAX == 0xffffffffu
-typedef unsigned long map_uint32_t;
-typedef signed long map_int32_t;
-#endif
+#include <stdint.h>
 
 typedef enum {
     NUMBER,
@@ -22,7 +14,7 @@ struct Entry {
     Entry *next;
     union {
         char *k_str;
-        map_int32_t k_int;
+        int32_t k_int;
     } key;
     char data[];
 };
@@ -43,7 +35,7 @@ typedef struct {
 } Map;
 
 
-static __attribute__((__unused__)) void _map_iter_begin(Map *m) {
+inline void _map_iter_begin(Map *m) {
     if (!(m->size)) {
         m->it.curr = NULL;
         m->it.idx = m->cap;
@@ -55,7 +47,7 @@ static __attribute__((__unused__)) void _map_iter_begin(Map *m) {
     }
 }
 
-static __attribute__((__unused__)) void _map_iter_next(Map *m) {
+inline void _map_iter_next(Map *m) {
     if (m->it.curr->next) {
         m->it.curr = m->it.curr->next;
     } else {
@@ -72,7 +64,7 @@ static __attribute__((__unused__)) void _map_iter_next(Map *m) {
  *
  * @param   m  Pointer to map.
  */
-#define map_size(m) ((m)->size)
+#define map_size(m) ((int) (m)->size)
 
 
 /**
@@ -97,7 +89,7 @@ static __attribute__((__unused__)) void _map_iter_next(Map *m) {
  * @param   m  Pointer to map.
  * @param   k  [description]
  */
-#define map_at(m,k) (map_find(m,k))
+#define map_at(m,k) map_find((m),(k))
 
 
 #define _map_end(m) ((m)->it.curr == NULL && (m)->it.idx >= (m)->cap)

@@ -2,9 +2,10 @@
 #define LIST_H
 
 #include "ds.h"
+#include <stdbool.h>
 
 #define LIST_ERROR (DLLNode *)(-1)
-#define LIST_END (DLLNode *)(-2)
+#define LIST_END (DLLNode *)(0)
 
 typedef int (*meetsCondition)(const void *_val);
 
@@ -35,8 +36,12 @@ typedef struct {
     DLLNode *back;
 } List;
 
-
 typedef DLLNode ListEntry;
+
+void _list_removal_ops(List *l, void *val, meetsCondition cond);
+void _list_push_val(List *l, const void *value, bool front);
+void _list_pop_val(List *l, bool front);
+
 
 /**
  * Pointer to the front element's data, or NULL if the list is empty.
@@ -67,7 +72,7 @@ typedef DLLNode ListEntry;
  *
  * @param   l  The List struct pointer.
  */
-#define list_size(l) ((l)->size)
+#define list_size(l) ((int) (l)->size)
 
 
 /**
@@ -127,7 +132,7 @@ void list_free(List *l);
  * @param  l      Pointer to list.
  * @param  value  Pointer to the element to be inserted.
  */
-void list_push_front(List *l, const void *value);
+#define list_push_front(l, value) _list_push_val((l), (value), true)
 
 
 /**
@@ -136,7 +141,7 @@ void list_push_front(List *l, const void *value);
  * @param  l      Pointer to list.
  * @param  value  Pointer to the element to be inserted.
  */
-void list_push_back(List *l, const void *value);
+#define list_push_back(l, value) _list_push_val((l), (value), false)
 
 
 /**
@@ -144,7 +149,7 @@ void list_push_back(List *l, const void *value);
  *
  * @param  l  Pointer to list.
  */
-void list_pop_front(List *l);
+#define list_pop_front(l) _list_pop_val((l), true)
 
 
 /**
@@ -152,7 +157,7 @@ void list_pop_front(List *l);
  *
  * @param  l  Pointer to list.
  */
-void list_pop_back(List *l);
+#define list_pop_back(l) _list_pop_val((l), false)
 
 
 /**
@@ -171,8 +176,8 @@ void list_pop_back(List *l);
  * @param   l       Pointer to list.
  * @param   pos     ListEntry before which the element(s) should be inserted. If this is LIST_END,
  *                    it defaults to list_push_back.
- * @param   sorted  Whether elements should be inserted in sorted order (1 if sorted, 0 if not).
- *                   If this is 1, "pos" is ignored.
+ * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
+ *                    "pos" is ignored.
  * @param   type    Type of insertion to execute.
  *
  * @return         If successful, and "sorted" is false, returns a ListEntry corresponding to the
@@ -180,7 +185,7 @@ void list_pop_back(List *l);
  *                   inserted, returns the front ListEntry in the list. If an error occurred,
  *                   returns LIST_ERROR.
  */
-DLLNode *list_insert(List *l, DLLNode *pos, int sorted, ListInsertType type, ...);
+DLLNode *list_insert(List *l, DLLNode *pos, bool sorted, ListInsertType type, ...);
 
 
 /**
@@ -204,7 +209,7 @@ DLLNode *list_erase(List *l, DLLNode *first, DLLNode *last);
  *
  * @param  l  Pointer to list.
  */
-void list_clear(List *l);
+#define list_clear(l) list_erase((l), ((l)->front), (LIST_END))
 
 
 /**
@@ -217,6 +222,10 @@ void list_reverse(List *l);
 
 /**
  * Sorts the list according to the comparison function in the provided DSHelper struct.
+ * Internally, it uses an iterative version of merge sort (rather than recursive, to avoid function
+ * call overhead).
+ * 
+ * Time complexity: approx. O(n * log(n))
  *
  * @param  l  Pointer to list.
  */
@@ -232,7 +241,7 @@ void list_sort(List *l);
  *
  * @param  l  Pointer to list.
  */
-void list_unique(List *l);
+#define list_unique(l) _list_removal_ops((l), NULL, NULL)
 
 
 /**
@@ -241,8 +250,7 @@ void list_unique(List *l);
  * @param  l    Pointer to list.
  * @param  val  Pointer to the value to compare to a list element's data.
  */
-void list_remove_value(List *l, void *val);
-
+#define list_remove_value(l, val) _list_removal_ops((l), (val), NULL)
 
 /**
  * Removes any elements satisfying the provided condition.
@@ -250,7 +258,7 @@ void list_remove_value(List *l, void *val);
  * @param  l          Pointer to list.
  * @param  condition  Function pointer to check if an element's data meets the condition.
  */
-void list_remove_if(List *l, meetsCondition condition);
+#define list_remove_if(l, condition) _list_removal_ops((l), NULL, (condition))
 
 
 /**

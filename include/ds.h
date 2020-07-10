@@ -26,7 +26,7 @@
  *
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
-static __attribute__((__unused__)) int modulo(int index, size_t size) {
+inline int modulo(int index, size_t size) {
     if (!check_index(index, size)) {
         return -1;
     }

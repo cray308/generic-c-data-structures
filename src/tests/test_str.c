@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "str.h"
 #include <ctype.h>
 #include <assert.h>
@@ -68,7 +67,7 @@ void test_macros(void) {
 void test_resizing(void) {
     String *s = string_new(STR_INIT_NONE);
 
-    size_t old = string_capacity(s);
+    int old = string_capacity(s);
 
     string_reserve(s, old >> 1);
     assert(string_capacity(s) == old);

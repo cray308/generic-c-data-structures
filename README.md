@@ -5,9 +5,7 @@
 This was mainly a personal project to see if I could create some generic data structures
 in C, a language where generic anything is somewhat difficult to implement. I got
 inspiration from the [UThash library](https://github.com/troydhanson/uthash) by Troy D.
-Hanson. For better portability, most of this code conforms to the C89 standard
-(with the exception of `include/str.h` - the function `string_printf` uses `vsnprintf` to
-avoid a buffer overflow). When I wrote this library, I designed it to run on Linux; if anyone
+Hanson. When I wrote this library, I designed it to run on Linux; if anyone
 ends up using this in their projects with non-GNU compilers, I will work on
 making it compatible with other compilers. I designed this to be used as a shared library
 (see the `Makefile` for details). To use it, clone the repository, and run `make`. At this point,

@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "array.h"
 #include <assert.h>
 
@@ -90,7 +89,7 @@ void test_macros(void) {
 void test_resizing(void) {
     Array *a = array_new(&int_helper, ARR_INIT_EMPTY);
 
-    size_t old = array_capacity(a);
+    int old = array_capacity(a);
 
     array_reserve(a, old >> 1);
     assert(array_capacity(a) == old);

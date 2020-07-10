@@ -2,6 +2,8 @@
 #define STR_H
 
 #include "ds.h"
+#include <ctype.h>
+#include <stdbool.h>
 
 typedef enum {
     STR_INIT_NONE,
@@ -16,9 +18,24 @@ typedef struct {
 } String;
 
 
-#define STRING_END(s) ((s)->len)
+#define STRING_END(s) ((int) (s)->len)
 #define STRING_NPOS (-1)
+#define STRING_ERROR (-2)
 
+int _string_find_x_of(String *s, int pos, const char *chars, bool first, bool match);
+
+inline bool _test_chars(const char *s, int (*f)(int)) {
+    for (const char *c = s; *c; ++c) {
+        if (!f(*c)) return false;
+    }
+    return true;
+}
+
+inline void _convert_case(char *s, int (*f)(int)) {
+    for (char *c = s; *c; ++c) {
+        *c = f(*c);
+    }
+}
 
 /**
  * The c-string representation of the provided String.
@@ -34,7 +51,7 @@ typedef struct {
  *
  * @param   str  Pointer to string struct.
  */
-#define string_len(str) ((str)->len)
+#define string_len(str) ((int) (str)->len)
 
 
 /**
@@ -42,7 +59,7 @@ typedef struct {
  *
  * @param   str  Pointer to string struct.
  */
-#define string_capacity(str) ((str)->cap)
+#define string_capacity(str) ((int) (str)->cap)
 
 
 /**
@@ -59,7 +76,7 @@ typedef struct {
  * @param   str  Pointer to string struct.
  * @param   chr  The char pointer whose index you wish to find.
  */
-#define string_index(str, chr) ((chr) - (str)->s)
+#define string_index(str, chr) ((int) ((chr) - (str)->s))
 
 /**
  * Reference to the string starting at index i.
@@ -67,7 +84,7 @@ typedef struct {
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-static __attribute__((__unused__)) char *string_ref(String *str, int i) {
+inline char *string_ref(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? &(str->s[_idx]) : NULL;
 }
@@ -78,7 +95,7 @@ static __attribute__((__unused__)) char *string_ref(String *str, int i) {
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-static __attribute__((__unused__)) char string_at(String *str, int i) {
+inline char string_at(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? str->s[_idx] : 0;
 }
@@ -270,7 +287,7 @@ void string_printf(String *s, int pos, const char *format, ...);
  *                        all characters from "needle" will be used.
  *
  * @return              The index in "s", corresponding to needle[0], where needle was found,
- *                          or -1 if it was not found.
+ *                        STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
 int string_find(String *s, int start_pos, const char *needle, int len_needle);
 
@@ -285,7 +302,7 @@ int string_find(String *s, int start_pos, const char *needle, int len_needle);
  *                        all characters from "needle" will be used.
  *
  * @return              The index in "s", corresponding to needle[0], where needle was found,
- *                          or -1 if it was not found.
+ *                        STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
 int string_rfind(String *s, int end_pos, const char *needle, int len_needle);
 
@@ -298,9 +315,10 @@ int string_rfind(String *s, int end_pos, const char *needle, int len_needle);
  * @param   chars  C-string of characters to look for.
  *
  * @return         The first index at or after "pos" where one of the supplied characters was
- *                     found, or -1 if no such character was found.
+ *                   found, STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
-int string_find_first_of(String *s, int pos, const char *chars);
+#define string_find_first_of(s, pos, chars) \
+    _string_find_x_of((s), (pos), (chars), true, true)
 
 
 /**
@@ -311,9 +329,10 @@ int string_find_first_of(String *s, int pos, const char *chars);
  * @param   chars  C-string of characters to look for.
  *
  * @return         The last index at or before "pos" where one of the supplied characters was
- *                     found, or -1 if no such character was found.
+ *                   found, STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
-int string_find_last_of(String *s, int pos, const char *chars);
+#define string_find_last_of(s, pos, chars) \
+    _string_find_x_of((s), (pos), (chars), false, true)
 
 
 /**
@@ -323,10 +342,11 @@ int string_find_last_of(String *s, int pos, const char *chars);
  * @param   pos    First index in the string to consider.
  * @param   chars  C-string of characters to look for.
  *
- * @return         The first index at or after "pos" where a different character was found, or -1
- *                     if no such character was found.
+ * @return         The first index at or after "pos" where a different character was found,
+ *                   STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
-int string_find_first_not_of(String *s, int pos, const char *chars);
+#define string_find_first_not_of(s, pos, chars) \
+    _string_find_x_of((s), (pos), (chars), true, false)
 
 
 /**
@@ -336,10 +356,11 @@ int string_find_first_not_of(String *s, int pos, const char *chars);
  * @param   pos    Last index in the string to consider.
  * @param   chars  C-string of characters to look for.
  *
- * @return         The last index at or before "pos" where a different character was found, or -1
- *                     if no such character was found.
+ * @return         The last index at or before "pos" where a different character was found,
+ *                   STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
-int string_find_last_not_of(String *s, int pos, const char *chars);
+#define string_find_last_not_of(s, pos, chars) \
+    _string_find_x_of((s), (pos), (chars), false, false)
 
 
 /**
@@ -354,7 +375,7 @@ int string_find_last_not_of(String *s, int pos, const char *chars);
  *                       at a time, -1 means move backwards one index at a time, 2 would mean every
  *                       other index, etc.
  *
- * @return       Newly allocated String.
+ * @return       Newly allocated String, or NULL if an error occurred.
  */
 String *string_substr(String *s, int start, int n, int step_size);
 
@@ -367,7 +388,8 @@ String *string_substr(String *s, int start, int n, int step_size);
  * @param   delim  The delimiter to use to split the string.
  * @param   n      Pointer to int which will be assigned the size of the array.
  *
- * @return         The array of pointers to String, each of which is a substring of "s".
+ * @return         The array of pointers to String, each of which is a substring of "s", or NULL
+ *                   if an error occurred.
  */
 String **string_split(String *s, const char *delim, int *n);
 
@@ -384,25 +406,25 @@ void string_split_free(String **arr, int n);
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are alphanumeric (1 if yes, 0 if no).
+ * @return     Whether or not all characters in s are alphanumeric.
  */
-int isAlphaNum(const char *s);
+#define isAlphaNum(s) _test_chars((s), isalnum)
 
 
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are letters (1 if yes, 0 if no).
+ * @return     Whether or not all characters in s are letters.
  */
-int isAlpha(const char *s);
+#define isAlpha(s) _test_chars((s), isalpha)
 
 
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are digits (1 if yes, 0 if no).
+ * @return     Whether or not all characters in s are digits.
  */
-int isDigit(const char *s);
+#define isDigit(s) _test_chars((s), isdigit)
 
 
 /**
@@ -410,7 +432,7 @@ int isDigit(const char *s);
  *
  * @param  s  C-string.
  */
-void toLowercase(char *s);
+#define toLowercase(s) _convert_case((s), tolower)
 
 
 /**
@@ -418,6 +440,6 @@ void toLowercase(char *s);
  *
  * @param  s  C-string.
  */
-void toUppercase(char *s);
+#define toUppercase(s) _convert_case((s), toupper)
 
 #endif /* STR_H */

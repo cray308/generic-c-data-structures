@@ -2,6 +2,7 @@
 #define RBTREE_H
 
 #include "ds.h"
+#include <stdbool.h>
 
 typedef struct RBNode RBNode;
 struct RBNode {
@@ -22,7 +23,9 @@ typedef struct {
     DSHelper helper;
 } Tree;
 
-static __attribute__((__unused__)) RBNode* successor(RBNode *x) {
+RBNode* _tree_search(Tree *t, const void *val, bool candidate);
+
+inline RBNode* successor(RBNode *x) {
     if (!x) {
         return x;
     }
@@ -32,7 +35,7 @@ static __attribute__((__unused__)) RBNode* successor(RBNode *x) {
 	return x;
 }
 
-static __attribute__((__unused__)) RBNode *inorder_successor(RBNode *x) {
+inline RBNode *inorder_successor(RBNode *x) {
 	if (!x) {
 		return NULL;
 	} else if (x->right) {
@@ -95,7 +98,7 @@ void tree_clear(Tree *this);
  *
  * @return       RBNode of the element if it was found, or NULL if it was not found.
  */
-RBNode *tree_find(Tree *t, const void *val);
+#define tree_find(t, val) _tree_search((t), (val), false)
 
 
 /**

@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "queue.h"
 
 Queue *queue_new(const DSHelper *helper) {
@@ -50,9 +49,9 @@ void queue_push(Queue *queue, const void *item) {
     queue->size++;
 }
 
-int queue_pop(Queue *queue, void *result) {
+bool queue_pop(Queue *queue, void *result) {
     if (queue_empty(queue)) { /* nothing to pop */
-        return 0;
+        return false;
     }
 
     Node *front = queue->front;
@@ -73,5 +72,5 @@ int queue_pop(Queue *queue, void *result) {
     }
     free(front);
     queue->size--;
-    return 1;
+    return true;
 }

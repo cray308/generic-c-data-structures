@@ -4,7 +4,7 @@
 #include "ds.h"
 
 #define ARRAY_ERROR (-1)
-#define ARRAY_END(a) ((a)->size)
+#define ARRAY_END(a) ((int) (a)->size)
 
 typedef enum {
     ARR_INIT_EMPTY,
@@ -33,7 +33,7 @@ typedef struct {
  * @param   a  Pointer to array.
  * @param   i  The index in the array.
  */
-static __attribute__((__unused__)) void *array_at(Array *a, int i) {
+inline void *array_at(Array *a, int i) {
     int _idx = modulo(i, a->size);
     return (_idx >= 0) ? (a->arr + (a->helper.size * _idx)) : NULL;
 }
@@ -86,7 +86,7 @@ static __attribute__((__unused__)) void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_size(a) ((a)->size)
+#define array_size(a) ((int) (a)->size)
 
 
 /**
@@ -94,7 +94,7 @@ static __attribute__((__unused__)) void *array_at(Array *a, int i) {
  *
  * @param   a  Pointer to array.
  */
-#define array_capacity(a) ((a)->capacity)
+#define array_capacity(a) ((int) (a)->capacity)
 
 
 /**
@@ -203,7 +203,7 @@ void array_pop_back(Array *a);
  *
  * @param  a  Pointer to array.
  */
-void array_clear(Array *a);
+#define array_clear(a) array_erase((a), 0, array_size((a)))
 
 
 /**

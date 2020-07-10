@@ -1,4 +1,3 @@
-#include "defaults.h"
 #include "list.h"
 #include <assert.h>
 
@@ -318,7 +317,7 @@ void test_sublist(void) {
     list_free(l);
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     test_macros_insertion();
     test_custom_init();
     test_pop();

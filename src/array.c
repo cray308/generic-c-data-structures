@@ -1,15 +1,12 @@
-#include "defaults.h"
 #include "array.h"
+#include <stdbool.h>
+#include <stdarg.h>
 
 /* Internal macros  */
 
 #define INITIAL_CAPACITY 8
 #define arr_offset(a,i) ((a)->helper.size * (i))
-#define valid_idx(a,i) ((i) < (a)->size)
 #define arr_idx(a,i) ((void *) ((a)->arr + arr_offset((a),(i))))
-#define arr_find_idx(a,e) (((char*)(e) - (a)->arr) / (a)->helper.size)
-#define arr_next(a,eptr) (((arr_find_idx(a,eptr) + 1) == (a)->size) ? NULL : arr_idx(a,(arr_find_idx(a,eptr) + 1)))
-#define arr_prev(a,eptr) ((arr_find_idx(a,eptr) == 0) ? NULL : arr_idx(a,(arr_find_idx(a,eptr) - 1)))
 
 int _arr_insert_elem(Array *a, int index, void *value);
 int _arr_insert_builtin(Array *a, int index, void *arr, int start, int nelem);
@@ -42,9 +39,7 @@ int _arr_insert_array(Array *a, int index, Array *other, int start, int nelem);
 int _arr_insert_elem(Array *a, int index, void *value) {
     if (!value) { /* check invalid arguments */
         return ARRAY_ERROR;
-    }
-
-    if (!a->size || index >= (int) a->size) { /* append */
+    } else if (!a->size || index >= (int) a->size) { /* append */
         array_push_back(a, value);
         return a->size - 1;
     }
@@ -67,7 +62,7 @@ int _arr_insert_builtin(Array *a, int index, void *arr, int start, int n) {
         return ARRAY_ERROR;
     }
 
-    int append = (!a->size || index >= (int) a->size);
+    bool append = (!a->size || index >= (int) a->size);
     if (!append) {
         index = modulo(index, a->size);
         if (index < 0) {
@@ -110,7 +105,7 @@ int _arr_insert_array(Array *a, int index, Array *other, int start, int n) {
         return ARRAY_ERROR;
     }
 
-    int append = (!a->size || index >= (int) a->size);
+    bool append = (!a->size || index >= (int) a->size);
     if (!append) {
         index = modulo(index, a->size);
         if (index < 0) {
@@ -296,16 +291,6 @@ void array_pop_back(Array *a) {
     a->size--;
 }
 
-void array_clear(Array *a) {
-    size_t i;
-    if (a->helper.del) {
-        for (i = 0; i < a->size; ++i) {
-            a->helper.del(arr_idx(a,i));
-        }
-    }
-    a->size = 0;
-}
-
 int array_erase(Array *a, int first, int nelem) {
     if (!nelem || a->size == 0) {
         return ARRAY_ERROR;
@@ -324,10 +309,9 @@ int array_erase(Array *a, int first, int nelem) {
 
     int endIdx = first + nelem;
     int res;
-    int i;
 
     if (a->helper.del) {
-        for (i = first; i < endIdx; ++i) {
+        for (int i = first; i < endIdx; ++i) {
             a->helper.del(arr_idx(a, i));
         }
     }    
@@ -336,7 +320,7 @@ int array_erase(Array *a, int first, int nelem) {
         memmove(arr_idx(a, first), arr_idx(a, endIdx), a->helper.size * (a->size - endIdx));
         res = first;
     } else {
-        res = (int) ARRAY_END(a) - nelem;
+        res = ARRAY_END(a) - nelem;
     }
     a->size -= (size_t) nelem;
     return res;
@@ -393,15 +377,11 @@ Array *array_subarr(Array *a, int start, int n, int step_size) {
 
     if (step_size < 0) {
         end = (n < 0) ? -1 : max(-1, start + (n * step_size));
-    } else {
-        end = (n < 0) ? ARRAY_END(a) : min(ARRAY_END(a), start + (n * step_size));
-    }
-
-    if (step_size < 0) {
         for (i = start; i > end; i += step_size) {
             array_push_back(sub, arr_idx(a, i));
         }
     } else {
+        end = (n < 0) ? ARRAY_END(a) : min(ARRAY_END(a), start + (n * step_size));
         for (i = start; i < end; i += step_size) {
             array_push_back(sub, arr_idx(a, i));
         }
