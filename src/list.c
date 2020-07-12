@@ -1,7 +1,7 @@
 #include "list.h"
-//#include "thread.h"
+#include "thread.h"
 #include <stdarg.h>
-/*
+
 typedef struct {
     DLLNode *front;
     DLLNode *back;
@@ -13,14 +13,15 @@ typedef struct {
     QuarterMergeData *first;
     QuarterMergeData *second;
 } HalfMergeData;
-*/
+
 
 void merge(DLLNode **leftStart, DLLNode **leftEnd, DLLNode *rightStart, DLLNode *rightEnd, comparison cmp);
 void merge_prev(DLLNode **leftStart, DLLNode **leftEnd, DLLNode *rightStart, DLLNode *rightEnd, comparison cmp);
-void mergesort(DLLNode **front, DLLNode **back, comparison cmp, long size);
-//void *start_half_thread(void *arg);
-//void *start_quarter_thread(void *arg);
-//long *_split_into_four(DLLNode **q1, DLLNode **q2, DLLNode **q3, DLLNode **q4, long size, comparison cmp);
+void mergesort(DLLNode **front, DLLNode **back, comparison cmp, long size, bool handlePrev, int step);
+void *start_half_thread(void *arg);
+void *start_quarter_thread(void *arg);
+long *_split_into_four(DLLNode **q1, DLLNode **q2, DLLNode **q3, DLLNode **q4, long size, comparison cmp);
+long *_split_into_two(DLLNode **q1, DLLNode **q2, long size, comparison cmp);
 DLLNode *_list_insert_elem(List *l, DLLNode *pos, void *value, bool before);
 DLLNode *_list_insert_builtin(List *l, DLLNode *pos, void *arr, int start, int n, bool sorted);
 DLLNode *_list_insert_list(List *l, DLLNode *pos, List *other, DLLNode *start, DLLNode *end, bool sorted);
@@ -386,26 +387,44 @@ void list_sort(List *l) {
         l->front->next = l->back;
         l->back->prev = l->front;
         return;
-    } /*else if (l->size >= 1000000) {
-        QuarterMergeData first = {l->front, l->back, 0, l->helper.cmp}, second, third, fourth;
-        second.cmp = third.cmp = fourth.cmp = l->helper.cmp;
-        HalfMergeData left = {&first, &second}, right = {&third, &fourth};
-        long *arr = _split_into_four(&(first.front), &(second.front), &(third.front), &(fourth.front), (long) l->size, l->helper.cmp);
+    } else if (l->size >= 1000000) {
+        // QuarterMergeData first = {l->front, l->back, 0, l->helper.cmp}, second, third, fourth;
+        // second.cmp = third.cmp = fourth.cmp = l->helper.cmp;
+        // HalfMergeData left = {&first, &second}, right = {&third, &fourth};
+        // long *arr = _split_into_four(&(first.front), &(second.front), &(third.front), &(fourth.front), (long) l->size, l->helper.cmp);
+        // first.size = arr[0];
+        // second.size = arr[1];
+        // third.size = arr[2];
+        // fourth.size = arr[3];
+        // free(arr);
+        // Thread thread_right;
+        // thread_create(&thread_right, NULL, start_half_thread, &right);
+        // start_half_thread(&left);
+        // thread_join(thread_right, NULL);
+        // merge_prev(&((left.first)->front), &((left.first)->back), ((right.first)->front), ((right.first)->back), l->helper.cmp);
+        // l->front = &(*(left.first)->front);
+        // l->back = &(*(left.first)->back);
+
+        QuarterMergeData first = {l->front, l->back, 0, l->helper.cmp}, second;
+        second.cmp = l->helper.cmp;
+        //HalfMergeData left = {&first, &second}, right = {&third, &fourth};
+        long *arr = _split_into_two(&(first.front), &(second.front), (long) l->size, l->helper.cmp);
         first.size = arr[0];
         second.size = arr[1];
-        third.size = arr[2];
-        fourth.size = arr[3];
         free(arr);
         Thread thread_right;
-        thread_create(&thread_right, NULL, start_half_thread, &right);
-        start_half_thread(&left);
+        thread_create(&thread_right, NULL, start_quarter_thread, &second);
+        mergesort(&(first.front), &(first.back), l->helper.cmp, first.size, false, 2);
+        //start_half_thread(&left);
         thread_join(thread_right, NULL);
-        merge_prev(&((left.first)->front), &((left.first)->back), ((right.first)->front), ((right.first)->back), l->helper.cmp);
-        l->front = &(*(left.first)->front);
-        l->back = &(*(left.first)->back);
+        merge_prev(&((first.front)), &((first.back)), ((second.front)), ((second.back)), l->helper.cmp);
+        l->front = first.front;
+        l->back = first.back;
+
+
         return;
-    }*/
-    mergesort(&(l->front), &(l->back), l->helper.cmp, list_size(l));
+    }
+    mergesort(&(l->front), &(l->back), l->helper.cmp, list_size(l), true, 1);
 }
 
 typedef enum {
@@ -511,7 +530,7 @@ void list_merge(List *this, List *other) {
 /*  Sorting helper functions    */
 /* ------------------------------------------------------------------------- */
 
-void mergesort(DLLNode **front, DLLNode **back, comparison cmp, long size) {
+void mergesort(DLLNode **front, DLLNode **back, comparison cmp, long size, bool handlePrev, int step) {
     if (*front == NULL || (*front)->next == NULL) {
         return;
     }
@@ -527,7 +546,7 @@ void mergesort(DLLNode **front, DLLNode **back, comparison cmp, long size) {
     bool finalMerge = false;
     int c;
   
-    for (int i = 1; i < size; i <<= 1) {
+    for (int i = step; i < size; i <<= 1) {
         finalMerge = (i == maxLen);
         leftStart = *front;
         while (leftStart) {
@@ -551,12 +570,17 @@ void mergesort(DLLNode **front, DLLNode **back, comparison cmp, long size) {
             rightEnd->next = NULL;
 
             if (finalMerge) {
-                merge_prev(&leftStart, &leftEnd, rightStart, rightEnd, cmp);
+                if (handlePrev) {
+                    merge_prev(&leftStart, &leftEnd, rightStart, rightEnd, cmp);
+                } else {
+                    merge(&leftStart, &leftEnd, rightStart, rightEnd, cmp);
+                }
+                //merge_prev(&leftStart, &leftEnd, rightStart, rightEnd, cmp);
                 *front = leftStart;
                 *back = leftEnd;
                 return;
             }
-            merge(&leftStart, &leftEnd, rightStart, rightEnd, cmp); 
+            merge(&leftStart, &leftEnd, rightStart, rightEnd, cmp);
   
             if (first) {
                 *front = leftStart;
@@ -655,7 +679,7 @@ void merge_prev(DLLNode **leftStart, DLLNode **leftEnd, DLLNode *rightStart, DLL
     *leftStart = mergedFront;
 }
 
-/*
+
 long *_split_into_four(DLLNode **q1, DLLNode **q2, DLLNode **q3, DLLNode **q4, long size, comparison cmp) {
     long *arr = malloc(4 * sizeof(long));
     if (!arr) DS_OOM();
@@ -833,6 +857,93 @@ long *_split_into_four(DLLNode **q1, DLLNode **q2, DLLNode **q3, DLLNode **q4, l
     return arr;
 }
 
+long *_split_into_two(DLLNode **q1, DLLNode **q2, long size, comparison cmp) {
+    long *arr = malloc(2 * sizeof(long));
+    if (!arr) DS_OOM();
+    long half1 = size >> 1;
+    long half2 = size - half1;
+    arr[0] = half1;
+    arr[1] = half2;
+    long c = 0;
+    DLLNode *curr = *q1, *prev = NULL, *next, *temp;
+
+    long lim = half1;
+    if (half1 & 1) {
+        lim--;
+    }
+
+    if (cmp(curr->data, curr->next->data) > 0) {
+        next = curr->next->next;
+        temp = curr->next;
+        *q1 = temp;
+        temp->next = curr;
+        curr->next = next;
+        curr = temp;
+    }
+    c += 2;
+    prev = curr->next;
+    curr = curr->next->next;
+
+    while (c < half1) {
+        for (; c < lim; c += 2) {
+            if (cmp(curr->data, curr->next->data) > 0) {
+                next = curr->next->next;
+                temp = curr->next;
+                prev->next = temp;
+                temp->next = curr;
+                curr->next = next;
+                curr = temp;
+            }
+            prev = curr->next;
+            curr = curr->next->next;
+        }
+        if (lim < half1) {
+            temp = curr;
+            curr = curr->next;
+            temp->next = NULL;
+            break;
+        } else {
+            prev->next = NULL;
+        }
+    }
+
+    c = 0;
+    *q2 = curr;
+    lim = half2;
+    if (half2 & 1) {
+        lim--;
+    }
+
+    if (cmp(curr->data, curr->next->data) > 0) {
+        next = curr->next->next;
+        temp = curr->next;
+        *q2 = temp;
+        temp->next = curr;
+        curr->next = next;
+        curr = temp;
+    }
+    c += 2;
+    prev = curr->next;
+    curr = curr->next->next;
+
+    while (c < half2) {
+        for (; c < lim; c += 2) {
+            if (cmp(curr->data, curr->next->data) > 0) {
+                next = curr->next->next;
+                temp = curr->next;
+                prev->next = temp;
+                temp->next = curr;
+                curr->next = next;
+                curr = temp;
+            }
+            prev = curr->next;
+            curr = curr->next->next;
+        }
+        break;
+    }
+    return arr;
+}
+
 void *start_half_thread(void *arg) {
     HalfMergeData *half = (HalfMergeData *) arg;
     Thread second;
@@ -847,4 +958,4 @@ void *start_quarter_thread(void *arg) {
     QuarterMergeData *quarter = (QuarterMergeData *) arg;
     mergesort(&(quarter->front), &(quarter->back), quarter->cmp, quarter->size, false, 2);
     return NULL;
-}*/
+}

@@ -5,7 +5,7 @@
 #include <cstring>
 
 #define MAX_NUM UINT_MAX
-#define NLOOPS 5
+#define NLOOPS 1
 
 void usage(void) {
     std::cerr << "Usage: \n";

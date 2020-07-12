@@ -5,7 +5,7 @@
 
 char *ProgName = NULL;
 #define MAX_NUM UINT_MAX
-#define NLOOPS 5
+#define NLOOPS 1
 
 typedef enum {
     TEST_ARRAY,
