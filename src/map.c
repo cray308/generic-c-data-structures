@@ -318,7 +318,7 @@ void map_rehash(Map *m, size_t nbuckets) {
 }
 
 void map_set_load_factor(Map *m, double lf) {
-    if (lf <= 0.500 || lf >= 1.000) return;
+    if (lf < 0.500 || lf > 1.000) return;
 
     m->lf = lf;
     double curr_lf = (double) m->size / m->cap;

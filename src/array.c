@@ -170,26 +170,35 @@ Array *array_new(const DSHelper *helper, ArrayInitializer init, ...) {
     }
 
     int n;
-    void *other;
+    void *value;
 
     /* parse arguments */
     va_list args;
     va_start(args, init);
 
-    other = va_arg(args, void *);
-
-    if (init == ARR_INIT_BUILTIN) {
+    if (init == ARR_INIT_SIZE) {
         n = va_arg(args, int);
+        value = va_arg(args, void *);
+    } else {
+        value = va_arg(args, void *);
+        if (init == ARR_INIT_BUILTIN) {
+            n = va_arg(args, int);
+        }
     }
 
     va_end(args);
 
-    if (init == ARR_INIT_BUILTIN) {
-        _arr_insert_builtin(a, 0, other, 0, n);
-    } else {
-        _arr_insert_array(a, 0, (Array *) other, 0, ((Array *) other)->size);
+    switch (init) {
+        case ARR_INIT_SIZE:
+            array_resize(a, n, value);
+            break;
+        case ARR_INIT_BUILTIN:
+            _arr_insert_builtin(a, 0, value, 0, n);
+            break;
+        default: /* ARR_INIT_ARRAY */
+            _arr_insert_array(a, 0, (Array *) value, 0, ((Array *) value)->size);
+            break;
     }
-
     return a;
 }
 
@@ -349,13 +358,12 @@ void array_sort(Array *a) {
 void *array_find(Array *a, const void *key) {
     if (a->size == 0) { /* nothing to find */
         return NULL;
-    } else if (a->size == 1) { /* check it here rather than calling sort and bsearch */
+    } else if (a->size == 1) { /* check it here rather than calling bsearch */
         if (a->helper.cmp(array_at(a, 0), key) == 0) {
             return array_at(a, 0);
         }
         return NULL;
     }
-    array_sort(a);
     return bsearch(key, a->arr, a->size, a->helper.size, a->helper.cmp);
 }
 
@@ -387,4 +395,25 @@ Array *array_subarr(Array *a, int start, int n, int step_size) {
         }
     }
     return sub;
+}
+
+void vec_2d_helper_copy(void *_dst, const void *_src) {
+    Array *dst = (Array *) _dst;
+    Array *src = (Array *) _src;
+    if (!(src->helper.size)) {
+        fputs("DSHelper provided with a size of 0 in vec_2d_helper_copy.", stderr);
+        exit(1);
+    }
+    dst->size = dst->capacity = 0;
+    dst->arr = NULL;
+    dst->helper = src->helper;
+    array_reserve(dst, INITIAL_CAPACITY);
+}
+
+void vec_2d_helper_del(void *_elem) {
+    Array *a = (Array *) _elem;
+    if (a) {
+        array_clear(a);
+        free(a->arr);
+    }
 }

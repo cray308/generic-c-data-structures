@@ -37,3 +37,9 @@ int ds_int_cmp(const void* _e1, const void* _e2) {
     const int *e2 = (const int*) _e2;
     return (*e1 == *e2) ? 0 : ((*e1 < *e2) ? -1 : 1);
 }
+
+int ds_unsigned_cmp(const void *_e1, const void *_e2) {
+    const unsigned *e1 = (const unsigned*) _e1;
+    const unsigned *e2 = (const unsigned*) _e2;
+    return (*e1 == *e2) ? 0 : ((*e1 < *e2) ? -1 : 1);
+}

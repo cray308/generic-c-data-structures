@@ -326,6 +326,39 @@ void test_subarr(void) {
     array_free(a);
 }
 
+void test_2d(void) {
+    Array temp = {0, 0, int_helper, NULL};
+    Array *arr2d = array_new(&vec_2d_helper, ARR_INIT_SIZE, 10, &temp);
+    Array *row;
+
+    for (int i = 0; i < 10; ++i) {
+        int begin = (i * 10);
+        row = array_at(arr2d, i);
+        for (int j = begin; j < begin + 10; ++j) {
+            array_push_back(row, &j);
+        }
+    }
+
+    Array *arrptr;
+    int *iptr;
+    int i = 0;
+
+    array_iter(arr2d, arrptr) {
+        array_iter(arrptr, iptr) {
+            assert(*iptr == i++);
+        }
+    }
+
+    for (int row = 0; row < 10; ++row) {
+        for (int col = 0; col < 10; ++col) {
+            iptr = matrix_at(arr2d, row, col);
+            assert(*iptr == ((row * 10) + col));
+        }
+    }
+
+    array_free(arr2d);
+}
+
 int main(void) {
     test_macros();
     test_resizing();
@@ -336,5 +369,6 @@ int main(void) {
     test_shrink();
     test_utility();
     test_subarr();
+    test_2d();
     return 0;
 }

@@ -8,6 +8,7 @@
 
 typedef enum {
     ARR_INIT_EMPTY,
+    ARR_INIT_SIZE, /* set array to start with a certain size */
     ARR_INIT_BUILTIN, /* like int nums[] = {1, 2, 3} */
     ARR_INIT_ARRAY /* like Array *nums */
 } ArrayInitializer;
@@ -36,6 +37,21 @@ typedef struct {
 inline void *array_at(Array *a, int i) {
     int _idx = modulo(i, a->size);
     return (_idx >= 0) ? (a->arr + (a->helper.size * _idx)) : NULL;
+}
+
+
+/**
+ * Macro for accessing a 2D-array.
+ *
+ * @param   row  Array row.
+ * @param   col  Array column.
+ *
+ * @return       Pointer to the element at row "row" and column "col", similar to
+ *                 builtin_array[row][col].
+ */
+inline void *matrix_at(Array *a, int row, int col) {
+    Array *x = array_at(a, row);
+    return x ? array_at(x, col) : NULL;
 }
 
 
@@ -108,13 +124,16 @@ inline void *array_at(Array *a, int i) {
 /**
  * Creates a new array.
  * In (1), an empty Array is created.
- * In (2), an Array is initialized from a built-in array data type, passed as a pointer to the
+ * In (2), an Array is initialized to size n, with each element equal to "value". If "value" is
+ *   NULL, the entries are zero-set using memset.
+ * In (3), an Array is initialized from a built-in array data type, passed as a pointer to the
  *   function, composed of at most n elements.
- * In (3), an Array is initialized from another Array pointer.
+ * In (4), an Array is initialized from another Array pointer.
  * 
  * (1) init = ARR_INIT_EMPTY:    array_new(const DSHelper *helper, ArrayInitializer init)
- * (2) init = ARR_INIT_BUILTIN:  array_new(const DSHelper *helper, ArrayInitializer init, void *arr, int n)
- * (3) init = ARR_INIT_ARRAY:    array_new(const DSHelper *helper, ArrayInitializer init, Array *other)
+ * (2) init = ARR_INIT_SIZE:     array_new(const DSHelper *helper, ArrayInitializer init, int size, void *value)
+ * (3) init = ARR_INIT_BUILTIN:  array_new(const DSHelper *helper, ArrayInitializer init, void *arr, int n)
+ * (4) init = ARR_INIT_ARRAY:    array_new(const DSHelper *helper, ArrayInitializer init, Array *other)
  *
  * @param   helper  Pointer to DSHelper struct.
  * @param   init    Type of initializer to execute.
@@ -240,10 +259,10 @@ void array_sort(Array *a);
 
 
 /**
- * Sorts the array, and then calls bsearch, determining equality using the comparison function in
+ * Given a sorted array, calls bsearch, determining equality using the comparison function in
  *   the provided DSHelper struct.
  *
- * @param   a    Pointer to array.
+ * @param   a    Pointer to array, which must have been sorted beforehand.
  * @param   key  Pointer to the value to compare to an array element's data.
  *
  * @return       Pointer to the array element if it was found, or NULL if it was not found.
@@ -265,5 +284,10 @@ void *array_find(Array *a, const void *key);
  * @return             A newly allocated subarray, or NULL if an error occurred.
  */
 Array *array_subarr(Array *a, int start, int n, int step_size);
+
+void vec_2d_helper_copy(void *_dst, const void *_src);
+void vec_2d_helper_del(void *_elem);
+
+static const DSHelper vec_2d_helper __attribute__((__unused__)) = {sizeof(Array), vec_2d_helper_copy, vec_2d_helper_del, NULL};
 
 #endif

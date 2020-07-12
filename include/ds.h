@@ -147,7 +147,10 @@ int ds_str_cmp(const void *_e1, const void *_e2);
  */
 int ds_int_cmp(const void *_e1, const void *_e2);
 
+int ds_unsigned_cmp(const void *_e1, const void *_e2);
+
 static const DSHelper int_helper __attribute__((__unused__)) = {sizeof(int), NULL, NULL, ds_int_cmp};
+static const DSHelper unsigned_helper __attribute__((__unused__)) = {sizeof(unsigned), NULL, NULL, ds_unsigned_cmp};
 static const DSHelper str_val_helper __attribute__((__unused__)) = {sizeof(char *), ds_str_val_copy, ds_str_val_del, ds_str_cmp};
 static const DSHelper str_ptr_helper __attribute__((__unused__)) = {sizeof(char *), ds_str_ptr_copy, NULL, ds_str_cmp};
 
