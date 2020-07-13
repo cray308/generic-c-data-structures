@@ -317,6 +317,84 @@ void test_sublist(void) {
     list_free(l);
 }
 
+void test_splice(void) {
+    int comparison1[] = {1, 10, 20, 30, 2, 3, 4};
+    int comparison2[] = {1, 10, 20, 30, 3, 4};
+    int comparison3[] = {2, 8, 12, 16, 1, 10, 20, 30, 3, 4};
+    int comparison4[] = {2, 2, 8, 12, 16, 8, 12, 16, 1, 10, 20, 30, 3, 4};
+
+    List *l1 = list_new(&int_helper, LIST_INIT_EMPTY);
+    List *l2 = list_new(&int_helper, LIST_INIT_EMPTY);
+    int *ptr;
+    for (int i = 1; i<=4; ++i) {
+        list_push_back(l1, &i);
+    }
+
+    for (int i=1; i<=3; ++i) {
+        list_push_back(l2, &(int){i * 10});
+    }
+
+    ListEntry *e = l1->front->next;
+    list_splice(l1, e, l2, LIST_SPLICE_ALL);
+
+    assert(list_empty(l2));
+    assert(l1->size == 7);
+    int i = 0;
+    list_iter(l1, ptr) {
+        assert(*ptr == comparison1[i++]);
+    }
+
+    list_splice(l2, l2->front, l1, LIST_SPLICE_SINGLE, e);
+    assert(l1->size == 6);
+    i = 0;
+    list_iter(l1, ptr) {
+        assert(*ptr == comparison2[i++]);
+    }
+                                          
+    e = l1->front->next->next->next;
+
+    list_push_back(l2, &(int){8});
+    list_push_back(l2, &(int){12});
+    list_push_back(l2, &(int){16});
+    list_push_back(l2, &(int){18});
+
+    list_splice(l1, l1->front, l2, LIST_SPLICE_RANGE, l2->front, l2->back);
+
+    assert(l2->front = l2->back);
+    assert(l2->size == 1);
+    assert(l1->size == 10);
+    ptr = list_front(l2);
+    assert(*ptr == 18);
+
+    i = 0;
+    list_iter(l1, ptr) {
+        assert(*ptr == comparison3[i++]);
+    }
+    list_push_back(l2, &(int){2});
+    list_push_back(l2, &(int){8});
+    list_push_back(l2, &(int){12});
+    list_push_back(l2, &(int){16});
+
+    list_splice(l1, l1->front->next, l2, LIST_SPLICE_RANGE, l2->front->next, LIST_END);
+    assert(l2->front = l2->back);
+    assert(l2->size == 1);
+    ptr = list_front(l2);
+    assert(*ptr == 18);
+    assert(l1->size == 14);
+    i = 0;
+    list_iter(l1, ptr) {
+        assert(*ptr == comparison4[i++]);
+    }
+    assert(i == 14);
+    i = 13;
+    list_riter(l1, ptr) {
+        assert(*ptr == comparison4[i--]);
+    }
+    assert(i == -1);
+    list_free(l1);
+    list_free(l2);
+}
+
 int main(void) {
     test_macros_insertion();
     test_custom_init();
@@ -337,6 +415,7 @@ int main(void) {
     test_string();
     test_merge();
     test_sublist();
+    test_splice();
 
     return 0;
 }

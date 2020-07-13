@@ -21,6 +21,12 @@ typedef enum {
     LIST_INSERT_LIST /* like List *nums */
 } ListInsertType;
 
+typedef enum {
+    LIST_SPLICE_ALL, /* move entire list */
+    LIST_SPLICE_SINGLE, /* move single element */
+    LIST_SPLICE_RANGE /* move range of elements in [first, last) */
+} ListSpliceType;
+
 typedef struct DLLNode DLLNode;
 struct DLLNode {
     DLLNode *prev;
@@ -296,5 +302,23 @@ List *list_sublist(List *this, DLLNode *first, DLLNode *last);
  * @param   other  Pointer to other list, which will be merged with "this".
  */
 void list_merge(List *this, List *other);
+
+
+/**
+ * Moves elements from "other" before the ListEntry in "this" at "pos". No new elements are created;
+ *  they are simply transferred from "other" into "this".
+ * 
+ * (1) type = LIST_SPLICE_ALL:     list_splice(List *this, DLLNode *position, List *other, LIST_SPLICE_ALL)
+ * (2) type = LIST_SPLICE_SINGLE:  list_splice(List *this, DLLNode *position, List *other, LIST_SPLICE_SINGLE, DLLNode *elem)
+ * (3) type = LIST_SPLICE_RANGE:   list_splice(List *this, DLLNode *position, List *other, LIST_SPLICE_RANGE, DLLNode *first, DLLNode *last)
+ * 
+ * @param   this      Pointer to list into which elements will be moved.
+ * @param   position  Pointer to element in "this" before which elements in "other" will be
+ *                      moved. If this is LIST_END, elements from "other" will be appended to
+ *                      "this".
+ * @param   other     Pointer to other list from which elements will be moved.
+ * @param   type      Type of splice to perform.
+ */
+void list_splice(List *this, DLLNode *position, List *other, ListSpliceType type, ...);
 
 #endif

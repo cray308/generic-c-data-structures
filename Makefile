@@ -1,7 +1,7 @@
 CC = gcc
 LD = gcc
 OPTIMIZE = 2
-LIBS = -lds -lpthread
+LIBS = -lds
 
 CFLAGS = -std=c99 -Iinclude -O$(OPTIMIZE)
 CFLAGS += -Wall -Wextra -Werror -Wstrict-prototypes
