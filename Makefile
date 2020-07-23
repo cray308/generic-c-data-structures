@@ -1,51 +1,45 @@
 CC = gcc
 LD = gcc
 OPTIMIZE = 2
-LIBS = -lds
 
 CFLAGS = -std=c99 -Iinclude -O$(OPTIMIZE)
 CFLAGS += -Wall -Wextra -Werror -Wstrict-prototypes
 CFLAGS += -funsigned-char -finline-functions
 
-LDFLAGS = -Llib
+CPPFLAGS = -std=c++11 -O$(OPTIMIZE)
+CPPFLAGS += -Wall -Wextra -Werror
+CPPFLAGS += -funsigned-char -finline-functions
 
 HEADERS = $(wildcard include/*.h)
-SOURCES = $(wildcard src/*.c)
-OBJS = $(SOURCES:.c=.o)
-LIBRARY = lib/libds.so
-TEST_BINARIES = bin/test_stack bin/test_queue bin/test_list bin/test_array
-TEST_BINARIES += bin/test_rbtree bin/test_str bin/test_map bin/test_set
 
-BENCHMARK_BINARIES = bin/benchmark_sorting
+TEST_BINARIES = bin/c/test_stack bin/c/test_queue bin/c/test_list bin/c/test_array
+TEST_BINARIES += bin/c/test_rbtree bin/c/test_str bin/c/test_map bin/c/test_set
+
+BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds
 
 .SECONDARY: $(OBJS)
 
-all: $(LIBRARY) $(TEST_BINARIES) $(BENCHMARK_BINARIES)
+all: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 debug: CFLAGS += -g
-debug: $(LIBRARY) $(TEST_BINARIES) $(BENCHMARK_BINARIES)
-
-%.h.gch: %.h
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(LIBRARY): $(OBJS)
-	$(CC) $(LDFLAGS) -shared -o $@ $^
-
-%.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -fPIC -c $< -o $@
-
+debug: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 test: $(TEST_BINARIES)
 	@bash bin/run_tests.sh
-
-bin/%: src/tests/%.c $(LIBRARY)
-	$(CC) $(CFLAGS) -fPIC $(LDFLAGS) -o $@ $< $(LIBS)
 
 benchmark: $(BENCHMARK_BINARIES)
 	@python3 bin/run_benchmarks.py
 
 
-clean:
-	rm -f $(OBJS) $(LIBRARY) $(TEST_BINARIES) $(BENCHMARK_BINARIES)
+bin/c/test_%: tests/test_%.c include/ds.h include/%.h
+	$(CC) $(CFLAGS) -o $@ $<
 
-#.PRECIOUS: %.o
+bin/c/benchmark_%: tests/benchmark_%.c $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $<
+
+bin/cpp/%: tests/%.cpp
+	g++ $(CPPFLAGS) -o $@ $<
+
+
+clean:
+	rm -f $(TEST_BINARIES) $(BENCHMARK_BINARIES)

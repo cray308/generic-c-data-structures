@@ -3,7 +3,7 @@
 logfile="test.log"
 trap "rm $logfile" EXIT
 
-for test in bin/test_*; do
+for test in bin/c/test_*; do
     echo "Running $(basename $test)"
     valgrind --leak-check=full $test > $logfile 2>&1
     output=$?

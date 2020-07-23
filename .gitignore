@@ -1,5 +1,4 @@
-*.h.gch
-lib/
-bin/test_*
+bin/c/
+bin/cpp/
 *.o
 vgcore.*

@@ -1,5 +1,4 @@
 #include "str.h"
-#include <ctype.h>
 #include <assert.h>
 
 void test_macros(void) {

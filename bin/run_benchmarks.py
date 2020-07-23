@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import subprocess
+
 NELEM = (10000,20000,30000,40000,50000,60000,70000,80000,90000,
 100000,200000,300000,400000,500000,600000,700000,800000,900000,
 1000000,1100000,1200000,1300000,1400000,1500000,1600000,1700000,1800000,1900000,
@@ -14,33 +15,40 @@ NELEM = (10000,20000,30000,40000,50000,60000,70000,80000,90000,
 9000000,9100000,9200000,9300000,9400000,9500000,9600000,9700000,9800000,9900000,
 10000000)
 
-
 Results = {
     "CLIST": {},
-    "CPPLIST": {}
+    "CPPLIST": {},
+    "CVEC": {},
+    "CPPVEC": {}
 }
 
-def test_sorting():
+def test_array():
     for n in NELEM:
-        s = os.popen("./bin/benchmark_sorting -d LIST -n {} -r".format(n))
+        s = os.popen("./bin/c/benchmark_c_ds -d ARRAY -n {}".format(n))
+        last = s.readlines()[-1]
+        Results["CVEC"][str(n)] = float(last)
+        s = os.popen("./bin/cpp/benchmark_cpp_ds -d ARRAY -n {}".format(n))
+        last = s.readlines()[-1]
+        Results["CPPVEC"][str(n)] = float(last)
+        print("finished {}".format(n))
+
+def test_list():
+    for n in NELEM:
+        s = os.popen("./bin/c/benchmark_c_ds -d LIST -n {}".format(n))
         last = s.readlines()[-1]
         Results["CLIST"][str(n)] = float(last)
-        # s = os.popen("./src/tests/benchmark_list -n {} -r".format(n))
-        # last = s.readlines()[-1]
-        # Results["CPPLIST"][str(n)] = float(last)
+        s = os.popen("./bin/cpp/benchmark_cpp_ds -d LIST -n {}".format(n))
+        last = s.readlines()[-1]
+        Results["CPPLIST"][str(n)] = float(last)
         print("finished {}".format(n))
 
 
 if __name__ == "__main__":
-    test_sorting()
-    print("\n\n")
-    times = []
-    for n in Results["CLIST"]:
-        times.append(str(Results["CLIST"][n]))
-    print(",".join(times))
-    # for k in Results:
-    #     print("\n\n{}\n".format(k))
-    #     times = []
-    #     for n in Results[k]:
-    #         times.append(str(Results[k][n]))
-    #     print(",".join(times))
+    test_array()
+    test_list()
+    for k in Results:
+        print("\n\n{}\n".format(k))
+        times = []
+        for n in Results[k]:
+            times.append(format(Results[k][n], '.3f'))
+        print(",".join(times))

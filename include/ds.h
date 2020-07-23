@@ -4,6 +4,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdarg.h>
+
+#define DS_UNUSED __attribute__((__unused__))
+#define __DS_FUNC_PREFIX static DS_UNUSED
+#define __DS_FUNC_PREFIX_INL __DS_FUNC_PREFIX inline
+
 
 /**
  * Checks whether an index is reasonable.
@@ -14,7 +21,7 @@
  * @return         -If the index is positive, whether it is less than the size.
  *                 -If the index is negative, whether subtracting it from the size is at least 0.
  */
-#define check_index(index, size) \
+#define check_index(index, size)                                                                             \
     (((index) < 0) ? ((int) (size) + (index) >= 0) : ((index) < (int) (size)))
 
 
@@ -26,7 +33,7 @@
  *
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
-inline int modulo(int index, size_t size) {
+static inline DS_UNUSED int modulo(int index, size_t size) {
     if (!check_index(index, size)) {
         return -1;
     }
@@ -35,46 +42,11 @@ inline int modulo(int index, size_t size) {
     return (m < 0) ? (m + (int) size) : m;
 }
 
-
-/**
- * After casting to the appropriate types, should return:
- *   -1 if _e1 < _e2
- *   0 if _e1 == _e2
- *   1 if _e1 > _e2
- */
-typedef int (*comparison)(const void *_e1, const void *_e2);
-
-
-/**
- * After casting, this should copy _src to _dst (either a pointer or the value).
- */
-typedef void (*copy_ds)(void *_dst, const void *_src);
-
-
-/**
- * After casting, this should free any dynamically allocated memory associated with the
- * element.
- */
-typedef void (*del_ds)(void *_elem);
-
-typedef struct {
-    size_t size;
-    copy_ds copy;
-    del_ds del;
-    comparison cmp;
-} DSHelper;
-
-typedef struct Node Node;
-struct Node {
-    Node *next;
-    char data[];
-};
-
 #ifndef DS_OOM
-#define DS_OOM() \
-    do { \
-        fprintf(stderr, "Out of memory error.\n"); \
-        exit(1); \
+#define DS_OOM()                                                                                             \
+    do {                                                                                                     \
+        fprintf(stderr, "Out of memory error.\n");                                                           \
+        exit(1);                                                                                             \
     } while(0)
 #endif
 
@@ -82,76 +54,29 @@ struct Node {
 #define max(a,b) (((a) >= (b)) ? (a) : (b))
 #define streq(a,b) (strcmp((a), (b)) == 0)
 
-/**
- * Creates a node for storing arbitrary data with the size provided as an argument.
- *
- * @param   size  Size, in bytes, of the node's data portion.
- *
- * @return        Pointer to newly created node.
- */
-static __attribute__((__unused__)) Node *node_new(size_t size) {
-    size_t bytes = sizeof(Node) + size;
-    Node *node = malloc(bytes);
-    if (!node) {
-        DS_OOM();
-    }
-    memset(node, 0, bytes);
-    return node;
-}
 
+#define ds_cmp_num_lt(n1, n2) ((n1) < (n2))
+#define ds_cmp_str_lt(s1, s2) (strcmp((s1), (s2)) < 0)
 
-/**
- * This function dynamically allocates a string in dst and copies src to dst.
- *
- * @param   void  _dst   The destination address (char **).
- * @param   void  _src   The source string's address (char **).
- */
-void ds_str_val_copy(void *_dst, const void *_src);
+#define ds_cmp_eq(cmp_lt, x, y) (!(cmp_lt(x, y)) && !(cmp_lt(y, x)))
+#define ds_cmp_neq(cmp_lt, x, y) (!(ds_cmp_eq(cmp_lt, x, y)))
+#define ds_cmp_leq(cmp_lt, x, y) (cmp_lt(x, y) || ds_cmp_eq(cmp_lt, x, y))
+#define ds_cmp_gt(cmp_lt, x, y) (cmp_lt(y, x))
 
-
-/**
- * Frees the memory allocated by ds_str_val_copy.
- *
- * @param   void  _elt  The address of the string to be freed (char **).
- */
-void ds_str_val_del(void *_elt);
-
-
-/**
- * Copies the value of _src (char **) to _dst (char **). No dynamic allocation is used.
- *
- * @param   void  _dst   The destination address (char **).
- * @param   void  _src   The source string's address (char **).
- */
-void ds_str_ptr_copy(void *_dst, const void *_src);
-
-
-/**
- * Performs strcmp() on _e1 and _e2, both which are represented as (char **).
- *
- * @param   void  _e1    Pointer to the first string.
- * @param   void  _e2    Pointer to the second string.
- *
- * @return  int          The result of strcmp.
- */
-int ds_str_cmp(const void *_e1, const void *_e2);
-
-
-/**
- * Compares _e1 and _e2 as (int *).
- *
- * @param   void  _e1    Pointer to the first int.
- * @param   void  _e2    Pointer to the second int.
- *
- * @return  int          Whether _e1 is less than, equal to, or greater than _e2.
- */
-int ds_int_cmp(const void *_e1, const void *_e2);
-
-int ds_unsigned_cmp(const void *_e1, const void *_e2);
-
-static const DSHelper int_helper __attribute__((__unused__)) = {sizeof(int), NULL, NULL, ds_int_cmp};
-static const DSHelper unsigned_helper __attribute__((__unused__)) = {sizeof(unsigned), NULL, NULL, ds_unsigned_cmp};
-static const DSHelper str_val_helper __attribute__((__unused__)) = {sizeof(char *), ds_str_val_copy, ds_str_val_del, ds_str_cmp};
-static const DSHelper str_ptr_helper __attribute__((__unused__)) = {sizeof(char *), ds_str_ptr_copy, NULL, ds_str_cmp};
+#define __gen_node(id, t)                                                                                    \
+typedef struct Node_##id Node_##id;                                                                          \
+struct Node_##id {                                                                                           \
+    Node_##id *next;                                                                                         \
+    t data;                                                                                                  \
+};                                                                                                           \
+                                                                                                             \
+Node_##id *node_new_##id(void) {                                                                             \
+    Node_##id *node = malloc(sizeof(Node_##id));                                                             \
+    if (!node) {                                                                                             \
+        DS_OOM();                                                                                            \
+    }                                                                                                        \
+    memset(node, 0, sizeof(Node_##id));                                                                      \
+    return node;                                                                                             \
+}                                                                                                            \
 
 #endif

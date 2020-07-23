@@ -3,13 +3,15 @@
 
 char *strs[] = {"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"};
 
-void test_push(Queue *q) {
+gen_queue(str, char *)
+
+void test_push(Queue_str *q) {
     assert(queue_size(q) == 0);
     assert(queue_empty(q));
 
     char **ptr = NULL;
     for (int i = 0; i < 10; ++i) {
-        queue_push(q, &strs[i]);
+        queue_push(str, q, strs[i]);
 
         ptr = queue_front(q);
         assert(streq(*ptr, strs[0]));
@@ -21,13 +23,13 @@ void test_push(Queue *q) {
     assert(!queue_empty(q));
 }
 
-void test_pop(Queue *q) {
-    char *removed;
+void test_pop(Queue_str *q) {
+    char *removed = NULL;
     char **ptr;
 
     int i = 0;
     for (; i < 5; ++i) {
-        queue_pop(q, &removed);
+        queue_pop(str, q, &removed);
 
         assert(streq(strs[i], removed));
         assert(queue_size(q) == 9 - i);
@@ -40,16 +42,16 @@ void test_pop(Queue *q) {
     }
     assert(queue_size(q) == 5);
 
-    while (queue_pop(q, &removed)) {
+    while (queue_pop(str, q, &removed)) {
         assert(streq(strs[i++], removed));
     }
     assert(queue_empty(q));
 }
 
 int main(void) {
-    Queue *q = queue_new(&str_ptr_helper);
+    Queue_str *q = queue_new(str);
     test_push(q);
     test_pop(q);
-    queue_free(q);
+    queue_free(str, q);
     return 0;
 }
