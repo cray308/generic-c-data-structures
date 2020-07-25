@@ -33,7 +33,7 @@
  *
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
-static inline DS_UNUSED int modulo(int index, size_t size) {
+__DS_FUNC_PREFIX_INL int modulo(int index, size_t size) {
     if (!check_index(index, size)) {
         return -1;
     }

@@ -9,7 +9,7 @@
 #define __MAP_DEFAULT_LOAD_FACTOR 0.750
 #define __MAP_INITIAL_NBUCKETS 32
 
-static inline DS_UNUSED uint32_t __map_fnv_int(int32_t k) {
+__DS_FUNC_PREFIX_INL uint32_t __map_fnv_int(int32_t k) {
     uint32_t hash = __MAP_FNV_OFFSET_BASIS;
     for (const char *c = (const char *) &k; *c; ++c) {
         hash ^= *c;
@@ -18,7 +18,7 @@ static inline DS_UNUSED uint32_t __map_fnv_int(int32_t k) {
     return hash;
 }
 
-static inline DS_UNUSED uint32_t __map_fnv_str(const char *k) {
+__DS_FUNC_PREFIX_INL uint32_t __map_fnv_str(const char *k) {
     uint32_t hash = __MAP_FNV_OFFSET_BASIS;
     for (const char *c = k; *c; ++c) {
         hash ^= *c;
@@ -477,7 +477,7 @@ typedef struct {                                                                
     Entry_##id **buckets;                                                                                    \
 } Map_##id;                                                                                                  \
                                                                                                              \
-static inline DS_UNUSED void __map_iter_begin_##id(Map_##id *m) {                                            \
+__DS_FUNC_PREFIX_INL void __map_iter_begin_##id(Map_##id *m) {                                               \
     if (!(m->size)) {                                                                                        \
         m->it.curr = NULL;                                                                                   \
         m->it.idx = m->cap;                                                                                  \
@@ -489,7 +489,7 @@ static inline DS_UNUSED void __map_iter_begin_##id(Map_##id *m) {               
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-static inline DS_UNUSED void __map_iter_next_##id(Map_##id *m) {                                             \
+__DS_FUNC_PREFIX_INL void __map_iter_next_##id(Map_##id *m) {                                                \
     if (m->it.curr->next) {                                                                                  \
         m->it.curr = m->it.curr->next;                                                                       \
     } else {                                                                                                 \

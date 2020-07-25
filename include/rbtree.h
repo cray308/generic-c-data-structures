@@ -18,68 +18,68 @@ do {                                                                            
 #define __rb_isOnLeft(n) ((n) == (n)->parent->left)
 
 #define __rb_hasRedChild(n)                                                                                  \
-	(((n)->left != NULL && (n)->left->color == RED) || ((n)->right != NULL && (n)->right->color == RED))
+    (((n)->left != NULL && (n)->left->color == RED) || ((n)->right != NULL && (n)->right->color == RED))
 
 #define __rb_get_uncle(n)                                                                                    \
-	(((n)->parent == NULL || (n)->parent->parent == NULL) ? NULL :                                           \
-	 (__rb_isOnLeft((n)->parent) ? (n)->parent->parent->right : (n)->parent->parent->left))
+    (((n)->parent == NULL || (n)->parent->parent == NULL) ? NULL :                                           \
+    (__rb_isOnLeft((n)->parent) ? (n)->parent->parent->right : (n)->parent->parent->left))
 
 #define __rb_getSibling(n)                                                                                   \
-	(((n)->parent == NULL) ? NULL : (__rb_isOnLeft((n)) ? (n)->parent->right : (n)->parent->left))
+    (((n)->parent == NULL) ? NULL : (__rb_isOnLeft((n)) ? (n)->parent->right : (n)->parent->left))
 
 #define __rb_moveDown(s, np)                                                                                 \
-	do {                                                                                                     \
-		if ((s)->parent != NULL) {                                                                           \
-			if (__rb_isOnLeft((s))) {                                                                        \
-				(s)->parent->left = (np);                                                                    \
-			} else {                                                                                         \
-				(s)->parent->right = (np);                                                                   \
-			}                                                                                                \
-		}                                                                                                    \
-		(np)->parent = (s)->parent;                                                                          \
-		(s)->parent = (np);                                                                                  \
-	} while (0)
+    do {                                                                                                     \
+        if ((s)->parent != NULL) {                                                                           \
+            if (__rb_isOnLeft((s))) {                                                                        \
+                (s)->parent->left = (np);                                                                    \
+            } else {                                                                                         \
+                (s)->parent->right = (np);                                                                   \
+            }                                                                                                \
+        }                                                                                                    \
+        (np)->parent = (s)->parent;                                                                          \
+        (s)->parent = (np);                                                                                  \
+    } while (0)
 
 #define __rb_BSTreplace(id, x)                                                                               \
-	(((x)->left && (x)->right) ? (__rb_successor_##id((x)->right)) :                                         \
-	((!((x)->left) && !((x)->right)) ? (NULL) : (((x)->left != NULL) ? ((x)->left) : ((x)->right))))
+    (((x)->left && (x)->right) ? (__rb_successor_##id((x)->right)) :                                         \
+    ((!((x)->left) && !((x)->right)) ? (NULL) : (((x)->left != NULL) ? ((x)->left) : ((x)->right))))
 
 #define __rb_swapColors(x1, x2)                                                                              \
-	do {                                                                                                     \
-		int _tmp_color;                                                                                      \
-		_tmp_color = (x1)->color;                                                                            \
-		(x1)->color = (x2)->color;                                                                           \
-		(x2)->color = _tmp_color;                                                                            \
-	} while(0)
+    do {                                                                                                     \
+        int _tmp_color;                                                                                      \
+        _tmp_color = (x1)->color;                                                                            \
+        (x1)->color = (x2)->color;                                                                           \
+        (x2)->color = _tmp_color;                                                                            \
+    } while(0)
 
 #define __rb_leftRotate(id, t, x)                                                                            \
-	do {                                                                                                     \
-		RBNode_##id *_nParent;                                                                               \
-		_nParent = (x)->right;                                                                               \
-		if ((x) == (t)->root) {                                                                              \
-			(t)->root = _nParent;                                                                            \
-		}                                                                                                    \
-		__rb_moveDown((x), _nParent);                                                                        \
-		(x)->right = _nParent->left;                                                                         \
-		if (_nParent->left) {                                                                                \
-			_nParent->left->parent = (x);                                                                    \
-		}                                                                                                    \
-		_nParent->left = (x);                                                                                \
-	} while (0)
+    do {                                                                                                     \
+        RBNode_##id *_nParent;                                                                               \
+        _nParent = (x)->right;                                                                               \
+        if ((x) == (t)->root) {                                                                              \
+            (t)->root = _nParent;                                                                            \
+        }                                                                                                    \
+        __rb_moveDown((x), _nParent);                                                                        \
+        (x)->right = _nParent->left;                                                                         \
+        if (_nParent->left) {                                                                                \
+            _nParent->left->parent = (x);                                                                    \
+        }                                                                                                    \
+        _nParent->left = (x);                                                                                \
+    } while (0)
 
 #define __rb_rightRotate(id, t, x)                                                                           \
-	do {                                                                                                     \
-		RBNode_##id *_nParent = (x)->left;                                                                   \
-		if ((x) == (t)->root) {                                                                              \
-			(t)->root = _nParent;                                                                            \
-		}                                                                                                    \
-		__rb_moveDown((x), _nParent);                                                                        \
-		(x)->left = _nParent->right;                                                                         \
-		if (_nParent->right) {                                                                               \
-			_nParent->right->parent = (x);                                                                   \
-		}                                                                                                    \
-		_nParent->right = (x);                                                                               \
-	} while (0)
+    do {                                                                                                     \
+        RBNode_##id *_nParent = (x)->left;                                                                   \
+        if ((x) == (t)->root) {                                                                              \
+            (t)->root = _nParent;                                                                            \
+        }                                                                                                    \
+        __rb_moveDown((x), _nParent);                                                                        \
+        (x)->left = _nParent->right;                                                                         \
+        if (_nParent->right) {                                                                               \
+            _nParent->right->parent = (x);                                                                   \
+        }                                                                                                    \
+        _nParent->right = (x);                                                                               \
+    } while (0)
 
 
 /**
@@ -181,143 +181,143 @@ __gen_rb_helper_funcs(id, t)                                                    
 __DS_FUNC_PREFIX Tree_##id *tree_new_##id(void) {                                                            \
     Tree_##id *this = malloc(sizeof(Tree_##id));                                                             \
     if (!this) {                                                                                             \
-		DS_OOM();                                                                                            \
-	}                                                                                                        \
+        DS_OOM();                                                                                            \
+    }                                                                                                        \
     this->root = NULL;                                                                                       \
-	this->size = 0;                                                                                          \
+    this->size = 0;                                                                                          \
     return this;                                                                                             \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void tree_free_##id(Tree_##id *this) {                                                  \
-	tree_clear_##id(this);                                                                                   \
+    tree_clear_##id(this);                                                                                   \
     free(this);                                                                                              \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void tree_clear_##id(Tree_##id *this) {                                                 \
-	RBNode_##id *curr = this->root;                                                                          \
-	while (curr) {                                                                                           \
-		tree_delete_node_##id(this, curr);                                                                   \
-		curr = this->root;                                                                                   \
-	}                                                                                                        \
-	this->root = NULL;                                                                                       \
+    RBNode_##id *curr = this->root;                                                                          \
+    while (curr) {                                                                                           \
+        tree_delete_node_##id(this, curr);                                                                   \
+        curr = this->root;                                                                                   \
+    }                                                                                                        \
+    this->root = NULL;                                                                                       \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX RBNode_##id *__rb_tree_search_##id(Tree_##id *this, t val, bool candidate) {                \
-	RBNode_##id *temp = this->root;                                                                          \
-	while (temp) {                                                                                           \
-		if (cmp_lt(val, temp->data)) {                                                                       \
-			if (!temp->left) {                                                                               \
-				if (candidate) break;                                                                        \
-				else return NULL;                                                                            \
-			} else {                                                                                         \
-				temp = temp->left;                                                                           \
-			}                                                                                                \
-		} else if (cmp_lt(temp->data, val)) {                                                                \
-			if (!temp->right) {                                                                              \
-				if (candidate) break;                                                                        \
-				else return NULL;                                                                            \
-			} else {                                                                                         \
-				temp = temp->right;                                                                          \
-			}                                                                                                \
-		} else {                                                                                             \
-			break;                                                                                           \
-		}                                                                                                    \
-	}                                                                                                        \
-	return temp;                                                                                             \
+    RBNode_##id *temp = this->root;                                                                          \
+    while (temp) {                                                                                           \
+        if (cmp_lt(val, temp->data)) {                                                                       \
+            if (!temp->left) {                                                                               \
+                if (candidate) break;                                                                        \
+                else return NULL;                                                                            \
+            } else {                                                                                         \
+                temp = temp->left;                                                                           \
+            }                                                                                                \
+        } else if (cmp_lt(temp->data, val)) {                                                                \
+            if (!temp->right) {                                                                              \
+                if (candidate) break;                                                                        \
+                else return NULL;                                                                            \
+            } else {                                                                                         \
+                temp = temp->right;                                                                          \
+            }                                                                                                \
+        } else {                                                                                             \
+            break;                                                                                           \
+        }                                                                                                    \
+}                                                                                                            \
+    return temp;                                                                                             \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void tree_insert_##id(Tree_##id *this, t val) {                                             \
-	RBNode_##id *newNode = rb_node_new_##id();                                                               \
-	if (!this->root) {                                                                                       \
+    RBNode_##id *newNode = rb_node_new_##id();                                                               \
+    if (!this->root) {                                                                                       \
         newNode->data = val;                                                                                 \
-		newNode->color = BLACK;                                                                              \
-		this->root = newNode;                                                                                \
-	} else {                                                                                                 \
-		RBNode_##id *temp = __rb_tree_search_##id(this, val, true);                                          \
-		if (ds_cmp_eq(cmp_lt, temp->data, val)) {                                                            \
-			free(newNode);                                                                                   \
-			return;                                                                                          \
-		}                                                                                                    \
+        newNode->color = BLACK;                                                                              \
+        this->root = newNode;                                                                                \
+    } else {                                                                                                 \
+        RBNode_##id *temp = __rb_tree_search_##id(this, val, true);                                          \
+        if (ds_cmp_eq(cmp_lt, temp->data, val)) {                                                            \
+            free(newNode);                                                                                   \
+            return;                                                                                          \
+        }                                                                                                    \
         newNode->data = val;                                                                                 \
-		newNode->parent = temp;                                                                              \
+        newNode->parent = temp;                                                                              \
                                                                                                              \
-		if (cmp_lt(val, temp->data)) {                                                                       \
-			temp->left = newNode;                                                                            \
-		} else {                                                                                             \
-			temp->right = newNode;                                                                           \
-		}                                                                                                    \
-		__rb_fixRedRed_##id(this, newNode);                                                                  \
-	}                                                                                                        \
-	this->size++;                                                                                            \
+        if (cmp_lt(val, temp->data)) {                                                                       \
+            temp->left = newNode;                                                                            \
+        } else {                                                                                             \
+            temp->right = newNode;                                                                           \
+        }                                                                                                    \
+        __rb_fixRedRed_##id(this, newNode);                                                                  \
+    }                                                                                                        \
+    this->size++;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, RBNode_##id *v) {                               \
-	RBNode_##id *u = __rb_BSTreplace(id, v);                                                                 \
+    RBNode_##id *u = __rb_BSTreplace(id, v);                                                                 \
                                                                                                              \
-	bool uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));                                       \
-	RBNode_##id *parent = v->parent;                                                                         \
-	if (!u) {                                                                                                \
-		if (v == this->root) {                                                                               \
-			this->root = NULL;                                                                               \
-		} else {                                                                                             \
-			if (uvBlack) {                                                                                   \
-				__rb_fixDoubleBlack_##id(this, v);                                                           \
-			} else {                                                                                         \
-				RBNode_##id *sibling = __rb_getSibling(v);                                                   \
-				if (sibling != NULL) {                                                                       \
-					sibling->color = RED;                                                                    \
-				}                                                                                            \
-			}                                                                                                \
+    bool uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));                                       \
+    RBNode_##id *parent = v->parent;                                                                         \
+    if (!u) {                                                                                                \
+        if (v == this->root) {                                                                               \
+            this->root = NULL;                                                                               \
+        } else {                                                                                             \
+            if (uvBlack) {                                                                                   \
+                __rb_fixDoubleBlack_##id(this, v);                                                           \
+            } else {                                                                                         \
+                RBNode_##id *sibling = __rb_getSibling(v);                                                   \
+                if (sibling != NULL) {                                                                       \
+                    sibling->color = RED;                                                                    \
+                }                                                                                            \
+            }                                                                                                \
                                                                                                              \
-			if (__rb_isOnLeft(v)) {                                                                          \
-				parent->left = NULL;                                                                         \
-			} else {                                                                                         \
-				parent->right = NULL;                                                                        \
-			}                                                                                                \
-		}                                                                                                    \
-		free(v);                                                                                             \
-		this->size--;                                                                                        \
-		return;                                                                                              \
-	}                                                                                                        \
+           if (__rb_isOnLeft(v)) {                                                                           \
+               parent->left = NULL;                                                                          \
+            } else {                                                                                         \
+                parent->right = NULL;                                                                        \
+            }                                                                                                \
+        }                                                                                                    \
+        free(v);                                                                                             \
+        this->size--;                                                                                        \
+    return;                                                                                                  \
+    }                                                                                                        \
                                                                                                              \
-	if (!v->left || !v->right) {                                                                             \
-		if (v == this->root) {                                                                               \
+    if (!v->left || !v->right) {                                                                             \
+        if (v == this->root) {                                                                               \
             v->data = u->data;                                                                               \
-			free(u);                                                                                         \
-			v->left = v->right = NULL;                                                                       \
-			this->size--;                                                                                    \
-		} else {                                                                                             \
-			if (__rb_isOnLeft(v)) {                                                                          \
-				parent->left = u;                                                                            \
-			} else {                                                                                         \
-				parent->right = u;                                                                           \
-			}                                                                                                \
+            free(u);                                                                                         \
+            v->left = v->right = NULL;                                                                       \
+            this->size--;                                                                                    \
+        } else {                                                                                             \
+            if (__rb_isOnLeft(v)) {                                                                          \
+                parent->left = u;                                                                            \
+            } else {                                                                                         \
+                parent->right = u;                                                                           \
+            }                                                                                                \
                                                                                                              \
-			free(v);                                                                                         \
-			this->size--;                                                                                    \
+            free(v);                                                                                         \
+            this->size--;                                                                                    \
                                                                                                              \
-			u->parent = parent;                                                                              \
-			if (uvBlack) {                                                                                   \
-				__rb_fixDoubleBlack_##id(this, u);                                                           \
-			} else {                                                                                         \
-				u->color = BLACK;                                                                            \
-			}                                                                                                \
-		}                                                                                                    \
-		return;                                                                                              \
-	}                                                                                                        \
+            u->parent = parent;                                                                              \
+            if (uvBlack) {                                                                                   \
+                __rb_fixDoubleBlack_##id(this, u);                                                           \
+            } else {                                                                                         \
+                u->color = BLACK;                                                                            \
+            }                                                                                                \
+        }                                                                                                    \
+        return;                                                                                              \
+    }                                                                                                        \
     __rb_node_swap(t, u, v);                                                                                 \
-	tree_delete_node_##id(this, u);                                                                          \
+    tree_delete_node_##id(this, u);                                                                          \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void tree_delete_by_val_##id(Tree_##id *this, t val) {                                      \
-	if (!this->root || !val) {                                                                               \
-		return;                                                                                              \
-	}                                                                                                        \
-	RBNode_##id *v = __rb_tree_search_##id(this, val, true);                                                 \
-	if (ds_cmp_neq(cmp_lt, v->data, val)) {                                                                  \
-		return;                                                                                              \
-	}                                                                                                        \
-	tree_delete_node_##id(this, v);                                                                          \
+    if (!this->root || !val) {                                                                               \
+        return;                                                                                              \
+    }                                                                                                        \
+    RBNode_##id *v = __rb_tree_search_##id(this, val, true);                                                 \
+    if (ds_cmp_neq(cmp_lt, v->data, val)) {                                                                  \
+        return;                                                                                              \
+    }                                                                                                        \
+    tree_delete_node_##id(this, v);                                                                          \
 }                                                                                                            \
 
 
@@ -334,10 +334,10 @@ struct RBNode_##id {                                                            
 __DS_FUNC_PREFIX RBNode_##id *rb_node_new_##id(void) {                                                       \
     RBNode_##id *node = malloc(sizeof(RBNode_##id));                                                         \
     if (!node) {                                                                                             \
-		DS_OOM();                                                                                            \
-	}                                                                                                        \
+        DS_OOM();                                                                                            \
+    }                                                                                                        \
     memset(node, 0, sizeof(RBNode_##id));                                                                    \
-	node->color = RED;                                                                                       \
+    node->color = RED;                                                                                       \
     return node;                                                                                             \
 }                                                                                                            \
                                                                                                              \
@@ -353,25 +353,25 @@ __DS_FUNC_PREFIX_INL RBNode_##id *__rb_successor_##id(RBNode_##id *x) {         
     if (!x) {                                                                                                \
         return x;                                                                                            \
     }                                                                                                        \
-	while (x->left) {                                                                                        \
-		x = x->left;                                                                                         \
-	}                                                                                                        \
-	return x;                                                                                                \
+    while (x->left) {                                                                                        \
+        x = x->left;                                                                                         \
+    }                                                                                                        \
+    return x;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL RBNode_##id *__rb_inorder_successor_##id(RBNode_##id *x) {                              \
-	if (!x) {                                                                                                \
-		return NULL;                                                                                         \
-	} else if (x->right) {                                                                                   \
-		return __rb_successor_##id(x->right);                                                                \
-	}                                                                                                        \
+    if (!x) {                                                                                                \
+        return NULL;                                                                                         \
+    } else if (x->right) {                                                                                   \
+        return __rb_successor_##id(x->right);                                                                \
+    }                                                                                                        \
                                                                                                              \
-	RBNode_##id *parent = x->parent;                                                                         \
-	while (parent && x == parent->right) {                                                                   \
-		x = parent;                                                                                          \
-		parent = parent->parent;                                                                             \
-	}                                                                                                        \
-	return parent;                                                                                           \
+    RBNode_##id *parent = x->parent;                                                                         \
+    while (parent && x == parent->right) {                                                                   \
+        x = parent;                                                                                          \
+        parent = parent->parent;                                                                             \
+    }                                                                                                        \
+    return parent;                                                                                           \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void tree_clear_##id(Tree_##id *this);                                                      \
@@ -382,95 +382,95 @@ __DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, RBNode_##id *x);     
 
 #define __gen_rb_helper_funcs(id, t)                                                                         \
 __DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, RBNode_##id *x) {                            \
-	if (x == this->root) {                                                                                   \
-		return;                                                                                              \
-	}                                                                                                        \
+    if (x == this->root) {                                                                                   \
+        return;                                                                                              \
+    }                                                                                                        \
                                                                                                              \
-	RBNode_##id *sibling = __rb_getSibling(x), *parent = x->parent;                                          \
-	if (!sibling) {                                                                                          \
-		__rb_fixDoubleBlack_##id(this, parent);                                                              \
-	} else {                                                                                                 \
-		if (sibling->color == RED) {                                                                         \
-			parent->color = RED;                                                                             \
-			sibling->color = BLACK;                                                                          \
+    RBNode_##id *sibling = __rb_getSibling(x), *parent = x->parent;                                          \
+    if (!sibling) {                                                                                          \
+        __rb_fixDoubleBlack_##id(this, parent);                                                              \
+    } else {                                                                                                 \
+        if (sibling->color == RED) {                                                                         \
+            parent->color = RED;                                                                             \
+            sibling->color = BLACK;                                                                          \
                                                                                                              \
-			if (__rb_isOnLeft(sibling)) {                                                                    \
-				__rb_rightRotate(id, this, parent);                                                          \
-			} else {                                                                                         \
-				__rb_leftRotate(id, this, parent);                                                           \
-			}                                                                                                \
-			__rb_fixDoubleBlack_##id(this, x);                                                               \
-		} else {                                                                                             \
-			if (__rb_hasRedChild(sibling)) {                                                                 \
-				if (sibling->left && sibling->left->color == RED) {                                          \
-					if (__rb_isOnLeft(sibling)) {                                                            \
-						sibling->left->color = sibling->color;                                               \
-						sibling->color = parent->color;                                                      \
-						__rb_rightRotate(id, this, parent);                                                  \
-					} else {                                                                                 \
-						sibling->left->color = parent->color;                                                \
-						__rb_rightRotate(id, this, sibling);                                                 \
-						__rb_leftRotate(id, this, parent);                                                   \
-					}                                                                                        \
-				} else {                                                                                     \
-					if (__rb_isOnLeft(sibling)) {                                                            \
-						sibling->right->color = parent->color;                                               \
-						__rb_leftRotate(id, this, sibling);                                                  \
-						__rb_rightRotate(id, this, parent);                                                  \
-					} else {                                                                                 \
-						sibling->right->color = sibling->color;                                              \
-						sibling->color = parent->color;                                                      \
-						__rb_leftRotate(id, this, parent);                                                   \
-					}                                                                                        \
-				}                                                                                            \
+            if (__rb_isOnLeft(sibling)) {                                                                    \
+                __rb_rightRotate(id, this, parent);                                                          \
+            } else {                                                                                         \
+                __rb_leftRotate(id, this, parent);                                                           \
+            }                                                                                                \
+            __rb_fixDoubleBlack_##id(this, x);                                                               \
+        } else {                                                                                             \
+            if (__rb_hasRedChild(sibling)) {                                                                 \
+                if (sibling->left && sibling->left->color == RED) {                                          \
+                    if (__rb_isOnLeft(sibling)) {                                                            \
+                        sibling->left->color = sibling->color;                                               \
+                        sibling->color = parent->color;                                                      \
+                        __rb_rightRotate(id, this, parent);                                                  \
+                    } else {                                                                                 \
+                        sibling->left->color = parent->color;                                                \
+                        __rb_rightRotate(id, this, sibling);                                                 \
+                        __rb_leftRotate(id, this, parent);                                                   \
+                    }                                                                                        \
+                } else {                                                                                     \
+                    if (__rb_isOnLeft(sibling)) {                                                            \
+                        sibling->right->color = parent->color;                                               \
+                        __rb_leftRotate(id, this, sibling);                                                  \
+                        __rb_rightRotate(id, this, parent);                                                  \
+                    } else {                                                                                 \
+                        sibling->right->color = sibling->color;                                              \
+                        sibling->color = parent->color;                                                      \
+                        __rb_leftRotate(id, this, parent);                                                   \
+                    }                                                                                        \
+                }                                                                                            \
                                                                                                              \
-				parent->color = BLACK;                                                                       \
-			} else {                                                                                         \
-				sibling->color = RED;                                                                        \
+                parent->color = BLACK;                                                                       \
+            } else {                                                                                         \
+                sibling->color = RED;                                                                        \
                                                                                                              \
-				if (parent->color == BLACK) {                                                                \
-					__rb_fixDoubleBlack_##id(this, parent);                                                  \
-				} else {                                                                                     \
-					parent->color = BLACK;                                                                   \
-				}                                                                                            \
-			}                                                                                                \
-		}                                                                                                    \
-	}                                                                                                        \
+                if (parent->color == BLACK) {                                                                \
+                    __rb_fixDoubleBlack_##id(this, parent);                                                  \
+                } else {                                                                                     \
+                    parent->color = BLACK;                                                                   \
+                }                                                                                            \
+            }                                                                                                \
+        }                                                                                                    \
+    }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, RBNode_##id *x) {                                 \
-	if (x == this->root) {                                                                                   \
-		x->color = BLACK;                                                                                    \
-		return;                                                                                              \
-	}                                                                                                        \
+    if (x == this->root) {                                                                                   \
+        x->color = BLACK;                                                                                    \
+        return;                                                                                              \
+    }                                                                                                        \
                                                                                                              \
-	RBNode_##id *parent = x->parent, *grandparent = parent->parent, *uncle = __rb_get_uncle(x);              \
-	if (parent->color != BLACK) {                                                                            \
-		if (uncle && uncle->color == RED) {                                                                  \
-			parent->color = BLACK;                                                                           \
-			uncle->color = BLACK;                                                                            \
-			grandparent->color = RED;                                                                        \
-			__rb_fixRedRed_##id(this, grandparent);                                                          \
-		} else {                                                                                             \
-			if (__rb_isOnLeft(parent)) {                                                                     \
-				if (__rb_isOnLeft(x)) {                                                                      \
-					__rb_swapColors(parent, grandparent);                                                    \
-				} else {                                                                                     \
-					__rb_leftRotate(id, this, parent);                                                       \
-					__rb_swapColors(x, grandparent);                                                         \
-				}                                                                                            \
-				__rb_rightRotate(id, this, grandparent);                                                     \
-			} else {                                                                                         \
-				if (__rb_isOnLeft(x)) {                                                                      \
-					__rb_rightRotate(id, this, parent);                                                      \
-					__rb_swapColors(x, grandparent);                                                         \
-				} else {                                                                                     \
-					__rb_swapColors(parent, grandparent);                                                    \
-				}                                                                                            \
-				__rb_leftRotate(id, this, grandparent);                                                      \
-			}                                                                                                \
-		}                                                                                                    \
-	}                                                                                                        \
+    RBNode_##id *parent = x->parent, *grandparent = parent->parent, *uncle = __rb_get_uncle(x);              \
+    if (parent->color != BLACK) {                                                                            \
+        if (uncle && uncle->color == RED) {                                                                  \
+            parent->color = BLACK;                                                                           \
+            uncle->color = BLACK;                                                                            \
+            grandparent->color = RED;                                                                        \
+            __rb_fixRedRed_##id(this, grandparent);                                                          \
+        } else {                                                                                             \
+            if (__rb_isOnLeft(parent)) {                                                                     \
+                if (__rb_isOnLeft(x)) {                                                                      \
+                    __rb_swapColors(parent, grandparent);                                                    \
+                } else {                                                                                     \
+                    __rb_leftRotate(id, this, parent);                                                       \
+                    __rb_swapColors(x, grandparent);                                                         \
+                }                                                                                            \
+                __rb_rightRotate(id, this, grandparent);                                                     \
+            } else {                                                                                         \
+                if (__rb_isOnLeft(x)) {                                                                      \
+                    __rb_rightRotate(id, this, parent);                                                      \
+                    __rb_swapColors(x, grandparent);                                                         \
+                } else {                                                                                     \
+                    __rb_swapColors(parent, grandparent);                                                    \
+                }                                                                                            \
+                __rb_leftRotate(id, this, grandparent);                                                      \
+            }                                                                                                \
+        }                                                                                                    \
+    }                                                                                                        \
 }                                                                                                            \
 
 #endif /* RBTREE_H */

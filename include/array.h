@@ -380,7 +380,7 @@ __DS_FUNC_PREFIX void array_resize_##id(Array_##id *a, ArrayResizeType type, siz
     va_start(args, n);                                                                                       \
                                                                                                              \
     if (type == ARR_RESIZE_VALUE) {                                                                          \
-        value = (t) (long) va_arg(args, void *);                                                                             \
+        value = (t) (long) va_arg(args, void *);                                                             \
     }                                                                                                        \
                                                                                                              \
     va_end(args);                                                                                            \
@@ -432,7 +432,7 @@ __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, ArrayInsertType
     va_start(args, type);                                                                                    \
                                                                                                              \
     if (type == ARR_INSERT_SINGLE) {                                                                         \
-        value = (t) (long) va_arg(args, void *);                                                                             \
+        value = (t) (long) va_arg(args, void *);                                                             \
     } else {                                                                                                 \
         other = va_arg(args, void *);                                                                        \
         n = va_arg(args, int);                                                                               \

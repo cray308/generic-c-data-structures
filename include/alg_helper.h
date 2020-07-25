@@ -346,126 +346,123 @@ __DS_FUNC_PREFIX Adt *__merge_##ds_type(iter_type first1, iter_type last1, iter_
 
 #define __gen_alg_set_funcs(id, cmp_lt, Adt, ds_type, init, iter_type, iter_next, deref, insert_single, insert_multi_1, insert_multi_2) \
 __DS_FUNC_PREFIX Adt *__set_union_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-	if (!first1 || !first2) {                                                                                \
-		return NULL;                                                                                         \
-	}                                                                                                        \
+    if (!first1 || !first2) {                                                                                \
+        return NULL;                                                                                         \
+    }                                                                                                        \
                                                                                                              \
-	Adt *d_new = init(id);                                                                                   \
+    Adt *d_new = init(id);                                                                                   \
                                                                                                              \
-	while (first1 != last1 && first2 != last2) {                                                             \
-		if (cmp_lt(deref(first1), deref(first2))) {                                                          \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(deref(first1), deref(first2))) {                                                          \
             insert_single(id, d_new, deref(first1));                                                         \
             iter_next(id, first1);                                                                           \
-		} else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
+        } else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
             insert_single(id, d_new, deref(first2));                                                         \
             iter_next(id, first2);                                                                           \
-		} else {                                                                                             \
+        } else {                                                                                             \
             insert_single(id, d_new, deref(first1));                                                         \
             iter_next(id, first1);                                                                           \
             iter_next(id, first2);                                                                           \
-		} 																									 \
-	}                                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
     if (first1 != last1) {                                                                                   \
         insert_multi_1(id);                                                                                  \
     }                                                                                                        \
     if (first2 != last2) {                                                                                   \
         insert_multi_2(id);                                                                                  \
     }                                                                                                        \
-	return d_new;                                                                                            \
+    return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Adt *__set_intersection_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-	if (!first1 || !first2) {                                                                                \
-		return NULL;                                                                                         \
-	}                                                                                                        \
+    if (!first1 || !first2) {                                                                                \
+        return NULL;                                                                                         \
+    }                                                                                                        \
                                                                                                              \
-	Adt *d_new = init(id);                                                                                   \
+    Adt *d_new = init(id);                                                                                   \
                                                                                                              \
-	while (first1 != last1 && first2 != last2) {                                                             \
-		if (cmp_lt(deref(first1), deref(first2))) {                                                          \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(deref(first1), deref(first2))) {                                                          \
             iter_next(id, first1);                                                                           \
-		} else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
+        } else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
             iter_next(id, first2);                                                                           \
-		} else {                                                                                             \
+        } else {                                                                                             \
             insert_single(id, d_new, deref(first1));                                                         \
             iter_next(id, first1);                                                                           \
             iter_next(id, first2);                                                                           \
-		} 																									 \
-	}                                                                                                        \
-	return d_new;                                                                                            \
-	if (!first1 || !first2) {                                                                                \
-		return NULL;                                                                                         \
-	}                                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Adt *__set_difference_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-	if (!first1 || !first2) {                                                                                \
-		return NULL;                                                                                         \
-	}                                                                                                        \
+    if (!first1 || !first2) {                                                                                \
+        return NULL;                                                                                         \
+    }                                                                                                        \
                                                                                                              \
-	Adt *d_new = init(id);                                                                                   \
+    Adt *d_new = init(id);                                                                                   \
                                                                                                              \
-	while (first1 != last1 && first2 != last2) {                                                             \
-		if (cmp_lt(deref(first1), deref(first2))) {                                                          \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(deref(first1), deref(first2))) {                                                          \
             insert_single(id, d_new, deref(first1));                                                         \
             iter_next(id, first1);                                                                           \
-		} else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
+        } else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
             iter_next(id, first2);                                                                           \
-		} else {                                                                                             \
+        } else {                                                                                             \
             iter_next(id, first1);                                                                           \
             iter_next(id, first2);                                                                           \
-		} 																									 \
-	}                                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
     if (first1 != last1) {                                                                                   \
         insert_multi_1(id);                                                                                  \
     }                                                                                                        \
-	return d_new;                                                                                            \
+    return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Adt *__set_symmetric_difference_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-	if (!first1 || !first2) {                                                                                \
-		return NULL;                                                                                         \
-	}                                                                                                        \
+    if (!first1 || !first2) {                                                                                \
+        return NULL;                                                                                         \
+    }                                                                                                        \
                                                                                                              \
-	Adt *d_new = init(id);                                                                                   \
+    Adt *d_new = init(id);                                                                                   \
                                                                                                              \
-	while (first1 != last1 && first2 != last2) {                                                             \
-		if (cmp_lt(deref(first1), deref(first2))) {                                                          \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(deref(first1), deref(first2))) {                                                          \
             insert_single(id, d_new, deref(first1));                                                         \
             iter_next(id, first1);                                                                           \
-		} else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
+        } else if (cmp_lt(deref(first2), deref(first1))) {                                                   \
             insert_single(id, d_new, deref(first2));                                                         \
             iter_next(id, first2);                                                                           \
-		} else {                                                                                             \
+        } else {                                                                                             \
             iter_next(id, first1);                                                                           \
             iter_next(id, first2);                                                                           \
-		} 																									 \
-	}                                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
     if (first1 != last1) {                                                                                   \
         insert_multi_1(id);                                                                                  \
     }                                                                                                        \
     if (first2 != last2) {                                                                                   \
         insert_multi_2(id);                                                                                  \
     }                                                                                                        \
-	return d_new;                                                                                            \
+    return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX bool __includes_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-	if (!first1 || !first2) {                                                                                \
-		return false;                                                                                        \
-	}                                                                                                        \
+    if (!first1 || !first2) {                                                                                \
+        return false;                                                                                        \
+    }                                                                                                        \
                                                                                                              \
-	while (first1 != last1 && first2 != last2) {                                                             \
-		if (cmp_lt(deref(first2), deref(first1))) {                                                          \
-			return false;                                                                                    \
-		} else if (cmp_lt(deref(first1), deref(first2))) {                                                   \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(deref(first2), deref(first1))) {                                                          \
+            return false;                                                                                    \
+        } else if (cmp_lt(deref(first1), deref(first2))) {                                                   \
             iter_next(id, first1);                                                                           \
-		} else {                                                                                             \
+        } else {                                                                                             \
             iter_next(id, first1);                                                                           \
             iter_next(id, first2);                                                                           \
-		} 																									 \
-	}                                                                                                        \
-	return first2 == last2;                                                                                  \
+        }                                                                                                    \
+    }                                                                                                        \
+    return first2 == last2;                                                                                  \
 }                                                                                                            \
 
 #endif

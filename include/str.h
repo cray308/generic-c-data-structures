@@ -23,15 +23,16 @@ typedef struct {
 #define __STR_SPLIT_INITIAL_SIZE 8
 #define __STR_INITIAL_STR_CAP 64
 
-static DS_UNUSED void string_reserve(String *s, size_t n);
-static DS_UNUSED void string_append(String *s, const char *other, int len);
+__DS_FUNC_PREFIX void string_reserve(String *s, size_t n);
+__DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 void __str_printf_va(String *s, int pos, const char *format, va_list args);
 int *__str_create_prefix_table(const char *needle, size_t len);
 int *__str_create_prefix_table_rev(const char *needle, size_t len);
 int __str_find_x_of(String *s, int pos, const char *chars, bool first, bool match);
+int *__str_split_helper(String *s, const char *needle, int len_needle, int *table, int *n);
 
 #define __gen_test_chars(f)                                                                                  \
-static inline DS_UNUSED bool __str_test_chars_##f(const char *s) {                                           \
+__DS_FUNC_PREFIX_INL bool __str_test_chars_##f(const char *s) {                                              \
     for (const char *c = s; *c; ++c) {                                                                       \
         if (!f(*c)) return false;                                                                            \
     }                                                                                                        \
@@ -39,7 +40,7 @@ static inline DS_UNUSED bool __str_test_chars_##f(const char *s) {              
 }                                                                                                            \
 
 #define __gen_convert_case(f)                                                                                \
-static inline DS_UNUSED void __str_convert_case_##f(char *s) {                                               \
+__DS_FUNC_PREFIX_INL void __str_convert_case_##f(char *s) {                                                  \
     for (char *c = s; *c; ++c) {                                                                             \
         *c = f(*c);                                                                                          \
     }                                                                                                        \
@@ -99,7 +100,7 @@ __gen_convert_case(tolower)
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-static inline DS_UNUSED char *string_ref(String *str, int i) {
+__DS_FUNC_PREFIX_INL char *string_ref(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? &(str->s[_idx]) : NULL;
 }
@@ -110,7 +111,7 @@ static inline DS_UNUSED char *string_ref(String *str, int i) {
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-static inline DS_UNUSED char string_at(String *str, int i) {
+__DS_FUNC_PREFIX_INL char string_at(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? str->s[_idx] : 0;
 }
@@ -168,7 +169,7 @@ static inline DS_UNUSED char string_at(String *str, int i) {
  *
  * @return    Pointer to newly created string.
  */
-static DS_UNUSED String *string_new(StringInitializer init, ...) {
+__DS_FUNC_PREFIX String *string_new(StringInitializer init, ...) {
     String *s = malloc(sizeof(String));
     if (!s) {
         DS_OOM();
@@ -215,7 +216,7 @@ static DS_UNUSED String *string_new(StringInitializer init, ...) {
  *
  * @param  s  Pointer to string.
  */
-static inline DS_UNUSED void string_free(String *s) {
+__DS_FUNC_PREFIX_INL void string_free(String *s) {
     if (s->cap) {
         free(s->s);
     }
@@ -229,7 +230,7 @@ static inline DS_UNUSED void string_free(String *s) {
  * @param  s  Pointer to string.
  * @param  n  New capacity.
  */
-static DS_UNUSED void string_reserve(String *s, size_t n) {
+__DS_FUNC_PREFIX void string_reserve(String *s, size_t n) {
     if (n <= s->cap) {
         return;
     }
@@ -256,11 +257,10 @@ static DS_UNUSED void string_reserve(String *s, size_t n) {
  * @param  n  The new size.
  * @param  c  Character to append.
  */
-static DS_UNUSED void string_resize(String *s, size_t n, char c) {
+__DS_FUNC_PREFIX_INL void string_resize(String *s, size_t n, char c) {
     if (n > s->len) {
         string_reserve(s, n + 1);
         memset(&s->s[s->len], c, n - s->len);
-        s->s[n] = 0;
     }
     s->s[n] = 0;
     s->len = n;
@@ -272,7 +272,7 @@ static DS_UNUSED void string_resize(String *s, size_t n, char c) {
  *
  * @param  s  Pointer to string.
  */
-static inline DS_UNUSED void string_clear(String *s) {
+__DS_FUNC_PREFIX_INL void string_clear(String *s) {
     if (!(s->s)) {
         return;
     }
@@ -289,7 +289,7 @@ static inline DS_UNUSED void string_clear(String *s) {
  * @param  n      The number of characters to delete. If this is -1, all characters
  *                  from "start" until the end will be removed.
  */
-static DS_UNUSED void string_erase(String *s, int start, int n) {
+__DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
     if (!n || s->len == 0) {
         return;
     }
@@ -319,8 +319,8 @@ static DS_UNUSED void string_erase(String *s, int start, int n) {
  *
  * @param  s  Pointer to string.
  */
-static inline DS_UNUSED void string_shrink_to_fit(String *s) {
-    if (s->len + 1 == s->cap || s->len == 0) {
+__DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *s) {
+    if (s->len == 0 || s->len + 1 == s->cap) {
         return;
     }
     char *tmp = realloc(s->s, s->len + 1); /* realloc only enough space for string and '\0' */
@@ -338,7 +338,7 @@ static inline DS_UNUSED void string_shrink_to_fit(String *s) {
  * @param  s  Pointer to string.
  * @param  c  Character to append.
  */
-static inline DS_UNUSED void string_push_back(String *s, char c) {
+__DS_FUNC_PREFIX_INL void string_push_back(String *s, char c) {
     if (c == 0) { /* doesn't make sense to push back a null character */
         return;
     }
@@ -353,7 +353,7 @@ static inline DS_UNUSED void string_push_back(String *s, char c) {
  *
  * @param  s  Pointer to string.
  */
-static inline DS_UNUSED void string_pop_back(String *s) {
+__DS_FUNC_PREFIX_INL void string_pop_back(String *s) {
     if (!s->len) {
         return;
     }
@@ -370,12 +370,10 @@ static inline DS_UNUSED void string_pop_back(String *s) {
  * @param  len    Number of characters from other that will be used. If this is -1,
  *                  all characters from "other" will be used.
  */
-static DS_UNUSED void string_replace(String *s, int pos, const char *other, int len) {
+__DS_FUNC_PREFIX void string_replace(String *s, int pos, const char *other, int len) {
     if (!other || (*other == '\0') || !len) {
         return;
-    }
-
-    if (pos >= (int) s->len) {
+    } else if (pos >= (int) s->len) {
         string_append(s, other, len);
         return;
     }
@@ -386,18 +384,14 @@ static DS_UNUSED void string_replace(String *s, int pos, const char *other, int 
     }
 
     const int l_other = strlen(other);
-
-    if (len < 0) { /* use all characters from other */
-        len = l_other;
-    } else {
-        len = min(len, l_other); /* account for if len is larger than the supplied string */
-    }
+    /* account for if len is larger than the supplied string */
+    len = (len < 0) ? l_other : min(len, l_other);
 
     string_reserve(s, (size_t) (pos + len + 1));
     memcpy(&s->s[pos], other, len);
 
     if (pos + len > (int) s->len) {
-        s->len = (size_t) pos + (size_t) len;
+        s->len = (size_t) (pos + len);
         s->s[s->len] = 0;
     }
 }
@@ -413,12 +407,10 @@ static DS_UNUSED void string_replace(String *s, int pos, const char *other, int 
  * @param  len    Number of characters from "other" to insert. If this is -1,
  *                  all characters from "other" will be used.
  */
-static DS_UNUSED void string_insert(String *s, int pos, const char *other, int len) {
+__DS_FUNC_PREFIX void string_insert(String *s, int pos, const char *other, int len) {
     if (!other || (*other == '\0') || !len) {
         return;
-    }
-
-    if (pos >= (int) s->len) {
+    } else if (pos >= (int) s->len) {
         string_append(s, other, len);
         return;
     }
@@ -429,16 +421,11 @@ static DS_UNUSED void string_insert(String *s, int pos, const char *other, int l
     }
 
     const int l_other = strlen(other);
-
-    if (len < 0) {
-        len = l_other;
-    } else {
-        len = min(len, l_other); /* account for if len is larger than the supplied string */
-    }
+    /* account for if len is larger than the supplied string */
+    len = (len < 0) ? l_other : min(len, l_other);
 
     string_reserve(s, s->len + (size_t) len + 1);
-    size_t nBytes = s->len - (size_t) pos;
-    memmove(&s->s[pos + len], &s->s[pos], nBytes);
+    memmove(&s->s[pos + len], &s->s[pos], s->len - (size_t) pos);
     memcpy(&s->s[pos], other, len);
     s->len += (size_t) len;
     s->s[s->len] = 0;
@@ -453,18 +440,14 @@ static DS_UNUSED void string_insert(String *s, int pos, const char *other, int l
  * @param  len    Number of characters from "other" to insert. If this is -1,
  *                  all characters from "other" will be used.
  */
-static DS_UNUSED void string_append(String *s, const char *other, int len) {
+__DS_FUNC_PREFIX void string_append(String *s, const char *other, int len) {
     if (!other || (*other == '\0') || !len) {
         return;
     }
 
     const int l_other = strlen(other);
-
-    if (len < 0) {
-        len = l_other;
-    } else {
-        len = min(len, l_other); /* account for if len is larger than the supplied string */
-    }
+    /* account for if len is larger than the supplied string */
+    len = (len < 0) ? l_other : min(len, l_other);
 
     string_reserve(s, s->len + (size_t) len + 1);
     memcpy(&s->s[s->len], other, len);
@@ -481,7 +464,7 @@ static DS_UNUSED void string_append(String *s, const char *other, int len) {
  *                  characters from the format string will be appended to s.
  * @param  format  Format string.
  */
-static inline DS_UNUSED void string_printf(String *s, int pos, const char *format, ...) {
+__DS_FUNC_PREFIX_INL void string_printf(String *s, int pos, const char *format, ...) {
     va_list args;
     va_start(args, format);
     __str_printf_va(s, pos, format, args);
@@ -501,7 +484,7 @@ static inline DS_UNUSED void string_printf(String *s, int pos, const char *forma
  * @return              The index in "s", corresponding to needle[0], where needle was found,
  *                        STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
-static DS_UNUSED int string_find(String *s, int start_pos, const char *needle, int len_needle) {
+__DS_FUNC_PREFIX int string_find(String *s, int start_pos, const char *needle, int len_needle) {
     if (!needle || !s->len) {
         return STRING_ERROR;
     } else if (*needle == '\0' || !len_needle) {
@@ -514,12 +497,7 @@ static DS_UNUSED int string_find(String *s, int start_pos, const char *needle, i
     }
 
     const int ln = strlen(needle);
-
-    if (len_needle < 0) {
-        len_needle = ln;
-    } else {
-        len_needle = min(len_needle, ln);
-    }
+    len_needle = (len_needle < 0) ? ln : min(len_needle, ln);
 
     int len_haystack = (int) s->len - start_pos;
     if (len_needle > len_haystack) {
@@ -566,7 +544,7 @@ static DS_UNUSED int string_find(String *s, int start_pos, const char *needle, i
  * @return              The index in "s", corresponding to needle[0], where needle was found,
  *                        STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
  */
-static DS_UNUSED int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
+__DS_FUNC_PREFIX int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
     if (!needle || !s->len) {
         return STRING_ERROR;
     } else if (*needle == '\0' || !len_needle) {
@@ -579,12 +557,7 @@ static DS_UNUSED int string_rfind(String *s, int end_pos, const char *needle, in
     }
 
     const int ln = strlen(needle);
-
-    if (len_needle < 0) {
-        len_needle = ln;
-    } else if (len_needle > ln) {
-        len_needle = min(len_needle, ln);
-    }
+    len_needle = (len_needle < 0) ? ln : min(len_needle, ln);
 
     int len_haystack = end_pos + 1;
     if (len_needle > len_haystack) {
@@ -685,7 +658,7 @@ static DS_UNUSED int string_rfind(String *s, int end_pos, const char *needle, in
  *
  * @return       Newly allocated String, or NULL if an error occurred.
  */
-static DS_UNUSED String *string_substr(String *s, int start, int n, int step_size) {
+__DS_FUNC_PREFIX String *string_substr(String *s, int start, int n, int step_size) {
     if (!s->len || !n) {
         return NULL;
     } else if (step_size == 0) {
@@ -699,17 +672,16 @@ static DS_UNUSED String *string_substr(String *s, int start, int n, int step_siz
 
     String *sub = string_new(STR_INIT_NONE);
     int end;
-    int i;
 
     if (step_size < 0) {
         end = (n < 0) ? -1 : max(-1, start + (n * step_size));
-        for (i = start; i > end; i += step_size) {
-            string_push_back(sub, s->s[i]);
+        for (; start > end; start += step_size) {
+            string_push_back(sub, s->s[start]);
         }
     } else {
         end = (n < 0) ? STRING_END(s) : min(STRING_END(s), start + (n * step_size));
-        for (i = start; i < end; i += step_size) {
-            string_push_back(sub, s->s[i]);
+        for (; start < end; start += step_size) {
+            string_push_back(sub, s->s[start]);
         }
     }
     return sub;
@@ -727,63 +699,38 @@ static DS_UNUSED String *string_substr(String *s, int start, int n, int step_siz
  * @return         The array of pointers to String, each of which is a substring of "s", or NULL
  *                   if an error occurred.
  */
-static DS_UNUSED String **string_split(String *s, const char *delim, int *n) {
+__DS_FUNC_PREFIX String **string_split(String *s, const char *delim, int *n) {
     if (!delim || *delim == '\0' || !s->len) {
         return NULL;
     }
 
     int len_delim = strlen(delim);
-    const char *start = s->s;
-    const char *str_end = s->s + s->len;
-    int d = 0;
-
-    size_t arr_len = __STR_SPLIT_INITIAL_SIZE;
+    int start = 0;
+    int *table = __str_create_prefix_table(delim, len_delim);
+    int arr_len = 0;
+    int *positions = __str_split_helper(s, delim, len_delim, table, &arr_len);
+    
     String **arr = malloc(arr_len * sizeof(String *));
     if (!arr) {
         DS_OOM();
     }
 
-    memset(arr, 0, sizeof(String *) * arr_len);
-    size_t index = 0;
     String *substring = NULL;
-    char *end = strstr(start, delim);
+    int i = 0, end = positions[i];
 
-    while (end) {
-        if (index == arr_len) {
-            arr_len <<= 1;
-            String **temp = realloc(arr, arr_len * sizeof(String *));
-            if (!temp) {
-                DS_OOM();
-            }
-
-            arr = temp;
-            memset(&arr[index], 0, (arr_len - index) * sizeof(String *));
-        }
-
-        d = end - start;
+    while (end != -1) {
         substring = string_new(STR_INIT_NONE);
-        string_insert(substring, 0, start, d);
-        arr[index++] = substring;
+        string_insert(substring, 0, &s->s[start], end - start);
+        arr[i++] = substring;
         start = end + len_delim;
-        end = strstr(start, delim);
+        end = positions[i];
     }
 
-    if (index == arr_len) {
-        arr_len <<= 1;
-        String **temp = realloc(arr, arr_len * sizeof(String *));
-        if (!temp) {
-            DS_OOM();
-        }
-
-        arr = temp;
-        memset(&arr[index], 0, (arr_len - index) * sizeof(String *));
-    }
-
-    d = str_end - start;
     substring = string_new(STR_INIT_NONE);
-    string_insert(substring, 0, start, d);
-    arr[index++] = substring;
-    *n = (int) index;
+    string_insert(substring, 0, &s->s[start], STRING_END(s) - start);
+    arr[i++] = substring;
+    free(positions);
+    *n = arr_len;
     return arr;    
 }
 
@@ -794,7 +741,7 @@ static DS_UNUSED String **string_split(String *s, const char *delim, int *n) {
  * @param  arr  Array allocated by string_split.
  * @param  n    Size of the array.
  */
-static inline DS_UNUSED void string_split_free(String **arr, int n) {
+__DS_FUNC_PREFIX_INL void string_split_free(String **arr, int n) {
     for (int i = 0; i < n; ++i) {
         string_free(arr[i]);
     }
@@ -940,53 +887,98 @@ int __str_find_x_of(String *s, int pos, const char *chars, bool first, bool matc
     }
 
     const char *c;
-    int i = pos;
 
     if (match) {
         for (c = chars; *c; ++c) {
-            if (s->s[i] == *c) return i;
+            if (s->s[pos] == *c) return pos;
         }
         if (first) {
-            for (++i; i < (int) s->len; ++i) {
+            for (++pos; pos < (int) s->len; ++pos) {
                 /* if the previous character didn't match and this is the same, there won't be a match */
-                if (s->s[i] == s->s[i - 1]) continue;
+                if (s->s[pos] == s->s[pos - 1]) continue;
                 for (c = chars; *c; ++c) {
-                    if (s->s[i] == *c) return i;
+                    if (s->s[pos] == *c) return pos;
                 }
             }
         } else {
-            for (--i; i >= 0; --i) {
-                if (s->s[i] == s->s[i + 1]) continue;
+            for (--pos; pos >= 0; --pos) {
+                if (s->s[pos] == s->s[pos + 1]) continue;
                 for (c = chars; *c; ++c) {
-                    if (s->s[i] == *c) return i;
+                    if (s->s[pos] == *c) return pos;
                 }
             }
         }
     } else {
         for (c = chars; *c; ++c) {
-            if (s->s[i] == *c) break;
+            if (s->s[pos] == *c) break;
         }
         /* if *c is 0, we must have iterated through all of the characters */
-        if (!(*c)) return i;
+        if (!(*c)) return pos;
         if (first) {
-            for (++i; i < (int) s->len; ++i) {
-                if (s->s[i] == s->s[i - 1]) continue;
+            for (++pos; pos < (int) s->len; ++pos) {
+                if (s->s[pos] == s->s[pos - 1]) continue;
                 for (c = chars; *c; ++c) {
-                    if (s->s[i] == *c) break;
+                    if (s->s[pos] == *c) break;
                 }
-                if (!(*c)) return i;
+                if (!(*c)) return pos;
             }
         } else {
-            for (--i; i >= 0; --i) {
-                if (s->s[i] == s->s[i + 1]) continue;
+            for (--pos; pos >= 0; --pos) {
+                if (s->s[pos] == s->s[pos + 1]) continue;
                 for (c = chars; *c; ++c) {
-                    if (s->s[i] == *c) break;
+                    if (s->s[pos] == *c) break;
                 }
-                if (!(*c)) return i;
+                if (!(*c)) return pos;
             }   
         }
     }
     return STRING_NPOS;
+}
+
+int *__str_split_helper(String *s, const char *needle, int len_needle, int *table, int *n) {
+    int i = 0, j = 0;
+    int index = 0, pos_size = __STR_SPLIT_INITIAL_SIZE;
+    int *positions = calloc(__STR_SPLIT_INITIAL_SIZE, sizeof(int));
+    if (!positions) DS_OOM();
+
+    while (i < STRING_END(s)) {
+        if (s->s[i] == needle[j]) { /* match */
+            i++;
+            j++;
+        } else {
+            if (j != 0) {
+                j = table[j - 1];
+            } else {
+                i++;
+            }
+        }
+
+        if (j == len_needle) { /* found the substring */
+            if (index == pos_size) {
+                pos_size <<= 1;
+                int *temp = realloc(positions, pos_size * sizeof(int));
+                if (!temp) {
+                    DS_OOM();
+                }
+
+                positions = temp;
+                memset(&positions[index + 1], 0, (pos_size - index + 1) * sizeof(int));
+            }
+            positions[index++] = (i - j);
+            j = table[j - 1];
+        }
+    }
+    if (index == pos_size) {
+        int *temp = realloc(positions, (pos_size + 1) * sizeof(int));
+        if (!temp) {
+            DS_OOM();
+        }
+        positions = temp;
+    }
+    free(table);
+    positions[index++] = -1;
+    *n = index;
+    return positions;
 }
 
 #endif /* STR_H */

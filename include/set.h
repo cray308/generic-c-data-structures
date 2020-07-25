@@ -262,11 +262,11 @@ gen_rbtree(id, t, cmp_lt)                                                       
 __gen_set_declarations(id, t)                                                                                \
                                                                                                              \
 __DS_FUNC_PREFIX Set_##id *set_new_##id(SetInitializer init, ...) {                                          \
-	Set_##id *s = tree_new_##id();                                                                           \
-	if (!s) {                                                                                                \
-		return NULL;                                                                                         \
-	}                                                                                                        \
-	                                                                                                         \
+    Set_##id *s = tree_new_##id();                                                                           \
+    if (!s) {                                                                                                \
+        return NULL;                                                                                         \
+    }                                                                                                        \
+                                                                                                             \
     if (init == SET_INIT_EMPTY) { /* nothing more to do in this case */                                      \
         return s;                                                                                            \
     }                                                                                                        \
@@ -285,9 +285,9 @@ __DS_FUNC_PREFIX Set_##id *set_new_##id(SetInitializer init, ...) {             
     }                                                                                                        \
                                                                                                              \
     va_end(args);                                                                                            \
-	if (!other) {                                                                                            \
-		return s;                                                                                            \
-	}                                                                                                        \
+    if (!other) {                                                                                            \
+        return s;                                                                                            \
+    }                                                                                                        \
                                                                                                              \
     if (init == SET_INIT_BUILTIN) {                                                                          \
         __set_insert_builtin_##id(s, (t *) other, n);                                                        \
@@ -298,10 +298,10 @@ __DS_FUNC_PREFIX Set_##id *set_new_##id(SetInitializer init, ...) {             
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void set_insert_##id(Set_##id *this, SetInsertType type, ...) {                             \
-	int n;                                                                                                   \
+    int n;                                                                                                   \
     t value;                                                                                                 \
-	void *begin;                                                                                             \
-	void *end;                                                                                               \
+    void *begin;                                                                                             \
+    void *end;                                                                                               \
                                                                                                              \
     /* parse arguments */                                                                                    \
     va_list args;                                                                                            \
@@ -321,7 +321,7 @@ __DS_FUNC_PREFIX void set_insert_##id(Set_##id *this, SetInsertType type, ...) {
                                                                                                              \
     switch (type) {                                                                                          \
         case SET_INSERT_SINGLE:                                                                              \
-			tree_insert_##id(this, value);                                                                   \
+            tree_insert_##id(this, value);                                                                   \
             break;                                                                                           \
         case SET_INSERT_BUILTIN:                                                                             \
             __set_insert_builtin_##id(this, (t *) begin, n);                                                 \
@@ -333,44 +333,44 @@ __DS_FUNC_PREFIX void set_insert_##id(Set_##id *this, SetInsertType type, ...) {
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void set_erase_##id(Set_##id *this, SetEntry_##id *begin, SetEntry_##id *end) {             \
-	if (!begin) {                                                                                            \
-		begin = __rb_successor_##id(this->root);                                                             \
-	}                                                                                                        \
+    if (!begin) {                                                                                            \
+        begin = __rb_successor_##id(this->root);                                                             \
+    }                                                                                                        \
                                                                                                              \
-	/* store values in an array since RB tree deletions involve swapping values
-	 * and thus it's not reliable to use RBNode pointers in a bulk delete operation */                       \
-	t vals[this->size];                                                                                      \
+    /* store values in an array since RB tree deletions involve swapping values
+     * and thus it's not reliable to use RBNode pointers in a bulk delete operation */                       \
+    t vals[this->size];                                                                                      \
     int count = 0;                                                                                           \
     t *c = vals;                                                                                             \
-	RBNode_##id *curr = begin;                                                                               \
-	while (curr != end) {                                                                                    \
+    RBNode_##id *curr = begin;                                                                               \
+    while (curr != end) {                                                                                    \
         *c = curr->data;                                                                                     \
         ++c, ++count;                                                                                        \
-		curr = __rb_inorder_successor_##id(curr);                                                            \
-	}                                                                                                        \
+        curr = __rb_inorder_successor_##id(curr);                                                            \
+    }                                                                                                        \
                                                                                                              \
-	for (int i = 0; i < count; ++i) {                                                                        \
-		tree_delete_by_val_##id(this, vals[i]);                                                              \
-	}                                                                                                        \
+    for (int i = 0; i < count; ++i) {                                                                        \
+        tree_delete_by_val_##id(this, vals[i]);                                                              \
+    }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX bool __set_disjoint_##id(Set_##id *this, Set_##id *other) {                                 \
-	if (!other || !other->root) {                                                                            \
-		return false;                                                                                        \
-	}                                                                                                        \
+    if (!other || !other->root) {                                                                            \
+        return false;                                                                                        \
+    }                                                                                                        \
                                                                                                              \
-	RBNode_##id *n1 = __rb_successor_##id(this->root);							                             \
-	RBNode_##id *n2 = __rb_successor_##id(other->root);							                             \
-	while (n1 && n2) {                                                                                       \
-		if (cmp_lt(n1->data, n2->data)) {						                                             \
-			n1 = __rb_inorder_successor_##id(n1);                                                            \
-		} else if (cmp_lt(n2->data, n1->data)) { 					                                         \
-			n2 = __rb_inorder_successor_##id(n2);                                                            \
-		} else { 			                                                                                 \
-			return false;                                  			                                         \
-		} 																									 \
-	}                                                                                                        \
-	return true;            					                                                             \
+    RBNode_##id *n1 = __rb_successor_##id(this->root);                                                       \
+    RBNode_##id *n2 = __rb_successor_##id(other->root);                                                      \
+    while (n1 && n2) {                                                                                       \
+        if (cmp_lt(n1->data, n2->data)) {                                                                    \
+            n1 = __rb_inorder_successor_##id(n1);                                                            \
+        } else if (cmp_lt(n2->data, n1->data)) {                                                             \
+            n2 = __rb_inorder_successor_##id(n2);                                                            \
+        } else {                                                                                             \
+            return false;                                                                                    \
+        }                                                                                                    \
+    }                                                                                                        \
+    return true;                                                                                             \
 }                                                                                                            \
 __gen_set_helper_funcs(id, t)                                                                                \
 __gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, __init_set, RBNode_##id *, __iter_next_set, __deref_set, __insert_single_set, __insert_multi_1_set, __insert_multi_2_set) \
@@ -383,10 +383,10 @@ __DS_FUNC_PREFIX void __set_insert_builtin_##id(Set_##id *this, t *arr, int n); 
 
 #define __gen_set_helper_funcs(id, t)                                                                        \
 __DS_FUNC_PREFIX void __set_insert_set_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end) {      \
-	while (start != end) {                                                                                   \
-		tree_insert_##id(this, start->data);                                                                 \
-		start = __rb_inorder_successor_##id(start);                                                          \
-	}                                                                                                        \
+    while (start != end) {                                                                                   \
+        tree_insert_##id(this, start->data);                                                                 \
+        start = __rb_inorder_successor_##id(start);                                                          \
+    }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __set_insert_builtin_##id(Set_##id *this, t *arr, int n) {                             \
@@ -394,9 +394,9 @@ __DS_FUNC_PREFIX void __set_insert_builtin_##id(Set_##id *this, t *arr, int n) {
         return;                                                                                              \
     }                                                                                                        \
     t *end = &arr[n];                                                                                        \
-	for (; arr != end; ++arr) {                                                                              \
-		tree_insert_##id(this, *arr);                                                                        \
-	}                                                                                                        \
+    for (; arr != end; ++arr) {                                                                              \
+        tree_insert_##id(this, *arr);                                                                        \
+    }                                                                                                        \
 }                                                                                                            \
 
 #endif
