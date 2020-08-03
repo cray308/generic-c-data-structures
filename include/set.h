@@ -20,8 +20,6 @@ typedef enum {
 
 #define set_begin(id, s) ((s)->root ? __rb_successor_##id((s)->root) : NULL)
 #define __init_set(id) set_new_##id(SET_INIT_EMPTY)
-#define __iter_next_set(id, p) (p = __rb_inorder_successor_##id(p))
-#define __deref_set(p) (p->data)
 #define __insert_single_set tree_insert
 #define __insert_multi_1_set(id) __set_insert_set_##id(d_new, first1, last1)
 #define __insert_multi_2_set(id) __set_insert_set_##id(d_new, first2, last2)
@@ -47,9 +45,20 @@ typedef enum {
  *
  * @param   id    ID used with gen_set.
  * @param   s     Pointer to set.
- * @param   eptr  Pointer which is assigned to the current set element's data.
+ * @param   ptr   SetIterator which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(SET, ptr) or ptr->data.
  */
-#define set_iter(id, s, eptr) tree_inorder(id, s, eptr)
+#define set_iter(id, s, ptr) tree_iter(id, s, ptr)
+
+/**
+ * Iterates through the set in reverse order.
+ *
+ * @param   id    ID used with gen_set.
+ * @param   s     Pointer to set.
+ * @param   ptr   SetIterator which is assigned to the current element.
+ *                May be dereferenced with iter_deref(SET, ptr) or ptr->data.
+ */
+#define set_riter(id, s, ptr) tree_riter(id, s, ptr)
 
 
 /**
@@ -259,6 +268,7 @@ typedef enum {
  */
 #define gen_set(id, t, cmp_lt)                                                                               \
 gen_rbtree(id, t, cmp_lt)                                                                                    \
+__gen_iter_SET(id)                                                                                           \
 __gen_set_declarations(id, t)                                                                                \
                                                                                                              \
 __DS_FUNC_PREFIX Set_##id *set_new_##id(SetInitializer init, ...) {                                          \
@@ -373,7 +383,7 @@ __DS_FUNC_PREFIX bool __set_disjoint_##id(Set_##id *this, Set_##id *other) {    
     return true;                                                                                             \
 }                                                                                                            \
 __gen_set_helper_funcs(id, t)                                                                                \
-__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, __init_set, RBNode_##id *, __iter_next_set, __deref_set, __insert_single_set, __insert_multi_1_set, __insert_multi_2_set) \
+__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, __init_set, RBNode_##id *, __iter_next_TREE, __iter_deref_TREE, __insert_single_set, __insert_multi_1_set, __insert_multi_2_set) \
 
 #define __gen_set_declarations(id, t)                                                                        \
 typedef Tree_##id Set_##id;                                                                                  \

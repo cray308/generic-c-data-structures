@@ -33,19 +33,30 @@ void test_01(void) {
     for (int i = 0; i < LEN_INTS; ++i) {
         tree_insert(int, t1, ints[i]);
     }
-    int *iptr;
-    char **sptr;
+    TreeIterator_int iptr;
+    TreeIterator_str sptr;
 
-    tree_inorder(int, t1, iptr) {
-        assert(*iptr == ints_sorted[int_counter++]);
+    tree_iter(int, t1, iptr) {
+        assert(iter_deref(TREE, iptr) == ints_sorted[int_counter++]);
     }
 
     for (int i = 0; i < LEN_STRS; ++i) {
         tree_insert(str, t2, strs[i]);
     }
 
-    tree_inorder(str, t2, sptr) {
-        assert(streq(*sptr, strs_sorted[str_counter++]));
+    tree_iter(str, t2, sptr) {
+        assert(streq(iter_deref(TREE, sptr), strs_sorted[str_counter++]));
+    }
+
+    int_counter = LEN_INTS - 1;
+    str_counter = LEN_STRS - 1;
+    
+    tree_riter(int, t1, iptr) {
+        assert(iter_deref(TREE, iptr) == ints_sorted[int_counter--]);
+    }
+
+    tree_riter(str, t2, sptr) {
+        assert(streq(iter_deref(TREE, sptr), strs_sorted[str_counter--]));
     }
 }
 

@@ -1,7 +1,7 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include "ds.h"
+#include "iterator.h"
 #include "alg_helper.h"
 
 #define __ARRAY_INITIAL_CAPACITY 8
@@ -25,12 +25,9 @@ typedef enum {
 } ArrayResizeType;
 
 #define __init_array(id) array_new_##id(ARR_INIT_EMPTY)
-#define __iter_next_array(id, p) (++p)
-#define __deref_array(p) (*p)
 #define __insert_single_array array_push_back
 #define __insert_multi_1_array(id) __arr_insert_builtin_##id(d_new, ARRAY_END(d_new), first1, (last1 - first1))
 #define __insert_multi_2_array(id) __arr_insert_builtin_##id(d_new, ARRAY_END(d_new), first2, (last2 - first2))
-
 
 /* --------------------------------------------------------------------------
  * PRIMARY ARRAY SECTION
@@ -62,7 +59,7 @@ typedef enum {
  *
  * @param   a  Pointer to array.
  */
-#define array_front(a) ((a)->size ? &((a)->arr[0]) : NULL)
+#define array_front(a) iter_begin(ARR, 0, (a)->arr, (a)->size)
 
 
 /**
@@ -70,7 +67,7 @@ typedef enum {
  *
  * @param   a  Pointer to array.
  */
-#define array_back(a) ((a)->size ? &((a)->arr[(a)->size - 1]) : NULL)
+#define array_back(a) iter_rbegin(ARR, 0, (a)->arr, (a)->size)
 
 
 /**
@@ -90,29 +87,29 @@ typedef enum {
  *
  * @param   a  Pointer to array.
  */
-#define array_end(a) ((a)->size ? &((a)->arr[(a)->size]) : NULL)
+#define array_end(a) iter_end(ARR, 0, (a)->arr, (a)->size)
 
 
 /**
  * Macro for iterating over the array from front to back.
  *
  * @param   a     Pointer to array.
- * @param   eptr  Pointer which is assigned to the current element's data.
+ * @param   ptr   ArrayIterator (t *) which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(ARR, ptr) or *ptr.
  */
-#define array_iter(a, eptr)                                                                                  \
-    for ((eptr) = array_front(a); (eptr) != array_end(a);                                                    \
-     (eptr) = ((eptr) + 1))
+#define array_iter(a, ptr)                                                                                   \
+    for (ptr = array_front(a); ptr != array_end(a); iter_next(ARR, 0, ptr))                                  \
 
 
 /**
  * Macro for iterating over the array in reverse (from back to front).
  *
  * @param   a     Pointer to array.
- * @param   eptr  Pointer which is assigned to the current element's data.
+ * @param   ptr   ArrayIterator (t *) which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(ARR, ptr) or *ptr.
  */
-#define array_riter(a, eptr)                                                                                 \
-    for ((eptr) = array_back(a); (eptr) != NULL;                                                             \
-     (eptr) = (((eptr) == (a)->arr) ? NULL : ((eptr) - 1)))                                                  \
+#define array_riter(a, ptr)                                                                                  \
+    for (ptr = array_back(a); ptr != iter_rend(ARR, 0, (a)->arr, (a)->size); iter_prev(ARR, 0, ptr))         \
 
 
 /**
@@ -301,6 +298,7 @@ typedef enum {
  * @param   t   Type to be stored in the array.
  */
 #define gen_array(id, t)                                                                                     \
+__gen_iter_ARR(id, t)                                                                                        \
 __gen_arr_declarations(id, t)                                                                                \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *a, int i) {                                                \
@@ -823,7 +821,7 @@ __DS_FUNC_PREFIX_INL void matrix_free_##id(Matrix_##id *m) {                    
 #define gen_array_withalg(id, t, cmp_lt)                                                                     \
 gen_array(id, t)                                                                                             \
 gen_alg(id, t, cmp_lt)                                                                                       \
-__gen_alg_merge(id, cmp_lt, Array_##id, array_##id, __init_array, t *, __iter_next_array, __deref_array, __insert_single_array, __insert_multi_1_array, __insert_multi_2_array) \
-__gen_alg_set_funcs(id, cmp_lt, Array_##id, array_##id, __init_array, t *, __iter_next_array, __deref_array, __insert_single_array, __insert_multi_1_array, __insert_multi_2_array) \
+__gen_alg_merge(id, cmp_lt, Array_##id, array_##id, __init_array, t *, __iter_next_ARR, __iter_deref_ARR, __insert_single_array, __insert_multi_1_array, __insert_multi_2_array) \
+__gen_alg_set_funcs(id, cmp_lt, Array_##id, array_##id, __init_array, t *, __iter_next_ARR, __iter_deref_ARR, __insert_single_array, __insert_multi_1_array, __insert_multi_2_array) \
 
 #endif

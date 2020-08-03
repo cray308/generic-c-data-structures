@@ -21,24 +21,21 @@ declared static, so the data structures may be used by including the relevant fi
 Documentation is provided in the header files (in the `include` folder). See the files in the `test`
 folder for examples of using the data structures.
 
- - Array (named `Array`). This is analogous to a C++ vector.
+ - Array (named `Array`). This is analogous to a C++ `std::vector`.
 
- - List (named `List`). This is analogous to a C++ list and uses a doubly-linked list
- internally. This can also function as a deque.
+ - List (named `List`). This is analogous to a C++ `std::list` and uses a doubly-linked list internally. This can also function as a deque.
 
- - Queue (named `Queue`). In contrast to `List`, this only allows pushing to the back and
- popping from the front).
+ - Queue (named `Queue`). In contrast to `List`, this only allows pushing to the back and popping from the front).
 
  - Stack (named `Stack`).
 
  - Red-black tree (named `Tree`).
 
- - Set (named `Set`). In this implementation, a `Set` is simply a typedef for `Tree`. Note that
- set operations may also be performed on arrays (built-in or the dynamic array mentioned above) or
- the `List` data structure.
+ - Set (named `Set`). In this implementation, a `Set` is simply a typedef for `Tree`. Note that set operations may also be performed on arrays (built-in or the `Array` mentioned above) or the `List` data structure.
 
- - String (named `String`). This is similar to a C++ string, and also includes a function
- for inserting a printf-style format string.
+ - String (named `String`). This is similar to a C++ `std::string`, and also includes a function for inserting a printf-style format string.
 
- - Hash table (named `Map`). This is analogous to a C++ `unordered_map` and is capable of
- using integer or string keys.
+ - Hash table (named `UMap`). This is analogous to a C++ `std::unordered_map` and is capable of using most data types as keys.
+   - Any "value" data type (`int`, `float`, `double`, `char`, etc) can be used as a key.
+   - If a given pointer has already been dynamically allocated or is globally accessible, that pointer type may be used as a key.
+   - The only pointer key that can be "deep-copied" at this time is `char *`.

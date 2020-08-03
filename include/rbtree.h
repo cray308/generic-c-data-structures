@@ -1,7 +1,7 @@
 #ifndef RBTREE_H
 #define RBTREE_H
 
-#include "ds.h"
+#include "iterator.h"
 
 typedef enum {
     BLACK,
@@ -87,12 +87,23 @@ do {                                                                            
  *
  * @param   id    ID used with gen_rbtree.
  * @param   t     Pointer to tree.
- * @param   eptr  Pointer which is assigned to the current tree node's data.
+ * @param   ptr   TreeIterator which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(TREE, ptr) or ptr->data.
  */
-#define tree_inorder(id, t, eptr)                                                                            \
-    for ((t)->iter_curr = __rb_successor_##id((t)->root), (eptr) = ((t)->iter_curr != NULL) ? &((t)->iter_curr->data) : NULL; \
-         (t)->iter_curr != NULL;                                                                             \
-         (t)->iter_curr = __rb_inorder_successor_##id((t)->iter_curr), (eptr) = ((t)->iter_curr != NULL) ? &((t)->iter_curr->data) : NULL)
+#define tree_iter(id, t, ptr)                                                                                \
+    for (ptr = iter_begin(TREE, id, t, 0); ptr != iter_end(TREE, id, t, 0); iter_next(TREE, id, ptr))
+
+
+/**
+ * Macro to iterate through the tree in reverse (largest element to smallest).
+ *
+ * @param   id    ID used with gen_rbtree.
+ * @param   t     Pointer to tree.
+ * @param   ptr   TreeIterator which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(TREE, ptr) or ptr->data.
+ */
+#define tree_riter(id, t, ptr)                                                                               \
+    for (ptr = iter_rbegin(TREE, id, t, 0); ptr != iter_rend(TREE, id, t, 0); iter_prev(TREE, id, ptr))      
 
 
 /**
@@ -176,6 +187,7 @@ do {                                                                            
 #define gen_rbtree(id, t, cmp_lt)                                                                            \
 __gen_rb_node_tree(id, t)                                                                                    \
 __gen_rb_successor_declarations(id)                                                                          \
+__gen_iter_TREE(id)                                                                                          \
 __gen_rb_helper_funcs(id, t)                                                                                 \
                                                                                                              \
 __DS_FUNC_PREFIX Tree_##id *tree_new_##id(void) {                                                            \
@@ -343,7 +355,6 @@ __DS_FUNC_PREFIX RBNode_##id *rb_node_new_##id(void) {                          
                                                                                                              \
 typedef struct {                                                                                             \
     RBNode_##id *root;                                                                                       \
-    RBNode_##id *iter_curr;                                                                                  \
     size_t size;                                                                                             \
 } Tree_##id;                                                                                                 \
 
@@ -359,6 +370,16 @@ __DS_FUNC_PREFIX_INL RBNode_##id *__rb_successor_##id(RBNode_##id *x) {         
     return x;                                                                                                \
 }                                                                                                            \
                                                                                                              \
+__DS_FUNC_PREFIX_INL RBNode_##id *__rb_predecessor_##id(RBNode_##id *x) {                                    \
+    if (!x) {                                                                                                \
+        return x;                                                                                            \
+    }                                                                                                        \
+    while (x->right) {                                                                                       \
+        x = x->right;                                                                                        \
+    }                                                                                                        \
+    return x;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
 __DS_FUNC_PREFIX_INL RBNode_##id *__rb_inorder_successor_##id(RBNode_##id *x) {                              \
     if (!x) {                                                                                                \
         return NULL;                                                                                         \
@@ -368,6 +389,21 @@ __DS_FUNC_PREFIX_INL RBNode_##id *__rb_inorder_successor_##id(RBNode_##id *x) { 
                                                                                                              \
     RBNode_##id *parent = x->parent;                                                                         \
     while (parent && x == parent->right) {                                                                   \
+        x = parent;                                                                                          \
+        parent = parent->parent;                                                                             \
+    }                                                                                                        \
+    return parent;                                                                                           \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL RBNode_##id *__rb_inorder_predecessor_##id(RBNode_##id *x) {                            \
+    if (!x) {                                                                                                \
+        return NULL;                                                                                         \
+    } else if (x->left) {                                                                                    \
+        return __rb_predecessor_##id(x->left);                                                               \
+    }                                                                                                        \
+                                                                                                             \
+    RBNode_##id *parent = x->parent;                                                                         \
+    while (parent && x == parent->left) {                                                                    \
         x = parent;                                                                                          \
         parent = parent->parent;                                                                             \
     }                                                                                                        \

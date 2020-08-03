@@ -1,7 +1,7 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "ds.h"
+#include "iterator.h"
 #include "alg_helper.h"
 
 #define LIST_ERROR(id) (DLLNode_##id *)(-1)
@@ -39,8 +39,6 @@ typedef enum {
 } ListSpliceType;
 
 #define __init_list(id) list_new_##id(LIST_INIT_EMPTY)
-#define __iter_next_list(id, p) (p = p->next)
-#define __deref_list(p) (p->data)
 #define __insert_single_list list_push_back
 #define __insert_multi_1_list(id) __list_insert_list_##id(d_new, LIST_END(id), first1, last1, false)
 #define __insert_multi_2_list(id) __list_insert_list_##id(d_new, LIST_END(id), first2, last2, false)
@@ -85,25 +83,25 @@ typedef enum {
 /**
  * Macro for iterating over the list from front to back.
  *
+ * @param   id    ID used with gen_list.
  * @param   l     The List struct pointer.
- * @param   eptr  Pointer which is assigned to the current element's data.
+ * @param   ptr   ListIterator which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(LIST, ptr) or ptr->data.
  */
-#define list_iter(l, eptr)                                                                                   \
-    for ((l)->curr = (l)->front, (eptr) = ((l)->curr ? &(l)->curr->data : NULL);                             \
-         (l)->curr != NULL;                                                                                  \
-         (l)->curr = (l)->curr->next, (eptr) = ((l)->curr ? &(l)->curr->data : NULL))
+#define list_iter(id, l, ptr)                                                                                \
+    for (ptr = iter_begin(LIST, id, l, 0); ptr != iter_end(LIST, id, l, 0); iter_next(LIST, id, ptr))
 
 
 /**
  * Macro for iterating over the list in reverse (from back to front).
  *
+ * @param   id    ID used with gen_list.
  * @param   l     The List struct pointer.
- * @param   eptr  Pointer which is assigned to the current element's data.
+ * @param   ptr   ListIterator which is assigned to the current element.
+ *                 - May be dereferenced with iter_deref(LIST, ptr) or ptr->data.
  */
-#define list_riter(l, eptr)                                                                                  \
-    for ((l)->curr = (l)->back, (eptr) = ((l)->curr ? &(l)->curr->data : NULL);                              \
-         (l)->curr != NULL;                                                                                  \
-         (l)->curr = (l)->curr->prev, (eptr) = ((l)->curr ? &(l)->curr->data : NULL))
+#define list_riter(id, l, ptr)                                                                               \
+    for (ptr = iter_rbegin(LIST, id, l, 0); ptr != iter_rend(LIST, id, l, 0); iter_prev(LIST, id, ptr))
 
 
 /**
@@ -173,7 +171,7 @@ typedef enum {
 
 
 /**
- * Inserts new elements BEFORE the ListEntry at "pos".
+ * Inserts new elements BEFORE the ListIterator at "pos".
  * In (1), a single element is inserted.
  * In (2), elements from a built-in array data type are inserted, where "arr" is a pointer to the
  *   first element to insert, inserting "n" elements total.
@@ -187,16 +185,16 @@ typedef enum {
  *
  * @param   id      ID used with gen_list.
  * @param   l       Pointer to list.
- * @param   pos     ListEntry before which the element(s) should be inserted. If this is LIST_END,
+ * @param   pos     ListIterator before which the element(s) should be inserted. If this is LIST_END,
  *                    it defaults to list_push_back.
  * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
  *                    "pos" is ignored.
  * @param   type    Type of insertion to execute.
  *
- * @return         If successful, and "sorted" is false, returns a ListEntry corresponding to the
+ * @return         If successful, and "sorted" is false, returns a ListIterator corresponding to the
  *                   first inserted element. If "sorted" is true and multiple elements were
- *                   inserted, returns the front ListEntry in the list. If an error occurred,
- *                   returns LIST_ERROR.
+ *                   inserted, returns a ListIterator corresponding to the front of the list. If an
+ *                   error occurred, returns LIST_ERROR.
  */
 #define list_insert(id, l, pos, sorted, type, ...) list_insert_##id(l, pos, sorted, type, ##__VA_ARGS__)
 
@@ -207,11 +205,11 @@ typedef enum {
  *
  * @param   id     ID used with gen_list.
  * @param   l      Pointer to list.
- * @param   first  The first ListEntry to be removed - must be provided.
- * @param   last   ListEntry AFTER the last element to be deleted. If this is LIST_END, then
+ * @param   first  ListIterator pointing to the first element to be removed - must be provided.
+ * @param   last   ListIterator AFTER the last element to be deleted. If this is LIST_END, then
  *                   all elements from start through the end of the list will be removed.
  *
- * @return        If successful, returns a ListEntry corresponding to the element after the
+ * @return        If successful, returns a ListIterator corresponding to the element after the
  *                   last deleted element. If an error occurred, returns LIST_ERROR. If the last
  *                   deleted element was at the end of the list, returns LIST_END.
  */
@@ -287,7 +285,7 @@ typedef enum {
  * @param   l    Pointer to list.
  * @param   val  Pointer to the value to compare to a list element's data.
  *
- * @return       If the value was found, returns a ListEntry pointing to that element. If it was
+ * @return       If the value was found, returns a ListIterator pointing to that element. If it was
  *                  not found, returns NULL.
  */
 #define list_find(id, l, val) list_find_##id(l, val)
@@ -321,7 +319,7 @@ typedef enum {
 
 
 /**
- * Moves elements from "other" before the ListEntry in "l" at "pos". No new elements are created;
+ * Moves elements from "other" before the ListIterator in "l" at "pos". No new elements are created;
  *  they are simply transferred from "other" into "l".
  * 
  * (1) type = LIST_SPLICE_ALL:     list_splice(id, List_id *this, DLLNode_id *position, List_id *other, LIST_SPLICE_ALL)
@@ -348,6 +346,7 @@ typedef enum {
  */
 #define gen_list(id, t, cmp_lt)                                                                              \
 __gen_dllnode_list_typedef(id, t)                                                                            \
+__gen_iter_LIST(id)                                                                                          \
 __gen_list_declarations(id, t)                                                                               \
                                                                                                              \
 __DS_FUNC_PREFIX List_##id *list_new_##id(ListInitializer init, ...) {                                       \
@@ -787,12 +786,10 @@ DLLNode_##id *dll_node_new_##id(void) {                                         
                                                                                                              \
 typedef struct {                                                                                             \
     size_t size;                                                                                             \
-    DLLNode_##id *curr;                                                                                      \
     DLLNode_##id *front;                                                                                     \
     DLLNode_##id *back;                                                                                      \
 } List_##id;                                                                                                 \
                                                                                                              \
-typedef DLLNode_##id ListEntry_##id;                                                                         \
 typedef int (*meetsCondition_##id)(t *val);                                                                  \
 
 #define __gen_list_declarations(id, t)                                                                       \
@@ -899,7 +896,7 @@ __DS_FUNC_PREFIX DLLNode_##id *__list_insert_builtin_##id(List_##id *l, DLLNode_
         return LIST_ERROR(id);                                                                               \
     }                                                                                                        \
                                                                                                              \
-    DLLNode_##id *rv = LIST_END(id); /* ListEntry where first element from arr was inserted */               \
+    DLLNode_##id *rv = LIST_END(id); /* ListIterator where first element from arr was inserted */            \
     t *end = &arr[n];                                                                                        \
                                                                                                              \
     if (sorted) {                                                                                            \
@@ -1161,6 +1158,6 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
  */
 #define gen_list_withalg(id, t, cmp_lt)                                                                      \
 gen_list(id, t, cmp_lt)                                                                                      \
-__gen_alg_set_funcs(id, cmp_lt, List_##id, list_##id, __init_list, DLLNode_##id *, __iter_next_list, __deref_list, __insert_single_list, __insert_multi_1_list, __insert_multi_2_list) \
+__gen_alg_set_funcs(id, cmp_lt, List_##id, list_##id, __init_list, DLLNode_##id *, __iter_next_LIST, __iter_deref_LIST, __insert_single_list, __insert_multi_1_list, __insert_multi_2_list) \
 
 #endif

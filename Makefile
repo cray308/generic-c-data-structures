@@ -13,7 +13,7 @@ CPPFLAGS += -funsigned-char -finline-functions
 HEADERS = $(wildcard include/*.h)
 
 TEST_BINARIES = bin/c/test_stack bin/c/test_queue bin/c/test_list bin/c/test_array
-TEST_BINARIES += bin/c/test_rbtree bin/c/test_str bin/c/test_map bin/c/test_set
+TEST_BINARIES += bin/c/test_rbtree bin/c/test_str bin/c/test_unordered_map bin/c/test_set
 
 BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds
 

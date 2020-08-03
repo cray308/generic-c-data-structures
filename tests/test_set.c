@@ -10,11 +10,11 @@ void test_init_clear(void) {
     assert(set_len(s) == 0);
 
     int i = 0;
-    int *iptr;
-    set_iter(int, s, iptr) {
+    SetIterator_int it;
+    set_iter(int, s, it) {
         i++;
     }
-    assert(iptr == NULL);
+    assert(it == NULL);
     assert(i == 0);
     set_free(int, s);
 
@@ -93,10 +93,10 @@ void test_insert(void) {
     set_insert(int, s2, SET_INSERT_SET, begin, end);
     assert(set_len(s2) == 7);
 
-    int *ptr;
+    SetIterator_int it;
     int i = 0;
-    set_iter(int, s2, ptr) {
-        assert(*ptr == comparison[i++]);
+    set_iter(int, s2, it) {
+        assert(iter_deref(SET, it) == comparison[i++]);
     }
 
     set_free(int, s2);
@@ -126,10 +126,10 @@ void test_erase(void) {
     assert(set_len(s) == 3);
 
     int comparison[] = {15, 24, 25};
-    int *ptr;
+    SetIterator_int it;
     int i = 0;
-    set_iter(int, s, ptr) {
-        assert(*ptr == comparison[i++]);
+    set_iter(int, s, it) {
+        assert(iter_deref(SET, it) == comparison[i++]);
     }
     set_free(int, s);
 }
