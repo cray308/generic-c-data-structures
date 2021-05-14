@@ -4,26 +4,6 @@
 #include "rbtree.h"
 #include "alg_helper.h"
 
-#define SET_END(id) (SetEntry_##id *)(0)
-
-typedef enum {
-    SET_INIT_EMPTY,
-    SET_INIT_BUILTIN, /* int nums[] = {1, 2, 3}; set_new(..., &nums, 3); */
-    SET_INIT_SET /* Set *nums = ...; set_new(..., nums) */
-} SetInitializer;
-
-typedef enum {
-    SET_INSERT_SINGLE, /* int num = 5; set_insert(..., num); */
-    SET_INSERT_BUILTIN, /* int nums[] = {1, 2, 3}; set_insert(..., &nums, 0, 3); */
-    SET_INSERT_SET /* Set *nums = ...; set_insert(..., nums, begin, end) */
-} SetInsertType;
-
-#define set_begin(id, s) ((s)->root ? __rb_successor_##id((s)->root) : NULL)
-#define __init_set(id) set_new_##id(SET_INIT_EMPTY)
-#define __insert_single_set tree_insert
-#define __insert_multi_1_set(id) __set_insert_set_##id(d_new, first1, last1)
-#define __insert_multi_2_set(id) __set_insert_set_##id(d_new, first2, last2)
-
 /**
  * The number of elements in the set.
  * 
@@ -45,7 +25,7 @@ typedef enum {
  *
  * @param   id    ID used with gen_set.
  * @param   s     Pointer to set.
- * @param   ptr   SetIterator which is assigned to the current element.
+ * @param   ptr   SetEntry which is assigned to the current element.
  *                 - May be dereferenced with iter_deref(SET, ptr) or ptr->data.
  */
 #define set_iter(id, s, ptr) tree_iter(id, s, ptr)
@@ -55,29 +35,43 @@ typedef enum {
  *
  * @param   id    ID used with gen_set.
  * @param   s     Pointer to set.
- * @param   ptr   SetIterator which is assigned to the current element.
+ * @param   ptr   SetEntry which is assigned to the current element.
  *                May be dereferenced with iter_deref(SET, ptr) or ptr->data.
  */
 #define set_riter(id, s, ptr) tree_riter(id, s, ptr)
 
 
 /**
- * Creates a new set.
- * In (1), an empty Set is created.
- * In (2), a Set is initialized from a built-in array data type, where "arr" is a pointer to the
- *   first element to insert, inserting "n" elements total.
- * In (3), a Set is initialized from another existing Set.
- * 
- * (1) init = SET_INIT_EMPTY:    set_new(id, SetInitializer init)
- * (2) init = SET_INIT_BUILTIN:  set_new(id, SetInitializer init, t arr[], int n)
- * (3) init = SET_INIT_SET:      set_new(id, SetInitializer init, Set_id *other)
+ * Creates a new, empty set.
  *
- * @param   id      ID used with gen_set.
- * @param   init    Type of initializer to execute.
+ * @param   id  ID used with gen_set.
  *
- * @return          Pointer to the newly created set. If an error occurred, returns NULL.
+ * @return      Pointer to the newly created set.
  */
-#define set_new(id, init, ...) set_new_##id(init, ##__VA_ARGS__)
+#define set_new(id) tree_new(id)
+
+
+/**
+ * Creates a new set using the elements in a built-in array data type.
+ *
+ * @param   id   ID used with gen_set.
+ * @param   arr  Pointer to the first element to insert.
+ * @param   n    Number of elements to include.
+ *
+ * @return       Pointer to the newly created set.
+ */
+#define set_new_fromArray(id, arr, n) set_new_fromArray_##id(arr, n)
+
+
+/**
+ * Creates a new set as a copy of an existing Set.
+ *
+ * @param   id   ID used with gen_set.
+ * @param   set  Set to copy.
+ *
+ * @return       Pointer to the newly created set.
+ */
+#define set_createCopy(id, set) set_createCopy_##id(set)
 
 
 /**
@@ -99,7 +93,7 @@ typedef enum {
 
 
 /**
- * Tests whether "value" is in the set.
+ * Tests whether `value` is in the set.
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
@@ -111,35 +105,48 @@ typedef enum {
 
 
 /**
- * Returns the SetEntry with a key matching "value".
+ * Returns the SetEntry with a key matching `value`.
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   value  Value to be found.
  *
- * @return         Pointer to SetEntry whose data matches "value", or NULL if it was not found.
+ * @return         Pointer to SetEntry whose data matches `value`, or NULL if it was not found.
  */
 #define set_find(id, s, value) tree_find(id, s, value)
 
 
 /**
- * Inserts elements into the set.
- * In (1), a single element is inserted.
- * In (2), elements from a built-in array data type are inserted, where "arr" is a pointer to the
- *   first element to insert, inserting "n" elements total.
- * In (3), elements from another Set are inserted in the range [start, end). "start" must not be
- *   NULL. If "end" is SET_END, then all elements from "start" through the end (greatest element)
- *   of the other set will be inserted.
- * 
- * (1) type = SET_INSERT_SINGLE:   set_insert(id, Set_id *s, SetInsertType type, t value)
- * (2) type = SET_INSERT_BUILTIN:  set_insert(id, Set_id *s, SetInsertType type, t arr[], int n)
- * (3) type = SET_INSERT_SET:      set_insert(id, Set_id *s, SetInsertType type, SetEntry_id *start, SetEntry_id *end)
+ * Inserts the value into the set.
  *
- * @param  id     ID used with gen_set.
- * @param  s      Pointer to set.
- * @param  type   Type of insertion to execute.
+ * @param   id     ID used with gen_set.
+ * @param   s      Pointer to set.
+ * @param   value  Value to insert.
  */
-#define set_insert(id, s, type, ...) set_insert_##id(s, type, ##__VA_ARGS__)
+#define set_insert(id, s, value) tree_insert_##id(s, value)
+
+
+/**
+ * Inserts elements from a built-in array data type.
+ *
+ * @param   id   ID used with gen_set.
+ * @param   s    Pointer to set.
+ * @param   arr  Pointer to the first element to insert.
+ * @param   n    Number of elements to insert from `arr`.
+ */
+#define set_insert_fromArray(id, s, arr, n) set_insert_fromArray_##id(s, arr, n)
+
+
+/**
+ * Inserts elements from another Set in the range [start, end).
+ *
+ * @param   id     ID used with gen_set.
+ * @param   s      Pointer to set.
+ * @param   start  Pointer to first SetEntry to insert. Must not be NULL.
+ * @param   end    Pointer after the last SetEntry to insert. If this is NULL, all elements from
+ *                   `start` through the end (greatest element) of the other set will be inserted.
+ */
+#define set_insert_fromSet(id, s, start, end) set_insert_fromSet_##id(s, start, end)
 
 
 /**
@@ -149,14 +156,14 @@ typedef enum {
  * @param  s      Pointer to set.
  * @param  begin  First element to erase. If this is NULL, it defaults to the smallest element
  *                  in the set.
- * @param  end    SetEntry AFTER the last element to be deleted. If this is SET_END, then all
+ * @param  end    SetEntry AFTER the last element to be deleted. If this is NULL, then all
  *                  elements from start through the greatest element in the set will be removed.
  */
 #define set_erase(id, s, begin, end) set_erase_##id(s, begin, end)
 
 
 /**
- * Removes a single entry from the set whose value is equal to "value".
+ * Removes a single entry from the set whose value is equal to `value`.
  *
  * @param  id     ID used with gen_set.
  * @param  s      Pointer to set.
@@ -166,98 +173,109 @@ typedef enum {
 
 
 /**
- * Returns a set with the union of "s" and "other" (i.e. elements that are in "s", "other",
+ * Returns a set with the union of `s` and `other` (i.e. elements that are in `s`, `other`,
  * or both - all elements).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the union of "s" and "other", or NULL if "other"
+ * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
  *                   is NULL.
  */
-#define set_union(id, s, other) __set_union_set_##id(set_begin(id, s), NULL, set_begin(id, other), NULL)
+#define set_union(id, s, other) __set_union_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
 
 
 /**
- * Returns a set with the intersection of "s" and "other" (i.e. all elements that both sets
+ * Returns a set with the intersection of `s` and `other` (i.e. all elements that both sets
  * have in common).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the union of "s" and "other", or NULL if "other"
+ * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
  *                   is NULL.
  */
-#define set_intersection(id, s, other) __set_intersection_set_##id(set_begin(id, s), NULL, set_begin(id, other), NULL)
+#define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
 
 
 /**
- * Returns a set with the difference of "s" and "other" (i.e. all elements that are unique to
- * "s").
+ * Returns a set with the difference of `s` and `other` (i.e. all elements that are unique to `s`).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the union of "s" and "other", or NULL if "other"
+ * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
  *                   is NULL.
  */
-#define set_difference(id, s, other) __set_difference_set_##id(set_begin(id, s), NULL, set_begin(id, other), NULL)
+#define set_difference(id, s, other) __set_difference_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
 
 
 /**
- * Returns a set with the symmetric difference of "s" and "other" (i.e. all elements that
+ * Returns a set with the symmetric difference of `s` and `other` (i.e. all elements that
  * neither set has in common).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the symmetric difference of "s" and "other", or
- *                   NULL if "other" is NULL.
+ * @return         Newly created set which is the symmetric difference of `s` and `other`, or
+ *                   NULL if `other` is NULL.
  */
-#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(set_begin(id, s), NULL, set_begin(id, other), NULL)
+#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
 
 
 /**
- * Tests whether "s" is a subset of "other". (i.e. whether each element in "s" is in
- * other).
+ * Tests whether `s` is a subset of `other`. (i.e. whether each element in `s` is in other).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         True if each element in "s" is in "other", false if not.
+ * @return         True if each element in `s` is in `other`, false if not.
  */
-#define set_issubset(id, s, other) __includes_set_##id(set_begin(id, other), NULL, set_begin(id, s), NULL)
+#define set_issubset(id, s, other) __includes_set_##id(iter_begin_SET(id, other, 0), NULL, iter_begin_SET(id, s, 0), NULL)
 
 
 /**
- * Tests whether "s" is a superset of "other". (i.e. whether "s" contains each element
- * from "other" - the opposite of a subset).
+ * Tests whether `s` is a superset of `other`. (i.e. whether `s` contains each element
+ * from `other` - the opposite of a subset).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         True if "s" contains each element in "other", false if not.
+ * @return         True if `s` contains each element in `other`, false if not.
  */
 #define set_issuperset(id, s, other) set_issubset(id, other, s)
 
 
 /**
- * Tests whether "s" is disjoint with "other". (i.e. if the sets have no elements in common).
+ * Tests whether `s` is disjoint with `other`. (i.e. if the sets have no elements in common).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         True if "s" and "other" have no common elements, false if they do.
+ * @return         True if `s` and `other` have no common elements, false if they do.
  */
-#define set_isdisjoint(id, s, other) __set_disjoint_##id(s, other)
+#define set_isdisjoint(id, s, other) set_disjoint_##id(s, other)
 
+/* --------------------------------------------------------------------------
+ * Set iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_SET(id, t, n)   iter_begin_TREE(id, t, n)
+#define iter_end_SET(id, t, n)     iter_end_TREE(id, t, n)
+#define iter_rbegin_SET(id, t, n)  iter_rbegin_TREE(id, t, n)
+#define iter_rend_SET(id, t, n)    iter_rend_TREE(id, t, n)
+#define iter_next_SET(id, p)       iter_next_TREE(id, p)
+#define iter_prev_SET(id, p)       iter_prev_TREE(id, p)
+#define iter_deref_SET(p)          iter_deref_TREE(p)
+#define iter_advance_SET(id, p, n) iter_advance_TREE(id, p, n)
+#define iter_dist_SET(id, p1, p2)  iter_dist_TREE(id, p1, p2)
 
 /**
  * Generates set code for a specified type and ID.
@@ -268,77 +286,36 @@ typedef enum {
  */
 #define gen_set(id, t, cmp_lt)                                                                               \
 gen_rbtree(id, t, cmp_lt)                                                                                    \
-__gen_iter_SET(id)                                                                                           \
-__gen_set_declarations(id, t)                                                                                \
                                                                                                              \
-__DS_FUNC_PREFIX Set_##id *set_new_##id(SetInitializer init, ...) {                                          \
-    Set_##id *s = tree_new_##id();                                                                           \
-    if (!s) {                                                                                                \
-        return NULL;                                                                                         \
-    }                                                                                                        \
+typedef Tree_##id Set_##id;                                                                                  \
+typedef TreeEntry_##id SetEntry_##id;                                                                        \
+__DS_FUNC_PREFIX void set_insert_fromSet_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end);     \
+__DS_FUNC_PREFIX void set_insert_fromArray_##id(Set_##id *this, t *arr, size_t n);                           \
                                                                                                              \
-    if (init == SET_INIT_EMPTY) { /* nothing more to do in this case */                                      \
-        return s;                                                                                            \
-    }                                                                                                        \
-                                                                                                             \
-    int n;                                                                                                   \
-    void *other;                                                                                             \
-                                                                                                             \
-    /* parse arguments */                                                                                    \
-    va_list args;                                                                                            \
-    va_start(args, init);                                                                                    \
-                                                                                                             \
-    other = va_arg(args, void *);                                                                            \
-                                                                                                             \
-    if (init == SET_INIT_BUILTIN) {                                                                          \
-        n = va_arg(args, int);                                                                               \
-    }                                                                                                        \
-                                                                                                             \
-    va_end(args);                                                                                            \
-    if (!other) {                                                                                            \
-        return s;                                                                                            \
-    }                                                                                                        \
-                                                                                                             \
-    if (init == SET_INIT_BUILTIN) {                                                                          \
-        __set_insert_builtin_##id(s, (t *) other, n);                                                        \
-    } else {                                                                                                 \
-        __set_insert_set_##id(s, set_begin(id, ((Set_##id *) other)), NULL);                                 \
-    }                                                                                                        \
+__DS_FUNC_PREFIX Set_##id *set_new_fromArray_##id(t *arr, size_t size) {                                     \
+    Set_##id *s = set_new(id);                                                                               \
+    set_insert_fromArray_##id(s, arr, size);                                                                 \
     return s;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void set_insert_##id(Set_##id *this, SetInsertType type, ...) {                             \
-    int n;                                                                                                   \
-    t value;                                                                                                 \
-    void *begin;                                                                                             \
-    void *end;                                                                                               \
+__DS_FUNC_PREFIX Set_##id *set_createCopy_##id(Set_##id *set) {                                              \
+    Set_##id *s = set_new(id);                                                                               \
+    set_insert_fromSet_##id(s, __rb_successor_##id(set->root), NULL);                                        \
+    return s;                                                                                                \
+}                                                                                                            \
                                                                                                              \
-    /* parse arguments */                                                                                    \
-    va_list args;                                                                                            \
-    va_start(args, type);                                                                                    \
-                                                                                                             \
-    if (type == SET_INSERT_SINGLE) {                                                                         \
-        value = (t) (long) va_arg(args, void *);                                                             \
-    } else if (type == SET_INSERT_BUILTIN) {                                                                 \
-        begin = va_arg(args, void *);                                                                        \
-        n = va_arg(args, int);                                                                               \
-    } else {                                                                                                 \
-        begin = va_arg(args, void *);                                                                        \
-        end = va_arg(args, void *);                                                                          \
+__DS_FUNC_PREFIX void set_insert_fromArray_##id(Set_##id *this, t *arr, size_t n) {                          \
+    if (!arr || !n) return;                                                                                  \
+    t *end = &arr[n];                                                                                        \
+    for (; arr != end; ++arr) {                                                                              \
+        tree_insert_##id(this, *arr);                                                                        \
     }                                                                                                        \
+}                                                                                                            \
                                                                                                              \
-    va_end(args);                                                                                            \
-                                                                                                             \
-    switch (type) {                                                                                          \
-        case SET_INSERT_SINGLE:                                                                              \
-            tree_insert_##id(this, value);                                                                   \
-            break;                                                                                           \
-        case SET_INSERT_BUILTIN:                                                                             \
-            __set_insert_builtin_##id(this, (t *) begin, n);                                                 \
-            break;                                                                                           \
-        case SET_INSERT_SET:                                                                                 \
-            __set_insert_set_##id(this, (SetEntry_##id *) begin, (SetEntry_##id *) end);                     \
-            break;                                                                                           \
+__DS_FUNC_PREFIX void set_insert_fromSet_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end) {    \
+    while (start != end) {                                                                                   \
+        tree_insert_##id(this, start->data);                                                                 \
+        start = __rb_inorder_successor_##id(start);                                                          \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
@@ -352,7 +329,7 @@ __DS_FUNC_PREFIX void set_erase_##id(Set_##id *this, SetEntry_##id *begin, SetEn
     t vals[this->size];                                                                                      \
     int count = 0;                                                                                           \
     t *c = vals;                                                                                             \
-    RBNode_##id *curr = begin;                                                                               \
+    TreeEntry_##id *curr = begin;                                                                            \
     while (curr != end) {                                                                                    \
         *c = curr->data;                                                                                     \
         ++c, ++count;                                                                                        \
@@ -364,13 +341,11 @@ __DS_FUNC_PREFIX void set_erase_##id(Set_##id *this, SetEntry_##id *begin, SetEn
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX bool __set_disjoint_##id(Set_##id *this, Set_##id *other) {                                 \
-    if (!other || !other->root) {                                                                            \
-        return false;                                                                                        \
-    }                                                                                                        \
+__DS_FUNC_PREFIX bool set_disjoint_##id(Set_##id *this, Set_##id *other) {                                   \
+    if (!other || !other->root) return false;                                                                \
                                                                                                              \
-    RBNode_##id *n1 = __rb_successor_##id(this->root);                                                       \
-    RBNode_##id *n2 = __rb_successor_##id(other->root);                                                      \
+    TreeEntry_##id *n1 = __rb_successor_##id(this->root);                                                    \
+    TreeEntry_##id *n2 = __rb_successor_##id(other->root);                                                   \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __rb_inorder_successor_##id(n1);                                                            \
@@ -382,31 +357,7 @@ __DS_FUNC_PREFIX bool __set_disjoint_##id(Set_##id *this, Set_##id *other) {    
     }                                                                                                        \
     return true;                                                                                             \
 }                                                                                                            \
-__gen_set_helper_funcs(id, t)                                                                                \
-__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, __init_set, RBNode_##id *, __iter_next_TREE, __iter_deref_TREE, __insert_single_set, __insert_multi_1_set, __insert_multi_2_set) \
-
-#define __gen_set_declarations(id, t)                                                                        \
-typedef Tree_##id Set_##id;                                                                                  \
-typedef RBNode_##id SetEntry_##id;                                                                           \
-__DS_FUNC_PREFIX void __set_insert_set_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end);       \
-__DS_FUNC_PREFIX void __set_insert_builtin_##id(Set_##id *this, t *arr, int n);                              \
-
-#define __gen_set_helper_funcs(id, t)                                                                        \
-__DS_FUNC_PREFIX void __set_insert_set_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end) {      \
-    while (start != end) {                                                                                   \
-        tree_insert_##id(this, start->data);                                                                 \
-        start = __rb_inorder_successor_##id(start);                                                          \
-    }                                                                                                        \
-}                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __set_insert_builtin_##id(Set_##id *this, t *arr, int n) {                             \
-    if (!arr || !n) {                                                                                        \
-        return;                                                                                              \
-    }                                                                                                        \
-    t *end = &arr[n];                                                                                        \
-    for (; arr != end; ++arr) {                                                                              \
-        tree_insert_##id(this, *arr);                                                                        \
-    }                                                                                                        \
-}                                                                                                            \
+__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, tree_new, TreeEntry_##id *, iter_next_TREE, iter_deref_TREE, tree_insert, set_insert_fromSet_##id(d_new, first1, last1), set_insert_fromSet_##id(d_new, first2, last2)) \
 
 #endif

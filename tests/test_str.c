@@ -2,7 +2,7 @@
 #include <assert.h>
 
 void test_macros(void) {
-    String *s = string_new(STR_INIT_NONE);
+    String *s = string_new();
     assert(string_len(s) == 0);
     assert(string_capacity(s) != 0);
     assert(string_empty(s));
@@ -64,7 +64,7 @@ void test_macros(void) {
 }
 
 void test_resizing(void) {
-    String *s = string_new(STR_INIT_NONE);
+    String *s = string_new();
 
     int old = string_capacity(s);
 
@@ -75,7 +75,7 @@ void test_resizing(void) {
     assert(string_capacity(s) > old);
 
     const char *mystring = "abcdefghijklmnopqrstuvwxyz";
-    string_append(s, mystring, 26);
+    string_append(s, mystring, -1);
 
     int counter = 0;
     const char *ptr;
@@ -122,8 +122,8 @@ void test_resizing(void) {
 }
 
 void test_custom_initializers(void) {
-    String *s = string_new(STR_INIT_CSTR, "abcdefghijklmnopqrstuvwxyz");
-    String *s2 = string_new(STR_INIT_STRING, s);
+    String *s = string_new_fromCStr("abcdefghijklmnopqrstuvwxyz");
+    String *s2 = string_createCopy(s);
 
     assert(streq(string_c_str(s), string_c_str(s2)));
     string_free(s);
@@ -131,7 +131,7 @@ void test_custom_initializers(void) {
 }
 
 void test_erase(void) {
-    String *s = string_new(STR_INIT_NONE);
+    String *s = string_new();
 
     for (unsigned char i = 0x30; i < 0x3A; ++i) {
         string_push_back(s, i);
@@ -148,7 +148,7 @@ void test_erase(void) {
     char *ptr = string_front(s);
     assert(*ptr == '2');
 
-    string_erase(s, 6, 20);
+    string_erase(s, 6, -1);
     assert(string_len(s) == 6);
     ptr = string_back(s);
     assert(*ptr == '7');
@@ -167,7 +167,7 @@ void test_erase(void) {
 }
 
 void test_replace(void) {
-    String *s = string_new(STR_INIT_CSTR, "abcdefghijklmnopqrstuvwxyz");
+    String *s = string_new_fromCStr("abcdefghijklmnopqrstuvwxyz");
     const char *mystring = "abcdefghijklmnopqrstuvwxyz";
 
     const char *comparison[] = {
@@ -182,8 +182,8 @@ void test_replace(void) {
     assert(streq(s->s, comparison[0]));
     string_clear(s);
 
-    string_append(s, mystring, 26);
-    string_replace(s, 3, "xxx", 3);
+    string_append(s, mystring, -1);
+    string_replace(s, 3, "xxx", -1);
     assert(string_len(s) == 26);
     assert(streq(s->s, comparison[1]));
     string_clear(s);
@@ -195,13 +195,13 @@ void test_replace(void) {
     string_clear(s);
 
     string_append(s, mystring, 26);
-    string_replace(s, 18, "xxxxxxxxxxxx", 12);
+    string_replace(s, 18, "xxxxxxxxxxxx", -1);
     assert(string_len(s) == 30);
     assert(streq(s->s, comparison[3]));
     string_clear(s);
 
     string_append(s, mystring, 26);
-    string_replace(s, 0, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 43);
+    string_replace(s, 0, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", -1);
     assert(string_len(s) == 43);
     assert(streq(s->s, comparison[4]));
 
@@ -209,7 +209,7 @@ void test_replace(void) {
 }
 
 void test_insert(void) {
-    String *s = string_new(STR_INIT_CSTR, "abcdefghijklmnopqrstuvwxyz");
+    String *s = string_new_fromCStr("abcdefghijklmnopqrstuvwxyz");
     const char *mystring = "abcdefghijklmnopqrstuvwxyz";
 
     const char *comparison[] = {
@@ -226,7 +226,7 @@ void test_insert(void) {
     string_clear(s);
 
     string_append(s, mystring, 26);
-    string_insert(s, 3, "xxx", 3);
+    string_insert(s, 3, "xxx", -1);
     assert(string_len(s) == 29);
     assert(streq(s->s, comparison[1]));
     string_clear(s);
@@ -238,13 +238,13 @@ void test_insert(void) {
     string_clear(s);
 
     string_append(s, mystring, 26);
-    string_insert(s, 18, "xxxxxxxxxxxx", 12);
+    string_insert(s, 18, "xxxxxxxxxxxx", -1);
     assert(string_len(s) == 38);
     assert(streq(s->s, comparison[3]));
     string_clear(s);
 
     string_append(s, mystring, 26);
-    string_insert(s, -1, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 43);
+    string_insert(s, -1, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", -1);
     assert(string_len(s) == 69);
     assert(streq(s->s, comparison[4]));
 
@@ -252,11 +252,11 @@ void test_insert(void) {
 }
 
 void test_printf(void) {
-    String *s = string_new(STR_INIT_NONE);
+    String *s = string_new();
     const char *comparison[] = {"10 is a cool number.",
     "pi is about 3.14, and 10 is a cool number."};
 
-    string_printf(s, STRING_END(s), "%d is a cool number.", 10);
+    string_printf(s, string_len(s), "%d is a cool number.", 10);
     assert(streq(s->s, comparison[0]));
 
     string_printf(s, 0, "pi is about %.2f, and ", 3.14);
@@ -266,7 +266,7 @@ void test_printf(void) {
 }
 
 void test_find(void) {
-    String *s = string_new(STR_INIT_CSTR, "pi is about 3.14, and 10 is a cool number");
+    String *s = string_new_fromCStr("pi is about 3.14, and 10 is a cool number");
 
     int pos = string_find(s, 0, "3.14", 4);
     assert(pos == 12);
@@ -277,28 +277,34 @@ void test_find(void) {
     pos = string_find(s, 2, "3.14", 0);
     assert(pos == 2);
 
-    pos = string_find(s, 0, "is a", 4);
+    pos = string_find(s, 0, "is a", -1);
     assert(pos == 3);
 
-    pos = string_find(s, pos + 4, "is a", 4);
+    pos = string_find(s, pos + 4, "is a", -1);
     assert(pos == 25);
 
-    pos = string_find(s, pos + 4, "is a", 4);
+    pos = string_find(s, pos + 4, "is a", -1);
     assert(pos == -1);
 
+    pos = string_find(s, 0, "is x", 2);
+    assert(pos == 3);
+
     string_clear(s);
-    string_append(s, "onionionspl", 15);
+    string_append(s, "onionionspl", -1);
 
     pos = string_find(s, 0, "onions", 6);
     assert(pos == 3);
 
-    pos = string_rfind(s, -1, "onion", 6);
+    pos = string_rfind(s, -1, "onitx", 3);
     assert(pos == 3);
 
-    pos = string_rfind(s, 5, "onion", 6);
+    pos = string_rfind(s, -1, "onion", 5);
+    assert(pos == 3);
+
+    pos = string_rfind(s, 5, "onion", -1);
     assert(pos == 0);
 
-    pos = string_rfind(s, pos, "onion", 6);
+    pos = string_rfind(s, pos, "onion", -1);
     assert(pos == -1);
 
     string_free(s);
@@ -312,7 +318,7 @@ void test_find_x_of(void) {
     };
 
 
-    String *s = string_new(STR_INIT_CSTR, "Please, replace the vowels in this sentence by asterisks.");
+    String *s = string_new_fromCStr("Please, replace the vowels in this sentence by asterisks.");
 
     char *ptr;
     int found = 0;
@@ -339,25 +345,25 @@ void test_find_x_of(void) {
     assert(streq(string_c_str(s), comparison[1]));
 
     string_clear(s);
-    string_append(s, "look for non-alphabetic characters...", 40);
+    string_append(s, "look for non-alphabetic characters...", -1);
 
     found = string_find_first_not_of(s, 0, "abcdefghijklmnopqrstuvwxyz ");
     assert(found != -1);
     assert(found == 12);
 
     string_clear(s);
-    string_append(s, "Please, erase trailing white-spaces \t \n", 50);
+    string_append(s, "Please, erase trailing white-spaces \t \n", 41);
 
     found = string_find_last_not_of(s, string_len(s), " \t\f\v\n\r");
     assert(found != -1);
 
-    string_erase(s, found, string_len(s));
+    string_erase(s, found, -1);
     assert(streq(string_c_str(s), comparison[2]));
     string_free(s);
 }
 
 void test_substr(void) {
-    String *s = string_new(STR_INIT_CSTR, "We think in generalities, but we live in details.");
+    String *s = string_new_fromCStr("We think in generalities, but we live in details.");
 
     String *s2 = string_substr(s, 3, 5, 1);
     assert(streq(string_c_str(s2), "think"));
@@ -399,33 +405,33 @@ void test_split(void) {
         "words"
     };
 
-    String *s = string_new(STR_INIT_CSTR, "this has several words, definitely more than eight words");
+    String *s = string_new_fromCStr("this has several words, definitely more than eight words");
 
-    int len = 0;
-    String **split = string_split(s, ":", &len);
-    assert(len == 1);
+    int i = 0;
+    String **split = string_split(s, ":");
     assert(streq(string_c_str(split[0]), string_c_str(s)));
-    string_split_free(split, len);
+    string_split_free(split);
 
-    split = string_split(s, ",", &len);
-    assert(len == 2);
-    for (int i = 0; i < len; ++i) {
-        assert(streq(string_c_str(split[i]), cmp1[i]));
+    split = string_split(s, ",");
+    for (String **si = split; *si; ++si) {
+        assert(i < 2);
+        assert(streq(string_c_str(*si), cmp1[i++]));
     }
-    string_split_free(split, len);
+    string_split_free(split);
 
-    split = string_split(s, " ", &len);
-    assert(len == 9);
-    for (int i = 0; i < len; ++i) {
-        assert(streq(string_c_str(split[i]), cmp2[i]));
+    split = string_split(s, " ");
+    i = 0;
+    for (String **si = split; *si; ++si) {
+        assert(i < 9);
+        assert(streq(string_c_str(*si), cmp2[i++]));
     }
-    string_split_free(split, len);
+    string_split_free(split);
 
     string_free(s);
 }
 
 void test_has_certain_chars(void) {
-    String *s = string_new(STR_INIT_CSTR, "hello");
+    String *s = string_new_fromCStr("hello");
     assert(isAlphaNum(string_c_str(s)));
     assert(isAlpha(string_c_str(s)));
     assert(!isDigit(string_c_str(s)));
@@ -444,7 +450,7 @@ void test_has_certain_chars(void) {
 }
 
 void test_case_conversion(void) {
-    String *s = string_new(STR_INIT_CSTR, "mOcKiNg HaHa");
+    String *s = string_new_fromCStr("mOcKiNg HaHa");
 
     toLowercase(string_c_str(s));
     const char *ptr;

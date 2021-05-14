@@ -5,7 +5,9 @@ char *strs[] = {"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", 
 
 gen_queue(str, char *)
 
-void test_push(Queue_str *q) {
+int main(void) {
+    Queue_str *q = queue_new(str);
+
     assert(queue_size(q) == 0);
     assert(queue_empty(q));
 
@@ -21,12 +23,8 @@ void test_push(Queue_str *q) {
         assert(queue_size(q) == i + 1);
     }
     assert(!queue_empty(q));
-}
 
-void test_pop(Queue_str *q) {
     char *removed = NULL;
-    char **ptr;
-
     int i = 0;
     for (; i < 5; ++i) {
         queue_pop(str, q, &removed);
@@ -46,12 +44,7 @@ void test_pop(Queue_str *q) {
         assert(streq(strs[i++], removed));
     }
     assert(queue_empty(q));
-}
 
-int main(void) {
-    Queue_str *q = queue_new(str);
-    test_push(q);
-    test_pop(q);
     queue_free(str, q);
     return 0;
 }

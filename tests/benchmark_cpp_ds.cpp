@@ -9,6 +9,7 @@
 using std::cout; using std::cerr; using std::vector; using std::list;
 using std::fixed; using std::setprecision;
 const char *ProgName = NULL;
+clock_t before, after;
 
 enum DSTest {
     TEST_ARRAY,
@@ -23,13 +24,9 @@ void usage(void) {
 }
 
 void test_list(unsigned n) {
-    clock_t before, after;
-    unsigned temp;
-
     list<unsigned> *l = new list<unsigned>;
     for (unsigned i = 0; i < n; ++i) {
-        temp = rand() % UINT_MAX;
-        l->push_back(temp);
+        l->push_back(rand() % UINT_MAX);
     }
     
     before = clock();
@@ -43,12 +40,9 @@ void test_list(unsigned n) {
 }
 
 void test_arr(unsigned n) {
-    clock_t before, after;
-    unsigned temp;
     vector<unsigned> *a = new vector<unsigned>;
     for (unsigned i = 0; i < n; ++i) {
-        temp = rand() % UINT_MAX;
-        a->push_back(temp);
+        a->push_back(rand() % UINT_MAX);
     }
     
     before = clock();

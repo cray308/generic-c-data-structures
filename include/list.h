@@ -4,44 +4,75 @@
 #include "iterator.h"
 #include "alg_helper.h"
 
-#define LIST_ERROR(id) (DLLNode_##id *)(-1)
-#define LIST_END(id) (DLLNode_##id *)(0)
-
-#define __list_swap(id, x, y)                                                                                \
-do {                                                                                                         \
-    register DLLNode_##id *_ltemp_front = (x)->front;                                                        \
-    register DLLNode_##id *_ltemp_back = (x)->back;                                                          \
-    register size_t _ltemp_size = (x)->size;                                                                 \
+#define __list_swap(id, x, y) {                                                                              \
+    register ListEntry_##id *ltemp_front = (x)->front;                                                       \
+    register ListEntry_##id *ltemp_back = (x)->back;                                                         \
+    register size_t ltemp_size = (x)->size;                                                                  \
     (x)->front = (y)->front;                                                                                 \
     (x)->back = (y)->back;                                                                                   \
     (x)->size = (y)->size;                                                                                   \
-    (y)->front = _ltemp_front;                                                                               \
-    (y)->back = _ltemp_back;                                                                                 \
-    (y)->size = _ltemp_size;                                                                                 \
-} while(0)
+    (y)->front = ltemp_front;                                                                                \
+    (y)->back = ltemp_back;                                                                                  \
+    (y)->size = ltemp_size;                                                                                  \
+}
 
-typedef enum {
-    LIST_INIT_EMPTY,
-    LIST_INIT_BUILTIN, /* like int nums[] = {1, 2, 3} */
-    LIST_INIT_LIST /* like List *nums */
-} ListInitializer;
+#define __list_elem_removal_body(id, l, condition, currStart, prevStart)                                     \
+    if (!(l)->front) return;                                                                                 \
+                                                                                                             \
+    ListEntry_##id *curr = currStart;                                                                        \
+    ListEntry_##id *prev = prevStart;                                                                        \
+    ListEntry_##id *next;                                                                                    \
+                                                                                                             \
+    while (curr) {                                                                                           \
+        next = curr->next;                                                                                   \
+        if (condition) {                                                                                     \
+            if (prev) {                                                                                      \
+                prev->next = next;                                                                           \
+            } else {                                                                                         \
+                (l)->front = next;                                                                           \
+            }                                                                                                \
+                                                                                                             \
+            if (next) {                                                                                      \
+                next->prev = prev;                                                                           \
+            } else {                                                                                         \
+                (l)->back = prev;                                                                            \
+            }                                                                                                \
+                                                                                                             \
+            free(curr);                                                                                      \
+            (l)->size--;                                                                                     \
+            curr = next;                                                                                     \
+        } else {                                                                                             \
+            prev = curr;                                                                                     \
+            curr = curr->next;                                                                               \
+        }                                                                                                    \
+    }                                                                                                        \
+    (l)->back = prev;                                                                                        \
 
-typedef enum {
-    LIST_INSERT_SINGLE, /* like int */
-    LIST_INSERT_BUILTIN, /* like int nums[] = {1, 2, 3} */
-    LIST_INSERT_LIST /* like List *nums */
-} ListInsertType;
+#define __list_push_body(id, dir, rev, loc)                                                                  \
+    ListEntry_##id *new = __ds_calloc(1, sizeof(ListEntry_##id));                                            \
+    new->data = value;                                                                                       \
+                                                                                                             \
+    if (!(l->front)) {                                                                                       \
+        l->front = l->back = new;                                                                            \
+    } else {                                                                                                 \
+        new->dir = loc;                                                                                      \
+        loc->rev = new;                                                                                      \
+        loc = new;                                                                                           \
+    }                                                                                                        \
+    l->size++;                                                                                               \
 
-typedef enum {
-    LIST_SPLICE_ALL, /* move entire list */
-    LIST_SPLICE_SINGLE, /* move single element */
-    LIST_SPLICE_RANGE /* move range of elements in [first, last) */
-} ListSpliceType;
-
-#define __init_list(id) list_new_##id(LIST_INIT_EMPTY)
-#define __insert_single_list list_push_back
-#define __insert_multi_1_list(id) __list_insert_list_##id(d_new, LIST_END(id), first1, last1, false)
-#define __insert_multi_2_list(id) __list_insert_list_##id(d_new, LIST_END(id), first2, last2, false)
+#define __list_pop_body(id, loc, dir, rev, tail)                                                             \
+    if (!(l->front)) return;                                                                                 \
+    ListEntry_##id *repl = loc;                                                                              \
+                                                                                                             \
+    loc = repl->dir;                                                                                         \
+    if (loc) {                                                                                               \
+        loc->rev = NULL;                                                                                     \
+    } else {                                                                                                 \
+        tail = NULL;                                                                                         \
+    }                                                                                                        \
+    free(repl);                                                                                              \
+    l->size--;                                                                                               \
 
 
 /* --------------------------------------------------------------------------
@@ -85,11 +116,10 @@ typedef enum {
  *
  * @param   id    ID used with gen_list.
  * @param   l     The List struct pointer.
- * @param   ptr   ListIterator which is assigned to the current element.
+ * @param   ptr   ListEntry which is assigned to the current element.
  *                 - May be dereferenced with iter_deref(LIST, ptr) or ptr->data.
  */
-#define list_iter(id, l, ptr)                                                                                \
-    for (ptr = iter_begin(LIST, id, l, 0); ptr != iter_end(LIST, id, l, 0); iter_next(LIST, id, ptr))
+#define list_iter(id, l, ptr) for (ptr = iter_begin(LIST, id, l, 0); ptr != iter_end(LIST, id, l, 0); iter_next(LIST, id, ptr))
 
 
 /**
@@ -97,30 +127,43 @@ typedef enum {
  *
  * @param   id    ID used with gen_list.
  * @param   l     The List struct pointer.
- * @param   ptr   ListIterator which is assigned to the current element.
+ * @param   ptr   ListEntry which is assigned to the current element.
  *                 - May be dereferenced with iter_deref(LIST, ptr) or ptr->data.
  */
-#define list_riter(id, l, ptr)                                                                               \
-    for (ptr = iter_rbegin(LIST, id, l, 0); ptr != iter_rend(LIST, id, l, 0); iter_prev(LIST, id, ptr))
+#define list_riter(id, l, ptr) for (ptr = iter_rbegin(LIST, id, l, 0); ptr != iter_rend(LIST, id, l, 0); iter_prev(LIST, id, ptr))
 
 
 /**
- * Creates a new list.
- * In (1), an empty List is created.
- * In (2), a List is initialized from a built-in array data type, where "arr" is a pointer to the
- *   first element to insert, inserting "n" elements total.
- * In (3), a List is initialized from another List.
- * 
- * (1) init = LIST_INIT_EMPTY:    list_new(id, ListInitializer init)
- * (2) init = LIST_INIT_BUILTIN:  list_new(id, ListInitializer init, t arr[], int n)
- * (3) init = LIST_INIT_LIST:     list_new(id, ListInitializer init, List_id *other)
+ * Creates a new, empty list.
  *
- * @param  id      ID used with gen_list.
- * @param  init    Type of initializer to execute.
+ * @param   id    ID used with gen_list.
  *
- * @return          A pointer to the newly allocated list.
+ * @return        A pointer to the newly allocated list.
  */
-#define list_new(id, init, ...) list_new_##id(init, ##__VA_ARGS__)
+#define list_new(id) __ds_calloc(1, sizeof(List_##id))
+
+
+/**
+ * Creates a new list using the elements in a built-in array data type.
+ *
+ * @param   id   ID used with gen_list.
+ * @param   arr  Pointer to the first element to insert.
+ * @param   n    Number of elements to include.
+ *
+ * @return        A pointer to the newly allocated list.
+ */
+#define list_new_fromArray(id, arr, n) list_new_fromArray_##id(arr, n)
+
+
+/**
+ * Creates a new list as a copy of an existing List.
+ *
+ * @param   id    ID used with gen_list.
+ * @param   list  List to copy.
+ *
+ * @return        A pointer to the newly allocated list.
+ */
+#define list_createCopy(id, list) list_createCopy_##id(list)
 
 
 /**
@@ -139,7 +182,7 @@ typedef enum {
  * @param  l      Pointer to list.
  * @param  value  Pointer to the element to be inserted.
  */
-#define list_push_front(id, l, value) __list_push_val_##id(l, value, true)
+#define list_push_front(id, l, value) list_push_front_##id(l, value)
 
 
 /**
@@ -149,7 +192,7 @@ typedef enum {
  * @param  l      Pointer to list.
  * @param  value  Pointer to the element to be inserted.
  */
-#define list_push_back(id, l, value) __list_push_val_##id(l, value, false)
+#define list_push_back(id, l, value) list_push_back_##id(l, value)
 
 
 /**
@@ -158,7 +201,7 @@ typedef enum {
  * @param  id  ID used with gen_list.
  * @param  l   Pointer to list.
  */
-#define list_pop_front(id, l) __list_pop_val_##id(l, true)
+#define list_pop_front(id, l) list_pop_front_##id(l)
 
 
 /**
@@ -167,36 +210,74 @@ typedef enum {
  * @param  id  ID used with gen_list.
  * @param  l   Pointer to list.
  */
-#define list_pop_back(id, l) __list_pop_val_##id(l, false)
+#define list_pop_back(id, l) list_pop_back_##id(l)
 
 
 /**
- * Inserts new elements BEFORE the ListIterator at "pos".
- * In (1), a single element is inserted.
- * In (2), elements from a built-in array data type are inserted, where "arr" is a pointer to the
- *   first element to insert, inserting "n" elements total.
- * In (3), elements from another List are inserted in the range [start, end); "start" must not be
- *   NULL. If "end" is LIST_END, then all elements from "start" through the end of the other list
- *   will be inserted.
- * 
- * (1) type = LIST_INSERT_SINGLE:   list_insert(id, List_id *l, DLLNode_id *pos, int sorted, ListInsertType type, t value)
- * (2) type = LIST_INSERT_BUILTIN:  list_insert(id, List_id *l, DLLNode_id *pos, int sorted, ListInsertType type, t arr[], int n)
- * (3) type = LIST_INSERT_LIST:     list_insert(id, List_id *l, DLLNode_id *pos, int sorted, ListInsertType type, DLLNode_id *start, DLLNode_id *end)
+ * Inserts a new element BEFORE the ListEntry at `pos`.
  *
  * @param   id      ID used with gen_list.
  * @param   l       Pointer to list.
- * @param   pos     ListIterator before which the element(s) should be inserted. If this is LIST_END,
- *                    it defaults to list_push_back.
- * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
- *                    "pos" is ignored.
- * @param   type    Type of insertion to execute.
+ * @param   pos     ListEntry before which the element should be inserted. If this is NULL,
+ *                    it defaults to `list_push_back`.
+ * @param   value   Value to insert.
  *
- * @return         If successful, and "sorted" is false, returns a ListIterator corresponding to the
- *                   first inserted element. If "sorted" is true and multiple elements were
- *                   inserted, returns a ListIterator corresponding to the front of the list. If an
- *                   error occurred, returns LIST_ERROR.
+ * @return          If successful, returns a ListEntry corresponding to the inserted element. If an
+ *                    error occurred, returns NULL.
  */
-#define list_insert(id, l, pos, sorted, type, ...) list_insert_##id(l, pos, sorted, type, ##__VA_ARGS__)
+#define list_insert(id, l, pos, value) list_insert_##id(l, pos, value)
+
+
+/**
+ * Inserts a new element in sorted order.
+ *
+ * @param   id      ID used with gen_list.
+ * @param   l       Pointer to list.
+ * @param   value   Value to insert.
+ *
+ * @return          If successful, returns a ListEntry corresponding to the inserted element. If an
+ *                    error occurred, returns NULL.
+ */
+#define list_insert_sorted(id, l, value) list_insert_sorted_##id(l, value)
+
+
+/**
+ * Inserts new elements from a built-in array BEFORE the ListEntry at `pos`.
+ *
+ * @param   id      ID used with gen_list.
+ * @param   l       Pointer to list.
+ * @param   pos     ListEntry before which the elements should be inserted. If this is NULL,
+ *                    it defaults to `list_push_back`.
+ * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
+ *                    `pos` is ignored.
+ * @param   arr     Pointer to the first element to insert.
+ * @param   n       Number of elements to insert from `arr`.
+ *
+ * @return          If successful, and `sorted` is false, returns a ListEntry corresponding to the
+ *                    first inserted element. If `sorted` is true, returns a ListEntry corresponding
+ *                    to the front of the list. If an error occurred, returns NULL.
+ */
+#define list_insert_fromArray(id, l, pos, sorted, arr, n) list_insert_fromArray_##id(l, pos, sorted, arr, n)
+
+
+/**
+ * Inserts new elements from another List in the range [start, end) BEFORE the ListEntry at `pos`.
+ *
+ * @param   id      ID used with gen_list.
+ * @param   l       Pointer to list.
+ * @param   pos     ListEntry before which the elements should be inserted. If this is NULL,
+ *                    it defaults to `list_push_back`.
+ * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
+ *                    `pos` is ignored.
+ * @param   start   Pointer to first ListEntry to insert. Must not be NULL.
+ * @param   end     Pointer after the last ListEntry to insert. If this is NULL, all elements from
+ *                    `start` through the end of the other list will be inserted.
+ *
+ * @return          If successful, and `sorted` is false, returns a ListEntry corresponding to the
+ *                    first inserted element. If `sorted` is true, returns a ListEntry corresponding
+ *                    to the front of the list. If an error occurred, returns NULL.
+ */
+#define list_insert_fromList(id, l, pos, sorted, start, end) list_insert_fromList_##id(l, pos, sorted, start, end)
 
 
 /**
@@ -205,13 +286,13 @@ typedef enum {
  *
  * @param   id     ID used with gen_list.
  * @param   l      Pointer to list.
- * @param   first  ListIterator pointing to the first element to be removed - must be provided.
- * @param   last   ListIterator AFTER the last element to be deleted. If this is LIST_END, then
+ * @param   first  ListEntry pointing to the first element to be removed - must be provided.
+ * @param   last   ListEntry AFTER the last element to be deleted. If this is NULL, then
  *                   all elements from start through the end of the list will be removed.
  *
- * @return        If successful, returns a ListIterator corresponding to the element after the
- *                   last deleted element. If an error occurred, returns LIST_ERROR. If the last
- *                   deleted element was at the end of the list, returns LIST_END.
+ * @return        If successful, returns a ListEntry corresponding to the element after the
+ *                   last deleted element. If an error occurred or if the last
+ *                   deleted element was at the end of the list, returns NULL.
  */
 #define list_erase(id, l, first, last) list_erase_##id(l, first, last)
 
@@ -222,7 +303,7 @@ typedef enum {
  * @param  id  ID used with gen_list.
  * @param  l   Pointer to list.
  */
-#define list_clear(id, l) list_erase_##id(l, l->front, LIST_END(id))
+#define list_clear(id, l) list_erase_##id(l, l->front, NULL)
 
 
 /**
@@ -255,7 +336,7 @@ typedef enum {
  * @param  id  ID used with gen_list.
  * @param  l   Pointer to list.
  */
-#define list_unique(id, l) _list_unique_##id(l)
+#define list_unique(id, l) list_unique_##id(l)
 
 
 /**
@@ -265,7 +346,7 @@ typedef enum {
  * @param  l    Pointer to list.
  * @param  val  Pointer to the value to compare to a list element's data.
  */
-#define list_remove_value(id, l, val) _list_remove_value_##id(l, val)
+#define list_remove_value(id, l, val) list_remove_value_##id(l, val)
 
 
 /**
@@ -275,7 +356,7 @@ typedef enum {
  * @param  l          Pointer to list.
  * @param  condition  Function pointer to check if an element's data meets the condition.
  */
-#define list_remove_if(id, l, condition) _list_remove_if_##id(l, condition)
+#define list_remove_if(id, l, condition) list_remove_if_##id(l, condition)
 
 
 /**
@@ -285,56 +366,91 @@ typedef enum {
  * @param   l    Pointer to list.
  * @param   val  Pointer to the value to compare to a list element's data.
  *
- * @return       If the value was found, returns a ListIterator pointing to that element. If it was
+ * @return       If the value was found, returns a ListEntry pointing to that element. If it was
  *                  not found, returns NULL.
  */
 #define list_find(id, l, val) list_find_##id(l, val)
 
 
 /**
- * Creates a sublist from "l" in the range [first,last) (non-inclusive for "last").
+ * Creates a sublist from `l` in the range [first,last) (non-inclusive for `last`).
  *
  * @param   id     ID used with gen_list.
  * @param   l      Pointer to list.
  * @param   first  Element to start the sublist.
- * @param   last   Element at which the sublist will stop. If this is LIST_END, the sublist will
- *                   include all elements from "first" to the end of the list.
+ * @param   last   Element at which the sublist will stop. If this is NULL, the sublist will
+ *                   include all elements from `first` to the end of the list.
  *
- * @return         Newly created sublist from the list. If "l" is empty or "first" is NULL,
+ * @return         Newly created sublist from the list. If `l` is empty or `first` is NULL,
  *                   returns NULL.
  */
 #define list_sublist(id, l, first, last) list_sublist_##id(l, first, last)
 
 
 /**
- * Merges "other" into "l", both of which must be in sorted order prior to this operation.
- *  "other" is left with a size of 0, and "l" grows by as many elements as "other" previously
+ * Merges `other` into `l`, both of which must be in sorted order prior to this operation.
+ *  `other` is left with a size of 0, and `l` grows by as many elements as `other` previously
  *  contained.
  *
  * @param   id     ID used with gen_list.
  * @param   l      Pointer to list.
- * @param   other  Pointer to other list, which will be merged with "l".
+ * @param   other  Pointer to other list, which will be merged with `l`.
  */
 #define list_merge(id, l, other) list_merge_##id(l, other)
 
 
 /**
- * Moves elements from "other" before the ListIterator in "l" at "pos". No new elements are created;
- *  they are simply transferred from "other" into "l".
- * 
- * (1) type = LIST_SPLICE_ALL:     list_splice(id, List_id *this, DLLNode_id *position, List_id *other, LIST_SPLICE_ALL)
- * (2) type = LIST_SPLICE_SINGLE:  list_splice(id, List_id *this, DLLNode_id *position, List_id *other, LIST_SPLICE_SINGLE, DLLNode_id *elem)
- * (3) type = LIST_SPLICE_RANGE:   list_splice(id, List_id *this, DLLNode_id *position, List_id *other, LIST_SPLICE_RANGE, DLLNode_id *first, DLLNode_id *last)
+ * Moves all elements from `other` into this list BEFORE the ListEntry at `pos`.
  *
- * @param   id        ID used with gen_list.
- * @param   l         Pointer to list into which elements will be moved.
- * @param   position  Pointer to element in "l" before which elements in "other" will be
- *                      moved. If this is LIST_END, elements from "other" will be appended to
- *                      "l".
- * @param   other     Pointer to other list from which elements will be moved.
- * @param   type      Type of splice to perform.
+ * @param   id     ID used with gen_list.
+ * @param   l      Pointer to list into which elements will be moved.
+ * @param   pos    Pointer to element in `l` before which elements in `other` will be moved. If
+ *                   this is NULL, elements from `other` will be appended to `l`.
+ * @param   other  Pointer to other list from which elements will be moved.
  */
-#define list_splice(id, l, position, other, type, ...) list_splice_##id(l, position, other, type, ##__VA_ARGS__)
+#define list_splice(id, l, pos, other) list_splice_range_##id(l, pos, other, (other)->front, NULL)
+
+
+/**
+ * Moves a single element from `other` into this list BEFORE the ListEntry at `pos`.
+ *
+ * @param   id       ID used with gen_list.
+ * @param   l        Pointer to list into which elements will be moved.
+ * @param   pos      Pointer to element in `l` before which `element` will be moved. If this is
+ *                     NULL, `element` is appended to `l`.
+ * @param   other    Pointer to other list from which elements will be moved.
+ * @param   element  The ListEntry to move.
+ */
+#define list_splice_element(id, l, pos, other, element) list_splice_range_##id(l, pos, other, element, element ? (element)->next : NULL)
+
+
+/**
+ * Moves elements from `other` in the range [first, last) into this list BEFORE the ListEntry at `pos`.
+ *
+ * @param   id     ID used with gen_list.
+ * @param   l      Pointer to list into which elements will be moved.
+ * @param   pos    Pointer to element in `l` before which elements in `other` will be moved. If
+ *                   this is NULL, elements from `other` will be appended to `l`.
+ * @param   other  Pointer to other list from which elements will be moved.
+ * @param   first  First ListEntry to move.
+ * @param   last   Pointer after the last ListEntry to move. If this is NULL, all entries from
+ *                   `first` through the end of `other` are moved.
+ */
+#define list_splice_range(id, l, pos, other, first, last) list_splice_range_##id(l, pos, other, first, last)
+
+/* --------------------------------------------------------------------------
+ * List iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_LIST(id, l, n)    ((l)->front)
+#define iter_end_LIST(id, l, n)      NULL
+#define iter_rbegin_LIST(id, l, n)   ((l)->back)
+#define iter_rend_LIST(id, l, n)     NULL
+#define iter_next_LIST(id, p)        ((p) = (p)->next)
+#define iter_prev_LIST(id, p)        ((p) = (p)->prev)
+#define iter_deref_LIST(p)           ((p)->data)
+#define iter_advance_LIST(id, p, n)  iterator_advance_helper(LIST, id, p, n)
+#define iter_dist_LIST(id, p1, p2)   __iter_dist_helper_LIST_##id(p1, p2)
 
 
 /**
@@ -345,140 +461,212 @@ typedef enum {
  * @param   cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
  */
 #define gen_list(id, t, cmp_lt)                                                                              \
-__gen_dllnode_list_typedef(id, t)                                                                            \
-__gen_iter_LIST(id)                                                                                          \
-__gen_list_declarations(id, t)                                                                               \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_new_##id(ListInitializer init, ...) {                                       \
-    List_##id *l = malloc(sizeof(List_##id));                                                                \
-    if (!l) {                                                                                                \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    memset(l, 0, sizeof(List_##id));                                                                         \
+typedef struct ListEntry_##id ListEntry_##id;                                                                \
+struct ListEntry_##id {                                                                                      \
+    ListEntry_##id *prev;                                                                                    \
+    ListEntry_##id *next;                                                                                    \
+    t data;                                                                                                  \
+};                                                                                                           \
                                                                                                              \
-    if (init == LIST_INIT_EMPTY) { /* nothing more to do in this case */                                     \
-        return l;                                                                                            \
-    }                                                                                                        \
+typedef struct {                                                                                             \
+    size_t size;                                                                                             \
+    ListEntry_##id *front;                                                                                   \
+    ListEntry_##id *back;                                                                                    \
+} List_##id;                                                                                                 \
                                                                                                              \
-    int n;                                                                                                   \
-    void *other;                                                                                             \
+create_iterator_distance_helper(LIST, id, ListEntry_##id *)                                                  \
                                                                                                              \
-    /* parse arguments */                                                                                    \
-    va_list args;                                                                                            \
-    va_start(args, init);                                                                                    \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_##id(List_##id *l, ListEntry_##id *pos, t value);               \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_sorted_##id(List_##id *l, t value);                             \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_fromArray_##id(List_##id *l, ListEntry_##id *pos, bool sorted, t *arr, size_t n); \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *l, ListEntry_##id *pos, bool sorted, ListEntry_##id *start, ListEntry_##id *end); \
+__DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last); \
+__DS_FUNC_PREFIX ListEntry_##id *list_erase_##id(List_##id *l, ListEntry_##id *first, ListEntry_##id *last); \
+__DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other);                                    \
                                                                                                              \
-    other = va_arg(args, void *);                                                                            \
+__DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
+    List_##id *l = list_new(id);                                                                             \
+    list_insert_fromArray_##id(l, NULL, false, arr, size);                                                   \
+    return l;                                                                                                \
+}                                                                                                            \
                                                                                                              \
-    if (init == LIST_INIT_BUILTIN) {                                                                         \
-        n = va_arg(args, int);                                                                               \
-    }                                                                                                        \
-                                                                                                             \
-    va_end(args);                                                                                            \
-                                                                                                             \
-    if (init == LIST_INIT_BUILTIN) {                                                                         \
-        __list_insert_builtin_##id(l, LIST_END(id), (t *) other, n, false);                                  \
-    } else {                                                                                                 \
-        __list_insert_list_##id(l, LIST_END(id), ((List_##id *) other)->front, LIST_END(id), false);         \
-    }                                                                                                        \
+__DS_FUNC_PREFIX List_##id *list_createCopy_##id(List_##id *list) {                                          \
+    List_##id *l = list_new(id);                                                                             \
+    list_insert_fromList_##id(l, NULL, false, list->front, NULL);                                            \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void list_free_##id(List_##id *l) {                                                     \
-    list_erase_##id(l, l->front, LIST_END(id));                                                              \
+    list_erase_##id(l, l->front, NULL);                                                                      \
     free(l);                                                                                                 \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void __list_push_val_##id(List_##id *l, t value, bool front) {                          \
-    DLLNode_##id *new = dll_node_new_##id();                                                                 \
-    new->data = value;                                                                                       \
+__DS_FUNC_PREFIX_INL void list_push_front_##id(List_##id *l, t value) {                                      \
+    __list_push_body(id, next, prev, l->front)                                                               \
+}                                                                                                            \
                                                                                                              \
-    if (!(l->front)) {                                                                                       \
-        l->front = new;                                                                                      \
-        l->back = new;                                                                                       \
+__DS_FUNC_PREFIX_INL void list_push_back_##id(List_##id *l, t value) {                                       \
+    __list_push_body(id, prev, next, l->back)                                                                \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL void list_pop_front_##id(List_##id *l) {                                                \
+    __list_pop_body(id, l->front, next, prev, l->back)                                                       \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL void list_pop_back_##id(List_##id *l) {                                                 \
+    __list_pop_body(id, l->back, prev, next, l->front)                                                       \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_##id(List_##id *l, ListEntry_##id *pos, t value) {              \
+    if (!pos) {                                                                                              \
+        list_push_back_##id(l, value);                                                                       \
+        return l->back;                                                                                      \
+    }                                                                                                        \
+                                                                                                             \
+    ListEntry_##id *prev = pos->prev;                                                                        \
+    ListEntry_##id *new = __ds_calloc(1, sizeof(ListEntry_##id));                                            \
+    new->data = value;                                                                                       \
+    new->next = pos;                                                                                         \
+    pos->prev = new;                                                                                         \
+    new->prev = prev;                                                                                        \
+    if (prev) {                                                                                              \
+        prev->next = new;                                                                                    \
     } else {                                                                                                 \
-        if (front) {                                                                                         \
-            new->next = l->front;                                                                            \
-            l->front->prev = new;                                                                            \
-            l->front = new;                                                                                  \
-        } else {                                                                                             \
-            new->prev = l->back;                                                                             \
-            l->back->next = new;                                                                             \
-            l->back = new;                                                                                   \
-        }                                                                                                    \
+        l->front = new;                                                                                      \
     }                                                                                                        \
     l->size++;                                                                                               \
+    return new;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void __list_pop_val_##id(List_##id *l, bool front) {                                    \
-    if (!(l->front)) {                                                                                       \
-        return;                                                                                              \
-    }                                                                                                        \
-    DLLNode_##id *repl = front ? l->front : l->back;                                                         \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_sorted_##id(List_##id *l, t value) {                            \
+    ListEntry_##id *curr = l->front;                                                                         \
                                                                                                              \
-    if (front) {                                                                                             \
-        l->front = repl->next;                                                                               \
-        if (l->front) {                                                                                      \
-            l->front->prev = NULL;                                                                           \
-        } else {                                                                                             \
-            l->back = NULL;                                                                                  \
-        }                                                                                                    \
+    if (!curr || ds_cmp_leq(cmp_lt, value, curr->data)) {                                                    \
+        list_push_front_##id(l, value);                                                                      \
+        return l->front;                                                                                     \
     } else {                                                                                                 \
-        l->back = repl->prev;                                                                                \
-        if (l->back) {                                                                                       \
-            l->back->next = NULL;                                                                            \
-        } else {                                                                                             \
-            l->front = NULL;                                                                                 \
+        ListEntry_##id *prev = l->front;                                                                     \
+        curr = curr->next;                                                                                   \
+        while (curr != NULL) {                                                                               \
+            if (ds_cmp_eq(cmp_lt, value, curr->data) ||                                                      \
+               (cmp_lt(value, curr->data) && cmp_lt(prev->data, value))) {                                   \
+                return list_insert_##id(l, curr, value);                                                     \
+            }                                                                                                \
+            prev = prev->next;                                                                               \
+            curr = curr->next;                                                                               \
         }                                                                                                    \
+        list_push_back_##id(l, value);                                                                       \
+        return l->back;                                                                                      \
     }                                                                                                        \
-    free(repl);                                                                                              \
-    l->size--;                                                                                               \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX DLLNode_##id *list_insert_##id(List_##id *l, DLLNode_##id *pos, bool sorted, ListInsertType type, ...) { \
-    void *arr;                                                                                               \
-    t value = (t) 0;                                                                                         \
-    int n;                                                                                                   \
-    void *l_start;                                                                                           \
-    void *l_end;                                                                                             \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_fromArray_##id(List_##id *l, ListEntry_##id *pos, bool sorted, t *arr, size_t n) { \
+    if (!arr || !n) return NULL;                                                                             \
                                                                                                              \
-    va_list args;                                                                                            \
-    va_start(args, type);                                                                                    \
+    ListEntry_##id *rv = NULL; /* ListEntry where first element from arr was inserted */                     \
+    t *end = &arr[n];                                                                                        \
                                                                                                              \
-    if (type == LIST_INSERT_SINGLE) {                                                                        \
-        value = (t) (long) va_arg(args, void *);                                                             \
-    } else if (type == LIST_INSERT_BUILTIN) {                                                                \
-        arr = va_arg(args, void *);                                                                          \
-        n = va_arg(args, int);                                                                               \
+    if (sorted) {                                                                                            \
+        for (; arr != end; ++arr) {                                                                          \
+            list_insert_sorted_##id(l, *arr);                                                                \
+        }                                                                                                    \
+        rv = l->front;                                                                                       \
     } else {                                                                                                 \
-        l_start = va_arg(args, void *);                                                                      \
-        l_end = va_arg(args, void *);                                                                        \
-    }                                                                                                        \
+        ListEntry_##id *prev = pos ? pos->prev : NULL;                                                       \
+        ListEntry_##id *first = __ds_calloc(1, sizeof(ListEntry_##id));                                      \
+        first->data = *arr;                                                                                  \
+        ++arr;                                                                                               \
+        int count = 1;                                                                                       \
+        ListEntry_##id *curr, *temp = first;                                                                 \
+        while (arr != end) {                                                                                 \
+            curr = __ds_calloc(1, sizeof(ListEntry_##id));                                                   \
+            curr->data = *arr;                                                                               \
+            curr->prev = temp;                                                                               \
+            temp->next = curr;                                                                               \
+            temp = curr;                                                                                     \
+            ++arr;                                                                                           \
+            ++count;                                                                                         \
+        }                                                                                                    \
+        ListEntry_##id *last = temp;                                                                         \
                                                                                                              \
-    va_end(args);                                                                                            \
-                                                                                                             \
-    DLLNode_##id *rv = LIST_END(id);                                                                         \
-                                                                                                             \
-    switch (type) {                                                                                          \
-        case LIST_INSERT_SINGLE:                                                                             \
-            rv = sorted ? __list_insert_elem_sorted_##id(l, value) : __list_insert_elem_##id(l, pos, value); \
-            break;                                                                                           \
-        case LIST_INSERT_BUILTIN:                                                                            \
-            rv = __list_insert_builtin_##id(l, pos, (t *) arr, n, sorted);                                   \
-            break;                                                                                           \
-        case LIST_INSERT_LIST:                                                                               \
-            rv = __list_insert_list_##id(l, pos, (DLLNode_##id *) l_start, (DLLNode_##id *) l_end, sorted);  \
-            break;                                                                                           \
+        first->prev = prev;                                                                                  \
+        last->next = pos;                                                                                    \
+        if (prev) {                                                                                          \
+            prev->next = first;                                                                              \
+        } else if (!l->front) {                                                                              \
+            l->front = first;                                                                                \
+        }                                                                                                    \
+        if (pos) {                                                                                           \
+            pos->prev = last;                                                                                \
+        } else if (!l->back) {                                                                               \
+            l->back = last;                                                                                  \
+        } else {                                                                                             \
+            l->back->next = first;                                                                           \
+            first->prev = l->back;                                                                           \
+            l->back = last;                                                                                  \
+        }                                                                                                    \
+        rv = first;                                                                                          \
+        l->size += (size_t) count;                                                                           \
     }                                                                                                        \
     return rv;                                                                                               \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX DLLNode_##id *list_erase_##id(List_##id *l, DLLNode_##id *first, DLLNode_##id *last) {      \
-    if (!first || !l->front || (first == last)) {                                                            \
-        return LIST_ERROR(id);                                                                               \
-    }                                                                                                        \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *l, ListEntry_##id *pos, bool sorted, ListEntry_##id *start, ListEntry_##id *end) { \
+    if (!start) return NULL;                                                                                 \
+    ListEntry_##id *rv = NULL;                                                                               \
                                                                                                              \
-    DLLNode_##id *before = first->prev;                                                                      \
-    DLLNode_##id *tmp;                                                                                       \
+    if (sorted) {                                                                                            \
+        while (start != end) {                                                                               \
+            list_insert_sorted_##id(l, start->data);                                                         \
+            start = start->next;                                                                             \
+        }                                                                                                    \
+        rv = l->front;                                                                                       \
+    } else {                                                                                                 \
+        ListEntry_##id *prev = pos ? pos->prev : NULL;                                                       \
+        ListEntry_##id *first = __ds_calloc(1, sizeof(ListEntry_##id));                                      \
+        first->data = start->data;                                                                           \
+        start = start->next;                                                                                 \
+        int count = 1;                                                                                       \
+        ListEntry_##id *curr = first, *temp = first;                                                         \
+        while (start != end) {                                                                               \
+            curr = __ds_calloc(1, sizeof(ListEntry_##id));                                                   \
+            curr->data = start->data;                                                                        \
+            curr->prev = temp;                                                                               \
+            temp->next = curr;                                                                               \
+            temp = curr;                                                                                     \
+            start = start->next;                                                                             \
+            ++count;                                                                                         \
+        }                                                                                                    \
+        ListEntry_##id *last = temp;                                                                         \
+                                                                                                             \
+        first->prev = prev;                                                                                  \
+        last->next = pos;                                                                                    \
+        if (prev) {                                                                                          \
+            prev->next = first;                                                                              \
+        } else if (!l->front) {                                                                              \
+            l->front = first;                                                                                \
+        }                                                                                                    \
+        if (pos) {                                                                                           \
+            pos->prev = last;                                                                                \
+        } else if (!l->back) {                                                                               \
+            l->back = last;                                                                                  \
+        } else {                                                                                             \
+            l->back->next = first;                                                                           \
+            first->prev = l->back;                                                                           \
+            l->back = last;                                                                                  \
+        }                                                                                                    \
+        rv = first;                                                                                          \
+        l->size += (size_t) count;                                                                           \
+    }                                                                                                        \
+    return rv;                                                                                               \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX ListEntry_##id *list_erase_##id(List_##id *l, ListEntry_##id *first, ListEntry_##id *last) { \
+    if (!first || !l->front || first == last) return NULL;                                                   \
+                                                                                                             \
+    ListEntry_##id *before = first->prev;                                                                    \
+    ListEntry_##id *tmp, *res;                                                                               \
                                                                                                              \
     while (first != last) {                                                                                  \
         tmp = first->next;                                                                                   \
@@ -493,24 +681,20 @@ __DS_FUNC_PREFIX DLLNode_##id *list_erase_##id(List_##id *l, DLLNode_##id *first
         l->front = last;                                                                                     \
     }                                                                                                        \
                                                                                                              \
-    DLLNode_##id *res;                                                                                       \
-                                                                                                             \
     if (last) {                                                                                              \
         res = last;                                                                                          \
         last->prev = before;                                                                                 \
     } else {                                                                                                 \
-        res = LIST_END(id);                                                                                  \
+        res = NULL;                                                                                          \
         l->back = before;                                                                                    \
     }                                                                                                        \
     return res;                                                                                              \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void list_reverse_##id(List_##id *l) {                                                  \
-    DLLNode_##id *newFront = l->back;                                                                        \
-    DLLNode_##id *newBack = l->front;                                                                        \
-    DLLNode_##id *prev = NULL;                                                                               \
-    DLLNode_##id *curr = l->front;                                                                           \
-    DLLNode_##id *next = NULL;                                                                               \
+    ListEntry_##id *newFront = l->back, *newBack = l->front;                                                 \
+    ListEntry_##id *prev = NULL, *next = NULL;                                                               \
+    ListEntry_##id *curr = l->front;                                                                         \
                                                                                                              \
     while (curr) {                                                                                           \
         prev = curr->prev;                                                                                   \
@@ -527,7 +711,7 @@ __DS_FUNC_PREFIX void list_sort_##id(List_##id *l) {                            
     if (l->front == l->back) {                                                                               \
         return;                                                                                              \
     } else if (l->size == 2 && cmp_lt(l->back->data, l->front->data)) {                                      \
-        DLLNode_##id *temp = l->back;                                                                        \
+        ListEntry_##id *temp = l->back;                                                                      \
         l->front = l->back;                                                                                  \
         l->back = temp;                                                                                      \
         l->front->prev = l->back->next = NULL;                                                               \
@@ -536,23 +720,20 @@ __DS_FUNC_PREFIX void list_sort_##id(List_##id *l) {                            
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    List_##id *carry = list_new_##id(LIST_INIT_EMPTY);                                                       \
-    List_##id *tmp = malloc(64 * sizeof(List_##id));                                                         \
-    if (!tmp) DS_OOM();                                                                                      \
-    memset(tmp, 0, 64 * sizeof(List_##id));                                                                  \
-                                                                                                             \
+    List_##id *carry = list_new(id);                                                                         \
+    List_##id *tmp = __ds_calloc(64, sizeof(List_##id));                                                     \
     List_##id *fill = tmp;                                                                                   \
     List_##id *counter;                                                                                      \
                                                                                                              \
     do {                                                                                                     \
-        list_splice_##id(carry, carry->front, l, LIST_SPLICE_SINGLE, l->front);                              \
+        list_splice_element(id, carry, carry->front, l, l->front);                                           \
                                                                                                              \
         for (counter = tmp; counter != fill && !(list_empty(counter)); ++counter) {                          \
             list_merge_##id(counter, carry);                                                                 \
-            __list_swap(id, carry, counter);                                                                 \
+            __list_swap(id, carry, counter)                                                                  \
         }                                                                                                    \
                                                                                                              \
-        __list_swap(id, carry, counter);                                                                     \
+        __list_swap(id, carry, counter)                                                                      \
         if (counter == fill) {                                                                               \
             ++fill;                                                                                          \
         }                                                                                                    \
@@ -562,113 +743,25 @@ __DS_FUNC_PREFIX void list_sort_##id(List_##id *l) {                            
         list_merge_##id(counter, (counter - 1));                                                             \
     }                                                                                                        \
                                                                                                              \
-    __list_swap(id, l, (fill - 1));                                                                          \
+    __list_swap(id, l, (fill - 1))                                                                           \
     list_free_##id(carry);                                                                                   \
     free(tmp);                                                                                               \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void _list_unique_##id(List_##id *l) {                                                      \
-    if (!(l->front)) {                                                                                       \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    DLLNode_##id *curr = l->front->next;                                                                     \
-    DLLNode_##id *prev = l->front;                                                                           \
-    DLLNode_##id *next;                                                                                      \
-                                                                                                             \
-    while (curr) {                                                                                           \
-        next = curr->next;                                                                                   \
-        if (ds_cmp_eq(cmp_lt, prev->data, curr->data)) {                                                     \
-            prev->next = next;                                                                               \
-            if (next) {                                                                                      \
-                next->prev = prev;                                                                           \
-            } else {                                                                                         \
-                l->back = prev;                                                                              \
-            }                                                                                                \
-                                                                                                             \
-            free(curr);                                                                                      \
-            l->size--;                                                                                       \
-            curr = next;                                                                                     \
-        } else {                                                                                             \
-            prev = curr;                                                                                     \
-            curr = curr->next;                                                                               \
-        }                                                                                                    \
-    }                                                                                                        \
-    l->back = prev;                                                                                          \
+__DS_FUNC_PREFIX void list_unique_##id(List_##id *l) {                                                       \
+    __list_elem_removal_body(id, l, ds_cmp_eq(cmp_lt, prev->data, curr->data), l->front->next, l->front)     \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void _list_remove_value_##id(List_##id *l, t val) {                                         \
-    if (!(l->front)) {                                                                                       \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    DLLNode_##id *curr = l->front;                                                                           \
-    DLLNode_##id *prev =  NULL;                                                                              \
-    DLLNode_##id *next;                                                                                      \
-                                                                                                             \
-    while (curr) {                                                                                           \
-        next = curr->next;                                                                                   \
-        if (ds_cmp_eq(cmp_lt, val, curr->data)) {                                                            \
-            if (prev) {                                                                                      \
-                prev->next = next;                                                                           \
-            } else {                                                                                         \
-                l->front = next;                                                                             \
-            }                                                                                                \
-                                                                                                             \
-            if (next) {                                                                                      \
-                next->prev = prev;                                                                           \
-            } else {                                                                                         \
-                l->back = prev;                                                                              \
-            }                                                                                                \
-                                                                                                             \
-            free(curr);                                                                                      \
-            l->size--;                                                                                       \
-            curr = next;                                                                                     \
-        } else {                                                                                             \
-            prev = curr;                                                                                     \
-            curr = curr->next;                                                                               \
-        }                                                                                                    \
-    }                                                                                                        \
-    l->back = prev;                                                                                          \
+__DS_FUNC_PREFIX void list_remove_value_##id(List_##id *l, t val) {                                          \
+    __list_elem_removal_body(id, l, ds_cmp_eq(cmp_lt, val, curr->data), l->front, NULL)                      \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void _list_remove_if_##id(List_##id *l, meetsCondition_##id cond) {                         \
-    if (!(l->front)) {                                                                                       \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    DLLNode_##id *curr = l->front;                                                                           \
-    DLLNode_##id *prev = NULL;                                                                               \
-    DLLNode_##id *next;                                                                                      \
-                                                                                                             \
-    while (curr) {                                                                                           \
-        next = curr->next;                                                                                   \
-        if (cond(&(curr->data))) {                                                                           \
-            if (prev) {                                                                                      \
-                prev->next = next;                                                                           \
-            } else {                                                                                         \
-                l->front = next;                                                                             \
-            }                                                                                                \
-                                                                                                             \
-            if (next) {                                                                                      \
-                next->prev = prev;                                                                           \
-            } else {                                                                                         \
-                l->back = prev;                                                                              \
-            }                                                                                                \
-                                                                                                             \
-            free(curr);                                                                                      \
-            l->size--;                                                                                       \
-            curr = next;                                                                                     \
-        } else {                                                                                             \
-            prev = curr;                                                                                     \
-            curr = curr->next;                                                                               \
-        }                                                                                                    \
-    }                                                                                                        \
-    l->back = prev;                                                                                          \
+__DS_FUNC_PREFIX void list_remove_if_##id(List_##id *l, int (*cond)(t*)) {                                   \
+    __list_elem_removal_body(id, l, cond(&(curr->data)), l->front, NULL)                                     \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL DLLNode_##id *list_find_##id(List_##id *l, t val) {                                     \
-    DLLNode_##id *curr = l->front;                                                                           \
+__DS_FUNC_PREFIX_INL ListEntry_##id *list_find_##id(List_##id *l, t val) {                                   \
+    ListEntry_##id *curr = l->front;                                                                         \
     while (curr) {                                                                                           \
         if (ds_cmp_eq(cmp_lt, curr->data, val)) return curr;                                                 \
         curr = curr->next;                                                                                   \
@@ -676,15 +769,13 @@ __DS_FUNC_PREFIX_INL DLLNode_##id *list_find_##id(List_##id *l, t val) {        
     return NULL;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_sublist_##id(List_##id *this, DLLNode_##id *first, DLLNode_##id *last) {    \
-    if (!this->front || !first || (first == last)) {                                                         \
-        return NULL;                                                                                         \
-    }                                                                                                        \
+__DS_FUNC_PREFIX List_##id *list_sublist_##id(List_##id *this, ListEntry_##id *first, ListEntry_##id *last) { \
+    if (!this->front || !first || (first == last)) return NULL;                                              \
                                                                                                              \
-    List_##id *sub = list_new_##id(LIST_INIT_EMPTY);                                                         \
+    List_##id *sub = list_new(id);                                                                           \
                                                                                                              \
     while (first != last) {                                                                                  \
-        __list_push_val_##id(sub, first->data, false);                                                       \
+        list_push_back_##id(sub, first->data);                                                               \
         first = first->next;                                                                                 \
     }                                                                                                        \
     return sub;                                                                                              \
@@ -702,15 +793,13 @@ __DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other) {      
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    DLLNode_##id *first1 = this->front;                                                                      \
-    DLLNode_##id *last1 = NULL;                                                                              \
-    DLLNode_##id *first2 = other->front;                                                                     \
-    DLLNode_##id *last2 = NULL;                                                                              \
+    ListEntry_##id *first1 = this->front, *first2 = other->front;                                            \
+    ListEntry_##id *last1 = NULL, *last2 = NULL;                                                             \
                                                                                                              \
     while (first1 != last1 && first2 != last2) {                                                             \
         if (cmp_lt(first2->data, first1->data)) {                                                            \
-            DLLNode_##id *next = first2->next;                                                               \
-            DLLNode_##id *prev = first1->prev;                                                               \
+            ListEntry_##id *next = first2->next;                                                             \
+            ListEntry_##id *prev = first1->prev;                                                             \
             if (prev) {                                                                                      \
                 prev->next = first2;                                                                         \
             } else {                                                                                         \
@@ -735,311 +824,13 @@ __DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other) {      
     other->size = 0;                                                                                         \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_splice_##id(List_##id *this, DLLNode_##id *position, List_##id *other, ListSpliceType type, ...) { \
-    if (!other->front) return;                                                                               \
-    else if (type == LIST_SPLICE_ALL) {                                                                      \
-        __list_transfer_all_##id(this, position, other);                                                     \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    void *first = NULL;                                                                                      \
-    void *last = NULL;                                                                                       \
-                                                                                                             \
-    va_list args;                                                                                            \
-    va_start(args, type);                                                                                    \
-                                                                                                             \
-    first = va_arg(args, void *);                                                                            \
-                                                                                                             \
-    if (type == LIST_SPLICE_RANGE) {                                                                         \
-        last = va_arg(args, void *);                                                                         \
-    }                                                                                                        \
-                                                                                                             \
-    va_end(args);                                                                                            \
-                                                                                                             \
-    switch (type) {                                                                                          \
-        case LIST_SPLICE_SINGLE:                                                                             \
-            __list_transfer_single_##id(this, position, other, (DLLNode_##id *) first);                      \
-            break;                                                                                           \
-        default:                                                                                             \
-            __list_transfer_range_##id(this, position, other, (DLLNode_##id *) first, (DLLNode_##id *) last);\
-            break;                                                                                           \
-    }                                                                                                        \
-}                                                                                                            \
-__gen_list_helper_func(id, t, cmp_lt)                                                                        \
-
-#define __gen_dllnode_list_typedef(id, t)                                                                    \
-typedef struct DLLNode_##id DLLNode_##id;                                                                    \
-struct DLLNode_##id {                                                                                        \
-    DLLNode_##id *prev;                                                                                      \
-    DLLNode_##id *next;                                                                                      \
-    t data;                                                                                                  \
-};                                                                                                           \
-                                                                                                             \
-DLLNode_##id *dll_node_new_##id(void) {                                                                      \
-    DLLNode_##id *node = malloc(sizeof(DLLNode_##id));                                                       \
-    if (!node) {                                                                                             \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    memset(node, 0, sizeof(DLLNode_##id));                                                                   \
-    return node;                                                                                             \
-}                                                                                                            \
-                                                                                                             \
-typedef struct {                                                                                             \
-    size_t size;                                                                                             \
-    DLLNode_##id *front;                                                                                     \
-    DLLNode_##id *back;                                                                                      \
-} List_##id;                                                                                                 \
-                                                                                                             \
-typedef int (*meetsCondition_##id)(t *val);                                                                  \
-
-#define __gen_list_declarations(id, t)                                                                       \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_elem_##id(List_##id *l, DLLNode_##id *pos, t value);            \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_builtin_##id(List_##id *l, DLLNode_##id *pos, t *arr, int n, bool sorted); \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_list_##id(List_##id *l, DLLNode_##id *pos, DLLNode_##id *start, DLLNode_##id *end, bool sorted); \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_elem_sorted_##id(List_##id *l, t value);                        \
-__DS_FUNC_PREFIX void __list_transfer_all_##id(List_##id *this, DLLNode_##id *position, List_##id *other);   \
-__DS_FUNC_PREFIX void __list_transfer_single_##id(List_##id *this, DLLNode_##id *position, List_##id *other, DLLNode_##id *e); \
-__DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *position, List_##id *other, DLLNode_##id *first, DLLNode_##id *last); \
-__DS_FUNC_PREFIX void __list_push_val_##id(List_##id *l, t value, bool front);                               \
-__DS_FUNC_PREFIX DLLNode_##id *list_erase_##id(List_##id *l, DLLNode_##id *first, DLLNode_##id *last);       \
-__DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other);                                    \
-__DS_FUNC_PREFIX void list_splice_##id(List_##id *this, DLLNode_##id *position, List_##id *other, ListSpliceType type, ...); \
-__DS_FUNC_PREFIX DLLNode_##id *__list_copy_builtin_##id(t *start, t *end, int *count, DLLNode_##id **last); \
-__DS_FUNC_PREFIX DLLNode_##id *__list_copy_list_##id(DLLNode_##id *start, DLLNode_##id *end, int *count, DLLNode_##id **last); \
-
-#define __gen_list_helper_func(id, t, cmp_lt)                                                                \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_elem_##id(List_##id *l, DLLNode_##id *pos, t value) {           \
-    if (!pos) {                                                                                              \
-        __list_push_val_##id(l, value, false);                                                               \
-        return l->back;                                                                                      \
-    }                                                                                                        \
-                                                                                                             \
-    DLLNode_##id *prev = pos->prev;                                                                          \
-    DLLNode_##id *new = dll_node_new_##id();                                                                 \
-    new->data = value;                                                                                       \
-    new->next = pos;                                                                                         \
-    pos->prev = new;                                                                                         \
-    new->prev = prev;                                                                                        \
-    if (prev) {                                                                                              \
-        prev->next = new;                                                                                    \
-    } else {                                                                                                 \
-        l->front = new;                                                                                      \
-    }                                                                                                        \
-    l->size++;                                                                                               \
-    return new;                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_elem_sorted_##id(List_##id *l, t value) {                       \
-    DLLNode_##id *curr = l->front;                                                                           \
-                                                                                                             \
-    if (!curr || ds_cmp_leq(cmp_lt, value, curr->data)) {                                                    \
-        __list_push_val_##id(l, value, true);                                                                \
-        return l->front;                                                                                     \
-    } else {                                                                                                 \
-        DLLNode_##id *prev = l->front;                                                                       \
-        curr = curr->next;                                                                                   \
-        while (curr != NULL) {                                                                               \
-            if (ds_cmp_eq(cmp_lt, value, curr->data) ||                                                      \
-               (cmp_lt(value, curr->data) && cmp_lt(prev->data, value))) {                                   \
-                return __list_insert_elem_##id(l, curr, value);                                              \
-            }                                                                                                \
-            prev = prev->next;                                                                               \
-            curr = curr->next;                                                                               \
-        }                                                                                                    \
-        __list_push_val_##id(l, value, false);                                                               \
-        return l->back;                                                                                      \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX DLLNode_##id *__list_copy_list_##id(DLLNode_##id *start, DLLNode_##id *end, int *count, DLLNode_##id **last) { \
-    DLLNode_##id *first = dll_node_new_##id();                                                               \
-    first->data = start->data;                                                                               \
-    start = start->next;                                                                                     \
-    ++(*count);                                                                                              \
-    DLLNode_##id *curr = first;                                                                              \
-    DLLNode_##id *temp = first;                                                                              \
-    while (start != end) {                                                                                   \
-        curr = dll_node_new_##id();                                                                          \
-        curr->data = start->data;                                                                            \
-        curr->prev = temp;                                                                                   \
-        temp->next = curr;                                                                                   \
-        temp = curr;                                                                                         \
-        start = start->next;                                                                                 \
-        ++(*count);                                                                                          \
-    }                                                                                                        \
-    *last = temp;                                                                                            \
-    return first;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX DLLNode_##id *__list_copy_builtin_##id(t *start, t *end, int *count, DLLNode_##id **last) { \
-    DLLNode_##id *first = dll_node_new_##id();                                                               \
-    first->data = *start;                                                                                    \
-    ++start;                                                                                                 \
-    ++(*count);                                                                                              \
-    DLLNode_##id *curr;                                                                                      \
-    DLLNode_##id *temp = first;                                                                              \
-    while (start != end) {                                                                                   \
-        curr = dll_node_new_##id();                                                                          \
-        curr->data = *start;                                                                                 \
-        curr->prev = temp;                                                                                   \
-        temp->next = curr;                                                                                   \
-        temp = curr;                                                                                         \
-        ++start;                                                                                             \
-        ++(*count);                                                                                          \
-    }                                                                                                        \
-    *last = temp;                                                                                            \
-    return first;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_builtin_##id(List_##id *l, DLLNode_##id *pos, t *arr, int n, bool sorted) { \
-    if (!arr || !n) {                                                                                        \
-        return LIST_ERROR(id);                                                                               \
-    }                                                                                                        \
-                                                                                                             \
-    DLLNode_##id *rv = LIST_END(id); /* ListIterator where first element from arr was inserted */            \
-    t *end = &arr[n];                                                                                        \
-                                                                                                             \
-    if (sorted) {                                                                                            \
-        for (; arr != end; ++arr) {                                                                          \
-            __list_insert_elem_sorted_##id(l, *arr);                                                         \
-        }                                                                                                    \
-        rv = l->front;                                                                                       \
-    } else {                                                                                                 \
-        int count = 0;                                                                                       \
-        DLLNode_##id *prev = pos ? pos->prev : NULL;                                                         \
-        DLLNode_##id *last;                                                                                  \
-        DLLNode_##id *first = __list_copy_builtin_##id(arr, end, &count, &last);                             \
-        first->prev = prev;                                                                                  \
-        last->next = pos;                                                                                    \
-        if (prev) {                                                                                          \
-            prev->next = first;                                                                              \
-        } else if (!l->front) {                                                                              \
-            l->front = first;                                                                                \
-        }                                                                                                    \
-        if (pos) {                                                                                           \
-            pos->prev = last;                                                                                \
-        } else if (!l->back) {                                                                               \
-            l->back = last;                                                                                  \
-        } else {                                                                                             \
-            l->back->next = first;                                                                           \
-            first->prev = l->back;                                                                           \
-            l->back = last;                                                                                  \
-        }                                                                                                    \
-        rv = first;                                                                                          \
-        l->size += (size_t) count;                                                                           \
-    }                                                                                                        \
-    return rv;                                                                                               \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX DLLNode_##id *__list_insert_list_##id(List_##id *l, DLLNode_##id *pos, DLLNode_##id *start, DLLNode_##id *end, bool sorted) { \
-    if (!start) {                                                                                            \
-        return LIST_ERROR(id);                                                                               \
-    }                                                                                                        \
-    DLLNode_##id *rv = NULL;                                                                                 \
-                                                                                                             \
-    if (sorted) {                                                                                            \
-        while (start != end) {                                                                               \
-            __list_insert_elem_sorted_##id(l, start->data);                                                  \
-            start = start->next;                                                                             \
-        }                                                                                                    \
-        rv = l->front;                                                                                       \
-    } else {                                                                                                 \
-        int count = 0;                                                                                       \
-        DLLNode_##id *prev = pos ? pos->prev : NULL;                                                         \
-        DLLNode_##id *last;                                                                                  \
-        DLLNode_##id *first = __list_copy_list_##id(start, end, &count, &last);                              \
-        first->prev = prev;                                                                                  \
-        last->next = pos;                                                                                    \
-        if (prev) {                                                                                          \
-            prev->next = first;                                                                              \
-        } else if (!l->front) {                                                                              \
-            l->front = first;                                                                                \
-        }                                                                                                    \
-        if (pos) {                                                                                           \
-            pos->prev = last;                                                                                \
-        } else if (!l->back) {                                                                               \
-            l->back = last;                                                                                  \
-        } else {                                                                                             \
-            l->back->next = first;                                                                           \
-            first->prev = l->back;                                                                           \
-            l->back = last;                                                                                  \
-        }                                                                                                    \
-        rv = first;                                                                                          \
-        l->size += (size_t) count;                                                                           \
-    }                                                                                                        \
-    return rv;                                                                                               \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void __list_transfer_all_##id(List_##id *this, DLLNode_##id *position, List_##id *other) {  \
-    if (!this->front) {                                                                                      \
-        this->front = other->front;                                                                          \
-        this->back = other->back;                                                                            \
-    } else if (!position) {                                                                                  \
-        this->back->next = other->front;                                                                     \
-        other->front->prev = this->back;                                                                     \
-    } else {                                                                                                 \
-        DLLNode_##id *prev = position->prev;                                                                 \
-        other->front->prev = prev;                                                                           \
-        other->back->next = position;                                                                        \
-        position->prev = other->back;                                                                        \
-                                                                                                             \
-        if (prev) {                                                                                          \
-            prev->next = other->front;                                                                       \
-        } else {                                                                                             \
-            this->front = other->front;                                                                      \
-        }                                                                                                    \
-    }                                                                                                        \
-    this->size += other->size;                                                                               \
-    other->size = 0;                                                                                         \
-    other->front = other->back = NULL;                                                                       \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void __list_transfer_single_##id(List_##id *this, DLLNode_##id *position, List_##id *other, DLLNode_##id *e) { \
-    if (!e) return;                                                                                          \
-    DLLNode_##id *eprev = e->prev;                                                                           \
-    DLLNode_##id *enext = e->next;                                                                           \
-    if (!this->front) {                                                                                      \
-        this->front = this->back = e;                                                                        \
-        this->front->prev = this->back->next = NULL;                                                         \
-    } else if (!position) {                                                                                  \
-        this->back->next = e;                                                                                \
-        e->prev = this->back;                                                                                \
-        this->back = e;                                                                                      \
-        this->back->next = NULL;                                                                             \
-    } else {                                                                                                 \
-        DLLNode_##id *prev = position->prev;                                                                 \
-        e->prev = prev;                                                                                      \
-        e->next = position;                                                                                  \
-        position->prev = e;                                                                                  \
-        if (prev) {                                                                                          \
-            prev->next = e;                                                                                  \
-        } else {                                                                                             \
-            this->front = e;                                                                                 \
-        }                                                                                                    \
-    }                                                                                                        \
-                                                                                                             \
-    if (eprev) {                                                                                             \
-        eprev->next = enext;                                                                                 \
-    } else {                                                                                                 \
-        other->front = enext;                                                                                \
-    }                                                                                                        \
-                                                                                                             \
-    if (enext) {                                                                                             \
-        enext->prev = eprev;                                                                                 \
-    } else {                                                                                                 \
-        other->back = eprev;                                                                                 \
-    }                                                                                                        \
-    other->size--;                                                                                           \
-    this->size++;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *position, List_##id *other, DLLNode_##id *first, DLLNode_##id *last) { \
-    if (!first || first == last) return;                                                                     \
-    DLLNode_##id *firstprev = first->prev;                                                                   \
+__DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last) { \
+    if (!other->front || !first || first == last) return;                                                    \
+    ListEntry_##id *firstprev = first->prev;                                                                 \
     size_t count = 0;                                                                                        \
                                                                                                              \
     /* get number of elements */                                                                             \
-    DLLNode_##id *curr = first;                                                                              \
+    ListEntry_##id *curr = first;                                                                            \
     while (curr != last) {                                                                                   \
         ++count;                                                                                             \
         curr = curr->next;                                                                                   \
@@ -1055,7 +846,7 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
         this->back = last ? last->prev : other->back;                                                        \
         this->back->next = NULL;                                                                             \
     } else {                                                                                                 \
-        DLLNode_##id *prev = position->prev;                                                                 \
+        ListEntry_##id *prev = position->prev;                                                               \
         first->prev = prev;                                                                                  \
         position->prev = last ? last->prev : other->back;                                                    \
         position->prev->next = position;                                                                     \
@@ -1086,8 +877,8 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
  * -------------------------------------------------------------------------- */
 
 /**
- * Creates a new List representing the union of "l" and "other" (i.e. elements that are in "l",
- * "other", or both - all elements).
+ * Creates a new List representing the union of `l` and `other` (i.e. elements that are in `l`,
+ * `other`, or both - all elements).
  *
  * @param   id      ID used with gen_list.
  * @param   l       Pointer to first list.
@@ -1099,7 +890,7 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
 
 
 /**
- * Creates a new List representing the intersection of "l" and "other" (i.e. all elements that both
+ * Creates a new List representing the intersection of `l` and `other` (i.e. all elements that both
  * lists have in common).
  *
  * @param   id      ID used with gen_list.
@@ -1112,8 +903,8 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
 
 
 /**
- * Creates a new List representing the difference of "l" and "other" (i.e. all elements that are
- * unique to "l").
+ * Creates a new List representing the difference of `l` and `other` (i.e. all elements that are
+ * unique to `l`).
  *
  * @param   id      ID used with gen_list.
  * @param   l       Pointer to first list.
@@ -1125,7 +916,7 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
 
 
 /**
- * Creates a new List representing the symmetric difference of "l" and "other" (i.e. all elements
+ * Creates a new List representing the symmetric difference of `l` and `other` (i.e. all elements
  * that neither list has in common).
  *
  * @param   id      ID used with gen_list.
@@ -1138,13 +929,13 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
 
 
 /**
- * Determines whether "l" contains each element in "other".
+ * Determines whether `l` contains each element in `other`.
  *
  * @param   id      ID used with gen_list.
  * @param   l       Pointer to first list.
  * @param   other   Pointer to second list.
  *
- * @return          True if "l" contains each element in "other", false if not.
+ * @return          True if `l` contains each element in `other`, false if not.
  */
 #define includes_list(id, l, other) __includes_list_##id((l)->front, NULL, (other)->front, NULL)
 
@@ -1158,6 +949,6 @@ __DS_FUNC_PREFIX void __list_transfer_range_##id(List_##id *this, DLLNode_##id *
  */
 #define gen_list_withalg(id, t, cmp_lt)                                                                      \
 gen_list(id, t, cmp_lt)                                                                                      \
-__gen_alg_set_funcs(id, cmp_lt, List_##id, list_##id, __init_list, DLLNode_##id *, __iter_next_LIST, __iter_deref_LIST, __insert_single_list, __insert_multi_1_list, __insert_multi_2_list) \
+__gen_alg_set_funcs(id, cmp_lt, List_##id, list_##id, list_new, ListEntry_##id *, iter_next_LIST, iter_deref_LIST, list_push_back, list_insert_fromList_##id(d_new, NULL, 0, first1, last1), list_insert_fromList_##id(d_new, NULL, 0, first2, last2)) \
 
 #endif

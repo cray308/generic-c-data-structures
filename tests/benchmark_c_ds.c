@@ -9,26 +9,25 @@ gen_array_withalg(unsigned, unsigned, ds_cmp_num_lt)
 gen_list(unsigned, unsigned, ds_cmp_num_lt)
 
 char *ProgName = NULL;
+clock_t before, after;
 
 typedef enum {
+    TEST_QSORT,
     TEST_ARRAY,
     TEST_LIST
 } DSTest;
 
 void usage(void) {
     fprintf(stderr, "Usage: %s\n", ProgName);
-    fprintf(stderr, "    -d DATA_STRUTURE    One of [ARRAY,LIST]  \n");
+    fprintf(stderr, "    -d DATA_STRUTURE    One of [ARRAY,LIST,QSORT]\n");
     fprintf(stderr, "    -n NELEM            Number of elements to sort\n");
     exit(1);
 }
 
 void test_list(unsigned n) {
-    clock_t before, after;
-    unsigned temp;
-    List_unsigned *l = list_new(unsigned, LIST_INIT_EMPTY);
+    List_unsigned *l = list_new(unsigned);
     for (unsigned i = 0; i < n; ++i) {
-        temp = rand() % UINT_MAX;
-        list_push_back(unsigned, l, temp);
+        list_push_back(unsigned, l, rand() % UINT_MAX);
     }
 
     before = clock();
@@ -42,12 +41,9 @@ void test_list(unsigned n) {
 }
 
 void test_arr(unsigned n) {
-    clock_t before, after;
-    unsigned temp;
-    Array_unsigned *a = array_new_unsigned(ARR_INIT_EMPTY);
+    Array_unsigned *a = array_new_unsigned();
     for (unsigned i = 0; i < n; ++i) {
-        temp = rand() % UINT_MAX;
-        array_push_back_unsigned(a, temp);
+        array_push_back_unsigned(a, rand() % UINT_MAX);
     }
     
     before = clock();
@@ -57,6 +53,27 @@ void test_arr(unsigned n) {
     double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
 
     array_free(unsigned, a);
+    
+    printf("%.6f\n", elapsed);
+}
+
+int sort_compare(const void *a, const void *b) {
+    return *(unsigned *)a < *(unsigned *)b ? -1 : (*(unsigned *)a > *(unsigned *)b ? 1 : 0);
+}
+
+void test_qsort(unsigned n) {
+    unsigned *arr = malloc(sizeof(unsigned) * n);
+    for (unsigned i = 0; i < n; ++i) {
+        arr[i] = rand() % UINT_MAX;
+    }
+    
+    before = clock();
+    qsort(arr, n, sizeof(unsigned), sort_compare);
+    after = clock();
+
+    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+
+    free(arr);
     
     printf("%.6f\n", elapsed);
 }
@@ -77,6 +94,8 @@ int main(int argc, char *argv[]) {
                     type = TEST_LIST;
                 } else if (streq(temp, "ARRAY")) {
                     type = TEST_ARRAY;
+                } else if (streq(temp, "QSORT")) {
+                    type = TEST_QSORT;
                 } else {
                     usage();
                 }
@@ -92,6 +111,9 @@ int main(int argc, char *argv[]) {
     srand(time(NULL));
 
     switch (type) {
+        case TEST_QSORT:
+            test_qsort(n);
+            break;
         case TEST_ARRAY:
             test_arr(n);
             break;

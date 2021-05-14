@@ -8,78 +8,67 @@ typedef enum {
     RED
 } __rb_node_color;
 
-#define __rb_node_swap(t, x, y)                                                                              \
-do {                                                                                                         \
-    t _swap_tmp = (x)->data;                                                                                 \
-    (x)->data = (y)->data;                                                                                   \
-    (y)->data = _swap_tmp;                                                                                   \
-} while(0)
-
 #define __rb_isOnLeft(n) ((n) == (n)->parent->left)
 
-#define __rb_hasRedChild(n)                                                                                  \
-    (((n)->left != NULL && (n)->left->color == RED) || ((n)->right != NULL && (n)->right->color == RED))
+#define __rb_getSibling(n) (((n)->parent == NULL) ? NULL : (__rb_isOnLeft((n)) ? (n)->parent->right : (n)->parent->left))
 
-#define __rb_get_uncle(n)                                                                                    \
-    (((n)->parent == NULL || (n)->parent->parent == NULL) ? NULL :                                           \
-    (__rb_isOnLeft((n)->parent) ? (n)->parent->parent->right : (n)->parent->parent->left))
-
-#define __rb_getSibling(n)                                                                                   \
-    (((n)->parent == NULL) ? NULL : (__rb_isOnLeft((n)) ? (n)->parent->right : (n)->parent->left))
-
-#define __rb_moveDown(s, np)                                                                                 \
-    do {                                                                                                     \
-        if ((s)->parent != NULL) {                                                                           \
-            if (__rb_isOnLeft((s))) {                                                                        \
-                (s)->parent->left = (np);                                                                    \
-            } else {                                                                                         \
-                (s)->parent->right = (np);                                                                   \
-            }                                                                                                \
+#define __rb_moveDown(s, np) {                                                                               \
+    if ((s)->parent) {                                                                                       \
+        if (__rb_isOnLeft((s))) {                                                                            \
+            (s)->parent->left = (np);                                                                        \
+        } else {                                                                                             \
+            (s)->parent->right = (np);                                                                       \
         }                                                                                                    \
-        (np)->parent = (s)->parent;                                                                          \
-        (s)->parent = (np);                                                                                  \
-    } while (0)
+    }                                                                                                        \
+    (np)->parent = (s)->parent;                                                                              \
+    (s)->parent = (np);                                                                                      \
+}
 
-#define __rb_BSTreplace(id, x)                                                                               \
-    (((x)->left && (x)->right) ? (__rb_successor_##id((x)->right)) :                                         \
-    ((!((x)->left) && !((x)->right)) ? (NULL) : (((x)->left != NULL) ? ((x)->left) : ((x)->right))))
+#define __rb_swapColors(x1, x2) { int tmp_color = (x1)->color; (x1)->color = (x2)->color; (x2)->color = tmp_color; }
 
-#define __rb_swapColors(x1, x2)                                                                              \
-    do {                                                                                                     \
-        int _tmp_color;                                                                                      \
-        _tmp_color = (x1)->color;                                                                            \
-        (x1)->color = (x2)->color;                                                                           \
-        (x2)->color = _tmp_color;                                                                            \
-    } while(0)
+#define __rb_leftRotate(id, t, x) {                                                                          \
+    TreeEntry_##id *nParent = (x)->right;                                                                    \
+    if ((x) == (t)->root) {                                                                                  \
+        (t)->root = nParent;                                                                                 \
+    }                                                                                                        \
+    __rb_moveDown((x), nParent)                                                                              \
+    (x)->right = nParent->left;                                                                              \
+    if (nParent->left) {                                                                                     \
+        nParent->left->parent = (x);                                                                         \
+    }                                                                                                        \
+    nParent->left = (x);                                                                                     \
+}
 
-#define __rb_leftRotate(id, t, x)                                                                            \
-    do {                                                                                                     \
-        RBNode_##id *_nParent;                                                                               \
-        _nParent = (x)->right;                                                                               \
-        if ((x) == (t)->root) {                                                                              \
-            (t)->root = _nParent;                                                                            \
-        }                                                                                                    \
-        __rb_moveDown((x), _nParent);                                                                        \
-        (x)->right = _nParent->left;                                                                         \
-        if (_nParent->left) {                                                                                \
-            _nParent->left->parent = (x);                                                                    \
-        }                                                                                                    \
-        _nParent->left = (x);                                                                                \
-    } while (0)
+#define __rb_rightRotate(id, t, x) {                                                                         \
+    TreeEntry_##id *nParent = (x)->left;                                                                     \
+    if ((x) == (t)->root) {                                                                                  \
+        (t)->root = nParent;                                                                                 \
+    }                                                                                                        \
+    __rb_moveDown((x), nParent)                                                                              \
+    (x)->left = nParent->right;                                                                              \
+    if (nParent->right) {                                                                                    \
+        nParent->right->parent = (x);                                                                        \
+    }                                                                                                        \
+    nParent->right = (x);                                                                                    \
+}
 
-#define __rb_rightRotate(id, t, x)                                                                           \
-    do {                                                                                                     \
-        RBNode_##id *_nParent = (x)->left;                                                                   \
-        if ((x) == (t)->root) {                                                                              \
-            (t)->root = _nParent;                                                                            \
-        }                                                                                                    \
-        __rb_moveDown((x), _nParent);                                                                        \
-        (x)->left = _nParent->right;                                                                         \
-        if (_nParent->right) {                                                                               \
-            _nParent->right->parent = (x);                                                                   \
-        }                                                                                                    \
-        _nParent->right = (x);                                                                               \
-    } while (0)
+#define __rb_nextNode_body(x, dir) \
+    if (!(x)) return NULL;                                                                                   \
+    while ((x)->dir) {                                                                                       \
+        (x) = (x)->dir;                                                                                      \
+    }                                                                                                        \
+    return x;                                                                                                \
+
+#define __rb_nextNode_inorder_body(id, x, dir, nextNode) \
+    if (!(x)) return NULL;                                                                                   \
+    else if ((x)->dir) return nextNode((x)->dir);                                                            \
+                                                                                                             \
+    TreeEntry_##id *parent = (x)->parent;                                                                    \
+    while (parent && (x) == parent->dir) {                                                                   \
+        (x) = parent;                                                                                        \
+        parent = parent->parent;                                                                             \
+    }                                                                                                        \
+    return parent;                                                                                           \
 
 
 /**
@@ -87,11 +76,10 @@ do {                                                                            
  *
  * @param   id    ID used with gen_rbtree.
  * @param   t     Pointer to tree.
- * @param   ptr   TreeIterator which is assigned to the current element.
+ * @param   ptr   TreeEntry which is assigned to the current element.
  *                 - May be dereferenced with iter_deref(TREE, ptr) or ptr->data.
  */
-#define tree_iter(id, t, ptr)                                                                                \
-    for (ptr = iter_begin(TREE, id, t, 0); ptr != iter_end(TREE, id, t, 0); iter_next(TREE, id, ptr))
+#define tree_iter(id, t, ptr) for (ptr = iter_begin(TREE, id, t, 0); ptr != iter_end(TREE, id, t, 0); iter_next(TREE, id, ptr))
 
 
 /**
@@ -99,11 +87,10 @@ do {                                                                            
  *
  * @param   id    ID used with gen_rbtree.
  * @param   t     Pointer to tree.
- * @param   ptr   TreeIterator which is assigned to the current element.
+ * @param   ptr   TreeEntry which is assigned to the current element.
  *                 - May be dereferenced with iter_deref(TREE, ptr) or ptr->data.
  */
-#define tree_riter(id, t, ptr)                                                                               \
-    for (ptr = iter_rbegin(TREE, id, t, 0); ptr != iter_rend(TREE, id, t, 0); iter_prev(TREE, id, ptr))      
+#define tree_riter(id, t, ptr) for (ptr = iter_rbegin(TREE, id, t, 0); ptr != iter_rend(TREE, id, t, 0); iter_prev(TREE, id, ptr))      
 
 
 /**
@@ -111,9 +98,9 @@ do {                                                                            
  *
  * @param   id  ID used with gen_rbtree.
  *
- * @return          Pointer to the newly created tree.
+ * @return      Pointer to the newly created tree.
  */
-#define tree_new(id) tree_new_##id()
+#define tree_new(id) __ds_calloc(1, sizeof(Tree_##id))
 
 
 /**
@@ -141,7 +128,7 @@ do {                                                                            
  * @param   t    Pointer to tree.
  * @param   val  Value to search for.
  *
- * @return       RBNode of the element if it was found, or NULL if it was not found.
+ * @return       TreeEntry of the element if it was found, or NULL if it was not found.
  */
 #define tree_find(id, t, val) __rb_tree_search_##id(t, val, false)
 
@@ -157,7 +144,7 @@ do {                                                                            
 
 
 /**
- * Deletes the provided RBNode from the tree.
+ * Deletes the provided TreeEntry from the tree.
  *
  * @param  id  ID used with gen_rbtree.
  * @param  t   Pointer to tree.
@@ -176,6 +163,20 @@ do {                                                                            
 #define tree_delete_by_val(id, t, val) tree_delete_by_val_##id(t, val)
 
 
+/* --------------------------------------------------------------------------
+ * Tree iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_TREE(id, t, n)    __rb_successor_##id((t)->root)
+#define iter_end_TREE(id, t, n)      NULL
+#define iter_rbegin_TREE(id, t, n)   __rb_predecessor_##id((t)->root)
+#define iter_rend_TREE(id, t, n)     NULL
+#define iter_next_TREE(id, p)        ((p) = __rb_inorder_successor_##id((p)))
+#define iter_prev_TREE(id, p)        ((p) = __rb_inorder_predecessor_##id((p)))
+#define iter_deref_TREE(p)           ((p)->data)
+#define iter_advance_TREE(id, p, n)  iterator_advance_helper(TREE, id, p, n)
+#define iter_dist_TREE(id, p1, p2)   __iter_dist_helper_TREE_##id(p1, p2)
+
 
 /**
  * Generates RB-tree code for a specified type and ID.
@@ -185,20 +186,49 @@ do {                                                                            
  * @param   cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
  */
 #define gen_rbtree(id, t, cmp_lt)                                                                            \
-__gen_rb_node_tree(id, t)                                                                                    \
-__gen_rb_successor_declarations(id)                                                                          \
-__gen_iter_TREE(id)                                                                                          \
-__gen_rb_helper_funcs(id, t)                                                                                 \
                                                                                                              \
-__DS_FUNC_PREFIX Tree_##id *tree_new_##id(void) {                                                            \
-    Tree_##id *this = malloc(sizeof(Tree_##id));                                                             \
-    if (!this) {                                                                                             \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    this->root = NULL;                                                                                       \
-    this->size = 0;                                                                                          \
-    return this;                                                                                             \
+typedef struct TreeEntry_##id TreeEntry_##id;                                                                \
+struct TreeEntry_##id {                                                                                      \
+    TreeEntry_##id *parent;                                                                                  \
+    TreeEntry_##id *left;                                                                                    \
+    TreeEntry_##id *right;                                                                                   \
+    __rb_node_color color;                                                                                   \
+    t data;                                                                                                  \
+};                                                                                                           \
+                                                                                                             \
+__DS_FUNC_PREFIX TreeEntry_##id *rb_node_new_##id(void) {                                                    \
+    TreeEntry_##id *node = __ds_calloc(1, sizeof(TreeEntry_##id));                                           \
+    node->color = RED;                                                                                       \
+    return node;                                                                                             \
 }                                                                                                            \
+                                                                                                             \
+typedef struct {                                                                                             \
+    TreeEntry_##id *root;                                                                                    \
+    size_t size;                                                                                             \
+} Tree_##id;                                                                                                 \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_successor_##id(TreeEntry_##id *x) {                                \
+    __rb_nextNode_body(x, left)                                                                              \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_predecessor_##id(TreeEntry_##id *x) {                              \
+    __rb_nextNode_body(x, right)                                                                             \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_inorder_successor_##id(TreeEntry_##id *x) {                        \
+    __rb_nextNode_inorder_body(id, x, right, __rb_successor_##id)                                            \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_inorder_predecessor_##id(TreeEntry_##id *x) {                      \
+    __rb_nextNode_inorder_body(id, x, left, __rb_predecessor_##id)                                           \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX void tree_clear_##id(Tree_##id *this);                                                      \
+__DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v);                             \
+__DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, TreeEntry_##id *x);                          \
+__DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, TreeEntry_##id *x);                               \
+                                                                                                             \
+create_iterator_distance_helper(TREE, id, TreeEntry_##id *)                                                  \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void tree_free_##id(Tree_##id *this) {                                                  \
     tree_clear_##id(this);                                                                                   \
@@ -206,7 +236,7 @@ __DS_FUNC_PREFIX_INL void tree_free_##id(Tree_##id *this) {                     
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void tree_clear_##id(Tree_##id *this) {                                                 \
-    RBNode_##id *curr = this->root;                                                                          \
+    TreeEntry_##id *curr = this->root;                                                                       \
     while (curr) {                                                                                           \
         tree_delete_node_##id(this, curr);                                                                   \
         curr = this->root;                                                                                   \
@@ -214,8 +244,8 @@ __DS_FUNC_PREFIX_INL void tree_clear_##id(Tree_##id *this) {                    
     this->root = NULL;                                                                                       \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX RBNode_##id *__rb_tree_search_##id(Tree_##id *this, t val, bool candidate) {                \
-    RBNode_##id *temp = this->root;                                                                          \
+__DS_FUNC_PREFIX TreeEntry_##id *__rb_tree_search_##id(Tree_##id *this, t val, bool candidate) {             \
+    TreeEntry_##id *temp = this->root;                                                                       \
     while (temp) {                                                                                           \
         if (cmp_lt(val, temp->data)) {                                                                       \
             if (!temp->left) {                                                                               \
@@ -239,13 +269,13 @@ __DS_FUNC_PREFIX RBNode_##id *__rb_tree_search_##id(Tree_##id *this, t val, bool
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void tree_insert_##id(Tree_##id *this, t val) {                                             \
-    RBNode_##id *newNode = rb_node_new_##id();                                                               \
+    TreeEntry_##id *newNode = rb_node_new_##id();                                                            \
     if (!this->root) {                                                                                       \
         newNode->data = val;                                                                                 \
         newNode->color = BLACK;                                                                              \
         this->root = newNode;                                                                                \
     } else {                                                                                                 \
-        RBNode_##id *temp = __rb_tree_search_##id(this, val, true);                                          \
+        TreeEntry_##id *temp = __rb_tree_search_##id(this, val, true);                                       \
         if (ds_cmp_eq(cmp_lt, temp->data, val)) {                                                            \
             free(newNode);                                                                                   \
             return;                                                                                          \
@@ -263,11 +293,14 @@ __DS_FUNC_PREFIX void tree_insert_##id(Tree_##id *this, t val) {                
     this->size++;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, RBNode_##id *v) {                               \
-    RBNode_##id *u = __rb_BSTreplace(id, v);                                                                 \
+__DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v) {                            \
+    TreeEntry_##id *u = NULL;                                                                                \
+    if (v->left && v->right) u = __rb_successor_##id(v->right);                                              \
+    else if (v->left) u = v->left;                                                                           \
+    else if (v->right) u = v->right;                                                                         \
                                                                                                              \
     bool uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));                                       \
-    RBNode_##id *parent = v->parent;                                                                         \
+    TreeEntry_##id *parent = v->parent;                                                                      \
     if (!u) {                                                                                                \
         if (v == this->root) {                                                                               \
             this->root = NULL;                                                                               \
@@ -275,7 +308,7 @@ __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, RBNode_##id *v) {  
             if (uvBlack) {                                                                                   \
                 __rb_fixDoubleBlack_##id(this, v);                                                           \
             } else {                                                                                         \
-                RBNode_##id *sibling = __rb_getSibling(v);                                                   \
+                TreeEntry_##id *sibling = __rb_getSibling(v);                                                \
                 if (sibling != NULL) {                                                                       \
                     sibling->color = RED;                                                                    \
                 }                                                                                            \
@@ -289,7 +322,7 @@ __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, RBNode_##id *v) {  
         }                                                                                                    \
         free(v);                                                                                             \
         this->size--;                                                                                        \
-    return;                                                                                                  \
+        return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
     if (!v->left || !v->right) {                                                                             \
@@ -317,112 +350,23 @@ __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, RBNode_##id *v) {  
         }                                                                                                    \
         return;                                                                                              \
     }                                                                                                        \
-    __rb_node_swap(t, u, v);                                                                                 \
+    t tmp = u->data;                                                                                         \
+    u->data = v->data;                                                                                       \
+    v->data = tmp;                                                                                           \
     tree_delete_node_##id(this, u);                                                                          \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void tree_delete_by_val_##id(Tree_##id *this, t val) {                                      \
-    if (!this->root || !val) {                                                                               \
-        return;                                                                                              \
-    }                                                                                                        \
-    RBNode_##id *v = __rb_tree_search_##id(this, val, true);                                                 \
-    if (ds_cmp_neq(cmp_lt, v->data, val)) {                                                                  \
-        return;                                                                                              \
-    }                                                                                                        \
+    if (!this->root || !val) return;                                                                         \
+    TreeEntry_##id *v = __rb_tree_search_##id(this, val, true);                                              \
+    if (ds_cmp_neq(cmp_lt, v->data, val)) return;                                                            \
     tree_delete_node_##id(this, v);                                                                          \
 }                                                                                                            \
-
-
-#define __gen_rb_node_tree(id, t)                                                                            \
-typedef struct RBNode_##id RBNode_##id;                                                                      \
-struct RBNode_##id {                                                                                         \
-    RBNode_##id *parent;                                                                                     \
-    RBNode_##id *left;                                                                                       \
-    RBNode_##id *right;                                                                                      \
-    __rb_node_color color;                                                                                   \
-    t data;                                                                                                  \
-};                                                                                                           \
                                                                                                              \
-__DS_FUNC_PREFIX RBNode_##id *rb_node_new_##id(void) {                                                       \
-    RBNode_##id *node = malloc(sizeof(RBNode_##id));                                                         \
-    if (!node) {                                                                                             \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    memset(node, 0, sizeof(RBNode_##id));                                                                    \
-    node->color = RED;                                                                                       \
-    return node;                                                                                             \
-}                                                                                                            \
+__DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, TreeEntry_##id *x) {                         \
+    if (x == this->root) return;                                                                             \
                                                                                                              \
-typedef struct {                                                                                             \
-    RBNode_##id *root;                                                                                       \
-    size_t size;                                                                                             \
-} Tree_##id;                                                                                                 \
-
-
-#define __gen_rb_successor_declarations(id)                                                                  \
-__DS_FUNC_PREFIX_INL RBNode_##id *__rb_successor_##id(RBNode_##id *x) {                                      \
-    if (!x) {                                                                                                \
-        return x;                                                                                            \
-    }                                                                                                        \
-    while (x->left) {                                                                                        \
-        x = x->left;                                                                                         \
-    }                                                                                                        \
-    return x;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL RBNode_##id *__rb_predecessor_##id(RBNode_##id *x) {                                    \
-    if (!x) {                                                                                                \
-        return x;                                                                                            \
-    }                                                                                                        \
-    while (x->right) {                                                                                       \
-        x = x->right;                                                                                        \
-    }                                                                                                        \
-    return x;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL RBNode_##id *__rb_inorder_successor_##id(RBNode_##id *x) {                              \
-    if (!x) {                                                                                                \
-        return NULL;                                                                                         \
-    } else if (x->right) {                                                                                   \
-        return __rb_successor_##id(x->right);                                                                \
-    }                                                                                                        \
-                                                                                                             \
-    RBNode_##id *parent = x->parent;                                                                         \
-    while (parent && x == parent->right) {                                                                   \
-        x = parent;                                                                                          \
-        parent = parent->parent;                                                                             \
-    }                                                                                                        \
-    return parent;                                                                                           \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL RBNode_##id *__rb_inorder_predecessor_##id(RBNode_##id *x) {                            \
-    if (!x) {                                                                                                \
-        return NULL;                                                                                         \
-    } else if (x->left) {                                                                                    \
-        return __rb_predecessor_##id(x->left);                                                               \
-    }                                                                                                        \
-                                                                                                             \
-    RBNode_##id *parent = x->parent;                                                                         \
-    while (parent && x == parent->left) {                                                                    \
-        x = parent;                                                                                          \
-        parent = parent->parent;                                                                             \
-    }                                                                                                        \
-    return parent;                                                                                           \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void tree_clear_##id(Tree_##id *this);                                                      \
-__DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, RBNode_##id *v);                                \
-__DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, RBNode_##id *x);                             \
-__DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, RBNode_##id *x);                                  \
-
-
-#define __gen_rb_helper_funcs(id, t)                                                                         \
-__DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, RBNode_##id *x) {                            \
-    if (x == this->root) {                                                                                   \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    RBNode_##id *sibling = __rb_getSibling(x), *parent = x->parent;                                          \
+    TreeEntry_##id *sibling = __rb_getSibling(x), *parent = x->parent;                                       \
     if (!sibling) {                                                                                          \
         __rb_fixDoubleBlack_##id(this, parent);                                                              \
     } else {                                                                                                 \
@@ -431,32 +375,32 @@ __DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, RBNode_##id *x) 
             sibling->color = BLACK;                                                                          \
                                                                                                              \
             if (__rb_isOnLeft(sibling)) {                                                                    \
-                __rb_rightRotate(id, this, parent);                                                          \
+                __rb_rightRotate(id, this, parent)                                                           \
             } else {                                                                                         \
-                __rb_leftRotate(id, this, parent);                                                           \
+                __rb_leftRotate(id, this, parent)                                                            \
             }                                                                                                \
             __rb_fixDoubleBlack_##id(this, x);                                                               \
         } else {                                                                                             \
-            if (__rb_hasRedChild(sibling)) {                                                                 \
+            if ((sibling->left && sibling->left->color == RED) || (sibling->right && sibling->right->color == RED)) { \
                 if (sibling->left && sibling->left->color == RED) {                                          \
                     if (__rb_isOnLeft(sibling)) {                                                            \
                         sibling->left->color = sibling->color;                                               \
                         sibling->color = parent->color;                                                      \
-                        __rb_rightRotate(id, this, parent);                                                  \
+                        __rb_rightRotate(id, this, parent)                                                   \
                     } else {                                                                                 \
                         sibling->left->color = parent->color;                                                \
-                        __rb_rightRotate(id, this, sibling);                                                 \
-                        __rb_leftRotate(id, this, parent);                                                   \
+                        __rb_rightRotate(id, this, sibling)                                                  \
+                        __rb_leftRotate(id, this, parent)                                                    \
                     }                                                                                        \
                 } else {                                                                                     \
                     if (__rb_isOnLeft(sibling)) {                                                            \
                         sibling->right->color = parent->color;                                               \
-                        __rb_leftRotate(id, this, sibling);                                                  \
-                        __rb_rightRotate(id, this, parent);                                                  \
+                        __rb_leftRotate(id, this, sibling)                                                   \
+                        __rb_rightRotate(id, this, parent)                                                   \
                     } else {                                                                                 \
                         sibling->right->color = sibling->color;                                              \
                         sibling->color = parent->color;                                                      \
-                        __rb_leftRotate(id, this, parent);                                                   \
+                        __rb_leftRotate(id, this, parent)                                                    \
                     }                                                                                        \
                 }                                                                                            \
                                                                                                              \
@@ -474,13 +418,17 @@ __DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, RBNode_##id *x) 
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, RBNode_##id *x) {                                 \
+__DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, TreeEntry_##id *x) {                              \
     if (x == this->root) {                                                                                   \
         x->color = BLACK;                                                                                    \
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    RBNode_##id *parent = x->parent, *grandparent = parent->parent, *uncle = __rb_get_uncle(x);              \
+    TreeEntry_##id *parent = x->parent, *grandparent = parent->parent, *uncle = NULL;                        \
+    if (parent && grandparent) {                                                                             \
+        uncle = __rb_isOnLeft(parent) ? grandparent->right : grandparent->left;                              \
+    }                                                                                                        \
+                                                                                                             \
     if (parent->color != BLACK) {                                                                            \
         if (uncle && uncle->color == RED) {                                                                  \
             parent->color = BLACK;                                                                           \
@@ -490,20 +438,20 @@ __DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, RBNode_##id *x) {    
         } else {                                                                                             \
             if (__rb_isOnLeft(parent)) {                                                                     \
                 if (__rb_isOnLeft(x)) {                                                                      \
-                    __rb_swapColors(parent, grandparent);                                                    \
+                    __rb_swapColors(parent, grandparent)                                                     \
                 } else {                                                                                     \
-                    __rb_leftRotate(id, this, parent);                                                       \
-                    __rb_swapColors(x, grandparent);                                                         \
+                    __rb_leftRotate(id, this, parent)                                                        \
+                    __rb_swapColors(x, grandparent)                                                          \
                 }                                                                                            \
-                __rb_rightRotate(id, this, grandparent);                                                     \
+                __rb_rightRotate(id, this, grandparent)                                                      \
             } else {                                                                                         \
                 if (__rb_isOnLeft(x)) {                                                                      \
-                    __rb_rightRotate(id, this, parent);                                                      \
-                    __rb_swapColors(x, grandparent);                                                         \
+                    __rb_rightRotate(id, this, parent)                                                       \
+                    __rb_swapColors(x, grandparent)                                                          \
                 } else {                                                                                     \
-                    __rb_swapColors(parent, grandparent);                                                    \
+                    __rb_swapColors(parent, grandparent)                                                     \
                 }                                                                                            \
-                __rb_leftRotate(id, this, grandparent);                                                      \
+                __rb_leftRotate(id, this, grandparent)                                                       \
             }                                                                                                \
         }                                                                                                    \
     }                                                                                                        \

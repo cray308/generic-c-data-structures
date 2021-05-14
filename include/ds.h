@@ -5,24 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdarg.h>
 
-#define DS_UNUSED __attribute__((__unused__))
-#define __DS_FUNC_PREFIX static DS_UNUSED
+#define __DS_FUNC_PREFIX static __attribute__((__unused__))
 #define __DS_FUNC_PREFIX_INL __DS_FUNC_PREFIX inline
-
-
-/**
- * Checks whether an index is reasonable.
- 
- * @param   index  Index in data structure.
- * @param   size   Size of data structure to be indexed.
- * 
- * @return         -If the index is positive, whether it is less than the size.
- *                 -If the index is negative, whether subtracting it from the size is at least 0.
- */
-#define check_index(index, size)                                                                             \
-    (((index) < 0) ? ((int) (size) + (index) >= 0) : ((index) < (int) (size)))
 
 
 /**
@@ -34,21 +19,39 @@
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
 __DS_FUNC_PREFIX_INL int modulo(int index, size_t size) {
-    if (!check_index(index, size)) {
-        return -1;
-    }
+    bool valid = index < 0 ? ((int) size + index >= 0) : (index < (int) size);
+    if (!valid) return -1;
 
     int m = index % (int) size;
     return (m < 0) ? (m + (int) size) : m;
 }
 
-#ifndef DS_OOM
-#define DS_OOM()                                                                                             \
-    do {                                                                                                     \
-        fprintf(stderr, "Out of memory error.\n");                                                           \
-        exit(1);                                                                                             \
-    } while(0)
-#endif
+__DS_FUNC_PREFIX_INL void *__ds_malloc(size_t size) {
+    void *ptr = malloc(size);
+    if (!ptr) {
+        fprintf(stderr, "Out of memory error.\n");
+        exit(1);  
+    }
+    return ptr;
+}
+
+__DS_FUNC_PREFIX_INL void *__ds_calloc(size_t nmemb, size_t size) {
+    void *ptr = calloc(nmemb, size);
+    if (!ptr) {
+        fprintf(stderr, "Out of memory error.\n");
+        exit(1);  
+    }
+    return ptr;
+}
+
+__DS_FUNC_PREFIX_INL void *__ds_realloc(void *ptr, size_t size) {
+    void *new = realloc(ptr, size);
+    if (!new) {
+        fprintf(stderr, "Out of memory error.\n");
+        exit(1);  
+    }
+    return new;
+}
 
 #define min(a,b) (((a) <= (b)) ? (a) : (b))
 #define max(a,b) (((a) >= (b)) ? (a) : (b))
@@ -63,20 +66,11 @@ __DS_FUNC_PREFIX_INL int modulo(int index, size_t size) {
 #define ds_cmp_leq(cmp_lt, x, y) (cmp_lt(x, y) || ds_cmp_eq(cmp_lt, x, y))
 #define ds_cmp_gt(cmp_lt, x, y) (cmp_lt(y, x))
 
-#define __gen_node(id, t)                                                                                    \
-typedef struct Node_##id Node_##id;                                                                          \
-struct Node_##id {                                                                                           \
-    Node_##id *next;                                                                                         \
+#define gen_node(id, t)                                                                                      \
+typedef struct id id;                                                                                        \
+struct id {                                                                                                  \
+    id *next;                                                                                                \
     t data;                                                                                                  \
 };                                                                                                           \
-                                                                                                             \
-Node_##id *node_new_##id(void) {                                                                             \
-    Node_##id *node = malloc(sizeof(Node_##id));                                                             \
-    if (!node) {                                                                                             \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    memset(node, 0, sizeof(Node_##id));                                                                      \
-    return node;                                                                                             \
-}                                                                                                            \
 
 #endif

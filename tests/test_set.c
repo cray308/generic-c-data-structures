@@ -4,13 +4,13 @@
 gen_set(int, int, ds_cmp_num_lt)
 
 void test_init_clear(void) {
-    Set_int *s = set_new(int, SET_INIT_EMPTY);
+    Set_int *s = set_new(int);
     assert(s->root == NULL);
     assert(set_empty(s));
     assert(set_len(s) == 0);
 
     int i = 0;
-    SetIterator_int it;
+    SetEntry_int *it;
     set_iter(int, s, it) {
         i++;
     }
@@ -18,13 +18,12 @@ void test_init_clear(void) {
     assert(i == 0);
     set_free(int, s);
 
-    int vals[] = {8, 5, 3, 3, 1};
-    s = set_new(int, SET_INIT_BUILTIN, vals, 5);
+    s = set_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
     assert(set_len(s) == 4);
     assert(!set_empty(s));
     assert(s->root != NULL);
 
-    Set_int *s2 = set_new(int, SET_INIT_SET, s);
+    Set_int *s2 = set_createCopy(int, s);
     assert(set_len(s2) == 4);
     assert(s2->root != NULL);
 
@@ -38,8 +37,7 @@ void test_init_clear(void) {
 }
 
 void test_membership(void) {
-    int vals[] = {8, 5, 3, 3, 1};
-    Set_int *s = set_new(int, SET_INIT_BUILTIN, vals, 5);
+    Set_int *s = set_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
     
     int f = 4;
     assert(!set_in(int, s, f));
@@ -49,8 +47,7 @@ void test_membership(void) {
 }
 
 void test_remove(void) {
-    int vals[] = {8, 5, 3, 3, 1};
-    Set_int *s = set_new(int, SET_INIT_BUILTIN, vals, 5);
+    Set_int *s = set_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
     
     int f = 4;
     set_remove_value(int, s, f);
@@ -64,36 +61,35 @@ void test_remove(void) {
 }
 
 void test_insert(void) {
-    Set_int *s = set_new(int, SET_INIT_EMPTY);
+    Set_int *s = set_new(int);
     for (int i = 1; i <= 5; ++i) {
-        set_insert(int, s, SET_INSERT_SINGLE, i * 10);
+        set_insert(int, s, i * 10);
     }
     assert(set_len(s) == 5);
 
-    set_insert(int, s, SET_INSERT_SINGLE, 20);
+    set_insert(int, s, 20);
     assert(set_len(s) == 5);
 
-    set_insert(int, s, SET_INSERT_SINGLE, 25);
+    set_insert(int, s, 25);
     assert(set_len(s) == 6);
-    set_insert(int, s, SET_INSERT_SINGLE, 24);
+    set_insert(int, s, 24);
     assert(set_len(s) == 7);
-    set_insert(int, s, SET_INSERT_SINGLE, 26);
+    set_insert(int, s, 26);
     assert(set_len(s) == 8);
 
-    int myints[]= {5, 10, 15};
-    set_insert(int, s, SET_INSERT_BUILTIN, myints, 3);
+    set_insert_fromArray(int, s, ((int[]){5, 10, 15}), 3);
     assert(set_len(s) == 10);
 
-    Set_int *s2 = set_new(int, SET_INIT_EMPTY);
+    Set_int *s2 = set_new(int);
     SetEntry_int *begin = set_find(int, s, 10);
     SetEntry_int *end = set_find(int, s, 40);
 
     int comparison[] = {10, 15, 20, 24, 25, 26, 30};
 
-    set_insert(int, s2, SET_INSERT_SET, begin, end);
+    set_insert_fromSet(int, s2, begin, end);
     assert(set_len(s2) == 7);
 
-    SetIterator_int it;
+    SetEntry_int *it;
     int i = 0;
     set_iter(int, s2, it) {
         assert(iter_deref(SET, it) == comparison[i++]);
@@ -104,8 +100,7 @@ void test_insert(void) {
 }
 
 void test_erase(void) {
-    int myints[] = {5, 10, 15, 20, 24, 25, 26, 30, 40, 50};
-    Set_int *s = set_new(int, SET_INIT_BUILTIN, myints, 10);
+    Set_int *s = set_new_fromArray(int, ((int[]){5, 10, 15, 20, 24, 25, 26, 30, 40, 50}), 10);
     assert(set_len(s) == 10);
 
     set_remove_value(int, s, 20);
@@ -121,12 +116,12 @@ void test_erase(void) {
     assert(set_len(s) == 7);
 
     begin = set_find(int, s, 26);
-    end = SET_END(int);
+    end = NULL;
     set_erase(int, s, begin, end);
     assert(set_len(s) == 3);
 
     int comparison[] = {15, 24, 25};
-    SetIterator_int it;
+    SetEntry_int *it;
     int i = 0;
     set_iter(int, s, it) {
         assert(iter_deref(SET, it) == comparison[i++]);
@@ -135,12 +130,10 @@ void test_erase(void) {
 }
 
 void test_union(void) {
-    int v1[] = {1, 2, 3};
-    int v2[] = {3, 4, 5};
     int comparison[] = {1, 2, 3, 4, 5};
 
-    Set_int *s1 = set_new(int, SET_INIT_BUILTIN, v1, 3);
-    Set_int *s2 = set_new(int, SET_INIT_BUILTIN, v2, 3);
+    Set_int *s1 = set_new_fromArray(int, ((int[]){1, 2, 3}), 3);
+    Set_int *s2 = set_new_fromArray(int, ((int[]){3, 4, 5}), 3);
 
     Set_int *s3 = set_union(int, s1, s2);
     assert(set_len(s3) == 5);
@@ -155,12 +148,10 @@ void test_union(void) {
 }
 
 void test_intersection(void) {
-    int v1[] = {1, 2, 3};
-    int v2[] = {3, 4, 5};
     int comparison[] = {3};
 
-    Set_int *s1 = set_new(int, SET_INIT_BUILTIN, v1, 3);
-    Set_int *s2 = set_new(int, SET_INIT_BUILTIN, v2, 3);
+    Set_int *s1 = set_new_fromArray(int, ((int[]){1, 2, 3}), 3);
+    Set_int *s2 = set_new_fromArray(int, ((int[]){3, 4, 5}), 3);
 
     Set_int *s3 = set_intersection(int, s1, s2);
     assert(set_len(s3) == 1);
@@ -176,12 +167,10 @@ void test_intersection(void) {
 }
 
 void test_difference(void) {
-    int v1[] = {1, 2, 3};
-    int v2[] = {3, 4, 5};
     int comparison[] = {1, 2};
 
-    Set_int *s1 = set_new(int, SET_INIT_BUILTIN, v1, 3);
-    Set_int *s2 = set_new(int, SET_INIT_BUILTIN, v2, 3);
+    Set_int *s1 = set_new_fromArray(int, ((int[]){1, 2, 3}), 3);
+    Set_int *s2 = set_new_fromArray(int, ((int[]){3, 4, 5}), 3);
 
     Set_int *s3 = set_difference(int, s1, s2);
     assert(set_len(s3) == 2);
@@ -196,12 +185,10 @@ void test_difference(void) {
 }
 
 void test_symmetric_difference(void) {
-    int v1[] = {1, 2, 3};
-    int v2[] = {3, 4, 5};
     int comparison[] = {1, 2, 4, 5};
 
-    Set_int *s1 = set_new(int, SET_INIT_BUILTIN, v1, 3);
-    Set_int *s2 = set_new(int, SET_INIT_BUILTIN, v2, 3);
+    Set_int *s1 = set_new_fromArray(int, ((int[]){1, 2, 3}), 3);
+    Set_int *s2 = set_new_fromArray(int, ((int[]){3, 4, 5}), 3);
 
     Set_int *s3 = set_symmetric_difference(int, s1, s2);
     assert(set_len(s3) == 4);
@@ -216,13 +203,9 @@ void test_symmetric_difference(void) {
 }
 
 void test_subset(void) {
-    int v1[] = {1, 2, 3};
-    int v2[] = {1, 2, 3, 4, 5};
-    int v3[] = {3, 4, 5};
-
-    Set_int *s1 = set_new(int, SET_INIT_BUILTIN, v1, 3);
-    Set_int *s2 = set_new(int, SET_INIT_BUILTIN, v2, 5);
-    Set_int *s3 = set_new(int, SET_INIT_BUILTIN, v3, 3);
+    Set_int *s1 = set_new_fromArray(int, ((int[]){1, 2, 3}), 3);
+    Set_int *s2 = set_new_fromArray(int, ((int[]){1, 2, 3, 4, 5}), 5);
+    Set_int *s3 = set_new_fromArray(int, ((int[]){3, 4, 5}), 3);
 
     assert(set_issubset(int, s1, s1));
     assert(set_issuperset(int, s1, s1));
@@ -243,13 +226,9 @@ void test_subset(void) {
 }
 
 void test_disjoint(void) {
-    int v1[] = {1, 3, 5};
-    int v2[] = {2, 4, 6, 8, 10};
-    int v3[] = {5, 7, 8};
-
-    Set_int *s1 = set_new(int, SET_INIT_BUILTIN, v1, 3);
-    Set_int *s2 = set_new(int, SET_INIT_BUILTIN, v2, 5);
-    Set_int *s3 = set_new(int, SET_INIT_BUILTIN, v3, 3);
+    Set_int *s1 = set_new_fromArray(int, ((int[]){1, 3, 5}), 3);
+    Set_int *s2 = set_new_fromArray(int, ((int[]){2, 4, 6, 8, 10}), 5);
+    Set_int *s3 = set_new_fromArray(int, ((int[]){5, 7, 8}), 3);
 
     assert(set_isdisjoint(int, s1, s2));
     assert(!set_isdisjoint(int, s2, s3));

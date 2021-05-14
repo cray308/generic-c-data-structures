@@ -21,84 +21,93 @@ char *strs_sorted[] = {"avahi", "bin", "chrisray", "colord", "daemon", "dbus", "
 #define LEN_STRS 23
 
 gen_rbtree(int, int, ds_cmp_num_lt)
-
 gen_rbtree(str, char *, ds_cmp_str_lt)
 
-Tree_int *t1 = NULL;
-Tree_str *t2 = NULL;
+void test_insert_ints(Tree_int *t) {
+    size_t counter = 0;
+    TreeEntry_int *ptr;
 
-void test_01(void) {
-    int int_counter = 0;
-    int str_counter = 0;
     for (int i = 0; i < LEN_INTS; ++i) {
-        tree_insert(int, t1, ints[i]);
+        tree_insert(int, t, ints[i]);
     }
-    TreeIterator_int iptr;
-    TreeIterator_str sptr;
-
-    tree_iter(int, t1, iptr) {
-        assert(iter_deref(TREE, iptr) == ints_sorted[int_counter++]);
+    tree_iter(int, t, ptr) {
+        assert(iter_deref(TREE, ptr) == ints_sorted[counter++]);
     }
+    assert(counter == LEN_INTS);
+    assert(counter == t->size);
 
-    for (int i = 0; i < LEN_STRS; ++i) {
-        tree_insert(str, t2, strs[i]);
-    }
-
-    tree_iter(str, t2, sptr) {
-        assert(streq(iter_deref(TREE, sptr), strs_sorted[str_counter++]));
-    }
-
-    int_counter = LEN_INTS - 1;
-    str_counter = LEN_STRS - 1;
-    
-    tree_riter(int, t1, iptr) {
-        assert(iter_deref(TREE, iptr) == ints_sorted[int_counter--]);
-    }
-
-    tree_riter(str, t2, sptr) {
-        assert(streq(iter_deref(TREE, sptr), strs_sorted[str_counter--]));
+    counter = LEN_INTS - 1;
+    tree_riter(int, t, ptr) {
+        assert(iter_deref(TREE, ptr) == ints_sorted[counter--]);
     }
 }
 
-void test_02(void) {
+void test_delete_ints(Tree_int *t) {
     int test_int = 20384;
-    char *test_str = "mail";
 
-    RBNode_int *n1 = tree_find(int, t1, test_int);
-    assert(n1 != NULL);
-    tree_delete_node(int, t1, n1);
-    n1 = tree_find(int, t1, test_int);
-    assert(n1 == NULL);
+    TreeEntry_int *e = tree_find(int, t, test_int);
+    assert(e != NULL);
+    tree_delete_node(int, t, e);
+    e = tree_find(int, t, test_int);
+    assert(e == NULL);
 
     test_int = 3098;
-    tree_delete_by_val(int, t1, test_int);
-    n1 = tree_find(int, t1, test_int);
-    assert(n1 == NULL);
+    tree_delete_by_val(int, t, test_int);
+    e = tree_find(int, t, test_int);
+    assert(e == NULL);
+}
 
-    RBNode_str *n2 = tree_find(str, t2, test_str);
-    assert(n2 != NULL);
-    tree_delete_node(str, t2, n2);
-    n2 = tree_find(str, t2, test_str);
-    assert(n2 == NULL);
+void test_ints(void) {
+    Tree_int *t = tree_new(int);
+    assert(t->root == NULL);
+    test_insert_ints(t);
+    test_delete_ints(t);
+    tree_free(int, t);
+}
+
+void test_insert_strs(Tree_str *t) {
+    size_t counter = 0;
+    TreeEntry_str *ptr;
+
+    for (int i = 0; i < LEN_STRS; ++i) {
+        tree_insert(str, t, strs[i]);
+    }
+    tree_iter(str, t, ptr) {
+        assert(streq(iter_deref(TREE, ptr), strs_sorted[counter++]));
+    }
+    assert(counter == LEN_STRS);
+    assert(counter == t->size);
+
+    counter = LEN_STRS - 1;
+    tree_riter(str, t, ptr) {
+        assert(streq(iter_deref(TREE, ptr), strs_sorted[counter--]));
+    }
+}
+
+void test_delete_strs(Tree_str *t) {
+    char *test_str = "mail";
+
+    TreeEntry_str *e = tree_find(str, t, test_str);
+    assert(e != NULL);
+    tree_delete_node(str, t, e);
+    e = tree_find(str, t, test_str);
+    assert(e == NULL);
 
     test_str = "git";
-    tree_delete_by_val(str, t2, test_str);
-    n2 = tree_find(str, t2, test_str);
-    assert(n2 == NULL);
+    tree_delete_by_val(str, t, test_str);
+    e = tree_find(str, t, test_str);
+    assert(e == NULL);
+}
+
+void test_strs(void) {
+    Tree_str *t = tree_new(str);
+    test_insert_strs(t);
+    test_delete_strs(t);
+    tree_free(str, t);
 }
 
 int main(void) {
-    t1 = tree_new(int);
-    assert(t1->root == NULL);
-
-    t2 = tree_new(str);
-    assert(t2->root == NULL);
-
-    test_01();
-    test_02();
-
-    tree_free(int, t1);
-    tree_free(str, t2);
-    
+    test_ints();
+    test_strs();
     return 0;
 }

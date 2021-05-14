@@ -8,48 +8,22 @@
 #include <limits.h>
 #include <stdint.h>
 
-#define __MAP_FNV_PRIME 0x01000193UL
-#define __MAP_FNV_OFFSET_BASIS 0x811c9dc5UL
-#define __MAP_DEFAULT_LOAD_FACTOR 0.750
-#define __MAP_INITIAL_NBUCKETS 32
-
-inline uint32_t __rotl(uint32_t x, int8_t r) {
-    return (x << r) | (x >> (32 - r));
-}
-
-inline uint32_t __getblock(const uint32_t *p, int i) {
-    return p[i];
-}
-
-inline uint32_t __fmix (uint32_t h) {
-    h ^= h >> 16;
-    h *= 0x85ebca6b;
-    h ^= h >> 13;
-    h *= 0xc2b2ae35;
-    h ^= h >> 16;
-    return h;
-}
-
-uint32_t __murmurhash(const void *key, int len, uint32_t seed) {
+uint32_t murmurhash(const void *key, int len, uint32_t seed) {
     const uint8_t *data = (const uint8_t *) key;
     const int nblocks = len / 4;
 
     uint32_t h1 = seed;
-
-    const uint32_t c1 = 0xcc9e2d51;
-    const uint32_t c2 = 0x1b873593;
-
     const uint32_t *blocks = (const uint32_t *) (data + (nblocks * 4));
 
     for (int i = -nblocks; i; i++) {
-        uint32_t k1 = __getblock(blocks, i);
+        uint32_t k1 = blocks[i];
 
-        k1 *= c1;
-        k1 = __rotl(k1, 15);
-        k1 *= c2;
+        k1 *= 0xcc9e2d51;
+        k1 = (k1 << 15) | (k1 >> 17);
+        k1 *= 0x1b873593;
         
         h1 ^= k1;
-        h1 = __rotl(h1, 13); 
+        h1 = (h1 << 13) | (h1 >> 19);
         h1 = (h1 * 5) + 0xe6546b64;
     }
 
@@ -65,28 +39,49 @@ uint32_t __murmurhash(const void *key, int len, uint32_t seed) {
         /* fall through */
     case 1:
         k1 ^= tail[0];
-        k1 *= c1;
-        k1 = __rotl(k1,15);
-        k1 *= c2;
+        k1 *= 0xcc9e2d51;
+        k1 = (k1 << 15) | (k1 >> 17);
+        k1 *= 0x1b873593;
         h1 ^= k1;
     };
 
     h1 ^= len;
-    h1 = __fmix(h1);
+    h1 ^= h1 >> 16;
+    h1 *= 0x85ebca6b;
+    h1 ^= h1 >> 13;
+    h1 *= 0xc2b2ae35;
+    h1 ^= h1 >> 16;
     return h1;
-} 
+}
 
-#define __umap_create_hash_fn_VALUE(id, kt, t)                                                               \
-__DS_FUNC_PREFIX_INL uint32_t __umap_hash_##id(const uint32_t seed, kt k) {                                  \
-    return __murmurhash(&k, sizeof(k), seed);                                                                \
-}                                                                                                            \
+#define __hash_key_VALUE(k) &(k)
+#define __hash_key_PTR(k) k
+#define __hash_key_PTR_COPY(k) k
+#define __hash_len_VALUE(k) sizeof(k)
+#define __hash_len_PTR(k) strlen(k)
+#define __hash_len_PTR_COPY(k) strlen(k)
 
-#define __umap_create_hash_fn_PTR(id, kt, t)                                                                 \
-__DS_FUNC_PREFIX_INL uint32_t __umap_hash_##id(const uint32_t seed, const kt k) {                            \
-    return __murmurhash(k, strlen(k), seed);                                                                 \
-}                                                                                                            \
+#define __map_allocate_new_key_PTR_COPY(e, key) (e)->p.first = __ds_malloc(strlen(key) + 1); strcpy((e)->p.first, key);
+#define __map_allocate_new_key_VALUE(e, key) (e)->p.first = key;
+#define __map_allocate_new_key_PTR(e, key) __map_allocate_new_key_VALUE(e, key)
 
-#define __umap_create_hash_fn_PTR_COPY(id, kt, t) __umap_create_hash_fn_PTR(id, kt, t)
+#define __map_remove_key_PTR_COPY(e) free((e)->p.first);
+#define __map_remove_key_PTR(e)
+#define __map_remove_key_VALUE(e)
+
+#define __map_check_valid_key_PTR(key) if (!(key)) return;
+#define __map_check_valid_key_PTR_COPY(key) __map_check_valid_key_PTR(key)
+#define __map_check_valid_key_VALUE(key)
+
+#define __umap_find_index(MapEntry, map, cmp, result, index, key) {                                          \
+    MapEntry *ptr = (map)->buckets[(index)];                                                                 \
+    while (ptr) {                                                                                            \
+        if (ds_cmp_eq(cmp, ptr->p.first, key)) {                                                             \
+            (result) = ptr; break;                                                                           \
+        }                                                                                                    \
+        ptr = ptr->next;                                                                                     \
+    }                                                                                                        \
+}
 
 
 /**
@@ -128,10 +123,9 @@ __DS_FUNC_PREFIX_INL uint32_t __umap_hash_##id(const uint32_t seed, const kt k) 
  *
  * @param  id  ID used with gen_umap.
  * @param  m   Pointer to map.
- * @param  it  UMapIterator (pair *) which is assigned to the current element.
+ * @param  it  Pointer to pair which is assigned to the current element.
  */
-#define umap_iter(id, m, it)                                                                                 \
-    for (it = iter_begin(UMAP, id, m, 0); it != iter_end(UMAP, id, m, 0);  __iter_next_UMAP(id, m, it))
+#define umap_iter(id, m, it) for (it = iter_begin(UMAP, id, m, 0); it != iter_end(UMAP, id, m, 0); iter_next_UMAP(id, m, it))
 
 
 /**
@@ -218,6 +212,14 @@ __DS_FUNC_PREFIX_INL uint32_t __umap_hash_##id(const uint32_t seed, const kt k) 
  */
 #define umap_clear(id, m) umap_clear_##id(m)
 
+/* --------------------------------------------------------------------------
+ * Unordered map iterators
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_UMAP(id, m, n)  __umap_iter_begin_##id(m)
+#define iter_end_UMAP(id, m, n)    NULL
+#define iter_next_UMAP(id, m, p)   ((p) = __umap_iter_next_##id(m))
+#define iter_deref_UMAP(p)         ((p)->second)
 
 /**
  * Generates unordered map (hash table) code for a specified key type, value type and ID.
@@ -233,33 +235,14 @@ __DS_FUNC_PREFIX_INL uint32_t __umap_hash_##id(const uint32_t seed, const kt k) 
  * @param   cmp_lt    Macro of the form (x, y) that returns whether x is strictly less than y.
  */
 #define gen_umap(id, kt, key_decl, t, cmp_lt)                                                                \
-__umap_create_hash_fn_##key_decl(id, kt, t)                                                                  \
-__gen_umap_entry(id, kt, t)                                                                                  \
-__gen_umap_common(id)                                                                                        \
-__gen_iter_UMAP(id)                                                                                          \
-__gen_umap_declarations(id, kt, t)                                                                           \
-__gen_umap_new_free(id)                                                                                      \
-__gen_umap_common_fns(id, kt, t, cmp_lt)                                                                     \
-__gen_umap_##key_decl(id, kt, t, cmp_lt)                                                                     \
-__gen_umap_set_lf(id)                                                                                        \
-
-#define __gen_umap_entry(id, kt, t)                                                                          \
+                                                                                                             \
 gen_pair(id, kt, t)                                                                                          \
 typedef struct UMapEntry_##id UMapEntry_##id;                                                                \
 struct UMapEntry_##id {                                                                                      \
     UMapEntry_##id *next;                                                                                    \
     Pair_##id p;                                                                                             \
 };                                                                                                           \
-UMapEntry_##id *umap_entry_new_##id(void) {                                                                  \
-    UMapEntry_##id *e = malloc(sizeof(UMapEntry_##id));                                                      \
-    if (!e) {                                                                                                \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    memset(e, 0, sizeof(UMapEntry_##id));                                                                    \
-    return e;                                                                                                \
-}                                                                                                            \
-
-#define __gen_umap_common(id)                                                                                \
+                                                                                                             \
 typedef struct {                                                                                             \
     UMapEntry_##id *curr;                                                                                    \
     unsigned idx;                                                                                            \
@@ -268,41 +251,47 @@ typedef struct {                                                                
 typedef struct {                                                                                             \
     size_t size;                                                                                             \
     size_t cap;                                                                                              \
-    const uint32_t __seed;                                                                                   \
+    const uint32_t seed;                                                                                     \
     double lf;                                                                                               \
     __UMap_Curr_##id it;                                                                                     \
     UMapEntry_##id **buckets;                                                                                \
 } UMap_##id;                                                                                                 \
-
-#define __gen_umap_declarations(id, kt, t)                                                                   \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL Pair_##id *__umap_iter_begin_##id(UMap_##id *m) {                                       \
+    if (!(m->size)) {                                                                                        \
+        m->it.curr = NULL;                                                                                   \
+        m->it.idx = m->cap;                                                                                  \
+    } else {                                                                                                 \
+        unsigned idx = 0;                                                                                    \
+        for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);                                          \
+        m->it.idx = idx;                                                                                     \
+        m->it.curr = m->buckets[m->it.idx];                                                                  \
+    }                                                                                                        \
+    return m->it.curr ? &(m->it.curr->p) : NULL;                                                             \
+}                                                                                                            \
+__DS_FUNC_PREFIX_INL Pair_##id *__umap_iter_next_##id(UMap_##id *m) {                                        \
+    if (m->it.curr->next) {                                                                                  \
+        m->it.curr = m->it.curr->next;                                                                       \
+    } else {                                                                                                 \
+        unsigned idx = m->it.idx + 1;                                                                        \
+        for (; (idx < m->cap) && (m->buckets[idx] == NULL); ++idx);                                          \
+        m->it.idx = idx;                                                                                     \
+        m->it.curr = (m->it.idx >= m->cap) ? NULL : m->buckets[m->it.idx];                                   \
+    }                                                                                                        \
+    return m->it.curr ? &(m->it.curr->p) : NULL;                                                             \
+}                                                                                                            \
+                                                                                                             \
 __DS_FUNC_PREFIX void umap_clear_##id(UMap_##id *m);                                                         \
 __DS_FUNC_PREFIX void umap_rehash_##id(UMap_##id *m, size_t nbuckets);                                       \
-__DS_FUNC_PREFIX UMapEntry_##id *__find_index_##id(UMap_##id *m, const kt key, uint32_t index);              \
 __DS_FUNC_PREFIX Pair_##id *umap_find_##id(UMap_##id *m, const kt key);                                      \
 __DS_FUNC_PREFIX void umap_insert_##id(UMap_##id *m, kt key, t value);                                       \
 __DS_FUNC_PREFIX void umap_erase_##id(UMap_##id *m, const kt key);                                           \
-
-#define __gen_umap_new_free(id)                                                                              \
+                                                                                                             \
 __DS_FUNC_PREFIX UMap_##id *umap_new_##id(void) {                                                            \
-    UMap_##id *m = malloc(sizeof(UMap_##id));                                                                \
-    if (!m) DS_OOM();                                                                                        \
-                                                                                                             \
+    UMap_##id *m = __ds_malloc(sizeof(UMap_##id));                                                           \
     srand(time(NULL));                                                                                       \
-    uint32_t seed = rand() % UINT32_MAX;                                                                     \
-    UMap_##id temp = {                                                                                       \
-        .size = 0,                                                                                           \
-        .cap = __MAP_INITIAL_NBUCKETS,                                                                       \
-        .__seed = seed,                                                                                      \
-        .lf = __MAP_DEFAULT_LOAD_FACTOR,                                                                     \
-        .it = {NULL, 0},                                                                                     \
-        .buckets = NULL                                                                                      \
-    };                                                                                                       \
-    memcpy(m, &temp, sizeof(UMap_##id));                                                                     \
-                                                                                                             \
-    m->buckets = malloc(m->cap * sizeof(UMapEntry_##id *));                                                  \
-    if (!m->buckets) DS_OOM();                                                                               \
-                                                                                                             \
-    memset(m->buckets, 0, m->cap * sizeof(UMapEntry_##id *));                                                \
+    memcpy(m, &((UMap_##id){.cap = 32, .seed = rand() % UINT32_MAX, .lf = 0.75, .it = {NULL, 0}}), sizeof(UMap_##id)); \
+    m->buckets = __ds_calloc(m->cap, sizeof(UMapEntry_##id *));                                              \
     return m;                                                                                                \
 }                                                                                                            \
                                                                                                              \
@@ -311,36 +300,17 @@ __DS_FUNC_PREFIX_INL void umap_free_##id(UMap_##id *m) {                        
     free(m->buckets);                                                                                        \
     free(m);                                                                                                 \
 }                                                                                                            \
-
-#define __gen_umap_set_lf(id)                                                                                \
-__DS_FUNC_PREFIX void umap_set_load_factor_##id(UMap_##id *m, double lf) {                                   \
-    if (lf < 0.500 || lf > 1.000) return;                                                                    \
-    m->lf = lf;                                                                                              \
-    double curr_lf = (double) m->size / m->cap;                                                              \
-    if (curr_lf > m->lf) {                                                                                   \
-        umap_rehash_##id(m, m->cap << 1);                                                                    \
-    }                                                                                                        \
-}                                                                                                            \
-
-#define __gen_umap_common_fns(id, kt, t, cmp_lt)                                                             \
+                                                                                                             \
 __DS_FUNC_PREFIX_INL t *umap_at_##id(UMap_##id *m, const kt key) {                                           \
     Pair_##id *p = umap_find_##id(m, key);                                                                   \
     return p ? &(p->second) : NULL;                                                                          \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL Pair_##id *umap_find_##id(UMap_##id *m, const kt key) {                                 \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
-    UMapEntry_##id *e = __find_index_##id(m, key, index);                                                    \
+    uint32_t index = murmurhash(__hash_key_##key_decl(key), __hash_len_##key_decl(key), m->seed) % m->cap;   \
+    UMapEntry_##id *e = NULL;                                                                                \
+    __umap_find_index(UMapEntry_##id, m, cmp_lt, e, index, key)                                              \
     return e ? &(e->p) : NULL;                                                                               \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL UMapEntry_##id *__find_index_##id(UMap_##id *m, const kt key, uint32_t index) {         \
-    UMapEntry_##id *e = m->buckets[index];                                                                   \
-    while (e) {                                                                                              \
-        if (ds_cmp_eq(cmp_lt, e->p.first, key)) return e;                                                    \
-        e = e->next;                                                                                         \
-    }                                                                                                        \
-    return NULL;                                                                                             \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void umap_rehash_##id(UMap_##id *m, size_t nbuckets) {                                      \
@@ -351,10 +321,7 @@ __DS_FUNC_PREFIX void umap_rehash_##id(UMap_##id *m, size_t nbuckets) {         
         n <<= 1;                                                                                             \
     }                                                                                                        \
                                                                                                              \
-    UMapEntry_##id **new = malloc(n * sizeof(UMapEntry_##id *));                                             \
-    if (!new) DS_OOM();                                                                                      \
-                                                                                                             \
-    memset(new, 0, n * sizeof(UMapEntry_##id *));                                                            \
+    UMapEntry_##id **new = __ds_calloc(n, sizeof(UMapEntry_##id *));                                         \
     UMapEntry_##id *e = NULL, *temp = NULL;                                                                  \
     uint32_t index = 0;                                                                                      \
                                                                                                              \
@@ -363,7 +330,7 @@ __DS_FUNC_PREFIX void umap_rehash_##id(UMap_##id *m, size_t nbuckets) {         
                                                                                                              \
         while (e) {                                                                                          \
             temp = e->next;                                                                                  \
-            index = __umap_hash_##id(m->__seed, e->p.first) % n;                                             \
+            index = murmurhash(__hash_key_##key_decl(e->p.first), __hash_len_##key_decl(e->p.first), m->seed) % n; \
             e->next = new[index];                                                                            \
             new[index] = e;                                                                                  \
             e = temp;                                                                                        \
@@ -374,10 +341,18 @@ __DS_FUNC_PREFIX void umap_rehash_##id(UMap_##id *m, size_t nbuckets) {         
     m->buckets = new;                                                                                        \
     m->cap = n;                                                                                              \
 }                                                                                                            \
-
-#define __gen_umap_PTR_COPY(id, kt, t, cmp_lt)                                                               \
+                                                                                                             \
+__DS_FUNC_PREFIX void umap_set_load_factor_##id(UMap_##id *m, double lf) {                                   \
+    if (lf < 0.500 || lf > 1.000) return;                                                                    \
+    m->lf = lf;                                                                                              \
+    double curr_lf = (double) m->size / m->cap;                                                              \
+    if (curr_lf > m->lf) {                                                                                   \
+        umap_rehash_##id(m, m->cap << 1);                                                                    \
+    }                                                                                                        \
+}                                                                                                            \
+                                                                                                             \
 __DS_FUNC_PREFIX void umap_insert_##id(UMap_##id *m, kt key, t value) {                                      \
-    if (!key) return;                                                                                        \
+    __map_check_valid_key_##key_decl(key)                                                                    \
                                                                                                              \
     double lf = (double) m->size / m->cap;                                                                   \
     if (lf > m->lf) {                                                                                        \
@@ -385,19 +360,15 @@ __DS_FUNC_PREFIX void umap_insert_##id(UMap_##id *m, kt key, t value) {         
     }                                                                                                        \
                                                                                                              \
     /* get index and entry at that index */                                                                  \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
-    UMapEntry_##id *e = __find_index_##id(m, key, index);                                                    \
+    uint32_t index = murmurhash(__hash_key_##key_decl(key), __hash_len_##key_decl(key), m->seed) % m->cap;   \
+    UMapEntry_##id *e = NULL;                                                                                \
+    __umap_find_index(UMapEntry_##id, m, cmp_lt, e, index, key)                                              \
                                                                                                              \
     if (e) {                                                                                                 \
         e->p.second = value;                                                                                 \
     } else {                                                                                                 \
-        e = umap_entry_new_##id();                                                                           \
-        e->p.first = malloc(strlen(key) + 1);                                                                \
-        if (!(e->p.first)) {                                                                                 \
-            DS_OOM();                                                                                        \
-        }                                                                                                    \
-                                                                                                             \
-        strcpy(e->p.first, key);                                                                             \
+        e = __ds_calloc(1, sizeof(UMapEntry_##id));                                                          \
+        __map_allocate_new_key_##key_decl(e, key)                                                            \
         e->next = m->buckets[index];                                                                         \
         m->buckets[index] = e;                                                                               \
         m->size++;                                                                                           \
@@ -406,15 +377,16 @@ __DS_FUNC_PREFIX void umap_insert_##id(UMap_##id *m, kt key, t value) {         
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void umap_erase_##id(UMap_##id *m, const kt key) {                                          \
-    if (!key) return;                                                                                        \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
+    __map_check_valid_key_##key_decl(key)                                                                    \
+                                                                                                             \
+    uint32_t index = murmurhash(__hash_key_##key_decl(key), __hash_len_##key_decl(key), m->seed) % m->cap;   \
     if (!(m->buckets[index])) return; /* this entry does not exist */                                        \
                                                                                                              \
     UMapEntry_##id *prev = m->buckets[index];                                                                \
     UMapEntry_##id *curr = prev->next;                                                                       \
     if (ds_cmp_eq(cmp_lt, prev->p.first, key)) { /* special case when it's the first bucket entry */         \
         m->buckets[index] = curr;                                                                            \
-        free(prev->p.first);                                                                                 \
+        __map_remove_key_##key_decl(prev)                                                                    \
         free(prev);                                                                                          \
         m->size--;                                                                                           \
         return;                                                                                              \
@@ -423,7 +395,7 @@ __DS_FUNC_PREFIX void umap_erase_##id(UMap_##id *m, const kt key) {             
     while (curr) {                                                                                           \
         if (ds_cmp_eq(cmp_lt, curr->p.first, key)) {                                                         \
             prev->next = curr->next;                                                                         \
-            free(curr->p.first);                                                                             \
+            __map_remove_key_##key_decl(curr)                                                                \
             free(curr);                                                                                      \
             m->size--;                                                                                       \
             return;                                                                                          \
@@ -440,138 +412,7 @@ __DS_FUNC_PREFIX void umap_clear_##id(UMap_##id *m) {                           
                                                                                                              \
         while (e) { /* iterate through linked list */                                                        \
             temp = e->next;                                                                                  \
-            if (e->p.first) {                                                                                \
-                free(e->p.first);                                                                            \
-            }                                                                                                \
-            free(e);                                                                                         \
-            e = temp;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    memset(m->buckets, 0, sizeof(UMapEntry_##id *) * m->cap);                                                \
-    m->size = 0;                                                                                             \
-}                                                                                                            \
-
-#define __gen_umap_VALUE(id, kt, t, cmp_lt)                                                                  \
-__DS_FUNC_PREFIX void umap_insert_##id(UMap_##id *m, kt key, t value) {                                      \
-    double lf = (double) m->size / m->cap;                                                                   \
-    if (lf > m->lf) {                                                                                        \
-        umap_rehash_##id(m, m->cap << 1);                                                                    \
-    }                                                                                                        \
-                                                                                                             \
-    /* get index and entry at that index */                                                                  \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
-    UMapEntry_##id *e = __find_index_##id(m, key, index);                                                    \
-                                                                                                             \
-    if (e) {                                                                                                 \
-        e->p.second = value;                                                                                 \
-    } else {                                                                                                 \
-        e = umap_entry_new_##id();                                                                           \
-        e->p.first = key;                                                                                    \
-        e->next = m->buckets[index];                                                                         \
-        m->buckets[index] = e;                                                                               \
-        m->size++;                                                                                           \
-        e->p.second = value;                                                                                 \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void umap_erase_##id(UMap_##id *m, const kt key) {                                          \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
-    if (!(m->buckets[index])) return; /* this entry does not exist */                                        \
-                                                                                                             \
-    UMapEntry_##id *prev = m->buckets[index];                                                                \
-    UMapEntry_##id *curr = prev->next;                                                                       \
-    if (ds_cmp_eq(cmp_lt, prev->p.first, key)) { /* special case when it's the first bucket entry */         \
-        m->buckets[index] = curr;                                                                            \
-        free(prev);                                                                                          \
-        m->size--;                                                                                           \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    while (curr) {                                                                                           \
-        if (ds_cmp_eq(cmp_lt, curr->p.first, key)) {                                                         \
-            prev->next = curr->next;                                                                         \
-            free(curr);                                                                                      \
-            m->size--;                                                                                       \
-            return;                                                                                          \
-        }                                                                                                    \
-        prev = curr;                                                                                         \
-        curr = curr->next;                                                                                   \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void umap_clear_##id(UMap_##id *m) {                                                        \
-    UMapEntry_##id *e = NULL, *temp = NULL;                                                                  \
-    for (size_t i = 0; i < m->cap; ++i) { /* iterate over all buckets */                                     \
-        e = m->buckets[i];                                                                                   \
-                                                                                                             \
-        while (e) { /* iterate through linked list */                                                        \
-            temp = e->next;                                                                                  \
-            free(e);                                                                                         \
-            e = temp;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    memset(m->buckets, 0, sizeof(UMapEntry_##id *) * m->cap);                                                \
-    m->size = 0;                                                                                             \
-}                                                                                                            \
-
-#define __gen_umap_PTR(id, kt, t, cmp_lt)                                                                    \
-__DS_FUNC_PREFIX void umap_insert_##id(UMap_##id *m, kt key, t value) {                                      \
-    if (!key) return;                                                                                        \
-                                                                                                             \
-    double lf = (double) m->size / m->cap;                                                                   \
-    if (lf > m->lf) {                                                                                        \
-        umap_rehash_##id(m, m->cap << 1);                                                                    \
-    }                                                                                                        \
-                                                                                                             \
-    /* get index and entry at that index */                                                                  \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
-    UMapEntry_##id *e = __find_index_##id(m, key, index);                                                    \
-                                                                                                             \
-    if (e) {                                                                                                 \
-        e->p.second = value;                                                                                 \
-    } else {                                                                                                 \
-        e = umap_entry_new_##id();                                                                           \
-        e->p.first = key;                                                                                    \
-        e->next = m->buckets[index];                                                                         \
-        m->buckets[index] = e;                                                                               \
-        m->size++;                                                                                           \
-        e->p.second = value;                                                                                 \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void umap_erase_##id(UMap_##id *m, const kt key) {                                          \
-    if (!key) return;                                                                                        \
-    uint32_t index = __umap_hash_##id(m->__seed, key) % m->cap;                                              \
-    if (!(m->buckets[index])) return; /* this entry does not exist */                                        \
-                                                                                                             \
-    UMapEntry_##id *prev = m->buckets[index];                                                                \
-    UMapEntry_##id *curr = prev->next;                                                                       \
-    if (ds_cmp_eq(cmp_lt, prev->p.first, key)) { /* special case when it's the first bucket entry */         \
-        m->buckets[index] = curr;                                                                            \
-        free(prev);                                                                                          \
-        m->size--;                                                                                           \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    while (curr) {                                                                                           \
-        if (ds_cmp_eq(cmp_lt, curr->p.first, key)) {                                                         \
-            prev->next = curr->next;                                                                         \
-            free(curr);                                                                                      \
-            m->size--;                                                                                       \
-            return;                                                                                          \
-        }                                                                                                    \
-        prev = curr;                                                                                         \
-        curr = curr->next;                                                                                   \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void umap_clear_##id(UMap_##id *m) {                                                        \
-    UMapEntry_##id *e = NULL, *temp = NULL;                                                                  \
-    for (size_t i = 0; i < m->cap; ++i) { /* iterate over all buckets */                                     \
-        e = m->buckets[i];                                                                                   \
-                                                                                                             \
-        while (e) { /* iterate through linked list */                                                        \
-            temp = e->next;                                                                                  \
+            __map_remove_key_##key_decl(e)                                                                   \
             free(e);                                                                                         \
             e = temp;                                                                                        \
         }                                                                                                    \

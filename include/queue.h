@@ -42,7 +42,7 @@
  *
  * @return      A pointer to the newly allocated queue.
  */
-#define queue_new(id) queue_new_##id()
+#define queue_new(id) __ds_calloc(1, sizeof(Queue_##id))
 
 
 /**
@@ -84,27 +84,17 @@
  * @param   t   Type to be stored in a queue node.
  */
 #define gen_queue(id, t)                                                                                     \
-__gen_node(id, t)                                                                                            \
+gen_node(QueueEntry_##id, t)                                                                                 \
                                                                                                              \
 typedef struct {                                                                                             \
     size_t size;                                                                                             \
-    Node_##id *front;                                                                                        \
-    Node_##id *back;                                                                                         \
+    QueueEntry_##id *front;                                                                                  \
+    QueueEntry_##id *back;                                                                                   \
 } Queue_##id;                                                                                                \
                                                                                                              \
-__DS_FUNC_PREFIX Queue_##id *queue_new_##id(void) {                                                          \
-    Queue_##id *q = malloc(sizeof(Queue_##id));                                                              \
-    if (!q) {                                                                                                \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-                                                                                                             \
-    memset(q, 0, sizeof(Queue_##id));                                                                        \
-    return q;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void queue_free_##id(Queue_##id *q) {                                                   \
-    Node_##id *curr = q->front, *temp = NULL;                                                                \
-    while (curr != NULL) { /* iterate and remove any elements */                                             \
+__DS_FUNC_PREFIX void queue_free_##id(Queue_##id *q) {                                                       \
+    QueueEntry_##id *curr = q->front, *temp = NULL;                                                          \
+    while (curr) { /* iterate and remove any elements */                                                     \
         temp = curr->next;                                                                                   \
         free(curr);                                                                                          \
         curr = temp;                                                                                         \
@@ -113,11 +103,9 @@ __DS_FUNC_PREFIX_INL void queue_free_##id(Queue_##id *q) {                      
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL bool queue_pop_##id(Queue_##id *q, t *result) {                                         \
-    if (queue_empty(q)) { /* nothing to pop */                                                               \
-        return false;                                                                                        \
-    }                                                                                                        \
+    if (queue_empty(q)) return false;                                                                        \
                                                                                                              \
-    Node_##id *front = q->front;                                                                             \
+    QueueEntry_##id *front = q->front;                                                                       \
     q->front = front->next;                                                                                  \
     /* only copy if the result pointer is provided */                                                        \
     if (result) {                                                                                            \
@@ -130,12 +118,11 @@ __DS_FUNC_PREFIX_INL bool queue_pop_##id(Queue_##id *q, t *result) {            
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void queue_push_##id(Queue_##id *q, t item) {                                           \
-    Node_##id *new = node_new_##id();                                                                        \
+    QueueEntry_##id *new = __ds_calloc(1, sizeof(QueueEntry_##id));                                          \
     new->data = item;                                                                                        \
     /* set this element to be at the back (and also the front, if the queue is empty) */                     \
     if (queue_empty(q)) {                                                                                    \
-        q->front = new;                                                                                      \
-        q->back = new;                                                                                       \
+        q->front = q->back = new;                                                                            \
     } else {                                                                                                 \
         q->back->next = new;                                                                                 \
         q->back = new;                                                                                       \

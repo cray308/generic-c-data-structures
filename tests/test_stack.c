@@ -8,31 +8,25 @@ typedef struct {
 
 gen_stack(dbs, DoubleStr)
 
-char *strs[] = {"One", "Two", "Three", "Four", "Five", "Six",
-                      "Seven", "Eight", "Nine", "Ten"};
+char *strs[] = {"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"};
 
-void test_push(Stack_dbs *s) {
+int main(void) {
+    Stack_dbs *s = stack_new(dbs);
+
     assert(stack_empty(s));
     assert(stack_size(s) == 0);
-    DoubleStr dbs;
-    DoubleStr *ptr = NULL;
 
+    DoubleStr *ptr = NULL;
     for (int i = 0; i < 10; ++i) {
-        dbs.val = (double) i + 0.14159;
-        dbs.str = strs[i];
-        stack_push(dbs, s, dbs);
+        stack_push(dbs, s, ((DoubleStr){.val = (double) i + 0.14159, .str = strs[i]}));
         ptr = stack_top(s);
         assert(streq(ptr->str, strs[i]));
         assert(ptr->val >= i && ptr->val <= (i + 1));
         assert(stack_size(s) == i + 1);
     }
     assert(!stack_empty(s));
-}
 
-void test_pop(Stack_dbs *s) {
     DoubleStr dbs = {0, NULL};
-    DoubleStr *ptr = NULL;
-
     int i = 9;
     for (; i > 4; --i) {
         stack_pop(dbs, s, &dbs);
@@ -49,15 +43,9 @@ void test_pop(Stack_dbs *s) {
         assert(dbs.val >= i && dbs.val <= (i + 1));
         i--;
     }
-
     assert(stack_empty(s));
     assert(stack_size(s) == 0);
-}
 
-int main(void) {
-    Stack_dbs *s = stack_new(dbs);
-    test_push(s);
-    test_pop(s);
     stack_free(dbs, s);
     return 0;
 }

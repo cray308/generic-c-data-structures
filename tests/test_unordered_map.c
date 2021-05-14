@@ -33,7 +33,7 @@ void test_insert_find_string(void) {
         assert(umap_size(m) == i + 1);
     }
     assert(!umap_empty(m));
-    UMapIterator_strv_int it = NULL;
+    Pair_strv_int *it = NULL;
 
     for (int i = 0; i < 7; ++i) {
         it = umap_find(strv_int, m, days[i]);
@@ -57,7 +57,7 @@ void test_insert_find_string(void) {
 
 void test_insert_find_int(void) {
     UMap_int_str *m = umap_new(int_str);
-    UMapIterator_int_str it = NULL;
+    Pair_int_str *it = NULL;
 
     for (int i = 0; i < 12; ++i) {
         umap_insert(int_str, m, i, months[i]);
@@ -89,7 +89,7 @@ void test_resizing_deletion(void) {
     }
 
     assert(m->cap != 32);
-    UMapIterator_strp_int it = NULL;
+    Pair_strp_int *it = NULL;
 
     for (int i = 0; i < len; ++i) {
         it = umap_find(strp_int, m, words[i]);
@@ -118,7 +118,7 @@ void test_iter(void) {
         assert(umap_size(m) == i + 1);
     }
     int counter = 0;
-    UMapIterator_int_str it = NULL;
+    Pair_int_str *it = NULL;
 
     umap_iter(int_str, m, it) {
         assert(it != NULL);

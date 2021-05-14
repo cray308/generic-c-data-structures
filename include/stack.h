@@ -2,7 +2,6 @@
 #define STACK_H
 
 #include "ds.h"
-#include <stdbool.h>
 
 /**
  * The number of elements in the stack.
@@ -35,7 +34,7 @@
  *
  * @return      A pointer to the newly allocated stack.
  */
-#define stack_new(id) stack_new_##id()
+#define stack_new(id) __ds_calloc(1, sizeof(Stack_##id))
 
 
 /**
@@ -76,25 +75,16 @@
  * @param   t   Type to be stored in a stack node.
  */
 #define gen_stack(id, t)                                                                                     \
-__gen_node(id, t)                                                                                            \
+gen_node(StackEntry_##id, t)                                                                                 \
                                                                                                              \
 typedef struct {                                                                                             \
     size_t size;                                                                                             \
-    Node_##id *top;                                                                                          \
+    StackEntry_##id *top;                                                                                    \
 } Stack_##id;                                                                                                \
                                                                                                              \
-Stack_##id *stack_new_##id(void) {                                                                           \
-    Stack_##id *s = malloc(sizeof(Stack_##id));                                                              \
-    if (!s) {                                                                                                \
-        DS_OOM();                                                                                            \
-    }                                                                                                        \
-    memset(s, 0, sizeof(Stack_##id));                                                                        \
-    return s;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
 __DS_FUNC_PREFIX void stack_free_##id(Stack_##id *s) {                                                       \
-    Node_##id *curr = s->top, *temp = NULL;                                                                  \
-    while (curr != NULL) { /* iterate and remove any elements */                                             \
+    StackEntry_##id *curr = s->top, *temp = NULL;                                                            \
+    while (curr) { /* iterate and remove any elements */                                                     \
         temp = curr->next;                                                                                   \
         free(curr);                                                                                          \
         curr = temp;                                                                                         \
@@ -103,10 +93,8 @@ __DS_FUNC_PREFIX void stack_free_##id(Stack_##id *s) {                          
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX bool stack_pop_##id(Stack_##id *s, t *result) {                                             \
-    if (stack_empty(s)) { /* nothing to pop */                                                               \
-        return false;                                                                                        \
-    }                                                                                                        \
-    Node_##id *top = s->top;                                                                                 \
+    if (stack_empty(s)) return false;                                                                        \
+    StackEntry_##id *top = s->top;                                                                           \
     s->top = top->next;                                                                                      \
                                                                                                              \
     /* only copy if the result pointer is provided */                                                        \
@@ -120,7 +108,7 @@ __DS_FUNC_PREFIX bool stack_pop_##id(Stack_##id *s, t *result) {                
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void stack_push_##id(Stack_##id *s, t item) {                                               \
-    Node_##id *new = node_new_##id();                                                                        \
+    StackEntry_##id *new = __ds_calloc(1, sizeof(StackEntry_##id));                                          \
     new->data = item;                                                                                        \
     /* set this element to be the top */                                                                     \
     new->next = s->top;                                                                                      \
