@@ -10,8 +10,8 @@ void test_macros(void) {
     const char *cstr = string_c_str(s);
     assert(strlen(cstr) == 0);
 
-    char c = string_at(s, 10);
-    assert(c == 0);
+    char *c = string_at(s, 10);
+    assert(c == NULL);
 
     char *ptr = string_front(s);
     assert(ptr == NULL);
@@ -39,9 +39,9 @@ void test_macros(void) {
     assert(strlen(cstr) > 0);
 
     c = string_at(s, 10);
-    assert(c == 0);
+    assert(c == NULL);
     c = string_at(s, 1);
-    assert(c == 'e');
+    assert(*c == 'e');
 
     ptr = string_front(s);
     assert(*ptr == 'h');
@@ -104,13 +104,13 @@ void test_resizing(void) {
     ptr = string_back(s);
     assert(*ptr == 'x');
 
-    char c;
+    char *c;
     for (int i = 0; i < 10; ++i) {
         c = string_at(s, i);
         if (i < 7) {
-            assert(c == mystring[i]);
+            assert(*c == mystring[i]);
         } else {
-            assert(c == 'x');
+            assert(*c == 'x');
         }
     }
 
@@ -155,8 +155,8 @@ void test_erase(void) {
 
     string_erase(s, 2, 2);
     assert(string_len(s) == 4);
-    char c = string_at(s, 2);
-    assert(c == '6');
+    char *c = string_at(s, 2);
+    assert(*c == '6');
 
     string_pop_back(s);
     assert(string_len(s) == 3);
@@ -324,7 +324,7 @@ void test_find_x_of(void) {
     int found = 0;
     found = string_find_first_of(s, found, "aeiou");
     while (found != -1) {
-        ptr = string_ref(s, found);
+        ptr = string_at(s, found);
         *ptr = '*';
         found = string_find_first_of(s, found + 1, "aeiou");
     }
@@ -337,7 +337,7 @@ void test_find_x_of(void) {
     found = string_len(s);
     found = string_find_last_of(s, found, "/");
     while (found != -1) {
-        ptr = string_ref(s, found);
+        ptr = string_at(s, found);
         *ptr = '*';
         found = string_find_last_of(s, found - 1, "/");
     }

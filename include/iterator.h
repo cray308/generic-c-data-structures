@@ -4,7 +4,7 @@
 #include "ds.h"
 
 /* --------------------------------------------------------------------------
- * Types: ARR, LIST, TREE, SET, UMAP
+ * Types: ARR, LIST, TREE, SET, UMAP, STR
  * -------------------------------------------------------------------------- */
 
 #define iter_begin(type, id, ds, n) iter_begin_##type(id, ds, n)

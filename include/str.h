@@ -2,6 +2,7 @@
 #define STR_H
 
 #include "ds.h"
+#include "iterator.h"
 #include <ctype.h>
 #include <stdarg.h>
 
@@ -151,33 +152,23 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 
 
 /**
- * The numeric index in the string from a char pointer.
- *
- * @param   str  Pointer to string struct.
- * @param   chr  The char pointer whose index you wish to find.
- */
-#define string_index(str, chr) ((int) ((chr) - (str)->s))
-
-/**
- * Reference to the string starting at index i.
+ * Direct access to the char located at index `i` of the string. Does NOT perform bounds checking.
  *
  * @param   str  Pointer to string struct.
  * @param   i    Index in string.
  */
-__DS_FUNC_PREFIX_INL char *string_ref(String *str, int i) {
+#define string_index(str, i) (*((str)->s[(i)]))
+
+/**
+ * Reference to the string starting at index i. Performs bounds checking, and negative indices are
+ *   allowed.
+ *
+ * @param   str  Pointer to string struct.
+ * @param   i    Index in string.
+ */
+__DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
     int _idx = modulo(i, str->len);
     return (_idx >= 0) ? &(str->s[_idx]) : NULL;
-}
-
-/**
- * The char located at index i of the string.
- *
- * @param   str  Pointer to string struct.
- * @param   i    Index in string.
- */
-__DS_FUNC_PREFIX_INL char string_at(String *str, int i) {
-    int _idx = modulo(i, str->len);
-    return (_idx >= 0) ? str->s[_idx] : 0;
 }
 
 
@@ -186,7 +177,7 @@ __DS_FUNC_PREFIX_INL char string_at(String *str, int i) {
  *
  * @param   str  Pointer to string struct.
  */
-#define string_front(str) (((str)->len) ? &((str)->s[0]) : NULL)
+#define string_front(str) iter_begin(STR, 0, (str)->s, (str)->len)
 
 
 /**
@@ -194,7 +185,7 @@ __DS_FUNC_PREFIX_INL char string_at(String *str, int i) {
  *
  * @param   str  Pointer to string struct.
  */
-#define string_back(str) (((str)->len) ? &((str)->s[(str)->len - 1]) : NULL)
+#define string_back(str) iter_rbegin(STR, 0, (str)->s, (str)->len)
 
 
 /**
@@ -203,9 +194,7 @@ __DS_FUNC_PREFIX_INL char string_at(String *str, int i) {
  * @param   str    Pointer to string struct.
  * @param   chr    Char pointer to use during iteration.
  */
-#define string_iter(str, chr)                                                                                \
-    for ((chr) = ((str)->len) ? &((str)->s[0]) : NULL; (chr) != NULL;                                        \
-    (chr) = ((chr) != &(((str)->s[(str)->len - 1]))) ? (chr) + 1 : NULL)
+#define string_iter(str, chr) for (chr = string_front(str); chr != iter_end(STR, 0, (str)->s, (str)->len); iter_next(STR, 0, chr))
 
 
 /**
@@ -214,9 +203,21 @@ __DS_FUNC_PREFIX_INL char string_at(String *str, int i) {
  * @param   str    Pointer to string struct.
  * @param   chr    Char pointer to use during iteration.
  */
-#define string_riter(str, chr)                                                                               \
-    for ((chr) = ((str)->len) ? &((str)->s[(str)->len - 1]) : NULL; (chr) != NULL;                           \
-    (chr) = ((chr) != &(((str)->s[0]))) ? (chr) - 1 : NULL)
+#define string_riter(str, chr) for (chr = string_back(str); chr != iter_rend(STR, 0, (str)->s, (str)->len); iter_prev(STR, 0, chr))
+
+/* --------------------------------------------------------------------------
+ * String iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_STR(id, s, n)    ((n) ? &((s)[0]) : NULL)
+#define iter_end_STR(id, s, n)      ((n) ? &((s)[n]) : NULL)
+#define iter_rbegin_STR(id, s, n)   (n ? &((s)[(n) - 1]) : NULL)
+#define iter_rend_STR(id, s, n)     (n ? &((s)[-1]) : NULL)
+#define iter_next_STR(id, p)        (++(p))
+#define iter_prev_STR(id, p)        (--(p))
+#define iter_deref_STR(p)           (*(p))
+#define iter_advance_STR(id, p, n)  ((p) += n)
+#define iter_dist_STR(id, p1, p2)   ((p2) - (p1))
 
 
 /**
