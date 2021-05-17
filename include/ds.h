@@ -9,6 +9,15 @@
 #define __DS_FUNC_PREFIX static __attribute__((__unused__))
 #define __DS_FUNC_PREFIX_INL __DS_FUNC_PREFIX inline
 
+#define DSDefault_shallowCopy(dest, src) ((dest) = (src))
+#define DSDefault_shallowDelete(x) //do nothing
+#define DSDefault_deepCopyStr(dest, src) do { dest = __ds_malloc(strlen(src) + 1); strcpy(dest, src); } while(0)
+#define DSDefault_deepDelete(x) free(x)
+
+#define DSDefault_addrOfVal(x) &(x)
+#define DSDefault_addrOfRef(x) x
+#define DSDefault_sizeOfVal(x) sizeof(x)
+#define DSDefault_sizeOfStr(x) strlen(x)
 
 /**
  * If successful, returns the positive modulus.
@@ -59,7 +68,9 @@ __DS_FUNC_PREFIX_INL void *__ds_realloc(void *ptr, size_t size) {
 
 
 #define ds_cmp_num_lt(n1, n2) ((n1) < (n2))
+#define ds_cmp_num_eq(n1, n2) ((n1) == (n2))
 #define ds_cmp_str_lt(s1, s2) (strcmp((s1), (s2)) < 0)
+#define ds_cmp_str_eq(s1, s2) (strcmp((s1), (s2)) == 0)
 
 #define ds_cmp_eq(cmp_lt, x, y) (!(cmp_lt(x, y)) && !(cmp_lt(y, x)))
 #define ds_cmp_neq(cmp_lt, x, y) (!(ds_cmp_eq(cmp_lt, x, y)))

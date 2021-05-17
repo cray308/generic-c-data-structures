@@ -1,6 +1,8 @@
 #ifndef PAIR_H
 #define PAIR_H
 
+#define pair_make(id, x, y) ((Pair_##id){x, y})
+
 /**
  * Generates pair code for the specified ID and datatypes.
  *

@@ -26,8 +26,8 @@ typedef enum {
 
 #define __rb_swapColors(x1, x2) { int tmp_color = (x1)->color; (x1)->color = (x2)->color; (x2)->color = tmp_color; }
 
-#define __rb_leftRotate(id, t, x) {                                                                          \
-    TreeEntry_##id *nParent = (x)->right;                                                                    \
+#define __rb_leftRotate(EntryType, t, x) {                                                                          \
+    EntryType *nParent = (x)->right;                                                                    \
     if ((x) == (t)->root) {                                                                                  \
         (t)->root = nParent;                                                                                 \
     }                                                                                                        \
@@ -39,8 +39,8 @@ typedef enum {
     nParent->left = (x);                                                                                     \
 }
 
-#define __rb_rightRotate(id, t, x) {                                                                         \
-    TreeEntry_##id *nParent = (x)->left;                                                                     \
+#define __rb_rightRotate(EntryType, t, x) {                                                                         \
+    EntryType *nParent = (x)->left;                                                                     \
     if ((x) == (t)->root) {                                                                                  \
         (t)->root = nParent;                                                                                 \
     }                                                                                                        \
@@ -59,109 +59,16 @@ typedef enum {
     }                                                                                                        \
     return x;                                                                                                \
 
-#define __rb_nextNode_inorder_body(id, x, dir, nextNode) \
+#define __rb_nextNode_inorder_body(EntryType, x, dir, nextNode) \
     if (!(x)) return NULL;                                                                                   \
     else if ((x)->dir) return nextNode((x)->dir);                                                            \
                                                                                                              \
-    TreeEntry_##id *parent = (x)->parent;                                                                    \
+    EntryType *parent = (x)->parent;                                                                    \
     while (parent && (x) == parent->dir) {                                                                   \
         (x) = parent;                                                                                        \
         parent = parent->parent;                                                                             \
     }                                                                                                        \
     return parent;                                                                                           \
-
-
-/**
- * Macro to iterate through the tree using an in-order traversal.
- *
- * @param   id    ID used with gen_rbtree.
- * @param   t     Pointer to tree.
- * @param   ptr   TreeEntry which is assigned to the current element.
- *                 - May be dereferenced with iter_deref(TREE, ptr) or ptr->data.
- */
-#define tree_iter(id, t, ptr) for (ptr = iter_begin(TREE, id, t, 0); ptr != iter_end(TREE, id, t, 0); iter_next(TREE, id, ptr))
-
-
-/**
- * Macro to iterate through the tree in reverse (largest element to smallest).
- *
- * @param   id    ID used with gen_rbtree.
- * @param   t     Pointer to tree.
- * @param   ptr   TreeEntry which is assigned to the current element.
- *                 - May be dereferenced with iter_deref(TREE, ptr) or ptr->data.
- */
-#define tree_riter(id, t, ptr) for (ptr = iter_rbegin(TREE, id, t, 0); ptr != iter_rend(TREE, id, t, 0); iter_prev(TREE, id, ptr))      
-
-
-/**
- * Creates a new RB-Tree.
- *
- * @param   id  ID used with gen_rbtree.
- *
- * @return      Pointer to the newly created tree.
- */
-#define tree_new(id) __ds_calloc(1, sizeof(Tree_##id))
-
-
-/**
- * Deletes all elements and frees the tree.
- *
- * @param  id  ID used with gen_rbtree.
- * @param  t   Pointer to tree.
- */
-#define tree_free(id, t) tree_free_##id(t)
-
-
-/**
- * Removes all nodes from the tree, leaving it with the root node set to NULL.
- *
- * @param  id    ID used with gen_rbtree.
- * @param  t     Pointer to tree.
- */
-#define tree_clear(id, t) tree_clear_##id(t)
-
-
-/**
- * Searches for the provided value.
- *
- * @param   id   ID used with gen_rbtree.
- * @param   t    Pointer to tree.
- * @param   val  Value to search for.
- *
- * @return       TreeEntry of the element if it was found, or NULL if it was not found.
- */
-#define tree_find(id, t, val) __rb_tree_search_##id(t, val, false)
-
-
-/**
- * Inserts a new node into the tree.
- *
- * @param  id   ID used with gen_rbtree.
- * @param  t    Pointer to tree.
- * @param  val  Value to be inserted.
- */
-#define tree_insert(id, t, val) tree_insert_##id(t, val)
-
-
-/**
- * Deletes the provided TreeEntry from the tree.
- *
- * @param  id  ID used with gen_rbtree.
- * @param  t   Pointer to tree.
- * @param  z   Node to be deleted.
- */
-#define tree_delete_node(id, t, z) tree_delete_node_##id(t, z)
-
-
-/**
- * Deletes a node from the tree with a value matching that which was provided.
- *
- * @param  id   ID used with gen_rbtree.
- * @param  t    Pointer to tree.
- * @param  val  Pointer to the value to compare to when searching the tree.
- */
-#define tree_delete_by_val(id, t, val) tree_delete_by_val_##id(t, val)
-
 
 /* --------------------------------------------------------------------------
  * Tree iterator macros
@@ -177,84 +84,84 @@ typedef enum {
 #define iter_advance_TREE(id, p, n)  iterator_advance_helper(TREE, id, p, n)
 #define iter_dist_TREE(id, p1, p2)   __iter_dist_helper_TREE_##id(p1, p2)
 
-
-/**
- * Generates RB-tree code for a specified type and ID.
- *
- * @param   id      ID to be used for the Tree struct and function names (must be unique).
- * @param   t       Type to be stored in the given tree node.
- * @param   cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
- */
-#define gen_rbtree(id, t, cmp_lt)                                                                            \
+#define __gen_rbtree(id, kt, cmp_lt, TreeType, DataType, EntryType, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue)                                                                            \
                                                                                                              \
-typedef struct TreeEntry_##id TreeEntry_##id;                                                                \
-struct TreeEntry_##id {                                                                                      \
-    TreeEntry_##id *parent;                                                                                  \
-    TreeEntry_##id *left;                                                                                    \
-    TreeEntry_##id *right;                                                                                   \
+typedef struct EntryType EntryType;                                                                \
+struct EntryType {                                                                                      \
+    EntryType *parent;                                                                                  \
+    EntryType *left;                                                                                    \
+    EntryType *right;                                                                                   \
     __rb_node_color color;                                                                                   \
-    t data;                                                                                                  \
+    DataType data;                                                                                                  \
 };                                                                                                           \
                                                                                                              \
-__DS_FUNC_PREFIX TreeEntry_##id *rb_node_new_##id(void) {                                                    \
-    TreeEntry_##id *node = __ds_calloc(1, sizeof(TreeEntry_##id));                                           \
-    node->color = RED;                                                                                       \
-    return node;                                                                                             \
-}                                                                                                            \
-                                                                                                             \
 typedef struct {                                                                                             \
-    TreeEntry_##id *root;                                                                                    \
+    EntryType *root;                                                                                    \
     size_t size;                                                                                             \
-} Tree_##id;                                                                                                 \
+} TreeType;                                                                                                 \
                                                                                                              \
-__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_successor_##id(TreeEntry_##id *x) {                                \
+__DS_FUNC_PREFIX_INL EntryType *__rb_successor_##id(EntryType *x) {                                \
     __rb_nextNode_body(x, left)                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_predecessor_##id(TreeEntry_##id *x) {                              \
+__DS_FUNC_PREFIX_INL EntryType *__rb_predecessor_##id(EntryType *x) {                              \
     __rb_nextNode_body(x, right)                                                                             \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_inorder_successor_##id(TreeEntry_##id *x) {                        \
-    __rb_nextNode_inorder_body(id, x, right, __rb_successor_##id)                                            \
+__DS_FUNC_PREFIX_INL EntryType *__rb_inorder_successor_##id(EntryType *x) {                        \
+    __rb_nextNode_inorder_body(EntryType, x, right, __rb_successor_##id)                                            \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL TreeEntry_##id *__rb_inorder_predecessor_##id(TreeEntry_##id *x) {                      \
-    __rb_nextNode_inorder_body(id, x, left, __rb_predecessor_##id)                                           \
+__DS_FUNC_PREFIX_INL EntryType *__rb_inorder_predecessor_##id(EntryType *x) {                      \
+    __rb_nextNode_inorder_body(EntryType, x, left, __rb_predecessor_##id)                                           \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void tree_clear_##id(Tree_##id *this);                                                      \
-__DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v);                             \
-__DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, TreeEntry_##id *x);                          \
-__DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, TreeEntry_##id *x);                               \
+__DS_FUNC_PREFIX void __rbtree_insert_fromArray_##id(TreeType *this, DataType *arr, size_t n);         \
+__DS_FUNC_PREFIX void __rbtree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end);       \
+__DS_FUNC_PREFIX void __rbtree_clear_##id(TreeType *this);                                                      \
+__DS_FUNC_PREFIX void __rbtree_remove_entry_##id(TreeType *this, EntryType *v);                             \
+__DS_FUNC_PREFIX void __rbtree_fixDoubleBlack_##id(TreeType *this, EntryType *x);                          \
+__DS_FUNC_PREFIX void __rbtree_fixRedRed_##id(TreeType *this, EntryType *x);                               \
                                                                                                              \
-create_iterator_distance_helper(TREE, id, TreeEntry_##id *)                                                  \
+create_iterator_distance_helper(TREE, id, EntryType *)                                                  \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void tree_free_##id(Tree_##id *this) {                                                  \
-    tree_clear_##id(this);                                                                                   \
+__DS_FUNC_PREFIX TreeType *__rbtree_new_fromArray_##id(DataType *arr, size_t n) {                                     \
+    TreeType *t = __ds_calloc(1, sizeof(TreeType));                                                                               \
+    __rbtree_insert_fromArray_##id(t, arr, n);                                                                 \
+    return t;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX TreeType *__rbtree_createCopy_##id(TreeType *other) {                                              \
+    TreeType *t = __ds_calloc(1, sizeof(TreeType));                                                                               \
+    __rbtree_insert_fromTree_##id(t, __rb_successor_##id(other->root), NULL);                                        \
+    return t;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX_INL void __rbtree_free_##id(TreeType *this) {                                                  \
+    __rbtree_clear_##id(this);                                                                                   \
     free(this);                                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void tree_clear_##id(Tree_##id *this) {                                                 \
-    TreeEntry_##id *curr = this->root;                                                                       \
+__DS_FUNC_PREFIX_INL void __rbtree_clear_##id(TreeType *this) {                                                 \
+    EntryType *curr = this->root;                                                                       \
     while (curr) {                                                                                           \
-        tree_delete_node_##id(this, curr);                                                                   \
+        __rbtree_remove_entry_##id(this, curr);                                                                   \
         curr = this->root;                                                                                   \
     }                                                                                                        \
     this->root = NULL;                                                                                       \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX TreeEntry_##id *__rb_tree_search_##id(Tree_##id *this, t val, bool candidate) {             \
-    TreeEntry_##id *temp = this->root;                                                                       \
+__DS_FUNC_PREFIX EntryType *__rbtree_find_key_##id(TreeType *this, const kt key, bool candidate) {             \
+    EntryType *temp = this->root;                                                                       \
     while (temp) {                                                                                           \
-        if (cmp_lt(val, temp->data)) {                                                                       \
+        if (cmp_lt(key, entry_get_key(temp))) {                                                                       \
             if (!temp->left) {                                                                               \
                 if (candidate) break;                                                                        \
                 else return NULL;                                                                            \
             } else {                                                                                         \
                 temp = temp->left;                                                                           \
             }                                                                                                \
-        } else if (cmp_lt(temp->data, val)) {                                                                \
+        } else if (cmp_lt(entry_get_key(temp), key)) {                                                                \
             if (!temp->right) {                                                                              \
                 if (candidate) break;                                                                        \
                 else return NULL;                                                                            \
@@ -264,51 +171,73 @@ __DS_FUNC_PREFIX TreeEntry_##id *__rb_tree_search_##id(Tree_##id *this, t val, b
         } else {                                                                                             \
             break;                                                                                           \
         }                                                                                                    \
-}                                                                                                            \
+    }                                                                                                            \
     return temp;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void tree_insert_##id(Tree_##id *this, t val) {                                             \
-    TreeEntry_##id *newNode = rb_node_new_##id();                                                            \
+__DS_FUNC_PREFIX EntryType *__rbtree_insert_##id(TreeType *this, DataType data, int *inserted) {                                             \
+    EntryType *newNode = __ds_calloc(1, sizeof(EntryType));                                           \
+    newNode->color = RED;                                                                                       \
     if (!this->root) {                                                                                       \
-        newNode->data = val;                                                                                 \
         newNode->color = BLACK;                                                                              \
+        copyKey(entry_get_key(newNode), data_get_key(data));                                                                                 \
+        copyValue(newNode->data.second, data.second);                                                        \
         this->root = newNode;                                                                                \
     } else {                                                                                                 \
-        TreeEntry_##id *temp = __rb_tree_search_##id(this, val, true);                                       \
-        if (ds_cmp_eq(cmp_lt, temp->data, val)) {                                                            \
+        EntryType *temp = __rbtree_find_key_##id(this, data_get_key(data), true);                                       \
+        if (ds_cmp_eq(cmp_lt, entry_get_key(temp), data_get_key(data))) {                                                            \
             free(newNode);                                                                                   \
-            return;                                                                                          \
+            deleteValue(temp->data.second);                                                                         \
+            copyValue(temp->data.second, data.second);                                                              \
+            if (inserted) *inserted = 0;                                                                     \
+            return temp;                                                                                          \
         }                                                                                                    \
-        newNode->data = val;                                                                                 \
+        copyKey(entry_get_key(newNode), data_get_key(data));                                                                                 \
+        copyValue(newNode->data.second, data.second);                                                        \
         newNode->parent = temp;                                                                              \
                                                                                                              \
-        if (cmp_lt(val, temp->data)) {                                                                       \
+        if (cmp_lt(data_get_key(data), entry_get_key(temp))) {                                                                       \
             temp->left = newNode;                                                                            \
         } else {                                                                                             \
             temp->right = newNode;                                                                           \
         }                                                                                                    \
-        __rb_fixRedRed_##id(this, newNode);                                                                  \
+        __rbtree_fixRedRed_##id(this, newNode);                                                                  \
     }                                                                                                        \
+    if (inserted) *inserted = 1;                                                                     \
     this->size++;                                                                                            \
+    return newNode;                                                                                          \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v) {                            \
-    TreeEntry_##id *u = NULL;                                                                                \
+__DS_FUNC_PREFIX void __rbtree_insert_fromArray_##id(TreeType *this, DataType *arr, size_t n) {                                             \
+    if (!(arr && n)) return;                                                                                 \
+    for (size_t i = 0; i < n; ++i) {                                                                         \
+        __rbtree_insert_##id(this, arr[i], NULL);                                                            \
+    }                                                                                                        \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX void __rbtree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end) {    \
+    while (start != end) {                                                                                   \
+        __rbtree_insert_##id(this, start->data, NULL);                                                                 \
+        start = __rb_inorder_successor_##id(start);                                                          \
+    }                                                                                                        \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX void __rbtree_remove_entry_##id(TreeType *this, EntryType *v) {                            \
+    EntryType *u = NULL;                                                                                \
     if (v->left && v->right) u = __rb_successor_##id(v->right);                                              \
     else if (v->left) u = v->left;                                                                           \
     else if (v->right) u = v->right;                                                                         \
                                                                                                              \
     bool uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));                                       \
-    TreeEntry_##id *parent = v->parent;                                                                      \
+    EntryType *parent = v->parent;                                                                      \
     if (!u) {                                                                                                \
         if (v == this->root) {                                                                               \
             this->root = NULL;                                                                               \
         } else {                                                                                             \
             if (uvBlack) {                                                                                   \
-                __rb_fixDoubleBlack_##id(this, v);                                                           \
+                __rbtree_fixDoubleBlack_##id(this, v);                                                           \
             } else {                                                                                         \
-                TreeEntry_##id *sibling = __rb_getSibling(v);                                                \
+                EntryType *sibling = __rb_getSibling(v);                                                \
                 if (sibling != NULL) {                                                                       \
                     sibling->color = RED;                                                                    \
                 }                                                                                            \
@@ -320,6 +249,8 @@ __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v) 
                 parent->right = NULL;                                                                        \
             }                                                                                                \
         }                                                                                                    \
+        deleteKey(entry_get_key(v));                                                                      \
+        deleteValue(v->data.second);                                                                      \
         free(v);                                                                                             \
         this->size--;                                                                                        \
         return;                                                                                              \
@@ -327,8 +258,12 @@ __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v) 
                                                                                                              \
     if (!v->left || !v->right) {                                                                             \
         if (v == this->root) {                                                                               \
-            v->data = u->data;                                                                               \
-            free(u);                                                                                         \
+            deleteKey(entry_get_key(v));                                                                      \
+            deleteValue(v->data.second);                                                                      \
+            v->data = u->data;                                                                            \
+            /*copyKey(entry_get_key(v), entry_get_key(u));                                                                                 \
+            copyValue(v->data.second, u->data.second);  */                                                      \
+            free(u);      /* //FIXME: MAY HAVE KEY ISSUE NOT COPYING POINTER!!!  */                                                                                   \
             v->left = v->right = NULL;                                                                       \
             this->size--;                                                                                    \
         } else {                                                                                             \
@@ -338,69 +273,87 @@ __DS_FUNC_PREFIX void tree_delete_node_##id(Tree_##id *this, TreeEntry_##id *v) 
                 parent->right = u;                                                                           \
             }                                                                                                \
                                                                                                              \
+            deleteKey(entry_get_key(v));                                                                      \
+            deleteValue(v->data.second);                                                                      \
             free(v);                                                                                         \
             this->size--;                                                                                    \
                                                                                                              \
             u->parent = parent;                                                                              \
             if (uvBlack) {                                                                                   \
-                __rb_fixDoubleBlack_##id(this, u);                                                           \
+                __rbtree_fixDoubleBlack_##id(this, u);                                                           \
             } else {                                                                                         \
                 u->color = BLACK;                                                                            \
             }                                                                                                \
         }                                                                                                    \
         return;                                                                                              \
     }                                                                                                        \
-    t tmp = u->data;                                                                                         \
+    DataType tmp = u->data;                                                                                         \
     u->data = v->data;                                                                                       \
     v->data = tmp;                                                                                           \
-    tree_delete_node_##id(this, u);                                                                          \
+    __rbtree_remove_entry_##id(this, u);                                                                          \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void tree_delete_by_val_##id(Tree_##id *this, t val) {                                      \
-    if (!this->root || !val) return;                                                                         \
-    TreeEntry_##id *v = __rb_tree_search_##id(this, val, true);                                              \
-    if (ds_cmp_neq(cmp_lt, v->data, val)) return;                                                            \
-    tree_delete_node_##id(this, v);                                                                          \
+__DS_FUNC_PREFIX void __rbtree_remove_key_##id(TreeType *this, const kt key) {                                      \
+    if (!this->root) return;                                                                         \
+    EntryType *v = __rbtree_find_key_##id(this, key, true);                                              \
+    if (ds_cmp_neq(cmp_lt, entry_get_key(v), key)) return;                                                            \
+    __rbtree_remove_entry_##id(this, v);                                                                          \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, TreeEntry_##id *x) {                         \
+__DS_FUNC_PREFIX void __rbtree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {             \
+    if (!begin) return;                                                                                            \
+                                                                                                             \
+    /* store keys in an array since RB tree deletions involve swapping values
+     * and thus it's not reliable to use node pointers in a bulk delete operation */                         \
+    kt keys[this->size];                                                                                      \
+    int count = 0;                                                                                           \
+    for (EntryType *curr = begin; curr != end; curr = __rb_inorder_successor_##id(curr)) {                                                                                    \
+        keys[count++] = entry_get_key(curr);                                                                                     \
+    }                                                                                                        \
+                                                                                                             \
+    for (int i = 0; i < count; ++i) {                                                                        \
+        __rbtree_remove_key_##id(this, keys[i]);                                                              \
+    }                                                                                                        \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX void __rbtree_fixDoubleBlack_##id(TreeType *this, EntryType *x) {                         \
     if (x == this->root) return;                                                                             \
                                                                                                              \
-    TreeEntry_##id *sibling = __rb_getSibling(x), *parent = x->parent;                                       \
+    EntryType *sibling = __rb_getSibling(x), *parent = x->parent;                                       \
     if (!sibling) {                                                                                          \
-        __rb_fixDoubleBlack_##id(this, parent);                                                              \
+        __rbtree_fixDoubleBlack_##id(this, parent);                                                              \
     } else {                                                                                                 \
         if (sibling->color == RED) {                                                                         \
             parent->color = RED;                                                                             \
             sibling->color = BLACK;                                                                          \
                                                                                                              \
             if (__rb_isOnLeft(sibling)) {                                                                    \
-                __rb_rightRotate(id, this, parent)                                                           \
+                __rb_rightRotate(EntryType, this, parent)                                                           \
             } else {                                                                                         \
-                __rb_leftRotate(id, this, parent)                                                            \
+                __rb_leftRotate(EntryType, this, parent)                                                            \
             }                                                                                                \
-            __rb_fixDoubleBlack_##id(this, x);                                                               \
+            __rbtree_fixDoubleBlack_##id(this, x);                                                               \
         } else {                                                                                             \
             if ((sibling->left && sibling->left->color == RED) || (sibling->right && sibling->right->color == RED)) { \
                 if (sibling->left && sibling->left->color == RED) {                                          \
                     if (__rb_isOnLeft(sibling)) {                                                            \
                         sibling->left->color = sibling->color;                                               \
                         sibling->color = parent->color;                                                      \
-                        __rb_rightRotate(id, this, parent)                                                   \
+                        __rb_rightRotate(EntryType, this, parent)                                                   \
                     } else {                                                                                 \
                         sibling->left->color = parent->color;                                                \
-                        __rb_rightRotate(id, this, sibling)                                                  \
-                        __rb_leftRotate(id, this, parent)                                                    \
+                        __rb_rightRotate(EntryType, this, sibling)                                                  \
+                        __rb_leftRotate(EntryType, this, parent)                                                    \
                     }                                                                                        \
                 } else {                                                                                     \
                     if (__rb_isOnLeft(sibling)) {                                                            \
                         sibling->right->color = parent->color;                                               \
-                        __rb_leftRotate(id, this, sibling)                                                   \
-                        __rb_rightRotate(id, this, parent)                                                   \
+                        __rb_leftRotate(EntryType, this, sibling)                                                   \
+                        __rb_rightRotate(EntryType, this, parent)                                                   \
                     } else {                                                                                 \
                         sibling->right->color = sibling->color;                                              \
                         sibling->color = parent->color;                                                      \
-                        __rb_leftRotate(id, this, parent)                                                    \
+                        __rb_leftRotate(EntryType, this, parent)                                                    \
                     }                                                                                        \
                 }                                                                                            \
                                                                                                              \
@@ -409,7 +362,7 @@ __DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, TreeEntry_##id *
                 sibling->color = RED;                                                                        \
                                                                                                              \
                 if (parent->color == BLACK) {                                                                \
-                    __rb_fixDoubleBlack_##id(this, parent);                                                  \
+                    __rbtree_fixDoubleBlack_##id(this, parent);                                                  \
                 } else {                                                                                     \
                     parent->color = BLACK;                                                                   \
                 }                                                                                            \
@@ -418,13 +371,13 @@ __DS_FUNC_PREFIX void __rb_fixDoubleBlack_##id(Tree_##id *this, TreeEntry_##id *
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, TreeEntry_##id *x) {                              \
+__DS_FUNC_PREFIX void __rbtree_fixRedRed_##id(TreeType *this, EntryType *x) {                              \
     if (x == this->root) {                                                                                   \
         x->color = BLACK;                                                                                    \
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    TreeEntry_##id *parent = x->parent, *grandparent = parent->parent, *uncle = NULL;                        \
+    EntryType *parent = x->parent, *grandparent = parent->parent, *uncle = NULL;                        \
     if (parent && grandparent) {                                                                             \
         uncle = __rb_isOnLeft(parent) ? grandparent->right : grandparent->left;                              \
     }                                                                                                        \
@@ -434,24 +387,24 @@ __DS_FUNC_PREFIX void __rb_fixRedRed_##id(Tree_##id *this, TreeEntry_##id *x) { 
             parent->color = BLACK;                                                                           \
             uncle->color = BLACK;                                                                            \
             grandparent->color = RED;                                                                        \
-            __rb_fixRedRed_##id(this, grandparent);                                                          \
+            __rbtree_fixRedRed_##id(this, grandparent);                                                          \
         } else {                                                                                             \
             if (__rb_isOnLeft(parent)) {                                                                     \
                 if (__rb_isOnLeft(x)) {                                                                      \
                     __rb_swapColors(parent, grandparent)                                                     \
                 } else {                                                                                     \
-                    __rb_leftRotate(id, this, parent)                                                        \
+                    __rb_leftRotate(EntryType, this, parent)                                                        \
                     __rb_swapColors(x, grandparent)                                                          \
                 }                                                                                            \
-                __rb_rightRotate(id, this, grandparent)                                                      \
+                __rb_rightRotate(EntryType, this, grandparent)                                                      \
             } else {                                                                                         \
                 if (__rb_isOnLeft(x)) {                                                                      \
-                    __rb_rightRotate(id, this, parent)                                                       \
+                    __rb_rightRotate(EntryType, this, parent)                                                       \
                     __rb_swapColors(x, grandparent)                                                          \
                 } else {                                                                                     \
                     __rb_swapColors(parent, grandparent)                                                     \
                 }                                                                                            \
-                __rb_leftRotate(id, this, grandparent)                                                       \
+                __rb_leftRotate(EntryType, this, grandparent)                                                       \
             }                                                                                                \
         }                                                                                                    \
     }                                                                                                        \

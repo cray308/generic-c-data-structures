@@ -4,12 +4,17 @@
 #include "rbtree.h"
 #include "alg_helper.h"
 
+#define __set_entry_get_key(e) ((e)->data)
+#define __set_data_get_key(d)  (d)
+#define __set_copy_value(x, y)
+#define __set_delete_value(x)
+
 /**
  * The number of elements in the set.
  * 
  * @param   s  Pointer to set.
  */
-#define set_len(s) ((int) (s)->size)
+#define set_size(s) ((int) (s)->size)
 
 
 /**
@@ -28,7 +33,7 @@
  * @param   ptr   SetEntry which is assigned to the current element.
  *                 - May be dereferenced with iter_deref(SET, ptr) or ptr->data.
  */
-#define set_iter(id, s, ptr) tree_iter(id, s, ptr)
+#define set_iter(id, s, it) for (it = iter_begin(TREE, id, s, 0); it != iter_end(TREE, id, s, 0); iter_next(TREE, id, it))
 
 /**
  * Iterates through the set in reverse order.
@@ -38,7 +43,7 @@
  * @param   ptr   SetEntry which is assigned to the current element.
  *                May be dereferenced with iter_deref(SET, ptr) or ptr->data.
  */
-#define set_riter(id, s, ptr) tree_riter(id, s, ptr)
+#define set_riter(id, s, it) for (it = iter_rbegin(TREE, id, s, 0); it != iter_rend(TREE, id, s, 0); iter_prev(TREE, id, it))
 
 
 /**
@@ -48,7 +53,7 @@
  *
  * @return      Pointer to the newly created set.
  */
-#define set_new(id) tree_new(id)
+#define set_new(id) __ds_calloc(1, sizeof(Set_##id))
 
 
 /**
@@ -60,7 +65,7 @@
  *
  * @return       Pointer to the newly created set.
  */
-#define set_new_fromArray(id, arr, n) set_new_fromArray_##id(arr, n)
+#define set_new_fromArray(id, arr, n) __rbtree_new_fromArray_##id(arr, n)
 
 
 /**
@@ -71,7 +76,7 @@
  *
  * @return       Pointer to the newly created set.
  */
-#define set_createCopy(id, set) set_createCopy_##id(set)
+#define set_createCopy(id, other) __rbtree_createCopy_##id(other)
 
 
 /**
@@ -80,7 +85,7 @@
  * @param  id  ID used with gen_set.
  * @param  s   Pointer to set.
  */
-#define set_free(id, s) tree_free_##id(s)
+#define set_free(id, s) __rbtree_free_##id(s)
 
 
 /**
@@ -89,7 +94,7 @@
  * @param  id  ID used with gen_set.
  * @param  s   Pointer to set.
  */
-#define set_clear(id, s) tree_clear_##id(s)
+#define set_clear(id, s) __rbtree_clear_##id(s)
 
 
 /**
@@ -101,7 +106,7 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define set_in(id, s, value) (tree_find(id, s, value) != NULL)
+#define set_in(id, s, value) (__rbtree_find_key_##id(s, value, false) != NULL)
 
 
 /**
@@ -113,7 +118,7 @@
  *
  * @return         Pointer to SetEntry whose data matches `value`, or NULL if it was not found.
  */
-#define set_find(id, s, value) tree_find(id, s, value)
+#define set_find(id, s, value) __rbtree_find_key_##id(s, value, false)
 
 
 /**
@@ -123,7 +128,20 @@
  * @param   s      Pointer to set.
  * @param   value  Value to insert.
  */
-#define set_insert(id, s, value) tree_insert_##id(s, value)
+#define set_insert(id, s, value) __rbtree_insert_##id(s, value, NULL)
+
+
+/**
+ * [set_insert_withResult description]
+ *
+ * @param   id        [description]
+ * @param   s         [description]
+ * @param   value     [description]
+ * @param   inserted  [description]
+ *
+ * @return            [description]
+ */
+#define set_insert_withResult(id, s, value, inserted) __rbtree_insert_##id(s, value, inserted)
 
 
 /**
@@ -134,7 +152,7 @@
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to insert from `arr`.
  */
-#define set_insert_fromArray(id, s, arr, n) set_insert_fromArray_##id(s, arr, n)
+#define set_insert_fromArray(id, s, arr, n) __rbtree_insert_fromArray_##id(s, arr, n)
 
 
 /**
@@ -146,7 +164,7 @@
  * @param   end    Pointer after the last SetEntry to insert. If this is NULL, all elements from
  *                   `start` through the end (greatest element) of the other set will be inserted.
  */
-#define set_insert_fromSet(id, s, start, end) set_insert_fromSet_##id(s, start, end)
+#define set_insert_fromSet(id, s, start, end) __rbtree_insert_fromTree_##id(s, start, end)
 
 
 /**
@@ -159,7 +177,7 @@
  * @param  end    SetEntry AFTER the last element to be deleted. If this is NULL, then all
  *                  elements from start through the greatest element in the set will be removed.
  */
-#define set_erase(id, s, begin, end) set_erase_##id(s, begin, end)
+#define set_erase(id, s, begin, end) __rbtree_erase_##id(s, begin, end)
 
 
 /**
@@ -169,7 +187,19 @@
  * @param  s      Pointer to set.
  * @param  value  Pointer to the value to be deleted.
  */
-#define set_remove_value(id, s, value) tree_delete_by_val_##id(s, value)
+#define set_remove_value(id, s, value) __rbtree_remove_key_##id(s, value)
+
+
+/**
+ * [set_remove_entry description]
+ *
+ * @param   id  [description]
+ * @param   m   [description]
+ * @param   e   [description]
+ *
+ * @return      [description]
+ */
+#define set_remove_entry(id, s, e) __rbtree_remove_entry_##id(s, e)
 
 
 /**
@@ -183,7 +213,7 @@
  * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
  *                   is NULL.
  */
-#define set_union(id, s, other) __set_union_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
+#define set_union(id, s, other) __set_union_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
 
 /**
@@ -197,7 +227,7 @@
  * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
  *                   is NULL.
  */
-#define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
+#define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
 
 /**
@@ -210,7 +240,7 @@
  * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
  *                   is NULL.
  */
-#define set_difference(id, s, other) __set_difference_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
+#define set_difference(id, s, other) __set_difference_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
 
 /**
@@ -224,7 +254,7 @@
  * @return         Newly created set which is the symmetric difference of `s` and `other`, or
  *                   NULL if `other` is NULL.
  */
-#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_SET(id, s, 0), NULL, iter_begin_SET(id, other, 0), NULL)
+#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
 
 /**
@@ -236,7 +266,7 @@
  *
  * @return         True if each element in `s` is in `other`, false if not.
  */
-#define set_issubset(id, s, other) __includes_set_##id(iter_begin_SET(id, other, 0), NULL, iter_begin_SET(id, s, 0), NULL)
+#define set_issubset(id, s, other) __includes_set_##id(iter_begin_TREE(id, other, 0), NULL, iter_begin_TREE(id, s, 0), NULL)
 
 
 /**
@@ -263,89 +293,27 @@
  */
 #define set_isdisjoint(id, s, other) set_disjoint_##id(s, other)
 
-/* --------------------------------------------------------------------------
- * Set iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_SET(id, t, n)   iter_begin_TREE(id, t, n)
-#define iter_end_SET(id, t, n)     iter_end_TREE(id, t, n)
-#define iter_rbegin_SET(id, t, n)  iter_rbegin_TREE(id, t, n)
-#define iter_rend_SET(id, t, n)    iter_rend_TREE(id, t, n)
-#define iter_next_SET(id, p)       iter_next_TREE(id, p)
-#define iter_prev_SET(id, p)       iter_prev_TREE(id, p)
-#define iter_deref_SET(p)          iter_deref_TREE(p)
-#define iter_advance_SET(id, p, n) iter_advance_TREE(id, p, n)
-#define iter_dist_SET(id, p1, p2)  iter_dist_TREE(id, p1, p2)
 
 /**
- * Generates set code for a specified type and ID.
+ * [gen_set description]
  *
- * @param   id      ID to be used for the type stored in the set (must be unique).
- * @param   t       Type to be stored in the set.
- * @param   cmp_lt  Macro of the form (x, y) that returns whether (x < y).
+ * @param   id         [description]
+ * @param   t          [description]
+ * @param   cmp_lt     [description]
+ * @param   copyKey    [description]
+ * @param   deleteKey  [description]
+ *
+ * @return             [description]
  */
-#define gen_set(id, t, cmp_lt)                                                                               \
-gen_rbtree(id, t, cmp_lt)                                                                                    \
-                                                                                                             \
-typedef Tree_##id Set_##id;                                                                                  \
-typedef TreeEntry_##id SetEntry_##id;                                                                        \
-__DS_FUNC_PREFIX void set_insert_fromSet_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end);     \
-__DS_FUNC_PREFIX void set_insert_fromArray_##id(Set_##id *this, t *arr, size_t n);                           \
-                                                                                                             \
-__DS_FUNC_PREFIX Set_##id *set_new_fromArray_##id(t *arr, size_t size) {                                     \
-    Set_##id *s = set_new(id);                                                                               \
-    set_insert_fromArray_##id(s, arr, size);                                                                 \
-    return s;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX Set_##id *set_createCopy_##id(Set_##id *set) {                                              \
-    Set_##id *s = set_new(id);                                                                               \
-    set_insert_fromSet_##id(s, __rb_successor_##id(set->root), NULL);                                        \
-    return s;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void set_insert_fromArray_##id(Set_##id *this, t *arr, size_t n) {                          \
-    if (!arr || !n) return;                                                                                  \
-    t *end = &arr[n];                                                                                        \
-    for (; arr != end; ++arr) {                                                                              \
-        tree_insert_##id(this, *arr);                                                                        \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void set_insert_fromSet_##id(Set_##id *this, SetEntry_##id *start, SetEntry_##id *end) {    \
-    while (start != end) {                                                                                   \
-        tree_insert_##id(this, start->data);                                                                 \
-        start = __rb_inorder_successor_##id(start);                                                          \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void set_erase_##id(Set_##id *this, SetEntry_##id *begin, SetEntry_##id *end) {             \
-    if (!begin) {                                                                                            \
-        begin = __rb_successor_##id(this->root);                                                             \
-    }                                                                                                        \
-                                                                                                             \
-    /* store values in an array since RB tree deletions involve swapping values
-     * and thus it's not reliable to use RBNode pointers in a bulk delete operation */                       \
-    t vals[this->size];                                                                                      \
-    int count = 0;                                                                                           \
-    t *c = vals;                                                                                             \
-    TreeEntry_##id *curr = begin;                                                                            \
-    while (curr != end) {                                                                                    \
-        *c = curr->data;                                                                                     \
-        ++c, ++count;                                                                                        \
-        curr = __rb_inorder_successor_##id(curr);                                                            \
-    }                                                                                                        \
-                                                                                                             \
-    for (int i = 0; i < count; ++i) {                                                                        \
-        tree_delete_by_val_##id(this, vals[i]);                                                              \
-    }                                                                                                        \
-}                                                                                                            \
+#define gen_set(id, t, cmp_lt, copyKey, deleteKey)                                                                               \
+__gen_rbtree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __set_data_get_key, copyKey, deleteKey, __set_copy_value, __set_delete_value) \
+__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, set_new, SetEntry_##id *, iter_next_TREE, iter_deref_TREE, set_insert, set_insert_fromSet(id, d_new, first1, last1), set_insert_fromSet(id, d_new, first2, last2)) \
                                                                                                              \
 __DS_FUNC_PREFIX bool set_disjoint_##id(Set_##id *this, Set_##id *other) {                                   \
     if (!other || !other->root) return false;                                                                \
                                                                                                              \
-    TreeEntry_##id *n1 = __rb_successor_##id(this->root);                                                    \
-    TreeEntry_##id *n2 = __rb_successor_##id(other->root);                                                   \
+    SetEntry_##id *n1 = __rb_successor_##id(this->root);                                                    \
+    SetEntry_##id *n2 = __rb_successor_##id(other->root);                                                   \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __rb_inorder_successor_##id(n1);                                                            \
@@ -357,7 +325,5 @@ __DS_FUNC_PREFIX bool set_disjoint_##id(Set_##id *this, Set_##id *other) {      
     }                                                                                                        \
     return true;                                                                                             \
 }                                                                                                            \
-                                                                                                             \
-__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, tree_new, TreeEntry_##id *, iter_next_TREE, iter_deref_TREE, tree_insert, set_insert_fromSet_##id(d_new, first1, last1), set_insert_fromSet_##id(d_new, first2, last2)) \
 
 #endif
