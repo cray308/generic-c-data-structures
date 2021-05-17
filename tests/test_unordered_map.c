@@ -34,6 +34,12 @@ void test_insert_find_string(void) {
     it = umap_find(strv_int, m, "10");
     assert(it->second == 58);
 
+    int rv = -1;
+    it = umap_insert_withResult(strv_int, m, pair_make(strv_int, "5", 256), &rv);
+    assert(streq(it->first, "5"));
+    assert(it->second == 256);
+    assert(rv == 0);
+
     umap_clear(strv_int, m);
     assert(umap_size(m) == 0);
     assert(umap_empty(m));
@@ -102,6 +108,28 @@ void test_arr_init_and_insert(void) {
     umap_free(strv_int, m);
 }
 
+void test_create_copy(void) {
+    Pair_strv_int arr[11] = {};
+    for (int i = 0; i <= 10; ++i) {
+        arr[i] = pair_make(strv_int, words[i], i);
+    }
+    UMap_strv_int *m = umap_new_fromArray(strv_int, arr, 11);
+    {
+        UMap_strv_int *second = umap_createCopy(strv_int, m);
+        assert(second->size == 11);
+        Pair_strv_int *it = NULL;
+        int counter = 0;
+        umap_iter(strv_int, second, it) {
+            Pair_strv_int *found = umap_find(strv_int, second, words[counter]);
+            assert(found);
+            assert(found->second == counter++);
+        }
+        assert(counter == 11);
+        umap_free(strv_int, second);
+    }
+    umap_free(strv_int, m);
+}
+
 void test_resizing_deletion(void) {
     UMap_strp_int *m = umap_new(strp_int);
 
@@ -110,6 +138,14 @@ void test_resizing_deletion(void) {
     }
 
     assert(m->cap != 32);
+    {
+        size_t oldCap = m->cap;
+        umap_rehash(strp_int, m, oldCap);
+        assert(m->cap == oldCap);
+        double oldLoadFactor = umap_max_load_factor(m);
+        umap_set_load_factor(strp_int, m, 0.5);
+        assert(oldLoadFactor != umap_max_load_factor(m));
+    }
     Pair_strp_int *it = NULL;
 
     for (int i = 0; i < NWORDS; ++i) {
@@ -200,6 +236,7 @@ int main(void) {
     test_insert_find_string();
     test_insert_find_int();
     test_arr_init_and_insert();
+    test_create_copy();
     test_resizing_deletion();
     test_iter();
     test_nested_dicts();

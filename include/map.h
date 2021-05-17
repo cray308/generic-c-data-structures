@@ -8,89 +8,87 @@
 #define __map_data_get_key(d)  ((d).first)
 
 /**
- * The number of elements in the set.
+ * The number of elements in the map.
  * 
- * @param   s  Pointer to set.
+ * @param   m  Pointer to map.
  */
 #define map_size(m) ((int) (m)->size)
 
 
 /**
- * Tests whether the set is empty.
+ * Tests whether the map is empty.
  * 
- * @param   s  Pointer to set.
+ * @param   m  Pointer to map.
  */
 #define map_empty(m) (!((m)->root))
 
 
 /**
- * Iterates through the set in-order.
+ * Iterates through the map in-order.
  *
- * @param   id    ID used with gen_set.
- * @param   s     Pointer to set.
- * @param   it   MapEntry which is assigned to the current element.
- *                 - May be dereferenced with iter_deref(SET, ptr) or ptr->data.
+ * @param   id  ID used with gen_map.
+ * @param   m   Pointer to map.
+ * @param   it  MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define map_iter(id, m, it) for (it = iter_begin(TREE, id, m, 0); it != iter_end(TREE, id, m, 0); iter_next(TREE, id, it))
 
 /**
- * Iterates through the set in reverse order.
+ * Iterates through the map in reverse order.
  *
- * @param   id    ID used with gen_set.
- * @param   s     Pointer to set.
- * @param   it   MapEntry which is assigned to the current element.
- *                May be dereferenced with iter_deref(SET, ptr) or ptr->data.
+ * @param   id  ID used with gen_map.
+ * @param   m   Pointer to map.
+ * @param   it  MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define map_riter(id, m, it) for (it = iter_rbegin(TREE, id, m, 0); it != iter_rend(TREE, id, m, 0); iter_prev(TREE, id, it))
 
 
 /**
- * Creates a new, empty set.
+ * Creates a new, empty map.
  *
- * @param   id  ID used with gen_set.
+ * @param   id  ID used with gen_map.
  *
- * @return      Pointer to the newly created set.
+ * @return      Pointer to the newly created map.
  */
 #define map_new(id) __ds_calloc(1, sizeof(Map_##id))
 
 
 /**
- * Creates a new set using the elements in a built-in array data type.
+ * Creates a new map using the key-value pairs in a built-in array data type.
  *
- * @param   id   ID used with gen_set.
+ * @param   id   ID used with gen_map.
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
  *
- * @return       Pointer to the newly created set.
+ * @return       Pointer to the newly created map.
  */
 #define map_new_fromArray(id, arr, n) __rbtree_new_fromArray_##id(arr, n)
 
 
 /**
- * Creates a new set as a copy of an existing Set.
+ * Creates a new map as a copy of an existing Map.
  *
- * @param   id   ID used with gen_set.
- * @param   set  Set to copy.
+ * @param   id     ID used with gen_map.
+ * @param   other  Map to copy.
  *
- * @return       Pointer to the newly created set.
+ * @return         Pointer to the newly created map.
  */
 #define map_createCopy(id, other) __rbtree_createCopy_##id(other)
 
 
 /**
- * Deletes all elements and frees the set.
+ * Deletes all elements and frees the map.
  *
- * @param  id  ID used with gen_set.
- * @param  s   Pointer to set.
+ * @param  id  ID used with gen_map.
+ * @param  m   Pointer to map.
  */
 #define map_free(id, m) __rbtree_free_##id(m)
 
 
 /**
- * Removes all elements from the set, leaving it with a size of 0.
+ * Removes all keys from the map, leaving it with a size of 0.
  *
- * @param  id  ID used with gen_set.
- * @param  s   Pointer to set.
+ * @param  id  ID used with gen_map.
+ * @param  m   Pointer to map.
  */
 #define map_clear(id, m) __rbtree_clear_##id(m)
 
@@ -98,17 +96,18 @@
 /**
  * Returns the MapEntry with a key matching `k`.
  *
- * @param   id     ID used with gen_set.
- * @param   s      Pointer to set.
- * @param   value  Value to be found.
+ * @param   id  ID used with gen_map.
+ * @param   m   Pointer to map.
+ * @param   k   Key to find.
  *
- * @return         Pointer to MapEntry whose key matches `k`, or NULL if it was not found.
+ * @return      Pointer to MapEntry whose key matches `k`, or NULL if it was not found.
  */
 #define map_find(id, m, k) __rbtree_find_key_##id(m, k, false)
 
 
 /**
- * Similar to map_find, but returns a pointer to the pair's value rather than to the entry iterator as a whole.
+ * Similar to map_find, but returns a pointer to the pair's value rather than to the entry iterator
+ *   as a whole.
  *
  * @param  id  ID used with gen_umap.
  * @param  m   Pointer to map.
@@ -118,33 +117,35 @@
 
 
 /**
- * Inserts the value into the set.
+ * Inserts the key-value pair into the map.
  *
- * @param   id     ID used with gen_set.
- * @param   m      Pointer to set.
+ * @param   id     ID used with gen_map.
+ * @param   m      Pointer to map.
  * @param   p      Key-value pair to insert.
+ *
+ * @return         MapEntry corresponding to the inserted pair.
  */
 #define map_insert(id, m, p) __rbtree_insert_##id(m, p, NULL)
 
 
 /**
- * [map_insert_withResult description]
+ * Inserts the key-value pair into the map, and updates `inserted` with the result of insertion.
  *
- * @param   id        [description]
- * @param   m         [description]
- * @param   value     [description]
- * @param   inserted  [description]
+ * @param   id        ID used with gen_map.
+ * @param   m         Pointer to map.
+ * @param   p         Key-value pair to insert.
+ * @param   inserted  Set to 1 if the pair was newly inserted, or 0 if the key already existed.
  *
- * @return            [description]
+ * @return            MapEntry corresponding to the inserted pair.
  */
 #define map_insert_withResult(id, m, p, inserted) __rbtree_insert_##id(m, p, inserted)
 
 
 /**
- * Inserts elements from a built-in array data type.
+ * Inserts multiple key-value pairs from a built-in array data type.
  *
- * @param   id   ID used with gen_set.
- * @param   s    Pointer to set.
+ * @param   id   ID used with gen_map.
+ * @param   m    Pointer to map.
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to insert from `arr`.
  */
@@ -152,71 +153,74 @@
 
 
 /**
- * Inserts elements from another Set in the range [start, end).
+ * Inserts elements from another Map in the range [start, end).
  *
- * @param   id     ID used with gen_set.
- * @param   s      Pointer to set.
- * @param   start  Pointer to first SetEntry to insert. Must not be NULL.
- * @param   end    Pointer after the last SetEntry to insert. If this is NULL, all elements from
- *                   `start` through the end (greatest element) of the other set will be inserted.
+ * @param   id     ID used with gen_map.
+ * @param   m      Pointer to map.
+ * @param   start  Pointer to first MapEntry to insert. Must not be NULL.
+ * @param   end    Pointer after the last MapEntry to insert. If this is NULL, all keys from
+ *                   `start` through the greatest key in the other map will be inserted.
  */
 #define map_insert_fromMap(id, m, start, end) __rbtree_insert_fromTree_##id(m, start, end)
 
 
 /**
- * Erases elements in the range [begin,end).
+ * Removes key-value pairs in the range [begin, end).
  *
- * @param  id     ID used with gen_set.
- * @param  s      Pointer to set.
- * @param  begin  First element to erase. If this is NULL, it defaults to the smallest element
- *                  in the set.
- * @param  end    SetEntry AFTER the last element to be deleted. If this is NULL, then all
- *                  elements from start through the greatest element in the set will be removed.
+ * @param  id     ID used with gen_map.
+ * @param  m      Pointer to map.
+ * @param  begin  First MapEntry to erase.
+ * @param  end    MapEntry AFTER the last entry to be deleted. If this is NULL, then all
+ *                  keys from `start` through the greatest key in the map will be removed.
  */
 #define map_erase(id, m, begin, end) __rbtree_erase_##id(m, begin, end)
 
 
 /**
- * Removes a single entry from the set whose value is equal to `value`.
+ * Removes a single pair from the map whose key is equal to `key`.
  *
- * @param  id     ID used with gen_set.
- * @param  s      Pointer to set.
- * @param  value  Pointer to the value to be deleted.
+ * @param  id   ID used with gen_map.
+ * @param  m    Pointer to map.
+ * @param  key  Key to be deleted.
  */
 #define map_remove_key(id, m, key) __rbtree_remove_key_##id(m, key)
 
 
 /**
- * [map_remove_entry description]
+ * Removes the provided MapEntry from the map.
  *
- * @param   id  [description]
- * @param   m   [description]
- * @param   e   [description]
- *
- * @return      [description]
+ * @param   id  ID used with gen_map.
+ * @param   m   Pointer to map.
+ * @param   e   MapEntry to remove.
  */
 #define map_remove_entry(id, m, e) __rbtree_remove_entry_##id(m, e)
 
 
 /**
- * [gen_map description]
+ * Generates map code for the given key type and value type.
  *
- * @param   id           [description]
- * @param   kt           [description]
- * @param   t            [description]
- * @param   cmp_lt       [description]
- * @param   copyKey      [description]
- * @param   deleteKey    [description]
- * @param   copyValue    [description]
- * @param   deleteValue  [description]
- *
- * @return               [description]
+ * @param   id           ID to be used for the Map, MapEntry, and Pair types (must be unique).
+ * @param   kt           Key type.
+ * @param   vt           Value type.
+ * @param   cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param   copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
+ *                         - If no special copying is required, pass DSDefault_shallowCopy.
+ *                         - If the key is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param   deleteKey    Macro of the form (x), which is a complement to `copyKey`; if memory was dynamically allocated in `copyKey`, it should be freed here.
+ *                         - If DSDefault_shallowCopy was used in `copyKey`, pass DSDefault_shallowDelete here.
+ *                         - If DSDefault_deepCopyStr was used in `copyKey`, pass DSDefault_deepDelete here.
+ * @param   copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
+ *                         - If no special copying is required, pass DSDefault_shallowCopy.
+ *                         - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param   deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
+ *                         - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
+ *                         - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_map(id, kt, t, cmp_lt, copyKey, deleteKey, copyValue, deleteValue)                               \
-gen_pair(id, kt, t)                                                                                          \
+#define gen_map(id, kt, vt, cmp_lt, copyKey, deleteKey, copyValue, deleteValue)                              \
+gen_pair(id, kt, vt)                                                                                         \
 __gen_rbtree(id, kt, cmp_lt, Map_##id, Pair_##id, MapEntry_##id, __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
-__DS_FUNC_PREFIX_INL t *map_at_##id(Map_##id *m, const kt key) {                                             \
+__DS_FUNC_PREFIX_INL vt *map_at_##id(Map_##id *m, const kt key) {                                            \
     MapEntry_##id *e = __rbtree_find_key_##id(m, key, false);                                                \
     return e ? &(e->data.second) : NULL;                                                                     \
 }                                                                                                            \

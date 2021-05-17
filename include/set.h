@@ -28,20 +28,18 @@
 /**
  * Iterates through the set in-order.
  *
- * @param   id    ID used with gen_set.
- * @param   s     Pointer to set.
- * @param   ptr   SetEntry which is assigned to the current element.
- *                 - May be dereferenced with iter_deref(SET, ptr) or ptr->data.
+ * @param   id  ID used with gen_set.
+ * @param   s   Pointer to set.
+ * @param   it  SetEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define set_iter(id, s, it) for (it = iter_begin(TREE, id, s, 0); it != iter_end(TREE, id, s, 0); iter_next(TREE, id, it))
 
 /**
  * Iterates through the set in reverse order.
  *
- * @param   id    ID used with gen_set.
- * @param   s     Pointer to set.
- * @param   ptr   SetEntry which is assigned to the current element.
- *                May be dereferenced with iter_deref(SET, ptr) or ptr->data.
+ * @param   id  ID used with gen_set.
+ * @param   s   Pointer to set.
+ * @param   it  SetEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define set_riter(id, s, it) for (it = iter_rbegin(TREE, id, s, 0); it != iter_rend(TREE, id, s, 0); iter_prev(TREE, id, it))
 
@@ -71,10 +69,10 @@
 /**
  * Creates a new set as a copy of an existing Set.
  *
- * @param   id   ID used with gen_set.
- * @param   set  Set to copy.
+ * @param   id     ID used with gen_set.
+ * @param   other  Set to copy.
  *
- * @return       Pointer to the newly created set.
+ * @return         Pointer to the newly created set.
  */
 #define set_createCopy(id, other) __rbtree_createCopy_##id(other)
 
@@ -106,7 +104,7 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define set_in(id, s, value) (__rbtree_find_key_##id(s, value, false) != NULL)
+#define set_contains(id, s, value) (__rbtree_find_key_##id(s, value, false) != NULL)
 
 
 /**
@@ -116,7 +114,7 @@
  * @param   s      Pointer to set.
  * @param   value  Value to be found.
  *
- * @return         Pointer to SetEntry whose data matches `value`, or NULL if it was not found.
+ * @return         Pointer to SetEntry whose value matches `value`, or NULL if it was not found.
  */
 #define set_find(id, s, value) __rbtree_find_key_##id(s, value, false)
 
@@ -127,19 +125,21 @@
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   value  Value to insert.
+ *
+ * @return         SetEntry corresponding to the inserted value.
  */
 #define set_insert(id, s, value) __rbtree_insert_##id(s, value, NULL)
 
 
 /**
- * [set_insert_withResult description]
+ * Inserts the value into the set, and updates `inserted` with the result of insertion.
  *
- * @param   id        [description]
- * @param   s         [description]
- * @param   value     [description]
- * @param   inserted  [description]
+ * @param   id        ID used with gen_set.
+ * @param   s         Pointer to set.
+ * @param   value     Value to insert.
+ * @param   inserted  Set to 1 if the value was newly inserted, or 0 if the value was already a member.
  *
- * @return            [description]
+ * @return            SetEntry corresponding to the inserted value.
  */
 #define set_insert_withResult(id, s, value, inserted) __rbtree_insert_##id(s, value, inserted)
 
@@ -160,22 +160,21 @@
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
- * @param   start  Pointer to first SetEntry to insert. Must not be NULL.
- * @param   end    Pointer after the last SetEntry to insert. If this is NULL, all elements from
+ * @param   start  First SetEntry to insert. Must not be NULL.
+ * @param   end    SetEntry AFTER the last entry to insert. If this is NULL, all elements from
  *                   `start` through the end (greatest element) of the other set will be inserted.
  */
 #define set_insert_fromSet(id, s, start, end) __rbtree_insert_fromTree_##id(s, start, end)
 
 
 /**
- * Erases elements in the range [begin,end).
+ * Erases elements in the range [begin, end).
  *
  * @param  id     ID used with gen_set.
  * @param  s      Pointer to set.
- * @param  begin  First element to erase. If this is NULL, it defaults to the smallest element
- *                  in the set.
- * @param  end    SetEntry AFTER the last element to be deleted. If this is NULL, then all
- *                  elements from start through the greatest element in the set will be removed.
+ * @param  begin  First SetEntry to erase.
+ * @param  end    SetEntry AFTER the last entry to be deleted. If this is NULL, all elements from
+ *                  `start` through the greatest element in the set will be removed.
  */
 #define set_erase(id, s, begin, end) __rbtree_erase_##id(s, begin, end)
 
@@ -185,47 +184,43 @@
  *
  * @param  id     ID used with gen_set.
  * @param  s      Pointer to set.
- * @param  value  Pointer to the value to be deleted.
+ * @param  value  Value to be deleted.
  */
 #define set_remove_value(id, s, value) __rbtree_remove_key_##id(s, value)
 
 
 /**
- * [set_remove_entry description]
+ * Removes the provided SetEntry from the set.
  *
- * @param   id  [description]
- * @param   m   [description]
- * @param   e   [description]
- *
- * @return      [description]
+ * @param   id  ID used with gen_set.
+ * @param   s   Pointer to set.
+ * @param   e   SetEntry to remove.
  */
 #define set_remove_entry(id, s, e) __rbtree_remove_entry_##id(s, e)
 
 
 /**
- * Returns a set with the union of `s` and `other` (i.e. elements that are in `s`, `other`,
- * or both - all elements).
+ * Returns a set with the union of `s` and `other` (i.e. elements that are in `s`, `other`, or both -
+ *   all elements).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
- *                   is NULL.
+ * @return         Newly created set, or NULL if `other` is NULL.
  */
 #define set_union(id, s, other) __set_union_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
 
 /**
- * Returns a set with the intersection of `s` and `other` (i.e. all elements that both sets
- * have in common).
+ * Returns a set with the intersection of `s` and `other` (i.e. all elements that both sets have in
+ *   common).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
- *                   is NULL.
+ * @return         Newly created set, or NULL if `other` is NULL.
  */
 #define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
@@ -237,22 +232,20 @@
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the union of `s` and `other`, or NULL if `other`
- *                   is NULL.
+ * @return         Newly created set, or NULL if `other` is NULL.
  */
 #define set_difference(id, s, other) __set_difference_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
 
 /**
- * Returns a set with the symmetric difference of `s` and `other` (i.e. all elements that
- * neither set has in common).
+ * Returns a set with the symmetric difference of `s` and `other` (i.e. all elements that neither set
+ *   has in common).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set which is the symmetric difference of `s` and `other`, or
- *                   NULL if `other` is NULL.
+ * @return         Newly created set, or NULL if `other` is NULL.
  */
 #define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
 
@@ -270,8 +263,8 @@
 
 
 /**
- * Tests whether `s` is a superset of `other`. (i.e. whether `s` contains each element
- * from `other` - the opposite of a subset).
+ * Tests whether `s` is a superset of `other`. (i.e. whether `s` contains each element from `other` -
+ *   the inverse of a subset).
  *
  * @param   id     ID used with gen_set.
  * @param   s      Pointer to set.
@@ -295,25 +288,27 @@
 
 
 /**
- * [gen_set description]
+ * Generates set code for the given value type.
  *
- * @param   id         [description]
- * @param   t          [description]
- * @param   cmp_lt     [description]
- * @param   copyKey    [description]
- * @param   deleteKey  [description]
- *
- * @return             [description]
+ * @param   id           ID to be used for the Set and SetEntry types (must be unique).
+ * @param   t            Type to be stored in the set.
+ * @param   cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param   copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
+ *                         - If no special copying is required, pass DSDefault_shallowCopy.
+ *                         - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param   deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
+ *                         - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
+ *                         - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_set(id, t, cmp_lt, copyKey, deleteKey)                                                                               \
-__gen_rbtree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __set_data_get_key, copyKey, deleteKey, __set_copy_value, __set_delete_value) \
+#define gen_set(id, t, cmp_lt, copyValue, deleteValue)                                                       \
+__gen_rbtree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __set_data_get_key, copyValue, deleteValue, __set_copy_value, __set_delete_value) \
 __gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, set_new, SetEntry_##id *, iter_next_TREE, iter_deref_TREE, set_insert, set_insert_fromSet(id, d_new, first1, last1), set_insert_fromSet(id, d_new, first2, last2)) \
                                                                                                              \
 __DS_FUNC_PREFIX bool set_disjoint_##id(Set_##id *this, Set_##id *other) {                                   \
     if (!other || !other->root) return false;                                                                \
                                                                                                              \
-    SetEntry_##id *n1 = __rb_successor_##id(this->root);                                                    \
-    SetEntry_##id *n2 = __rb_successor_##id(other->root);                                                   \
+    SetEntry_##id *n1 = __rb_successor_##id(this->root);                                                     \
+    SetEntry_##id *n2 = __rb_successor_##id(other->root);                                                    \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __rb_inorder_successor_##id(n1);                                                            \

@@ -176,6 +176,12 @@ void test_insert_find_string(void) {
     it = map_find(strv_int, m, "10");
     assert(it->data.second == 58);
 
+    int rv = -1;
+    it = map_insert_withResult(strv_int, m, pair_make(strv_int, "5", 256), &rv);
+    assert(streq(it->data.first, "5"));
+    assert(it->data.second == 256);
+    assert(rv == 0);
+
     map_clear(strv_int, m);
     assert(map_size(m) == 0);
     assert(map_empty(m));
@@ -241,6 +247,50 @@ void test_arr_init_and_insert(void) {
     }
     assert(counter == 22);
 
+    map_free(strv_int, m);
+}
+
+void test_init_insert_fromMap(void) {
+    Pair_strv_int arr[11] = {};
+    for (int i = 0; i <= 10; ++i) {
+        arr[i] = pair_make(strv_int, words[i], i);
+    }
+    Map_strv_int *m = map_new_fromArray(strv_int, arr, 11);
+
+    {
+        Map_strv_int *second = map_createCopy(strv_int, m);
+        assert(second->size == 11);
+        MapEntry_strv_int *it = NULL;
+        int counter = 0;
+        map_iter(strv_int, second, it) {
+            MapEntry_strv_int *found = map_find(strv_int, second, words[counter]);
+            assert(found);
+            assert(found->data.second == counter++);
+        }
+        assert(counter == 11);
+        map_free(strv_int, second);
+    }
+
+    {
+        Map_strv_int *second = map_new(strv_int);
+        MapEntry_strv_int *begin = map_find(strv_int, m, "2");
+        MapEntry_strv_int *end = map_find(strv_int, m, "9");
+
+        Pair_strv_int comparison[7] = {};
+        for (int i = 0; i < 7; ++i) { comparison[i] = arr[i + 2]; }
+
+        map_insert_fromMap(strv_int, second, begin, end);
+        assert(map_size(second) == 7);
+
+        MapEntry_strv_int *it;
+        int i = 0;
+        map_iter(strv_int, second, it) {
+            assert(streq(it->data.first, comparison[i].first));
+            assert(it->data.second == comparison[i++].second);
+        }
+        assert(i == 7);
+        map_free(strv_int, second);
+    }
     map_free(strv_int, m);
 }
 
@@ -363,6 +413,7 @@ int main(void) {
     test_insert_find_string();
     test_insert_find_int();
     test_arr_init_and_insert();
+    test_init_insert_fromMap();
     test_deletion();
     test_erase_range();
     test_nested_dicts();

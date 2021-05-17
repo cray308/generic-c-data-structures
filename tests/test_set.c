@@ -163,8 +163,8 @@ void test_init_clear(void) {
 void test_membership(void) {
     Set_int *s = set_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
 
-    assert(!set_in(int, s, 4));
-    assert(set_in(int, s, 3));
+    assert(!set_contains(int, s, 4));
+    assert(set_contains(int, s, 3));
     set_free(int, s);
 }
 
@@ -194,8 +194,8 @@ void test_strings(void) {
     assert(set_size(s2) == 4);
     assert(s2->root != NULL);
 
-    assert(!set_in(str, s2, "cour"));
-    assert(set_in(str, s2, "court"));
+    assert(!set_contains(str, s2, "cour"));
+    assert(set_contains(str, s2, "court"));
 
     set_clear(str, s);
     assert(set_size(s) == 0);
@@ -214,7 +214,7 @@ void test_remove(void) {
 
     set_remove_value(int, s, 8);
     assert(set_size(s) == 3);
-    assert(!set_in(int, s, 8));
+    assert(!set_contains(int, s, 8));
     set_free(int, s);
 
     Set_str *s2 = set_new_fromArray(str, ((char *[]){"treatment","tread","court","court","animal"}), 5);
@@ -223,7 +223,7 @@ void test_remove(void) {
 
     set_remove_value(str, s2, "treatment");
     assert(set_size(s2) == 3);
-    assert(!set_in(str, s2, ""));
+    assert(!set_contains(str, s2, ""));
     set_free(str, s2);
 }
 
@@ -239,10 +239,13 @@ void test_insert(void) {
         set_insert_withResult(int, s, 20, &inserted);
         assert(set_size(s) == 5);
         assert(!inserted);
+
+        inserted = -1;
+        set_insert_withResult(int, s, 25, &inserted);
+        assert(set_size(s) == 6);
+        assert(inserted);
     }
 
-    set_insert(int, s, 25);
-    assert(set_size(s) == 6);
     set_insert(int, s, 24);
     assert(set_size(s) == 7);
     set_insert(int, s, 26);
@@ -397,7 +400,7 @@ void test_union(void) {
     assert(set_size(s3) == 5);
 
     for (int i = 0; i < 5; ++i) {
-        assert(set_in(int, s3, comparison[i]));
+        assert(set_contains(int, s3, comparison[i]));
     }
 
     set_free(int, s1);
@@ -416,7 +419,7 @@ void test_intersection(void) {
     assert(s3->root->data == 3);
 
     for (int i = 0; i < 1; ++i) {
-        assert(set_in(int, s3, comparison[i]));
+        assert(set_contains(int, s3, comparison[i]));
     }
 
     set_free(int, s1);
@@ -434,7 +437,7 @@ void test_difference(void) {
     assert(set_size(s3) == 2);
 
     for (int i = 0; i < 2; ++i) {
-        assert(set_in(int, s3, comparison[i]));
+        assert(set_contains(int, s3, comparison[i]));
     }
 
     set_free(int, s1);
@@ -452,7 +455,7 @@ void test_symmetric_difference(void) {
     assert(set_size(s3) == 4);
 
     for (int i = 0; i < 4; ++i) {
-        assert(set_in(int, s3, comparison[i]));
+        assert(set_contains(int, s3, comparison[i]));
     }
 
     set_free(int, s1);

@@ -1,8 +1,6 @@
 #include "unordered_set.h"
 #include <assert.h>
 
-char *days[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-
 gen_uset(int, int, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_uset(str, char *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
@@ -34,6 +32,7 @@ void test_init_clear(void) {
         assert(resultArr[x] != -1);
     }
 
+    char *days[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
     char *strResults[7] = {NULL};
     char **sptr;
 
@@ -91,6 +90,38 @@ void test_remove(void) {
     uset_free(int, s);
 }
 
+void test_resizing(void) {
+    USet_int *s = uset_new(int);
+    for (int i = 0; i < 100; ++i) {
+        uset_insert(int, s, i);
+    }
+
+    {
+        assert(s->cap > 32);
+        size_t oldCap = s->cap;
+        uset_rehash(int, s, oldCap);
+        assert(s->cap == oldCap);
+        double oldLoadFactor = uset_max_load_factor(s);
+        uset_set_load_factor(int, s, 0.5);
+        assert(oldLoadFactor != uset_max_load_factor(s));
+    }
+
+    for (int i = 0; i < 100; ++i) {
+        assert(uset_contains(int, s, i));
+    }
+
+    {
+        int key = 99;
+        while (!uset_empty(s)) {
+            uset_remove(int, s, key);
+            assert(uset_size(s) == key);
+            assert(!uset_contains(int, s, key--));
+        }
+        assert(uset_size(s) == 0);
+    }
+    uset_free(int, s);
+}
+
 void test_insert(void) {
     USet_int *s = uset_new(int);
     for (int i = 1; i <= 5; ++i) {
@@ -98,11 +129,18 @@ void test_insert(void) {
     }
     assert(uset_size(s) == 5);
 
-    uset_insert(int, s, 20);
-    assert(uset_size(s) == 5);
+    {
+        int inserted = -1;
+        uset_insert_withResult(int, s, 20, &inserted);
+        assert(uset_size(s) == 5);
+        assert(!inserted);
 
-    uset_insert(int, s, 25);
-    assert(uset_size(s) == 6);
+        inserted = -1;
+        uset_insert_withResult(int, s, 25, &inserted);
+        assert(uset_size(s) == 6);
+        assert(inserted);
+    }
+
     uset_insert(int, s, 24);
     assert(uset_size(s) == 7);
     uset_insert(int, s, 26);
@@ -131,6 +169,7 @@ int main(void) {
     test_init_clear();
     test_membership();
     test_remove();
+    test_resizing();
     test_insert();
     return 0;
 }
