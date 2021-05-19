@@ -77,11 +77,4 @@ __DS_FUNC_PREFIX_INL void *__ds_realloc(void *ptr, size_t size) {
 #define ds_cmp_leq(cmp_lt, x, y) (cmp_lt(x, y) || ds_cmp_eq(cmp_lt, x, y))
 #define ds_cmp_gt(cmp_lt, x, y) (cmp_lt(y, x))
 
-#define gen_node(id, t)                                                                                      \
-typedef struct id id;                                                                                        \
-struct id {                                                                                                  \
-    id *next;                                                                                                \
-    t data;                                                                                                  \
-};                                                                                                           \
-
 #endif

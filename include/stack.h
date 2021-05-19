@@ -2,21 +2,14 @@
 #define STACK_H
 
 #include "ds.h"
+#include "deque.h"
 
 /**
  * The number of elements in the stack.
  *
  * @param   s  Pointer to stack.
  */
-#define stack_size(s) ((int) (s)->size)
-
-
-/**
- * A pointer to the top element in the stack.
- *
- * @param   s  Pointer to stack.
- */
-#define stack_top(s) (((s)->top) ? &((s)->top->data) : (NULL))
+#define stack_size(s) deque_size(s)
 
 
 /**
@@ -24,17 +17,25 @@
  *
  * @param   s  Pointer to stack.
  */
-#define stack_empty(s) (!((s)->top))
+#define stack_empty(s) deque_empty(s)
 
 
 /**
- * Creates a new empty stack.
+ * A pointer to the top element in the stack.
+ *
+ * @param   s  Pointer to stack.
+ */
+#define stack_top(s) deque_back(s)
+
+
+/**
+ * Creates a new, empty stack.
  *
  * @param   id  ID used with gen_stack.
  *
- * @return      A pointer to the newly allocated stack.
+ * @return      Pointer to the newly allocated stack.
  */
-#define stack_new(id) __ds_calloc(1, sizeof(Stack_##id))
+#define stack_new(id) deque_new(id)
 
 
 /**
@@ -43,77 +44,49 @@
  * @param  id  ID used with gen_stack.
  * @param  s   Pointer to stack.
  */
-#define stack_free(id, s) stack_free_##id(s)
+#define stack_free(id, s) deque_free(id, s)
 
 
 /**
- * If the stack is not empty, copies the top element into "result" and removes the top item in
- *   the stack.
+ * Removes the top element from the stack, if it is not empty.
  *
  * @param   id      ID used with gen_stack.
  * @param   s       Pointer to stack.
- * @param   result  Pointer to where the popped value will be copied.
- *
- * @return          True if an item was popped, false if the stack is empty.
  */
-#define stack_pop(id, s, result) stack_pop_##id(s, result)
+#define stack_pop(id, s) deque_pop_back(id, s)
 
 /**
- * Pushes a new element to the top of the stack.
+ * Pushes a new element onto the top of the stack.
  *
  * @param  id     ID used with gen_stack.
  * @param  s      Pointer to stack.
- * @param  item   Pointer to the item to be pushed.
+ * @param  item   Item to be emplaced.
  */
-#define stack_push(id, s, item) stack_push_##id(s, item)
+#define stack_push(id, s, item) deque_push_back(id, s, item)
+
+
+/**
+ * Generates stack code for a specified type and ID. This macro sets up the stack to use default
+ *   (shallow) copying and deleting for each element.
+ *
+ * @param   id  ID to be used for the stack (must be unique).
+ * @param   t   Type to be stored in the stack.
+ */
+#define gen_stack(id, t) gen_stack_customCopyDelete(id, t, DSDefault_shallowCopy, DSDefault_shallowDelete)
 
 
 /**
  * Generates stack code for a specified type and ID.
  *
- * @param   id  ID to be used for the type stored in the stack (must be unique).
- * @param   t   Type to be stored in a stack node.
+ * @param   id           ID to be used for the stack (must be unique).
+ * @param   t            Type to be stored in the stack.
+ * @param   copyValue    Macro of the form (x, y) which copies y into x to store the element in the stack.
+ *                         - If no special copying is required, pass DSDefault_shallowCopy.
+ *                         - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param   deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
+ *                         - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
+ *                         - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_stack(id, t)                                                                                     \
-gen_node(StackEntry_##id, t)                                                                                 \
-                                                                                                             \
-typedef struct {                                                                                             \
-    size_t size;                                                                                             \
-    StackEntry_##id *top;                                                                                    \
-} Stack_##id;                                                                                                \
-                                                                                                             \
-__DS_FUNC_PREFIX void stack_free_##id(Stack_##id *s) {                                                       \
-    StackEntry_##id *curr = s->top, *temp = NULL;                                                            \
-    while (curr) { /* iterate and remove any elements */                                                     \
-        temp = curr->next;                                                                                   \
-        free(curr);                                                                                          \
-        curr = temp;                                                                                         \
-    }                                                                                                        \
-    free(s);                                                                                                 \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX bool stack_pop_##id(Stack_##id *s, t *result) {                                             \
-    if (stack_empty(s)) return false;                                                                        \
-    StackEntry_##id *top = s->top;                                                                           \
-    s->top = top->next;                                                                                      \
-                                                                                                             \
-    /* only copy if the result pointer is provided */                                                        \
-    if (result) {                                                                                            \
-        *result = top->data;                                                                                 \
-    }                                                                                                        \
-    /* delete top element */                                                                                 \
-    free(top);                                                                                               \
-    s->size--;                                                                                               \
-    return true;                                                                                             \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void stack_push_##id(Stack_##id *s, t item) {                                               \
-    StackEntry_##id *new = __ds_calloc(1, sizeof(StackEntry_##id));                                          \
-    new->data = item;                                                                                        \
-    /* set this element to be the top */                                                                     \
-    new->next = s->top;                                                                                      \
-    s->top = new;                                                                                            \
-    s->size++;                                                                                               \
-}                                                                                                            \
+#define gen_stack_customCopyDelete(id, t, copyValue, deleteValue) __setup_deque(id, t, Stack_##id, copyValue, deleteValue)
 
 #endif /* STACK_H */

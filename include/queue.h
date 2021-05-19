@@ -2,29 +2,30 @@
 #define QUEUE_H
 
 #include "ds.h"
+#include "deque.h"
 
 /**
  * The number of elements in the queue.
  *
  * @param   q  Pointer to queue.
  */
-#define queue_size(q) ((int) (q)->size)
+#define queue_size(q) deque_size(q)
 
 
 /**
- * A pointer to the front element in the queue.
+ * Pointer to the first element in the queue, if it is not empty.
  *
  * @param   q  Pointer to queue.
  */
-#define queue_front(q) (((q)->front) ? &((q)->front->data) : (NULL))
+#define queue_front(q) deque_front(q)
 
 
 /**
- * A pointer to the back element in the queue.
+ * Pointer to the last element in the queue, if it is not empty.
  *
  * @param   q  Pointer to queue.
  */
-#define queue_back(q) (((q)->back) ? &((q)->back->data) : (NULL))
+#define queue_back(q) deque_back(q)
 
 
 /**
@@ -32,17 +33,17 @@
  *
  * @param   q  Pointer to queue.
  */
-#define queue_empty(q) (!((q)->front))
+#define queue_empty(q) deque_empty(q)
 
 
 /**
- * Creates a new empty queue.
+ * Creates a new, empty queue.
  *
  * @param   id  ID used with gen_queue.
  *
- * @return      A pointer to the newly allocated queue.
+ * @return      Pointer to the newly allocated queue.
  */
-#define queue_new(id) __ds_calloc(1, sizeof(Queue_##id))
+#define queue_new(id) deque_new(id)
 
 
 /**
@@ -51,83 +52,50 @@
  * @param  id  ID used with gen_queue.
  * @param  q   Pointer to queue.
  */
-#define queue_free(id, q) queue_free_##id(q)
+#define queue_free(id, q) deque_free(id, q)
 
 
 /**
- * If the queue is not empty, copies the front element into "result" and removes the front item in
- *   the queue.
+ * Removes the first item in the queue, if it is not empty.
  *
- * @param   id      ID used with gen_queue.
- * @param   q       Pointer to queue.
- * @param   result  Pointer to where the dequeued value will be copied.
- *
- * @return          True if an item was popped, false if the queue is empty.
+ * @param   id  ID used with gen_queue.
+ * @param   q   Pointer to queue.
  */
-#define queue_pop(id, q, result) queue_pop_##id(q, result)
+#define queue_pop(id, q) deque_pop_front(id, q)
 
 
 /**
- * Pushes a new element to the back of the queue.
+ * Appends a new element to the back of the queue.
 
  * @param  id     ID used with gen_queue.
  * @param  q      Pointer to queue.
- * @param  item   Pointer to the item to be emplaced.
+ * @param  item   Item to be emplaced.
  */
-#define queue_push(id, q, item) queue_push_##id(q, item)
+#define queue_push(id, q, item) deque_push_back(id, q, item)
+
+
+/**
+ * Generates queue code for a specified type and ID. This macro sets up the queue to use default
+ *   (shallow) copying and deleting for each element.
+ *
+ * @param   id  ID to be used for the queue (must be unique).
+ * @param   t   Type to be stored in the queue.
+ */
+#define gen_queue(id, t) gen_queue_customCopyDelete(id, t, DSDefault_shallowCopy, DSDefault_shallowDelete)
 
 
 /**
  * Generates queue code for a specified type and ID.
  *
- * @param   id  ID to be used for the type stored in the queue (must be unique).
- * @param   t   Type to be stored in a queue node.
+ * @param   id           ID to be used for the queue (must be unique).
+ * @param   t            Type to be stored in the queue.
+ * @param   copyValue    Macro of the form (x, y) which copies y into x to store the element in the queue.
+ *                         - If no special copying is required, pass DSDefault_shallowCopy.
+ *                         - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param   deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
+ *                         - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
+ *                         - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_queue(id, t)                                                                                     \
-gen_node(QueueEntry_##id, t)                                                                                 \
-                                                                                                             \
-typedef struct {                                                                                             \
-    size_t size;                                                                                             \
-    QueueEntry_##id *front;                                                                                  \
-    QueueEntry_##id *back;                                                                                   \
-} Queue_##id;                                                                                                \
-                                                                                                             \
-__DS_FUNC_PREFIX void queue_free_##id(Queue_##id *q) {                                                       \
-    QueueEntry_##id *curr = q->front, *temp = NULL;                                                          \
-    while (curr) { /* iterate and remove any elements */                                                     \
-        temp = curr->next;                                                                                   \
-        free(curr);                                                                                          \
-        curr = temp;                                                                                         \
-    }                                                                                                        \
-    free(q);                                                                                                 \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL bool queue_pop_##id(Queue_##id *q, t *result) {                                         \
-    if (queue_empty(q)) return false;                                                                        \
-                                                                                                             \
-    QueueEntry_##id *front = q->front;                                                                       \
-    q->front = front->next;                                                                                  \
-    /* only copy if the result pointer is provided */                                                        \
-    if (result) {                                                                                            \
-        *result = front->data;                                                                               \
-    }                                                                                                        \
-    /* delete top element */                                                                                 \
-    free(front);                                                                                             \
-    q->size--;                                                                                               \
-    return true;                                                                                             \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void queue_push_##id(Queue_##id *q, t item) {                                           \
-    QueueEntry_##id *new = __ds_calloc(1, sizeof(QueueEntry_##id));                                          \
-    new->data = item;                                                                                        \
-    /* set this element to be at the back (and also the front, if the queue is empty) */                     \
-    if (queue_empty(q)) {                                                                                    \
-        q->front = q->back = new;                                                                            \
-    } else {                                                                                                 \
-        q->back->next = new;                                                                                 \
-        q->back = new;                                                                                       \
-    }                                                                                                        \
-    q->size++;                                                                                               \
-}                                                                                                            \
+#define gen_queue_customCopyDelete(id, t, copyValue, deleteValue) __setup_deque(id, t, Queue_##id, copyValue, deleteValue)
 
 #endif /* QUEUE_H */
