@@ -120,33 +120,24 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 
 /**
  * The c-string representation of the provided String.
- *
- * @param   str  Pointer to string struct.
  */
 #define string_c_str(str) ((str)->s)
 
 
 /**
- * The number of characters in the string (analogous to strlen, but O(1) time complexity in
- *   this case).
- *
- * @param   str  Pointer to string struct.
+ * The number of characters in the string (analogous to strlen, but O(1) time complexity in this case).
  */
 #define string_len(str) ((int) (str)->len)
 
 
 /**
  * The capacity of the string (maximum size + 1, to account for the null character).
- *
- * @param   str  Pointer to string struct.
  */
 #define string_capacity(str) ((int) (str)->cap)
 
 
 /**
  * Tests whether the size of the string is 0.
- *
- * @param   str  Pointer to string struct.
  */
 #define string_empty(str) (!((str)->len))
 
@@ -154,17 +145,15 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 /**
  * Direct access to the char located at index `i` of the string. Does NOT perform bounds checking.
  *
- * @param   str  Pointer to string struct.
- * @param   i    Index in string.
+ * @param  i  Index in string.
  */
 #define string_index(str, i) (*((str)->s[(i)]))
 
+
 /**
- * Reference to the string starting at index i. Performs bounds checking, and negative indices are
- *   allowed.
+ * Reference to the string starting at index `i`. Performs bounds checking, and negative indices are allowed.
  *
- * @param   str  Pointer to string struct.
- * @param   i    Index in string.
+ * @param  i  Index in string.
  */
 __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
     int _idx = modulo(i, str->len);
@@ -173,17 +162,13 @@ __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
 
 
 /**
- * A char pointer to the front of the string.
- *
- * @param   str  Pointer to string struct.
+ * Char pointer to the front of the string.
  */
 #define string_front(str) iter_begin(STR, 0, (str)->s, (str)->len)
 
 
 /**
- * A char pointer to the back of the string.
- *
- * @param   str  Pointer to string struct.
+ * Char pointer to the back of the string.
  */
 #define string_back(str) iter_rbegin(STR, 0, (str)->s, (str)->len)
 
@@ -191,8 +176,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
 /**
  * Iterates through each character in the string from beginning to end.
  *
- * @param   str    Pointer to string struct.
- * @param   chr    Char pointer to use during iteration.
+ * @param  chr  Char pointer to use during iteration.
  */
 #define string_iter(str, chr) for (chr = string_front(str); chr != iter_end(STR, 0, (str)->s, (str)->len); iter_next(STR, 0, chr))
 
@@ -200,8 +184,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
 /**
  * Iterates through each character in the string from end to the beginning.
  *
- * @param   str    Pointer to string struct.
- * @param   chr    Char pointer to use during iteration.
+ * @param  chr  Char pointer to use during iteration.
  */
 #define string_riter(str, chr) for (chr = string_back(str); chr != iter_rend(STR, 0, (str)->s, (str)->len); iter_prev(STR, 0, chr))
 
@@ -223,7 +206,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
 /**
  * Creates a new, empty string.
  *
- * @return    Pointer to newly created string.
+ * @return  Pointer to newly created string.
  */
 __DS_FUNC_PREFIX String *string_new(void) {
     String *s = __ds_calloc(1, sizeof(String));
@@ -234,7 +217,7 @@ __DS_FUNC_PREFIX String *string_new(void) {
 
 
 /**
- * Creates a new string from a c-string.
+ * Creates a new string from a c-string `str`.
  * 
  * @param   str  C-string.
  *
@@ -248,9 +231,9 @@ __DS_FUNC_PREFIX String *string_new_fromCStr(const char *str) {
 
 
 /**
- * Creates a new string as a copy of another String.
+ * Creates a new string as a copy of `other`.
  * 
- * @param   other  Pointer to existing String.
+ * @param   other  Pointer to existing `String`.
  *
  * @return         Pointer to newly created string.
  */
@@ -263,8 +246,6 @@ __DS_FUNC_PREFIX String *string_createCopy(const String *other) {
 
 /**
  * Frees memory allocated to the string struct.
- *
- * @param  s  Pointer to string.
  */
 __DS_FUNC_PREFIX_INL void string_free(String *s) {
     if (s->cap) {
@@ -275,9 +256,8 @@ __DS_FUNC_PREFIX_INL void string_free(String *s) {
 
 
 /**
- * Request a change in capacity (maximum size).
+ * Request a change in capacity (maximum size) to `n`.
  *
- * @param  s  Pointer to string.
  * @param  n  New capacity.
  */
 __DS_FUNC_PREFIX void string_reserve(String *s, size_t n) {
@@ -294,11 +274,10 @@ __DS_FUNC_PREFIX void string_reserve(String *s, size_t n) {
 
 
 /**
- * Resizes the string to be n characters long. If n is less than the current size, all but the first n
- *   characters are removed. If n is greater than or equal to the current size, the provided
- *   character will be appended.
+ * Resizes the string to be `n` characters long. If this is less than the current size, all but the 
+ * first `n` characters are removed. If this is greater than or equal to the current size, the provided 
+ * character `c` is appended.
  *
- * @param  s  Pointer to string.
  * @param  n  The new size.
  * @param  c  Character to append.
  */
@@ -314,8 +293,6 @@ __DS_FUNC_PREFIX_INL void string_resize(String *s, size_t n, char c) {
 
 /**
  * Removes all characters, leaving the string with a size of 0.
- *
- * @param  s  Pointer to string.
  */
 __DS_FUNC_PREFIX_INL void string_clear(String *s) {
     if (!(s->s)) return;
@@ -325,12 +302,11 @@ __DS_FUNC_PREFIX_INL void string_clear(String *s) {
 
 
 /**
- * Removes "n" characters from the string, starting at index "start".
+ * Removes `n` characters from the string, starting at index `start`.
  *
- * @param  s      Pointer to string.
  * @param  start  The first index to delete.
- * @param  n      The number of characters to delete. If this is -1, all characters
- *                  from "start" until the end will be removed.
+ * @param  n      The number of characters to delete. If this is -1, all characters from `start`
+ *                  until the end will be removed.
  */
 __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
     if (!n || s->len == 0) return;
@@ -354,13 +330,11 @@ __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
 
 
 /**
- * If the string's capacity is greater than its length plus the null terminator, __ds_reallocates
- *   only enough space to fit all characters.
- *
- * @param  s  Pointer to string.
+ * If the string's capacity is greater than its length plus the null terminator, reallocates only 
+ * enough space to fit all characters.
  */
 __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *s) {
-    if (s->len == 0 || s->len + 1 == s->cap) return;
+    if (s->len == 0 || s->len + 1 == s->cap || s->cap <= 64) return;
     char *tmp = __ds_realloc(s->s, s->len + 1); /* realloc only enough space for string and '\0' */
     s->cap = s->len + 1;
     s->s = tmp;
@@ -368,9 +342,8 @@ __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *s) {
 
 
 /**
- * Appends a character to the end of the string.
+ * Appends `c` to the end of the string.
  *
- * @param  s  Pointer to string.
  * @param  c  Character to append.
  */
 __DS_FUNC_PREFIX_INL void string_push_back(String *s, char c) {
@@ -383,8 +356,6 @@ __DS_FUNC_PREFIX_INL void string_push_back(String *s, char c) {
 
 /**
  * Removes the last character, if the string is not empty.
- *
- * @param  s  Pointer to string.
  */
 __DS_FUNC_PREFIX_INL void string_pop_back(String *s) {
     if (!s->len) return;
@@ -393,13 +364,12 @@ __DS_FUNC_PREFIX_INL void string_pop_back(String *s) {
 
 
 /**
- * Replaces characters in s, starting at pos, with len characters from other.
+ * Replaces characters in the string, starting at `pos`, with `len` characters from `other`.
  *
- * @param  s      Pointer to string.
- * @param  pos    Index in s where the replacement will occur.
+ * @param  pos    Index in the string where the replacement will occur.
  * @param  other  C-string used as the replacement.
- * @param  len    Number of characters from other that will be used. If this is -1,
- *                  all characters from "other" will be used.
+ * @param  len    Number of characters from `other` that will be used. If this is -1, all characters
+ *                  from `other` will be used.
  */
 __DS_FUNC_PREFIX void string_replace(String *s, int pos, const char *other, int len) {
     if (!other || (*other == '\0') || !len) return;
@@ -424,14 +394,13 @@ __DS_FUNC_PREFIX void string_replace(String *s, int pos, const char *other, int 
 
 
 /**
- * Inserts "len" characters from the c-string "other" into "s" before "pos".
+ * Inserts `len` characters from `other` into this string before `pos`.
  *
- * @param  s      Pointer to string.
- * @param  pos    Index in "s" before which characters will be inserted. If this is STRING_END,
- *                  characters from "other" will be appended to s.
+ * @param  pos    Index in this string before which characters will be inserted. If this is `STRING_END`,
+ *                  characters from `other` will be appended to this string.
  * @param  other  C-string from which characters will be inserted.
- * @param  len    Number of characters from "other" to insert. If this is -1,
- *                  all characters from "other" will be used.
+ * @param  len    Number of characters from `other` to insert. If this is -1, all characters from
+ *                  `other` will be used.
  */
 __DS_FUNC_PREFIX void string_insert(String *s, int pos, const char *other, int len) {
     if (!other || (*other == '\0') || !len) return;
@@ -454,12 +423,11 @@ __DS_FUNC_PREFIX void string_insert(String *s, int pos, const char *other, int l
 
 
 /**
- * Appends "len" characters from the c-string "other" to the end of "s".
+ * Appends `len` characters from `other` to the end of this string.
  *
- * @param  s      Pointer to string.
  * @param  other  C-string from which characters will be inserted.
- * @param  len    Number of characters from "other" to insert. If this is -1,
- *                  all characters from "other" will be used.
+ * @param  len    Number of characters from `other` to insert. If this is -1, all characters from
+ *                  `other` will be used.
  */
 __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len) {
     if (!other || (*other == '\0') || !len) return;
@@ -474,11 +442,10 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len) {
 
 
 /**
- * Inserts a format string into "s" before "pos".
+ * Inserts a format string `format` into this string before `pos`.
  *
- * @param  s       Pointer to string.
- * @param  pos     Index in "s" before which characters will be inserted. If this is STRING_END,
- *                  characters from the format string will be appended to s.
+ * @param  pos     Index in this string before which characters will be inserted. If this is `STRING_END`,
+ *                   characters from `format` will be appended to this string.
  * @param  format  Format string.
  */
 __DS_FUNC_PREFIX_INL void string_printf(String *s, int pos, const char *format, ...) {
@@ -509,16 +476,16 @@ __DS_FUNC_PREFIX_INL void string_printf(String *s, int pos, const char *format, 
 
 
 /**
- * Finds the first occurrence of "needle" in "s" starting at "start_pos".
+ * Finds the first occurrence of the first `len_needle` characters from `needle` in this string 
+ * starting at `start_pos`.
  *
- * @param   s           Pointer to string.
  * @param   start_pos   First index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len_needle  Number of characters to match from needle. If this is -1,
- *                        all characters from "needle" will be used.
+ * @param   len_needle  Number of characters to match from needle. If this is -1, all characters from
+ *                        `needle` will be used.
  *
- * @return              The index in "s", corresponding to needle[0], where needle was found,
- *                        STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
+ * @return              The index in this string, corresponding to needle[0], where `needle` was found,
+ *                      `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 __DS_FUNC_PREFIX int string_find(String *s, int start_pos, const char *needle, int len_needle) {
     __str_find_body(start_pos, (int) s->len - start_pos, start_pos, +, -, 0, len_haystack, 0, len_needle, __str_prefix_table_body(needle, 0, len_needle, +, -, while(index < len_needle)), i < iEnd, start_pos + (i - j))
@@ -526,16 +493,16 @@ __DS_FUNC_PREFIX int string_find(String *s, int start_pos, const char *needle, i
 
 
 /**
- * Finds the last occurrence of "needle" in "s" ending at "end_pos".
+ * Finds the last occurrence of the first `len_needle` characters from `needle` in this string 
+ * ending at `end_pos`.
  *
- * @param   s           Pointer to string.
  * @param   end_pos     Last index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len_needle  Number of characters to match from needle. If this is -1,
- *                        all characters from "needle" will be used.
+ * @param   len_needle  Number of characters to match from needle. If this is -1, all characters from
+ *                        `needle` will be used.
  *
- * @return              The index in "s", corresponding to needle[0], where needle was found,
- *                        STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
+ * @return              The index in this string, corresponding to needle[0], where `needle` was found,
+ *                        `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 __DS_FUNC_PREFIX int string_rfind(String *s, int end_pos, const char *needle, int len_needle) {
     __str_find_body(end_pos, end_pos + 1, 0, -, +, end_pos, -1, len_needle - 1, -1, __str_prefix_table_body(needle, (len_needle-1), len_needle, -, +, while(index > -1)), i > iEnd, i + 1)
@@ -543,14 +510,13 @@ __DS_FUNC_PREFIX int string_rfind(String *s, int end_pos, const char *needle, in
 
 
 /**
- * Finds the first index at or after "pos" where one of the supplied characters was found.
+ * Finds the first index at or after `pos` where one of the characters in `chars` was found.
  *
- * @param   s      Pointer to string.
  * @param   pos    First index in the string to consider.
  * @param   chars  C-string of characters to look for.
  *
- * @return         The first index at or after "pos" where one of the supplied characters was
- *                   found, STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
+ * @return         The first index at or after `pos` where one of the supplied characters was
+ *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_first_of(String *s, int pos, const char *chars) {
     __str_find_x_of_body(return pos;, , for(++pos; pos < (int) s->len; ++pos), pos-1)
@@ -558,14 +524,13 @@ int string_find_first_of(String *s, int pos, const char *chars) {
 
 
 /**
- * Finds the last index at or before "pos" where one of the supplied characters was found.
+ * Finds the last index at or before `pos` where one of the characters in `chars` was found.
  *
- * @param   s      Pointer to string.
  * @param   pos    Last index in the string to consider.
  * @param   chars  C-string of characters to look for.
  *
- * @return         The last index at or before "pos" where one of the supplied characters was
- *                   found, STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
+ * @return         The last index at or before `pos` where one of the supplied characters was
+ *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_last_of(String *s, int pos, const char *chars) {
     __str_find_x_of_body(return pos;, , for(--pos; pos >= 0; --pos), pos+1)
@@ -573,14 +538,13 @@ int string_find_last_of(String *s, int pos, const char *chars) {
 
 
 /**
- * Finds the first index at or after "pos" where one of the supplied characters was not found.
+ * Finds the first index at or after `pos` where one of the characters in `chars` was not found.
  *
- * @param   s      Pointer to string.
  * @param   pos    First index in the string to consider.
  * @param   chars  C-string of characters to look for.
  *
- * @return         The first index at or after "pos" where a different character was found,
- *                   STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
+ * @return         The first index at or after `pos` where a different character was found,
+ *                   `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_first_not_of(String *s, int pos, const char *chars) {
     __str_find_x_of_body(break;, if (!(*c)) return pos;, for(++pos; pos < (int) s->len; ++pos), pos-1)
@@ -588,14 +552,13 @@ int string_find_first_not_of(String *s, int pos, const char *chars) {
 
 
 /**
- * Finds the last index at or before "pos" where one of the supplied characters was not found.
+ * Finds the last index at or before `pos` where one of the characters in `chars` was not found.
  *
- * @param   s      Pointer to string.
  * @param   pos    Last index in the string to consider.
  * @param   chars  C-string of characters to look for.
  *
- * @return         The last index at or before "pos" where a different character was found,
- *                   STRING_NPOS if it was not found, or STRING_ERROR if an error occurred.
+ * @return         The last index at or before `pos` where a different character was found,
+ *                   `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_last_not_of(String *s, int pos, const char *chars) {
     __str_find_x_of_body(break;, if (!(*c)) return pos;, for(--pos; pos >= 0; --pos), pos+1)
@@ -603,18 +566,17 @@ int string_find_last_not_of(String *s, int pos, const char *chars) {
 
 
 /**
- * Creates a substring from "s" with "n" characters, starting at "start" and moving to
- * the next character to include with a step size of "step_size".
+ * Creates a substring from this string with `n` characters, starting at `start` and moving to
+ * the next character to include with a step size of `step_size`.
  *
- * @param   s          Pointer to string.
  * @param   start      Index where the substring should start.
- * @param   n          Maximum number of characters in the substring. -1 implies to
- *                       include as many elements as the start and step size allow.
+ * @param   n          Maximum number of characters in the substring. -1 implies to include as many
+ *                       elements as `start` and `step_size` allow.
  * @param   step_size  How to adjust the index when copying characters. 1 means move forward 1 index
  *                       at a time, -1 means move backwards one index at a time, 2 would mean every
  *                       other index, etc.
  *
- * @return       Newly allocated String, or NULL if an error occurred.
+ * @return             Newly allocated `String`, or NULL if an error occurred.
  */
 __DS_FUNC_PREFIX String *string_substr(String *s, int start, int n, int step_size) {
     if (!s->len || !n) return NULL;
@@ -644,15 +606,13 @@ __DS_FUNC_PREFIX String *string_substr(String *s, int start, int n, int step_siz
 
 
 /**
- * Splits "s" into substrings based on the provided delimiter and stores them as
- * newly allocated String pointers in an array. A sentinel value of NULL is placed at the last
- * index of the array.
+ * Splits this string into substrings based on `delim` and stores them as newly allocated `String`s 
+ * in an array. A sentinel value of NULL is placed at the last index of the array.
  *
- * @param   s      Pointer to string.
  * @param   delim  The delimiter to use to split the string.
  *
- * @return         The array of pointers to String, each of which is a substring of "s", or NULL
- *                   if an error occurred.
+ * @return         The array of pointers to `String`, each of which is a substring of this string, or
+ *                 NULL if an error occurred.
  */
 __DS_FUNC_PREFIX String **string_split(String *s, const char *delim) {
     if (!delim || *delim == '\0' || !s->len) return NULL;
@@ -706,9 +666,9 @@ __DS_FUNC_PREFIX String **string_split(String *s, const char *delim) {
 
 
 /**
- * Frees the memory allocated by string_split.
+ * Frees the memory allocated by `string_split`.
  *
- * @param  arr  Array allocated by string_split.
+ * @param  arr  Array allocated by `string_split`.
  */
 __DS_FUNC_PREFIX_INL void string_split_free(String **arr) {
     for (String **s = arr; *s; ++s) {
@@ -721,7 +681,7 @@ __DS_FUNC_PREFIX_INL void string_split_free(String **arr) {
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are alphanumeric.
+ * @return     Whether or not all characters in `s` are alphanumeric.
  */
 __DS_FUNC_PREFIX_INL bool isAlphaNum(const char *s) {
     __str_test_chars_body(isalnum)
@@ -731,7 +691,7 @@ __DS_FUNC_PREFIX_INL bool isAlphaNum(const char *s) {
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are letters.
+ * @return     Whether or not all characters in `s` are letters.
  */
 __DS_FUNC_PREFIX_INL bool isAlpha(const char *s) {
     __str_test_chars_body(isalpha)
@@ -741,7 +701,7 @@ __DS_FUNC_PREFIX_INL bool isAlpha(const char *s) {
 /**
  * @param   s  C-string.
  *
- * @return     Whether or not all characters in s are digits.
+ * @return     Whether or not all characters in `s` are digits.
  */
 __DS_FUNC_PREFIX_INL bool isDigit(const char *s) {
     __str_test_chars_body(isdigit)
@@ -749,7 +709,7 @@ __DS_FUNC_PREFIX_INL bool isDigit(const char *s) {
 
 
 /**
- * Converts all characters in s to lowercase.
+ * Converts all characters in `s` to lowercase.
  *
  * @param  s  C-string.
  */
@@ -759,7 +719,7 @@ __DS_FUNC_PREFIX_INL void toLowercase(char *s) {
 
 
 /**
- * Converts all characters in s to uppercase.
+ * Converts all characters in `s` to uppercase.
  *
  * @param  s  C-string.
  */

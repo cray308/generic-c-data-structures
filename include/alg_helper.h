@@ -10,9 +10,8 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Sorts a given array with n elements.
+ * Sorts the array `a` with `n` elements.
  *
- * @param   id  ID used with gen_alg.
  * @param   a   Start of array.
  * @param   n   Number of elements in the array.
  */
@@ -20,10 +19,8 @@
 
 
 /**
- * Searches for the provided value in the array. The array must have been sorted prior to calling
- *   this function.
+ * Searches for `val` in an array `a`. The array must have been sorted prior to calling this function.
  *
- * @param   id   ID used with gen_alg.
  * @param   a    Start of array.
  * @param   n    Number of elements in the array.
  * @param   val  Value to search for.
@@ -34,9 +31,8 @@
 
 
 /**
- * Creates a max-heap in the range [first, last).
+ * Creates a max-heap in the range [`first`, `last`).
  *
- * @param   id     ID used with gen_alg.
  * @param   first  Pointer to first index in the heap.
  * @param   last   Pointer to last index in the heap.
  */
@@ -44,10 +40,8 @@
 
 
 /**
- * Sorts a heap in the range [first, last), so that elements are ordered from smallest to
- *   largest.
+ * Sorts a heap in the range [`first`, `last`), so that elements are ordered from smallest to largest.
  *
- * @param   id     ID used with gen_alg.
  * @param   first  Pointer to first index in the heap.
  * @param   last   Pointer to last index in the heap.
  */
@@ -55,10 +49,9 @@
 
 
 /**
- * Extends a heap in the range [first, last - 1) to [first, last) (the element in position
- *   (last - 1) is pushed).
+ * Extends a heap in the range [`first`, `last - 1`) to [`first`, `last`) (the element in position 
+ * `last - 1` is pushed).
  *
- * @param   id     ID used with gen_alg.
  * @param   first  Pointer to first index in the heap.
  * @param   last   Pointer to last index in the heap.
  */
@@ -66,10 +59,9 @@
 
 
 /**
- * Shrinks a heap in the range [first, last) to [first, last - 1) (the element in position
- *   (first) is popped).
+ * Shrinks a heap in the range [`first`, `last`) to [`first`, `last - 1`) (the element in position 
+ * `first` is popped).
  *
- * @param   id     ID used with gen_alg.
  * @param   first  Pointer to first index in the heap.
  * @param   last   Pointer to last index in the heap.
  */
@@ -80,7 +72,7 @@
  * Generates algorithm code for a specified type, to be used with built-in arrays or dynamic arrays.
  *
  * @param   id      ID to be used for the data type used in these functions (must be unique).
- * @param   t       Type to be used in the array (i.e. int, char *)
+ * @param   t       Type to be stored in the array.
  * @param   cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
  */
 #define gen_alg(id, t, cmp_lt)                                                                               \

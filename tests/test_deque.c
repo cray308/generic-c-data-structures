@@ -1,8 +1,8 @@
 #include "deque.h"
 #include <assert.h>
 
-gen_deque(int, int)
-gen_deque_customCopyDelete(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_deque(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_deque(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 #define LEN 151
 #define FIRST 0

@@ -80,33 +80,25 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Pointer to the front element's data, or NULL if the list is empty.
- *
- * @param   l  The List struct pointer.
+ * Pointer to the front element's data, if the list is not empty.
  */
 #define list_front(l) ((l)->front ? &((l)->front->data) : NULL)
 
 
 /**
- * Pointer to the back element's data, or NULL if the list is empty.
- *
- * @param   l  The List struct pointer.
+ * Pointer to the back element's data, if the list is not empty.
  */
 #define list_back(l) ((l)->back ? &((l)->back->data) : NULL)
 
 
 /**
  * Whether the list has no elements.
- *
- * @param   l  The List struct pointer.
  */
 #define list_empty(l) (!((l)->front))
 
 
 /**
  * The number of elements in the list.
- *
- * @param   l  The List struct pointer.
  */
 #define list_size(l) ((int) (l)->size)
 
@@ -114,10 +106,7 @@
 /**
  * Macro for iterating over the list from front to back.
  *
- * @param   id    ID used with gen_list.
- * @param   l     The List struct pointer.
- * @param   ptr   ListEntry which is assigned to the current element.
- *                 - May be dereferenced with iter_deref(LIST, ptr) or ptr->data.
+ * @param  ptr  `ListEntry` which is assigned to the current element. May be dereferenced with ptr->data.
  */
 #define list_iter(id, l, ptr) for (ptr = iter_begin(LIST, id, l, 0); ptr != iter_end(LIST, id, l, 0); iter_next(LIST, id, ptr))
 
@@ -125,10 +114,7 @@
 /**
  * Macro for iterating over the list in reverse (from back to front).
  *
- * @param   id    ID used with gen_list.
- * @param   l     The List struct pointer.
- * @param   ptr   ListEntry which is assigned to the current element.
- *                 - May be dereferenced with iter_deref(LIST, ptr) or ptr->data.
+ * @param  ptr  `ListEntry` which is assigned to the current element. May be dereferenced with ptr->data.
  */
 #define list_riter(id, l, ptr) for (ptr = iter_rbegin(LIST, id, l, 0); ptr != iter_rend(LIST, id, l, 0); iter_prev(LIST, id, ptr))
 
@@ -136,192 +122,153 @@
 /**
  * Creates a new, empty list.
  *
- * @param   id    ID used with gen_list.
- *
- * @return        A pointer to the newly allocated list.
+ * @return  Pointer to the newly allocated list.
  */
 #define list_new(id) __ds_calloc(1, sizeof(List_##id))
 
 
 /**
- * Creates a new list using the elements in a built-in array data type.
+ * Creates a new list using `n` elements in a built-in array `arr`.
  *
- * @param   id   ID used with gen_list.
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
  *
- * @return        A pointer to the newly allocated list.
+ * @return       Pointer to the newly allocated list.
  */
 #define list_new_fromArray(id, arr, n) list_new_fromArray_##id(arr, n)
 
 
 /**
- * Creates a new list as a copy of an existing List.
+ * Creates a new list as a copy of `list`.
  *
- * @param   id    ID used with gen_list.
- * @param   list  List to copy.
+ * @param   list  `List` to copy.
  *
- * @return        A pointer to the newly allocated list.
+ * @return        Pointer to the newly allocated list.
  */
 #define list_createCopy(id, list) list_createCopy_##id(list)
 
 
 /**
  * Deletes all elements and frees the list.
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
  */
 #define list_free(id, l) list_free_##id(l) 
 
 
 /**
- * Prepends the provided element to the start of the list.
+ * Prepends `value` to the start of the list.
  *
- * @param  id     ID used with gen_list.
- * @param  l      Pointer to list.
- * @param  value  Pointer to the element to be inserted.
+ * @param  value  Value to insert.
  */
 #define list_push_front(id, l, value) list_push_front_##id(l, value)
 
 
 /**
- * Appends the provided element to the end of the list.
+ * Appends `value` to the end of the list.
  *
- * @param  id     ID used with gen_list.
- * @param  l      Pointer to list.
- * @param  value  Pointer to the element to be inserted.
+ * @param  value  Value to insert.
  */
 #define list_push_back(id, l, value) list_push_back_##id(l, value)
 
 
 /**
- * Removes the first element from the list.
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
+ * Removes the first element from the list, if it is not empty.
  */
 #define list_pop_front(id, l) list_pop_front_##id(l)
 
 
 /**
- * Removes the last element from the list.
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
+ * Removes the last element from the list, if it is not empty.
  */
 #define list_pop_back(id, l) list_pop_back_##id(l)
 
 
 /**
- * Inserts a new element BEFORE the ListEntry at `pos`.
+ * Inserts `value` before `pos`.
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to list.
- * @param   pos     ListEntry before which the element should be inserted. If this is NULL,
- *                    it defaults to `list_push_back`.
+ * @param   pos     `ListEntry` before which the element should be inserted. If this is NULL, it
+ *                    defaults to `list_push_back`.
  * @param   value   Value to insert.
  *
- * @return          If successful, returns a ListEntry corresponding to the inserted element. If an
- *                    error occurred, returns NULL.
+ * @return          If successful, returns a `ListEntry` corresponding to the inserted element. If
+ *                  an error occurred, returns NULL.
  */
 #define list_insert(id, l, pos, value) list_insert_##id(l, pos, value)
 
 
 /**
- * Inserts a new element in sorted order.
+ * Inserts `value` in sorted order.
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to list.
  * @param   value   Value to insert.
  *
- * @return          If successful, returns a ListEntry corresponding to the inserted element. If an
- *                    error occurred, returns NULL.
+ * @return          If successful, returns a `ListEntry` corresponding to the inserted element. If an
+ *                  error occurred, returns NULL.
  */
 #define list_insert_sorted(id, l, value) list_insert_sorted_##id(l, value)
 
 
 /**
- * Inserts new elements from a built-in array BEFORE the ListEntry at `pos`.
+ * Inserts `n` elements from the built-in array `arr` before `pos`.
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to list.
- * @param   pos     ListEntry before which the elements should be inserted. If this is NULL,
- *                    it defaults to `list_push_back`.
- * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
- *                    `pos` is ignored.
+ * @param   pos     `ListEntry` before which the elements should be inserted. If this is NULL, it
+ *                    defaults to `list_push_back`.
+ * @param   sorted  Whether elements should be inserted in sorted order. If this is true, `pos` is ignored.
  * @param   arr     Pointer to the first element to insert.
- * @param   n       Number of elements to insert from `arr`.
+ * @param   n       Number of elements to include.
  *
- * @return          If successful, and `sorted` is false, returns a ListEntry corresponding to the
- *                    first inserted element. If `sorted` is true, returns a ListEntry corresponding
- *                    to the front of the list. If an error occurred, returns NULL.
+ * @return          If successful, and `sorted` is false, returns a `ListEntry` corresponding to the
+ *                  first inserted element. If `sorted` is true, returns a `ListEntry` corresponding
+ *                  to the front of the list. If an error occurred, returns NULL.
  */
 #define list_insert_fromArray(id, l, pos, sorted, arr, n) list_insert_fromArray_##id(l, pos, sorted, arr, n)
 
 
 /**
- * Inserts new elements from another List in the range [start, end) BEFORE the ListEntry at `pos`.
+ * Inserts new elements from another `List` in the range [`start`, `end`) before `pos`.
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to list.
- * @param   pos     ListEntry before which the elements should be inserted. If this is NULL,
- *                    it defaults to `list_push_back`.
- * @param   sorted  Whether elements should be inserted in sorted order. If this is true,
- *                    `pos` is ignored.
- * @param   start   Pointer to first ListEntry to insert. Must not be NULL.
- * @param   end     Pointer after the last ListEntry to insert. If this is NULL, all elements from
+ * @param   pos     `ListEntry` before which the elements should be inserted. If this is NULL, it
+ *                    defaults to `list_push_back`.
+ * @param   sorted  Whether elements should be inserted in sorted order. If this is true, `pos` is ignored.
+ * @param   start   First `ListEntry` to insert. Must not be NULL.
+ * @param   end     `ListEntry` after the last entry to insert. If this is NULL, all elements from
  *                    `start` through the end of the other list will be inserted.
  *
- * @return          If successful, and `sorted` is false, returns a ListEntry corresponding to the
- *                    first inserted element. If `sorted` is true, returns a ListEntry corresponding
- *                    to the front of the list. If an error occurred, returns NULL.
+ * @return          If successful, and `sorted` is false, returns a `ListEntry` corresponding to the
+ *                  first inserted element. If `sorted` is true, returns a `ListEntry` corresponding
+ *                  to the front of the list. If an error occurred, returns NULL.
  */
 #define list_insert_fromList(id, l, pos, sorted, start, end) list_insert_fromList_##id(l, pos, sorted, start, end)
 
 
 /**
- * Erases elements from the list within the range [first, last). To erase a single element, an
- *   example function call would be list_erase(l, e, e->next).
+ * Erases elements within the range [`first`, `last`).
  *
- * @param   id     ID used with gen_list.
- * @param   l      Pointer to list.
- * @param   first  ListEntry pointing to the first element to be removed - must be provided.
- * @param   last   ListEntry AFTER the last element to be deleted. If this is NULL, then
- *                   all elements from start through the end of the list will be removed.
+ * @param   first  First `ListEntry` to be removed - must be provided.
+ * @param   last   `ListEntry` after the last entry to be deleted. If this is NULL, all elements
+ *                   from start through the end of the list will be removed.
  *
- * @return        If successful, returns a ListEntry corresponding to the element after the
- *                   last deleted element. If an error occurred or if the last
- *                   deleted element was at the end of the list, returns NULL.
+ * @return         If successful, returns a `ListEntry` corresponding to the element after the last
+ *                 deleted element. If an error occurred or if the last deleted element was at the
+ *                 end of the list, returns NULL.
  */
 #define list_erase(id, l, first, last) list_erase_##id(l, first, last)
 
 
 /**
  * Removes all elements from the list.
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
  */
 #define list_clear(id, l) list_erase_##id(l, l->front, NULL)
 
 
 /**
  * Reverses the list; thus what was the last element will now be the first.
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
  */
 #define list_reverse(id, l) list_reverse_##id(l)
 
 
 /**
- * Sorts the list according to the cmp_lt macro provided in gen_list.
+ * Sorts the list according to the `cmp_lt` macro provided in `gen_list`.
  * 
  * Time complexity: approx. O(n * log(n))
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
  */
 #define list_sort(id, l) list_sort_##id(l)
 
@@ -332,109 +279,89 @@
  * Example:
  *     Input : [1, 2, 2, 2, 3, 3]
  *     Output: [1, 2, 3]
- *
- * @param  id  ID used with gen_list.
- * @param  l   Pointer to list.
  */
 #define list_unique(id, l) list_unique_##id(l)
 
 
 /**
- * Removes any elements that compare equal to the provided value.
+ * Removes any elements equal to `value`.
  *
- * @param  id   ID used with gen_list.
- * @param  l    Pointer to list.
- * @param  val  Pointer to the value to compare to a list element's data.
+ * @param  value  Value to compare to a list element's data.
  */
-#define list_remove_value(id, l, val) list_remove_value_##id(l, val)
+#define list_remove_value(id, l, value) list_remove_value_##id(l, value)
 
 
 /**
- * Removes any elements satisfying the provided condition.
+ * Removes any elements satisfying `condition`.
  *
- * @param  id         ID used with gen_list.
- * @param  l          Pointer to list.
- * @param  condition  Function pointer to check if an element's data meets the condition.
+ * @param  condition  Function pointer to check if an element meets the condition.
  */
 #define list_remove_if(id, l, condition) list_remove_if_##id(l, condition)
 
 
 /**
- * Finds the first instance of the provided value.
+ * Finds the first instance of `value`.
  *
- * @param  id    ID used with gen_list.
- * @param   l    Pointer to list.
- * @param   val  Pointer to the value to compare to a list element's data.
+ * @param   value  Value to search for.
  *
- * @return       If the value was found, returns a ListEntry pointing to that element. If it was
- *                  not found, returns NULL.
+ * @return         If `value` was found, returns a `ListEntry` corresponding to that element. If it
+ *                 was not found, returns NULL.
  */
-#define list_find(id, l, val) list_find_##id(l, val)
+#define list_find(id, l, value) list_find_##id(l, value)
 
 
 /**
- * Creates a sublist from `l` in the range [first,last) (non-inclusive for `last`).
+ * Creates a sublist from this list in the range [`first`, `last`).
  *
- * @param   id     ID used with gen_list.
- * @param   l      Pointer to list.
- * @param   first  Element to start the sublist.
- * @param   last   Element at which the sublist will stop. If this is NULL, the sublist will
+ * @param   first  First `ListEntry` in the sublist.
+ * @param   last   `ListEntry` after the last entry in the sublist. If this is NULL, the sublist will
  *                   include all elements from `first` to the end of the list.
  *
- * @return         Newly created sublist from the list. If `l` is empty or `first` is NULL,
- *                   returns NULL.
+ * @return         Newly created sublist. If this list is empty or `first` is NULL, returns NULL.
  */
 #define list_sublist(id, l, first, last) list_sublist_##id(l, first, last)
 
 
 /**
- * Merges `other` into `l`, both of which must be in sorted order prior to this operation.
- *  `other` is left with a size of 0, and `l` grows by as many elements as `other` previously
- *  contained.
+ * Merges `other` into this list, both of which must be in sorted order prior to this operation. 
+ * `other` is left with a size of 0, and this list grows by as many elements as `other` previously 
+ * contained.
  *
- * @param   id     ID used with gen_list.
- * @param   l      Pointer to list.
- * @param   other  Pointer to other list, which will be merged with `l`.
+ * @param  other  Other `List`, which will be merged with this list.
  */
 #define list_merge(id, l, other) list_merge_##id(l, other)
 
 
 /**
- * Moves all elements from `other` into this list BEFORE the ListEntry at `pos`.
+ * Moves all elements from `other` into this list before `pos`.
  *
- * @param   id     ID used with gen_list.
- * @param   l      Pointer to list into which elements will be moved.
- * @param   pos    Pointer to element in `l` before which elements in `other` will be moved. If
- *                   this is NULL, elements from `other` will be appended to `l`.
- * @param   other  Pointer to other list from which elements will be moved.
+ * @param  pos    `ListEntry` in this list before which elements in `other` will be moved. If this
+ *                  is NULL, elements from `other` will be appended to this list.
+ * @param  other  Other `List` from which elements will be moved.
  */
 #define list_splice(id, l, pos, other) list_splice_range_##id(l, pos, other, (other)->front, NULL)
 
 
 /**
- * Moves a single element from `other` into this list BEFORE the ListEntry at `pos`.
+ * Moves `entry` from `other` into this list before `pos`.
  *
- * @param   id       ID used with gen_list.
- * @param   l        Pointer to list into which elements will be moved.
- * @param   pos      Pointer to element in `l` before which `element` will be moved. If this is
- *                     NULL, `element` is appended to `l`.
- * @param   other    Pointer to other list from which elements will be moved.
- * @param   element  The ListEntry to move.
+ * @param  pos     `ListEntry` in this list before which `entry` will be moved. If this is NULL,
+ *                   `entry` is appended to this list.
+ * @param  other   Other `List` from which `entry` will be moved.
+ * @param  entry  `ListEntry` to move.
  */
-#define list_splice_element(id, l, pos, other, element) list_splice_range_##id(l, pos, other, element, element ? (element)->next : NULL)
+#define list_splice_element(id, l, pos, other, entry) list_splice_range_##id(l, pos, other, entry, entry ? (entry)->next : NULL)
 
 
 /**
- * Moves elements from `other` in the range [first, last) into this list BEFORE the ListEntry at `pos`.
+ * Moves elements from `other` in the range [`first`, `last`) into this list before `pos`.
  *
- * @param   id     ID used with gen_list.
- * @param   l      Pointer to list into which elements will be moved.
- * @param   pos    Pointer to element in `l` before which elements in `other` will be moved. If
- *                   this is NULL, elements from `other` will be appended to `l`.
- * @param   other  Pointer to other list from which elements will be moved.
- * @param   first  First ListEntry to move.
- * @param   last   Pointer after the last ListEntry to move. If this is NULL, all entries from
- *                   `first` through the end of `other` are moved.
+ * @param  pos    `ListEntry` in this list before which elements in `other` will be moved. If this
+ *                  is NULL, elements from `other` will be appended to this list.
+ * @param  other  Other `List` from which elements will be moved.
+ * @param  first  First `ListEntry` from `other` to move.
+ * @param  last   `ListEntry` after the last entry in `other` to move. If this is NULL, all entries
+ *                  from `first` through the end of `other` are moved.
  */
 #define list_splice_range(id, l, pos, other, first, last) list_splice_range_##id(l, pos, other, first, last)
 
@@ -454,11 +381,11 @@
 
 
 /**
- * Generates list code for a specified type and ID.
+ * Generates `List` code for a specified type and ID.
  *
- * @param   id      ID to be used for the type stored in the list (must be unique).
- * @param   t       Type to be stored in the list.
- * @param   cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param  id      ID to be used for the `List` and `ListEntry` types (must be unique).
+ * @param  t       Type to be stored in the list.
+ * @param  cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
  */
 #define gen_list(id, t, cmp_lt)                                                                              \
                                                                                                              \
@@ -877,12 +804,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
  * -------------------------------------------------------------------------- */
 
 /**
- * Creates a new List representing the union of `l` and `other` (i.e. elements that are in `l`,
- * `other`, or both - all elements).
+ * Creates a new `List` representing the union of this list and `other` (i.e. elements that are in 
+ * this list, `other`, or both - all elements).
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to first list.
- * @param   other   Pointer to second list.
+ * @param   other   Second `List`.
  *
  * @return          Pointer to newly allocated list.
  */
@@ -890,12 +815,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new List representing the intersection of `l` and `other` (i.e. all elements that both
- * lists have in common).
+ * Creates a new `List` representing the intersection of this list and `other` (i.e. all elements 
+ * that both lists have in common).
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to first list.
- * @param   other   Pointer to second list.
+ * @param   other   Second `List`.
  *
  * @return          Pointer to newly allocated list.
  */
@@ -903,12 +826,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new List representing the difference of `l` and `other` (i.e. all elements that are
- * unique to `l`).
+ * Creates a new `List` representing the difference of this list and `other` (i.e. all elements that 
+ * are unique to this list).
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to first list.
- * @param   other   Pointer to second list.
+ * @param   other   Second `List`.
  *
  * @return          Pointer to newly allocated list.
  */
@@ -916,12 +837,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new List representing the symmetric difference of `l` and `other` (i.e. all elements
- * that neither list has in common).
+ * Creates a new `List` representing the symmetric difference of this list and `other` (i.e. all 
+ * elements that neither list has in common).
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to first list.
- * @param   other   Pointer to second list.
+ * @param   other   Second `List`.
  *
  * @return          Pointer to newly allocated list.
  */
@@ -929,23 +848,21 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Determines whether `l` contains each element in `other`.
+ * Determines whether this list contains each element in `other`.
  *
- * @param   id      ID used with gen_list.
- * @param   l       Pointer to first list.
- * @param   other   Pointer to second list.
+ * @param   other   Second `List`.
  *
- * @return          True if `l` contains each element in `other`, false if not.
+ * @return          True if this list contains each element in `other`, false if not.
  */
 #define includes_list(id, l, other) __includes_list_##id((l)->front, NULL, (other)->front, NULL)
 
 
 /**
- * Generates list code for a specified type and ID, including set functions.
+ * Generates `List` code for a specified type and ID, including set functions.
  *
- * @param   id      ID to be used for the type stored in the list (must be unique).
- * @param   t       Type to be stored in the list.
- * @param   cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param  id      ID to be used for the `List` and `ListEntry` types (must be unique).
+ * @param  t       Type to be stored in the list.
+ * @param  cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
  */
 #define gen_list_withalg(id, t, cmp_lt)                                                                      \
 gen_list(id, t, cmp_lt)                                                                                      \

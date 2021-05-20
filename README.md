@@ -19,7 +19,9 @@ declared static, so the data structures may be used by including the relevant fi
 ## Included Data Structures
 
 Documentation is provided in the header files (in the `include` folder). See the files in the `test`
-folder for examples of using the data structures.
+folder for examples of using the data structures. Most of the data structures' macro wrappers around 
+the functions are set up like `(ID, pointerToDataStructure, ...)`. The `ID` is necessary so that the
+correct function is called when the macro is expanded.
 
  - Array (named `Array`). This is analogous to a C++ `std::vector`.
 

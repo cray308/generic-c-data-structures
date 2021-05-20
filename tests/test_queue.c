@@ -5,8 +5,8 @@
 #define FIRST 0
 #define LAST (LEN - 1)
 
-gen_queue(int, int)
-gen_queue_customCopyDelete(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_queue(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_queue(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 char strs[LEN][16] = {};
 

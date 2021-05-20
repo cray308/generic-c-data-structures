@@ -9,32 +9,24 @@
 
 /**
  * The number of elements in the deque.
- *
- * @param   q  Pointer to deque.
  */
 #define deque_size(q) ((int)(__deque_frontCount(q) + __deque_backCount(q)))
 
 
 /**
  * Tests whether there are no elements in the deque.
- *
- * @param   q  Pointer to deque.
  */
 #define deque_empty(q) (!(deque_size(q)))
 
 
 /**
  * Pointer to the first element in the deque, if it is not empty.
- *
- * @param   q  Pointer to deque.
  */
 #define deque_front(q) (__deque_frontCount(q) ? &((q)->front.arr[(q)->front.size - 1]) : (__deque_backCount(q) ? &((q)->back.arr[(q)->pointers.backStart]) : NULL))
 
 
 /**
  * Pointer to the last element in the deque, if it is not empty.
- *
- * @param   q  Pointer to deque.
  */
 #define deque_back(q) (__deque_backCount(q) ? &((q)->back.arr[(q)->back.size - 1]) : (__deque_frontCount(q) ? &((q)->front.arr[(q)->pointers.frontStart]) : NULL))
 
@@ -42,72 +34,47 @@
 /**
  * Creates a new, empty deque.
  *
- * @param   id  ID used with gen_deque.
- *
  * @return      Pointer to the newly allocated deque.
  */
 #define deque_new(id) __dq_new_##id()
 
 
 /**
- * Frees the deque and deletes any remaining items.
- *
- * @param  id  ID used with gen_deque.
- * @param  q   Pointer to deque.
+ * Frees the deque and deletes any remaining elements.
  */
 #define deque_free(id, q) __dq_free_##id(q)
 
 
 /**
- * Removes the first item in the deque, if it is not empty.
- *
- * @param   id  ID used with gen_deque.
- * @param   q   Pointer to deque.
+ * Removes the first element in the deque, if it is not empty.
  */
 #define deque_pop_front(id, q) __dq_pop_front_##id(q)
 
 
 /**
- * Appends a new element to the back of the deque.
-
- * @param  id     ID used with gen_deque.
- * @param  q      Pointer to deque.
- * @param  item   Item to be emplaced.
+ * Appends `value` to the back of the deque.
+ *
+ * @param  value  Value to be emplaced.
  */
-#define deque_push_back(id, q, item) __dq_push_back_##id(q, item)
+#define deque_push_back(id, q, value) __dq_push_back_##id(q, value)
 
 
 /**
- * Removes the last item in the deque, if it is not empty.
- *
- * @param   id  ID used with gen_deque.
- * @param   q   Pointer to deque.
+ * Removes the last element in the deque, if it is not empty.
  */
 #define deque_pop_back(id, q) __dq_pop_back_##id(q)
 
 
 /**
- * Places a new element in the front of the deque.
-
- * @param  id     ID used with gen_deque.
- * @param  q      Pointer to deque.
- * @param  item   Item to be emplaced.
- */
-#define deque_push_front(id, q, item) __dq_push_front_##id(q, item)
-
-
-/**
- * Generates deque code for a specified type and ID. This macro sets up the deque to use default
- *   (shallow) copying and deleting for each element.
+ * Places `value` in the front of the deque.
  *
- * @param   id  ID to be used for the deque (must be unique).
- * @param   t   Type to be stored in the deque.
+ * @param  value  Value to be emplaced.
  */
-#define gen_deque(id, t) gen_deque_customCopyDelete(id, t, DSDefault_shallowCopy, DSDefault_shallowDelete)
+#define deque_push_front(id, q, value) __dq_push_front_##id(q, value)
 
 
 /**
- * Generates deque code for a specified type and ID.
+ * Generates `Deque` code for a specified type and ID.
  *
  * @param   id           ID to be used for the deque (must be unique).
  * @param   t            Type to be stored in the deque.
@@ -118,7 +85,7 @@
  *                         - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
  *                         - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_deque_customCopyDelete(id, t, copyValue, deleteValue) __setup_deque(id, t, Deque_##id, copyValue, deleteValue)
+#define gen_deque(id, t, copyValue, deleteValue) __setup_deque(id, t, Deque_##id, copyValue, deleteValue)
 
 #define __setup_deque(id, t, TypeName, copyValue, deleteValue)                                               \
                                                                                                              \

@@ -3,8 +3,8 @@
 
 #define LEN 150
 
-gen_stack(int, int)
-gen_stack_customCopyDelete(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_stack(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_stack(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 char strs[LEN][16] = {};
 
