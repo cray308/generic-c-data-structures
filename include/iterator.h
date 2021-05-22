@@ -26,6 +26,62 @@
 #define iter_dist(type, id, p1, p2) iter_dist_##type(id, p1, p2)
 
 /* --------------------------------------------------------------------------
+ * Array (random access) iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_ARR(id, a, n)    ((n) ? &((a)[0]) : NULL)
+#define iter_end_ARR(id, a, n)      ((n) ? &((a)[n]) : NULL)
+#define iter_rbegin_ARR(id, a, n)   (n ? &((a)[(n) - 1]) : NULL)
+#define iter_rend_ARR(id, a, n)     (n ? &((a)[-1]) : NULL)
+#define iter_next_ARR(id, p)        (++(p))
+#define iter_prev_ARR(id, p)        (--(p))
+#define iter_deref_ARR(p)           (*(p))
+#define iter_advance_ARR(id, p, n)  ((p) += n)
+#define iter_dist_ARR(id, p1, p2)   ((p2) - (p1))
+
+/* --------------------------------------------------------------------------
+ * List iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_LIST(id, l, n)    ((l)->front)
+#define iter_end_LIST(id, l, n)      NULL
+#define iter_rbegin_LIST(id, l, n)   ((l)->back)
+#define iter_rend_LIST(id, l, n)     NULL
+#define iter_next_LIST(id, p)        ((p) = (p)->next)
+#define iter_prev_LIST(id, p)        ((p) = (p)->prev)
+#define iter_deref_LIST(p)           ((p)->data)
+#define iter_advance_LIST(id, p, n)  iterator_advance_helper(LIST, id, p, n)
+#define iter_dist_LIST(id, p1, p2)   __iter_dist_helper_LIST_##id(p1, p2)
+
+/* --------------------------------------------------------------------------
+ * Tree iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_TREE(id, t, n)    __rb_successor_##id((t)->root)
+#define iter_end_TREE(id, t, n)      NULL
+#define iter_rbegin_TREE(id, t, n)   __rb_predecessor_##id((t)->root)
+#define iter_rend_TREE(id, t, n)     NULL
+#define iter_next_TREE(id, p)        ((p) = __rb_inorder_successor_##id((p)))
+#define iter_prev_TREE(id, p)        ((p) = __rb_inorder_predecessor_##id((p)))
+#define iter_deref_TREE(p)           ((p)->data)
+#define iter_advance_TREE(id, p, n)  iterator_advance_helper(TREE, id, p, n)
+#define iter_dist_TREE(id, p1, p2)   __iter_dist_helper_TREE_##id(p1, p2)
+
+/* --------------------------------------------------------------------------
+ * String iterator macros
+ * -------------------------------------------------------------------------- */
+
+#define iter_begin_STR(id, s, n)    ((n) ? &((s)[0]) : NULL)
+#define iter_end_STR(id, s, n)      ((n) ? &((s)[n]) : NULL)
+#define iter_rbegin_STR(id, s, n)   (n ? &((s)[(n) - 1]) : NULL)
+#define iter_rend_STR(id, s, n)     (n ? &((s)[-1]) : NULL)
+#define iter_next_STR(id, p)        (++(p))
+#define iter_prev_STR(id, p)        (--(p))
+#define iter_deref_STR(p)           (*(p))
+#define iter_advance_STR(id, p, n)  ((p) += n)
+#define iter_dist_STR(id, p1, p2)   ((p2) - (p1))
+
+/* --------------------------------------------------------------------------
  * Generic helpers
  * -------------------------------------------------------------------------- */
 

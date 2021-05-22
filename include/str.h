@@ -188,20 +188,6 @@ __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
  */
 #define string_riter(str, chr) for (chr = string_back(str); chr != iter_rend(STR, 0, (str)->s, (str)->len); iter_prev(STR, 0, chr))
 
-/* --------------------------------------------------------------------------
- * String iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_STR(id, s, n)    ((n) ? &((s)[0]) : NULL)
-#define iter_end_STR(id, s, n)      ((n) ? &((s)[n]) : NULL)
-#define iter_rbegin_STR(id, s, n)   (n ? &((s)[(n) - 1]) : NULL)
-#define iter_rend_STR(id, s, n)     (n ? &((s)[-1]) : NULL)
-#define iter_next_STR(id, p)        (++(p))
-#define iter_prev_STR(id, p)        (--(p))
-#define iter_deref_STR(p)           (*(p))
-#define iter_advance_STR(id, p, n)  ((p) += n)
-#define iter_dist_STR(id, p1, p2)   ((p2) - (p1))
-
 
 /**
  * Creates a new, empty string.

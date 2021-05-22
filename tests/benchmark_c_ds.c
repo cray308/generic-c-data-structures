@@ -4,9 +4,9 @@
 #include <time.h>
 #include <limits.h>
 
-gen_array_withalg(unsigned, unsigned, ds_cmp_num_lt)
+gen_array_withalg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
 
-gen_list(unsigned, unsigned, ds_cmp_num_lt)
+gen_list_withalg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
 
 char *ProgName = NULL;
 clock_t before, after;

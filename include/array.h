@@ -236,28 +236,19 @@
 #define array_subarr(id, a, start, n, step_size) array_subarr_##id(a, start, n, step_size)
 
 
-/* --------------------------------------------------------------------------
- * Array (random access) iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_ARR(id, a, n)    ((n) ? &((a)[0]) : NULL)
-#define iter_end_ARR(id, a, n)      ((n) ? &((a)[n]) : NULL)
-#define iter_rbegin_ARR(id, a, n)   (n ? &((a)[(n) - 1]) : NULL)
-#define iter_rend_ARR(id, a, n)     (n ? &((a)[-1]) : NULL)
-#define iter_next_ARR(id, p)        (++(p))
-#define iter_prev_ARR(id, p)        (--(p))
-#define iter_deref_ARR(p)           (*(p))
-#define iter_advance_ARR(id, p, n)  ((p) += n)
-#define iter_dist_ARR(id, p1, p2)   ((p2) - (p1))
-
-
 /**
  * Generates `Array` code for a specified type and ID.
  *
- * @param  id  ID to be used for the array (must be unique).
- * @param  t   Type to be stored in the array.
+ * @param  id           ID to be used for the array (must be unique).
+ * @param  t            Type to be stored in the array.
+ * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the array.
+ *                        - If no special copying is required, pass DSDefault_shallowCopy.
+ *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
+ *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
+ *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_array(id, t)                                                                                     \
+#define gen_array(id, t, copyValue, deleteValue)                                                             \
                                                                                                              \
 typedef struct {                                                                                             \
     size_t size;                                                                                             \
@@ -265,56 +256,17 @@ typedef struct {                                                                
     t *arr;                                                                                                  \
 } Array_##id;                                                                                                \
                                                                                                              \
-__DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element);                                 \
-__DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *a, int index, t *arr, size_t n);                \
-__DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n);                                           \
-__DS_FUNC_PREFIX void array_resize_usingValue_##id(Array_##id *a, size_t n, t value);                        \
-__DS_FUNC_PREFIX void array_clear_##id(Array_##id *a);                                                       \
-__DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem);                                  \
-                                                                                                             \
 __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *a, int i) {                                                \
     int idx = modulo(i, a->size);                                                                            \
     return (idx < 0) ? NULL : &(a->arr[idx]);                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Array_##id *array_new_##id(void) {                                                          \
-    Array_##id *a = __ds_calloc(1, sizeof(Array_##id));                                                      \
-    array_reserve_##id(a, 8);                                                                                \
+    Array_##id *a = __ds_malloc(sizeof(Array_##id));                                                         \
+    a->arr = __ds_malloc(8 * sizeof(t));                                                                     \
+    a->size = 0;                                                                                             \
+    a->capacity = 8;                                                                                         \
     return a;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX Array_##id *array_new_repeatingValue_##id(t value, size_t size) {                           \
-    Array_##id *a = array_new_##id();                                                                        \
-    array_resize_usingValue_##id(a, size, value);                                                            \
-    return a;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX Array_##id *array_new_fromArray_##id(t *arr, size_t size) {                                 \
-    Array_##id *a = array_new_##id();                                                                        \
-    array_insert_fromArray_##id(a, 0, arr, size);                                                            \
-    return a;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void array_free_##id(Array_##id *a) {                                                   \
-    if (a->capacity) {                                                                                       \
-        array_erase_##id(a, 0, array_size(a));                                                               \
-        free(a->arr);                                                                                        \
-    }                                                                                                        \
-    free(a);                                                                                                 \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX void array_resize_usingValue_##id(Array_##id *a, size_t n, t value) {                       \
-    if (n <= a->size) {                                                                                      \
-        a->size = n;                                                                                         \
-        return;                                                                                              \
-    }                                                                                                        \
-                                                                                                             \
-    array_reserve_##id(a, n);                                                                                \
-                                                                                                             \
-    for (size_t i = a->size; i < n; ++i) {                                                                   \
-        a->arr[i] = value;                                                                                   \
-    }                                                                                                        \
-    a->size = n;                                                                                             \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {                                          \
@@ -330,9 +282,58 @@ __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {             
     a->arr = tmp;                                                                                            \
 }                                                                                                            \
                                                                                                              \
+__DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {                                 \
+    if (!nelem || a->size == 0) return ARRAY_ERROR;                                                          \
+                                                                                                             \
+    if ((first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                                            \
+                                                                                                             \
+    if (nelem < 0) { /* erase from first to end of array */                                                  \
+        nelem = array_size(a) - first;                                                                       \
+    } else {                                                                                                 \
+        nelem = min(nelem, array_size(a) - first);                                                           \
+    }                                                                                                        \
+                                                                                                             \
+    int endIdx = first + nelem;                                                                              \
+    for (int i = first; i < endIdx; ++i) {                                                                   \
+        deleteValue(a->arr[i]);                                                                              \
+    }                                                                                                        \
+                                                                                                             \
+    int res;                                                                                                 \
+    if (endIdx < array_size(a)) { /* move elements from endIdx onward back to first */                       \
+        memmove(&a->arr[first], &a->arr[endIdx], (array_size(a) - endIdx) * sizeof(t));                      \
+        res = first;                                                                                         \
+    } else {                                                                                                 \
+        res = array_size(a) - nelem;                                                                         \
+    }                                                                                                        \
+    a->size -= (size_t) nelem;                                                                               \
+    return res;                                                                                              \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX void array_resize_usingValue_##id(Array_##id *a, size_t n, t value) {                       \
+    if (n == a->size) return;                                                                                \
+    else if (n < a->size) {                                                                                  \
+        array_erase_##id(a, n, a->size - n);                                                                 \
+        return;                                                                                              \
+    }                                                                                                        \
+                                                                                                             \
+    array_reserve_##id(a, n);                                                                                \
+                                                                                                             \
+    for (size_t i = a->size; i < n; ++i) {                                                                   \
+        copyValue((a->arr[i]), (value));                                                                     \
+    }                                                                                                        \
+    a->size = n;                                                                                             \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX Array_##id *array_new_repeatingValue_##id(t value, size_t size) {                           \
+    Array_##id *a = array_new_##id();                                                                        \
+    array_resize_usingValue_##id(a, size, value);                                                            \
+    return a;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
 __DS_FUNC_PREFIX_INL void array_push_back_##id(Array_##id *a, t value) {                                     \
     array_reserve_##id(a, a->size + 1); /* allocate more space */                                            \
-    *(a->arr + a->size) = value;                                                                             \
+    t *loc = &a->arr[a->size];                                                                               \
+    copyValue((*loc), (value));                                                                              \
     a->size++;                                                                                               \
 }                                                                                                            \
                                                                                                              \
@@ -346,7 +347,8 @@ __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element) {   
                                                                                                              \
     array_reserve_##id(a, a->size + 1);                                                                      \
     memmove(a->arr + (index + 1), a->arr + index, (array_size(a) - index) * sizeof(t));                      \
-    *(a->arr + index) = element;                                                                             \
+    t *loc = &a->arr[index];                                                                                 \
+    copyValue((*loc), (element));                                                                            \
     a->size++;                                                                                               \
     return index;                                                                                            \
 }                                                                                                            \
@@ -359,57 +361,51 @@ __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *a, int index, t *ar
         if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                        \
     }                                                                                                        \
                                                                                                              \
-    int res; /* index where first element from other was inserted */                                         \
+    int res;                                                                                                 \
     array_reserve_##id(a, a->size + n);                                                                      \
                                                                                                              \
     if (append) { /* append to a */                                                                          \
-        memcpy(&a->arr[a->size], arr, n * sizeof(t));                                                        \
         res = (int) a->size;                                                                                 \
     } else { /* insert in the middle of a */                                                                 \
-        int len = array_size(a) - index;                                                                     \
-        memmove(&a->arr[index + n], &a->arr[index], len * sizeof(t));                                        \
-        memcpy(&a->arr[index], arr, n * sizeof(t));                                                          \
+        memmove(&a->arr[index + n], &a->arr[index], (array_size(a) - index) * sizeof(t));                    \
         res = index;                                                                                         \
+    }                                                                                                        \
+    int end = res + (int) n;                                                                                 \
+    for (int i = res; i < end; ++i) {                                                                        \
+        t *loc = &a->arr[i];                                                                                 \
+        copyValue((*loc), (*arr));                                                                           \
+        ++arr;                                                                                               \
     }                                                                                                        \
     a->size += n;                                                                                            \
     return res;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void array_pop_back_##id(Array_##id *a) {                                               \
-    if (!a->size) return;                                                                                    \
-    a->size--;                                                                                               \
+__DS_FUNC_PREFIX Array_##id *array_new_fromArray_##id(t *arr, size_t size) {                                 \
+    Array_##id *a = array_new_##id();                                                                        \
+    array_insert_fromArray_##id(a, 0, arr, size);                                                            \
+    return a;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void array_clear_##id(Array_##id *a) {                                                  \
     array_erase_##id(a, 0, array_size(a));                                                                   \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {                                 \
-    if (!nelem || a->size == 0) return ARRAY_ERROR;                                                          \
-                                                                                                             \
-    if ((first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                                            \
-                                                                                                             \
-    if (nelem < 0) { /* erase from first to end of array */                                                  \
-        nelem = (int) a->size - first;                                                                       \
-    } else {                                                                                                 \
-        nelem = min(nelem, (int) a->size - first);                                                           \
+__DS_FUNC_PREFIX_INL void array_free_##id(Array_##id *a) {                                                   \
+    if (a->capacity) {                                                                                       \
+        array_clear_##id(a);                                                                                 \
+        free(a->arr);                                                                                        \
     }                                                                                                        \
+    free(a);                                                                                                 \
+}                                                                                                            \
                                                                                                              \
-    int endIdx = first + nelem;                                                                              \
-    int res;                                                                                                 \
-                                                                                                             \
-    if (endIdx < (int) a->size) { /* move elements from endIdx onward back to first */                       \
-        memmove(a->arr + first, a->arr + endIdx, (a->size - endIdx) * sizeof(t));                            \
-        res = first;                                                                                         \
-    } else {                                                                                                 \
-        res = array_size(a) - nelem;                                                                         \
-    }                                                                                                        \
-    a->size -= (size_t) nelem;                                                                               \
-    return res;                                                                                              \
+__DS_FUNC_PREFIX_INL void array_pop_back_##id(Array_##id *a) {                                               \
+    if (!a->size) return;                                                                                    \
+    deleteValue((a->arr[a->size - 1]));                                                                      \
+    a->size--;                                                                                               \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void array_shrink_to_fit_##id(Array_##id *a) {                                          \
-    if (a->size == a->capacity || a->size == 0) return;                                                      \
+    if (a->capacity == 8 || a->size == a->capacity || a->size == 0) return;                                  \
                                                                                                              \
     t *tmp = __ds_realloc(a->arr, a->size * sizeof(t));                                                      \
     a->capacity = a->size;                                                                                   \
@@ -491,7 +487,7 @@ __DS_FUNC_PREFIX Array_##id *array_subarr_##id(Array_##id *a, int start, int n, 
  * @param  t   Type that was used in the prior call to `gen_array` (and thus the type stored) in the matrix.
  */
 #define gen_matrix(id, t)                                                                                    \
-gen_array(2d_##id, Array_##id *)                                                                             \
+gen_array(2d_##id, Array_##id *, DSDefault_shallowCopy, DSDefault_shallowDelete)                             \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* matrix_at_##id(Array_2d_##id *m, int row, int col) {                                 \
     int _idxRow = modulo(row, m->size);                                                                      \
@@ -505,7 +501,6 @@ __DS_FUNC_PREFIX Array_2d_##id *matrix_new_##id(int rows, int cols) {           
     if (!rows || !cols) return NULL;                                                                         \
     Array_2d_##id *m = __ds_malloc(sizeof(Array_2d_##id));                                                   \
     m->arr = __ds_malloc(sizeof(Array_##id *) * rows);                                                       \
-                                                                                                             \
     m->size = 0;                                                                                             \
     m->capacity = rows;                                                                                      \
     Array_##id *arr;                                                                                         \
@@ -640,12 +635,18 @@ __DS_FUNC_PREFIX_INL void matrix_free_##id(Array_2d_##id *m) {                  
 /**
  * Generates `Array` code for a specified type and ID, including sort, find, and set functions.
  *
- * @param  id      ID to be used for the type stored in the array (must be unique).
- * @param  t       Type to be stored in the array.
- * @param  cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param  id           ID to be used for the array (must be unique).
+ * @param  t            Type to be stored in the array.
+ * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
+ *                        - If no special copying is required, pass DSDefault_shallowCopy.
+ *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
+ * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
+ *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
+ *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_array_withalg(id, t, cmp_lt)                                                                     \
-gen_array(id, t)                                                                                             \
+#define gen_array_withalg(id, t, cmp_lt, copyValue, deleteValue)                                             \
+gen_array(id, t, copyValue, deleteValue)                                                                     \
 gen_alg(id, t, cmp_lt)                                                                                       \
 __gen_alg_set_funcs(id, cmp_lt, Array_##id, array_##id, array_new, t *, iter_next_ARR, iter_deref_ARR, array_push_back, array_insert_fromArray_##id(d_new, array_size(d_new), first1, (last1 - first1)), array_insert_fromArray_##id(d_new, array_size(d_new), first2, (last2 - first2))) \
                                                                                                              \

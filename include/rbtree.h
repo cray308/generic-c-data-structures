@@ -70,20 +70,6 @@ typedef enum {
     }                                                                                                        \
     return parent;                                                                                           \
 
-/* --------------------------------------------------------------------------
- * Tree iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_TREE(id, t, n)    __rb_successor_##id((t)->root)
-#define iter_end_TREE(id, t, n)      NULL
-#define iter_rbegin_TREE(id, t, n)   __rb_predecessor_##id((t)->root)
-#define iter_rend_TREE(id, t, n)     NULL
-#define iter_next_TREE(id, p)        ((p) = __rb_inorder_successor_##id((p)))
-#define iter_prev_TREE(id, p)        ((p) = __rb_inorder_predecessor_##id((p)))
-#define iter_deref_TREE(p)           ((p)->data)
-#define iter_advance_TREE(id, p, n)  iterator_advance_helper(TREE, id, p, n)
-#define iter_dist_TREE(id, p1, p2)   __iter_dist_helper_TREE_##id(p1, p2)
-
 #define __gen_rbtree(id, kt, cmp_lt, TreeType, DataType, EntryType, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
 typedef struct EntryType EntryType;                                                                          \
