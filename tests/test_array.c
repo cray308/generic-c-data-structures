@@ -53,14 +53,16 @@ void compare_strs(Array_str *a, char **comparison, int size) {
 }
 
 void test_macros(void) {
+    int c1[] = {0,1};
+    char *c2[] = {"0","1"};
     Array_int *ai = array_new(int);
     Array_str *as = array_new(str);
 
     assert(array_capacity(ai) == 8 && array_capacity(as) == 8);
     assert(array_empty(ai) && array_empty(as));
     assert(array_at(int, ai, 0) == NULL && array_at(str, as, 0) == NULL);
-    compare_ints(ai, (int[]){}, 0);
-    compare_strs(as, (char*[]){}, 0);
+    compare_ints(ai, ints, 0);
+    compare_strs(as, strs, 0);
 
     array_push_back(int, ai, 0); array_push_back(str, as, "0");
     array_push_back(int, ai, 1); array_push_back(str, as, "1");
@@ -74,21 +76,23 @@ void test_macros(void) {
     assert(array_at(str, as, 1) && streq(*array_at(str, as, 1), "1"));
     assert(array_index(ai, 1) == 1 && streq(array_index(as, 1), "1"));
     assert(!array_at(int, ai, 2) && !array_at(str, as, 2));
-    compare_ints(ai, (int[]){0, 1}, 2);
-    compare_strs(as, (char*[]){"0","1"}, 2);
+    compare_ints(ai, c1, 2);
+    compare_strs(as, c2, 2);
 
     array_pop_back(int, ai); array_pop_back(str, as);
-    compare_ints(ai, (int[]){0}, 1);
-    compare_strs(as, (char*[]){"0"}, 1);
+    compare_ints(ai, c1, 1);
+    compare_strs(as, c2, 1);
 
     array_clear(int, ai); array_clear(str, as);
-    compare_ints(ai, (int[]){}, 0);
-    compare_strs(as, (char*[]){}, 0);
+    compare_ints(ai, ints, 0);
+    compare_strs(as, strs, 0);
 
     array_free(int, ai); array_free(str, as);
 }
 
 void test_resizing(void) {
+    int c1[3][10] = {{5,5,5,5,5,5,5,5,5,5},{5,5,5},{5,5,5,10,10,10}};
+    char *c2[3][10] = {{"5","5","5","5","5","5","5","5","5","5"},{"5","5","5"},{"5","5","5","10","10","10"}};
     Array_int *ai = array_new(int);
     Array_str *as = array_new(str);
 
@@ -100,86 +104,94 @@ void test_resizing(void) {
 
     array_resize_usingValue(int, ai, 10, 5);
     array_resize_usingValue(str, as, 10, "5");
-    compare_ints(ai, (int[]){5, 5, 5, 5, 5, 5, 5, 5, 5, 5}, 10);
-    compare_strs(as, (char*[]){"5","5","5","5","5","5","5","5","5","5"}, 10);
+    compare_ints(ai, c1[0], 10);
+    compare_strs(as, c2[0], 10);
 
     array_resize(int, ai, 3); array_resize(str, as, 3);
-    compare_ints(ai, (int[]){5, 5, 5}, 3);
-    compare_strs(as, (char*[]){"5","5","5"}, 3);
+    compare_ints(ai, c1[1], 3);
+    compare_strs(as, c2[1], 3);
 
     array_resize_usingValue(int, ai, 6, 10); array_resize_usingValue(str, as, 6, "10");
-    compare_ints(ai, (int[]){5, 5, 5, 10, 10, 10}, 6);
-    compare_strs(as, (char*[]){"5","5","5","10","10","10"}, 6);
+    compare_ints(ai, c1[2], 6);
+    compare_strs(as, c2[2], 6);
     array_free(int, ai); array_free(str, as);
 }
 
 void test_custom_initializers(void) {
-    Array_int *ai = array_new_fromArray(int, ints, 10);
-    Array_str *as = array_new_fromArray(str, strs, 10);
+    int c1[] = {5,5,5,5,5};
+    char *c2[] = {"5","5","5","5","5"};
+    Array_int *ai = array_new_fromArray(int, ints, 10), *ax;
+    Array_str *as = array_new_fromArray(str, strs, 10), *ay;
     compare_ints(ai, ints, 10);
     compare_strs(as, strs, 10);
 
-    Array_int *ax = array_new_fromArray(int, array_front(ai), 5);
-    Array_str *ay = array_new_fromArray(str, array_front(as), 5);
+    ax = array_new_fromArray(int, array_front(ai), 5);
+    ay = array_new_fromArray(str, array_front(as), 5);
     compare_ints(ax, array_front(ai), 5);
     compare_strs(ay, array_front(as), 5);
     array_free(int, ax); array_free(str, ay);
 
     ax = array_new_repeatingValue(int, 5, 5);
     ay = array_new_repeatingValue(str, "5", 5);
-    compare_ints(ax, (int[]){5, 5, 5, 5, 5}, 5);
-    compare_strs(ay, (char*[]){"5","5","5","5","5"}, 5);
+    compare_ints(ax, c1, 5);
+    compare_strs(ay, c2, 5);
     array_free(int, ax); array_free(str, ay);
     array_free(int, ai); array_free(str, as);
 }
 
 void test_insert(void) {
+    int c1[] = {-1,0,1,2,3,4,5,6,7};
+    char *c2[] = {"-1","0","1","2","3","4","5","6","7"};
     Array_int *ai = array_new(int);
     Array_str *as = array_new(str);
-    // Single element
-    assert(array_insert(int, ai, array_size(ai), 2) == 0 && array_insert(str, as, array_size(as), "2") == 0); //2
-    assert(array_insert(int, ai, array_size(ai), 4) == 1 && array_insert(str, as, array_size(as), "4") == 1); //2, 4
-    assert(array_insert(int, ai, 0, 1) == 0 && array_insert(str, as, 0, "1") == 0); //1, 2, 4
-    assert(array_insert(int, ai, 2, 3) == 2 && array_insert(str, as, 2, "3") == 2); //1, 2, 3, 4
-    assert(array_insert(int, ai, array_size(ai), 5) == 4 && array_insert(str, as, array_size(as), "5") == 4); //1, 2, 3, 4, 5
+    /* Single element */
+    assert(array_insert(int, ai, array_size(ai), 2) == 0 && array_insert(str, as, array_size(as), "2") == 0); /* 2 */
+    assert(array_insert(int, ai, array_size(ai), 4) == 1 && array_insert(str, as, array_size(as), "4") == 1); /* 2, 4 */
+    assert(array_insert(int, ai, 0, 1) == 0 && array_insert(str, as, 0, "1") == 0); /* 1, 2, 4 */
+    assert(array_insert(int, ai, 2, 3) == 2 && array_insert(str, as, 2, "3") == 2); /* 1, 2, 3, 4 */
+    assert(array_insert(int, ai, array_size(ai), 5) == 4 && array_insert(str, as, array_size(as), "5") == 4); /* 1, 2, 3, 4, 5 */
 
-    compare_ints(ai, (int[]){1, 2, 3, 4, 5}, 5);
-    compare_strs(as, (char*[]){"1","2","3","4","5"}, 5);
+    compare_ints(ai, &c1[2], 5);
+    compare_strs(as, &c2[2], 5);
     array_free(int, ai); array_free(str, as);
 
     ai = array_new(int), as = array_new(str);
-    // Insert from array
+    /* Insert from array */
     assert(array_insert_fromArray(int, ai, 0, NULL, 5) == ARRAY_ERROR);
     assert(array_insert_fromArray(str, as, 0, NULL, 5) == ARRAY_ERROR);
     assert(array_insert_fromArray(int, ai, 0, ints, 0) == ARRAY_ERROR);
     assert(array_insert_fromArray(str, as, 0, strs, 0) == ARRAY_ERROR);
+    {
+        int a1[] = {1,5}; char *a2 = {"1","5"};
+        assert(array_insert_fromArray(int, ai, array_size(ai), a1, 2) == 0);
+        assert(array_insert_fromArray(str, as, array_size(as), a2, 2) == 0);
+    }
+    assert(array_insert_fromArray(int, ai, 1, &c1[3], 3) == 1);
+    assert(array_insert_fromArray(str, as, 1, &c2[3], 3) == 1);
+    assert(array_insert_fromArray(int, ai, -5, c1, 2) == 0);
+    assert(array_insert_fromArray(str, as, -5, c2, 2) == 0);
+    assert(array_insert_fromArray(int, ai, array_size(ai), &c1[7], 2) == 7);
+    assert(array_insert_fromArray(str, as, array_size(as), &c2[7], 2) == 7);
 
-    assert(array_insert_fromArray(int, ai, array_size(ai), ((int[]){1, 5}), 2) == 0);
-    assert(array_insert_fromArray(str, as, array_size(as), ((char*[]){"1","5"}), 2) == 0);
-    assert(array_insert_fromArray(int, ai, 1, ((int[]){2, 3, 4}), 3) == 1);
-    assert(array_insert_fromArray(str, as, 1, ((char*[]){"2","3","4"}), 3) == 1);
-    assert(array_insert_fromArray(int, ai, -5, ((int[]){-1, 0}), 2) == 0);
-    assert(array_insert_fromArray(str, as, -5, ((char*[]){"-1","0"}), 2) == 0);
-    assert(array_insert_fromArray(int, ai, array_size(ai), ((int[]){6, 7}), 2) == 7);
-    assert(array_insert_fromArray(str, as, array_size(as), ((char*[]){"6","7"}), 2) == 7);
-
-    compare_ints(ai, (int[]){-1,0,1,2,3,4,5,6,7}, 9);
-    compare_strs(as, (char*[]){"-1","0","1","2","3","4","5","6","7"}, 9);
+    compare_ints(ai, c1, 9);
+    compare_strs(as, c2, 9);
     array_free(int, ai); array_free(str, as);
 }
 
 void test_erase(void) {
+    int c1[] = {10,15,30,35};
+    char *c2[] = {"010","015","030","035"};
     Array_int *ai = array_new_fromArray(int, ints, 10);
     Array_str *as = array_new_fromArray(str, strs, 10);
 
     assert(array_erase(int, ai, 15, 2) == ARRAY_ERROR && array_erase(str, as, 15, 2) == ARRAY_ERROR);
     assert(array_erase(int, ai, 2, 0) == ARRAY_ERROR && array_erase(str, as, 2, 0) == ARRAY_ERROR);
-    assert(array_erase(int, ai, 0, 2) == 0 && array_erase(str, as, 0, 2) == 0); //10, 15, 20, 25, 30, 35, 40, 45
-    assert(array_erase(int, ai, -2, -1) == 6 && array_erase(str, as, -2, -1) == 6); //10, 15, 20, 25, 30, 35
-    assert(array_erase(int, ai, 2, 2) == 2 && array_erase(str, as, 2, 2) == 2); //10, 15, 30, 35
+    assert(array_erase(int, ai, 0, 2) == 0 && array_erase(str, as, 0, 2) == 0); /* 10, 15, 20, 25, 30, 35, 40, 45 */
+    assert(array_erase(int, ai, -2, -1) == 6 && array_erase(str, as, -2, -1) == 6); /* 10, 15, 20, 25, 30, 35 */
+    assert(array_erase(int, ai, 2, 2) == 2 && array_erase(str, as, 2, 2) == 2); /* 10, 15, 30, 35 */
 
-    compare_ints(ai, (int[]){10, 15, 30, 35}, 4);
-    compare_strs(as, (char*[]){"010","015","030","035"}, 4);
+    compare_ints(ai, c1, 4);
+    compare_strs(as, c2, 4);
     array_free(int, ai); array_free(str, as);
 }
 
@@ -204,19 +216,22 @@ void test_utility(void) {
 
     Array_str *as = array_new_fromArray(str, strs_rand, 50);
     Array_int *ai = array_new_fromArray(int, ints_rand, 50);
+    int *r1; char **r2;
     array_sort(str, as); array_sort(int, ai);
     compare_ints(ai, ints, 50);
     compare_strs(as, strs, 50);
 
-    int *r1 = array_find(int, ai, 85);
+    r1 = array_find(int, ai, 85);
     assert(r1 && *r1 == 85);
-    char **r2 = array_find(str, as, "085");
+    r2 = array_find(str, as, "085");
     assert(r2 && streq(*r2, "085"));
     assert(array_find(int, ai, 250) == NULL && array_find(str, as, "250") == NULL);
     array_free(int, ai); array_free(str, as);
 }
 
 void test_subarr(void) {
+    int c1[2][9] = {{40,35,30,25,20,15,10,5,0},{40,30,20,10,0}};
+    char *c2[2][9] = {{"040","035","030","025","020","015","010","005","000"},{"040","030","020","010","000"}};
     Array_int *ai1 = array_new_fromArray(int, ints, 10);
     Array_int *ai2 = array_subarr(int, ai1, 0, -1, 1);
     Array_str *as1 = array_new_fromArray(str, strs, 10);
@@ -228,19 +243,21 @@ void test_subarr(void) {
 
     ai2 = array_subarr(int, ai1, -2, -1, -1);
     as2 = array_subarr(str, as1, -2, -1, -1);
-    compare_ints(ai2, (int[]){40, 35, 30, 25, 20, 15, 10, 5, 0}, 9);
-    compare_strs(as2, (char*[]){"040","035","030","025","020","015","010","005","000"}, 9);
+    compare_ints(ai2, c1[0], 9);
+    compare_strs(as2, c2[0], 9);
     array_free(int, ai2); array_free(str, as2);
 
     ai2 = array_subarr(int, ai1, -2, -1, -2);
     as2 = array_subarr(str, as1, -2, -1, -2);
-    compare_ints(ai2, (int[]){40, 30, 20, 10, 0}, 5);
-    compare_strs(as2, (char*[]){"040","030","020","010","000"}, 5);
+    compare_ints(ai2, c1[1], 5);
+    compare_strs(as2, c2[1], 5);
     array_free(int, ai2); array_free(str, as2);
     array_free(int, ai1); array_free(str, as1);
 }
 
 void test_2d(void) {
+    Array_int **arrptr;
+    int count = 0;
     Array_2d_int *arr2d = matrix_new(int, 5, 10);
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 10; ++j) {
@@ -248,8 +265,6 @@ void test_2d(void) {
         }
     }
 
-    Array_int **arrptr;
-    int count = 0;
     array_iter(arr2d, arrptr) {
         int *iptr;
         array_iter(*arrptr, iptr) {
@@ -267,45 +282,44 @@ void test_2d(void) {
 }
 
 void test_alg_funcs(void) {
-    int firstI[] = {5,10,15,20,25};
-    int secondI[] = {50,40,30,20,10};
-    char *firstS[] = {"05", "10", "15", "20", "25"};
-    char *secondS[] = {"50", "40", "30", "20", "10"};
-    sort(int, secondI, 5); sort(str, secondS, 5);
+    int c1[5][6] = {{0,5,10,10,15,20},{0,5,10,15,20},{10},{0,5},{0,5,15,20}};
+    char *c2[5][6] = {{"000","005","010","010","015","020"},{"000","005","010","015","020"},{"010"},
+    {"000","005"},{"000","005","015","020"}};
+    int continent[] = {10,20,30,40};
+    char *continent2[] = {"010","020","030","040"};
 
-    Array_int *ai = merge_array(int, firstI, &firstI[5], secondI, &secondI[5]);
-    Array_str *as = merge_array(str, firstS, &firstS[5], secondS, &secondS[5]);
-    compare_ints(ai, (int[]){5, 10, 10, 15, 20, 20, 25, 30, 40, 50}, 10);
-    compare_strs(as, (char*[]){"05","10","10","15","20","20","25","30","40","50"}, 10);
+    Array_int *ai = merge_array(int, ints, &ints[3], &ints[2], &ints[5]);
+    Array_str *as = merge_array(str, strs, &strs[3], &strs[2], &strs[5]);
+    compare_ints(ai, c1[0], 6);
+    compare_strs(as, c2[0], 6);
     array_free(int, ai); array_free(str, as);
 
-    ai = set_union_array(int, firstI, &firstI[5], secondI, &secondI[5]);
-    as = set_union_array(str, firstS, &firstS[5], secondS, &secondS[5]);
-    compare_ints(ai, (int[]){5, 10, 15, 20, 25, 30, 40, 50}, 8);
-    compare_strs(as, (char*[]){"05","10","15","20","25","30","40","50"}, 8);
+    ai = set_union_array(int, ints, &ints[3], &ints[2], &ints[5]);
+    as = set_union_array(str, strs, &strs[3], &strs[2], &strs[5]);
+    compare_ints(ai, c1[1], 5);
+    compare_strs(as, c2[1], 5);
     array_free(int, ai); array_free(str, as);
 
-    ai = set_intersection_array(int, firstI, &firstI[5], secondI, &secondI[5]);
-    as = set_intersection_array(str, firstS, &firstS[5], secondS, &secondS[5]);
-    compare_ints(ai, (int[]){10, 20}, 2);
-    compare_strs(as, (char*[]){"10","20"}, 2);
+    ai = set_intersection_array(int, ints, &ints[3], &ints[2], &ints[5]);
+    as = set_intersection_array(str, strs, &strs[3], &strs[2], &strs[5]);
+    compare_ints(ai, c1[2], 1);
+    compare_strs(as, c2[2], 1);
     array_free(int, ai); array_free(str, as);
 
-    ai = set_difference_array(int, firstI, &firstI[5], secondI, &secondI[5]);
-    as = set_difference_array(str, firstS, &firstS[5], secondS, &secondS[5]);
-    compare_ints(ai, (int[]){5, 15, 25}, 3);
-    compare_strs(as, (char*[]){"05","15","25"}, 3);
+    ai = set_difference_array(int, ints, &ints[3], &ints[2], &ints[5]);
+    as = set_difference_array(str, strs, &strs[3], &strs[2], &strs[5]);
+    compare_ints(ai, c1[3], 2);
+    compare_strs(as, c2[3], 2);
     array_free(int, ai); array_free(str, as);
 
-    ai = set_symmetric_difference_array(int, firstI, &firstI[5], secondI, &secondI[5]);
-    as = set_symmetric_difference_array(str, firstS, &firstS[5], secondS, &secondS[5]);
-    compare_ints(ai, (int[]){5, 15, 25, 30, 40, 50}, 6);
-    compare_strs(as, (char*[]){"05","15","25","30","40","50"}, 6);
+    ai = set_symmetric_difference_array(int, ints, &ints[3], &ints[2], &ints[5]);
+    as = set_symmetric_difference_array(str, strs, &strs[3], &strs[2], &strs[5]);
+    compare_ints(ai, c1[4], 4);
+    compare_strs(as, c2[4], 4);
     array_free(int, ai); array_free(str, as);
 
-    int container[] = {5,10,15,20,25,30,35,40,45,50};
-    int continent[] = {10, 20, 30, 40};
-    assert(includes_array(int, container, &container[10], continent, &continent[4]));
+    assert(includes_array(int, ints, &ints[11], continent, &continent[4]));
+    assert(includes_array(str, strs, &strs[11], continent2, &continent2[4]));
 }
 
 int main(void) {    

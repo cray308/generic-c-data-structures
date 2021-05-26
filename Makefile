@@ -2,18 +2,19 @@ CC = gcc
 LD = gcc
 OPTIMIZE = 2
 
-CFLAGS = -std=c99 -Iinclude -O$(OPTIMIZE)
+CFLAGS = -std=c89 -pedantic -Iinclude
 CFLAGS += -Wall -Wextra -Werror -Wstrict-prototypes
 CFLAGS += -funsigned-char -finline-functions
 
-CPPFLAGS = -std=c++11 -O$(OPTIMIZE)
+CPPFLAGS = -std=c++11 -pedantic -O$(OPTIMIZE)
 CPPFLAGS += -Wall -Wextra -Werror
 CPPFLAGS += -funsigned-char -finline-functions
 
 HEADERS = $(wildcard include/*.h)
 
-TEST_BINARIES = bin/c/test_list bin/c/test_array bin/c/test_str
-TEST_BINARIES += bin/c/test_unordered_set bin/c/test_unordered_map bin/c/test_set bin/c/test_map
+TEST_BINARIES = bin/c/test_list bin/c/test_array
+TEST_BINARIES += bin/c/test_avltree bin/c/test_set bin/c/test_map
+TEST_BINARIES += bin/c/test_unordered_set bin/c/test_unordered_map
 TEST_BINARIES += bin/c/test_deque bin/c/test_stack bin/c/test_queue
 
 BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds

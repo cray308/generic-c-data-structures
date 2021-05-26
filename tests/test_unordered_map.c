@@ -73,7 +73,7 @@ void test_insert_find_int(void) {
 }
 
 void test_arr_init_and_insert(void) {
-    Pair_strv_int arr[11] = {};
+    Pair_strv_int arr[11];
     for (int i = 0; i <= 10; ++i) {
         arr[i] = pair_make(strv_int, words[i], i);
     }
@@ -109,7 +109,7 @@ void test_arr_init_and_insert(void) {
 }
 
 void test_create_copy(void) {
-    Pair_strv_int arr[11] = {};
+    Pair_strv_int arr[11];
     for (int i = 0; i <= 10; ++i) {
         arr[i] = pair_make(strv_int, words[i], i);
     }

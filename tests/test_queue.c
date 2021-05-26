@@ -8,7 +8,7 @@
 gen_queue(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_queue(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
-char strs[LEN][16] = {};
+char strs[LEN][16];
 
 void test_queue(void) {
     Queue_int *qi = queue_new(int);

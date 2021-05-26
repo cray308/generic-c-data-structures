@@ -270,14 +270,16 @@ __DS_FUNC_PREFIX Array_##id *array_new_##id(void) {                             
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {                                          \
+    size_t ncap;                                                                                             \
+    t *tmp;                                                                                                  \
     if (n <= a->capacity) return;                                                                            \
                                                                                                              \
-    size_t ncap = a->capacity ? a->capacity : 1;                                                             \
+    ncap = a->capacity ? a->capacity : 1;                                                                    \
     while (ncap < n) {                                                                                       \
         ncap <<= 1; /* use multiple of 2 */                                                                  \
     }                                                                                                        \
                                                                                                              \
-    t *tmp = __ds_realloc(a->arr, ncap * sizeof(t));                                                         \
+    tmp = __ds_realloc(a->arr, ncap * sizeof(t));                                                            \
     a->capacity = ncap;                                                                                      \
     a->arr = tmp;                                                                                            \
 }                                                                                                            \

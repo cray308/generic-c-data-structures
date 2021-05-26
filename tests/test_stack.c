@@ -6,7 +6,7 @@
 gen_stack(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_stack(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
-char strs[LEN][16] = {};
+char strs[LEN][16];
 
 void test_stack(void) {
     Stack_int *si = stack_new(int);

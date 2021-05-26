@@ -56,7 +56,7 @@ void compare_str_int(Map_strv_int *m, char **keys, int *values, int size) {
 void test_basic_ints(void) {
     Map_int_str *m = map_new(int_str);
     assert(map_empty(m));
-    compare_int_str(m, (int[]){}, (char*[]){}, 0);
+    compare_int_str(m, ints, strs, 0);
 
     for (int i = 0; i < 50; ++i) {
         map_insert(int_str, m, pair_make(int_str, ints_rand[i], strs_rand[i]));
@@ -140,7 +140,7 @@ void test_basic_strs(void) {
 }
 
 void test_init_clear(void) {
-    Pair_int_str arrInt[50] = {}; Pair_strv_int arrStr[50] = {};
+    Pair_int_str arrInt[50]; Pair_strv_int arrStr[50];
     for (int i = 0; i < 50; ++i) {
         arrInt[i] = pair_make(int_str, ints_rand[i], strs_rand[i]);
         arrStr[i] = pair_make(strv_int, strs_rand[i], ints_rand[i]);
@@ -164,7 +164,7 @@ void test_init_clear(void) {
 }
 
 void test_membership(void) {
-    Pair_int_str arrInt[50] = {}; Pair_strv_int arrStr[50] = {};
+    Pair_int_str arrInt[50]; Pair_strv_int arrStr[50];
     for (int i = 0; i < 50; ++i) {
         arrInt[i] = pair_make(int_str, ints_rand[i], strs_rand[i]);
         arrStr[i] = pair_make(strv_int, strs_rand[i], ints_rand[i]);
@@ -190,7 +190,9 @@ void test_membership(void) {
 }
 
 void test_remove(void) {
-    Pair_int_str arrInt[10] = {}; Pair_strv_int arrStr[10] = {};
+    int c1[] = {10,20,35,40};
+    char *c2[] = {"010","020","035","040"};
+    Pair_int_str arrInt[10]; Pair_strv_int arrStr[10];
     for (int i = 0; i < 10; ++i) {
         arrInt[i] = pair_make(int_str, ints[i], strs[i]);
         arrStr[i] = pair_make(strv_int, strs[i], ints[i]);
@@ -220,13 +222,16 @@ void test_remove(void) {
     begin2 = map_find(strv_int, m2, "025"), end2 = map_find(strv_int, m2, "035");
     map_erase(int_str, m1, begin1, end1); map_erase(strv_int, m2, begin2, end2);
 
-    compare_int_str(m1, (int[]){10,20,35,40}, (char*[]){"010","020","035","040"}, 4);
-    compare_str_int(m2, (char*[]){"010","020","035","040"}, (int[]){10,20,35,40}, 4);
+    compare_int_str(m1, c1, c2, 4);
+    compare_str_int(m2, c2, c1, 4);
     map_free(int_str, m1); map_free(strv_int, m2);
 }
 
 void test_insert(void) {
-    Pair_int_str arrInt[5] = {}; Pair_strv_int arrStr[5] = {};
+    int c1[3][8] = {{0,4,5,10,14,15,16,20},{0,4,500,10,14,15,16,20},{0,4,16,20}};
+    char *c2[2][8] = {{"000","004","500","010","014","015","016","020"},{"000","004","005","010","014","015","016","020"},
+    {"000","004","016","020"}};
+    Pair_int_str arrInt[5]; Pair_strv_int arrStr[5];
     for (int i = 0; i < 5; ++i) {
         arrInt[i] = pair_make(int_str, ints[i], strs[i]);
         arrStr[i] = pair_make(strv_int, strs[i], ints[i]);
@@ -235,13 +240,13 @@ void test_insert(void) {
     Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr, 5);
 
     int inserted = -1;
-    map_insert_withResult(int_str, m1, pair_make(int_str, 5, "500"), &inserted); //120
+    map_insert_withResult(int_str, m1, pair_make(int_str, 5, "500"), &inserted);
     assert(!inserted);
     inserted = -1;
     map_insert_withResult(strv_int, m2, pair_make(strv_int, "005", 500), &inserted);
     assert(!inserted);
     inserted = -1;
-    map_insert_withResult(int_str, m1, pair_make(int_str, 4, "004"), &inserted); //119
+    map_insert_withResult(int_str, m1, pair_make(int_str, 4, "004"), &inserted);
     assert(inserted);
     inserted = -1;
     map_insert_withResult(strv_int, m2, pair_make(strv_int, "004", 4), &inserted);
@@ -255,8 +260,8 @@ void test_insert(void) {
         map_insert_fromArray(int_str, m1, arr1, 3);
         map_insert_fromArray(strv_int, m2, arr2, 3);
     }
-    compare_int_str(m1, (int[]){0,4,5,10,14,15,16,20}, (char*[]){"000","004","500","010","014","015","016","020"}, 8);
-    compare_str_int(m2, (char*[]){"000","004","005","010","014","015","016","020"}, (int[]){0,4,500,10,14,15,16,20}, 8);
+    compare_int_str(m1, c1[0], c2[0], 8);
+    compare_str_int(m2, c2[1], c1[2], 8);
 
     Map_int_str *m3 = map_new(int_str);
     Map_strv_int *m4 = map_new(strv_int);
@@ -272,14 +277,14 @@ void test_insert(void) {
     begin1 = map_find(int_str, m1, 16), end1 = NULL;
     begin2 = map_find(strv_int, m2, "016"), end2 = NULL;
     map_insert_fromMap(int_str, m3, begin1, end1); map_insert_fromMap(strv_int, m4, begin2, end2);
-    compare_int_str(m3, (int[]){0,4,16,20}, (char*[]){"000","004","016","020"}, 4);
-    compare_str_int(m4, (char*[]){"000","004","016","020"}, (int[]){0,4,16,20}, 4);
+    compare_int_str(m3, c1[2], c2[2], 4);
+    compare_str_int(m4, c2[2], c1[2], 4);
     map_free(int_str, m3); map_free(strv_int, m4);
     map_free(int_str, m1); map_free(strv_int, m2);
 }
 
 void test_nested_dicts(void) {
-    Pair_strv_int arrStr[50] = {};
+    Pair_strv_int arrStr[50];
     for (int i = 0; i < 50; ++i) {
         arrStr[i] = pair_make(strv_int, strs[i], ints[i]);
     }

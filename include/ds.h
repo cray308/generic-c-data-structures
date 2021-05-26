@@ -6,11 +6,17 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define ____cds_do_nothing
+
 #define __DS_FUNC_PREFIX static __attribute__((__unused__))
+#if __STDC_VERSION__ >= 199901L
 #define __DS_FUNC_PREFIX_INL __DS_FUNC_PREFIX inline
+#else
+#define __DS_FUNC_PREFIX_INL __DS_FUNC_PREFIX
+#endif
 
 #define DSDefault_shallowCopy(dest, src) ((dest) = (src))
-#define DSDefault_shallowDelete(x) //do nothing
+#define DSDefault_shallowDelete(x) /* do nothing */
 #define DSDefault_deepCopyStr(dest, src) do { dest = __ds_malloc(strlen(src) + 1); strcpy(dest, src); } while(0)
 #define DSDefault_deepDelete(x) free(x)
 
@@ -28,10 +34,10 @@
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
 __DS_FUNC_PREFIX_INL int modulo(int index, size_t size) {
-    bool valid = index < 0 ? ((int) size + index >= 0) : (index < (int) size);
-    if (!valid) return -1;
+    int m;
+    if (!(index < 0 ? ((int) size + index >= 0) : (index < (int) size))) return -1;
 
-    int m = index % (int) size;
+    m = index % (int) size;
     return (m < 0) ? (m + (int) size) : m;
 }
 

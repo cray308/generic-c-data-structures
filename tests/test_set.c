@@ -50,7 +50,7 @@ void compare_strs(Set_str *s, char **comparison, int size) {
 void test_basic_ints(void) {
     Set_int *s = set_new(int);
     assert(set_empty(s));
-    compare_ints(s, (int[]){}, 0);
+    compare_ints(s, ints, 0);
 
     for (int i = 0; i < 50; ++i) {
         set_insert(int, s, ints_rand[i]);
@@ -78,7 +78,7 @@ void test_basic_ints(void) {
 void test_basic_strs(void) {
     Set_str *s = set_new(str);
     assert(set_empty(s));
-    compare_strs(s, (char*[]){}, 0);
+    compare_strs(s, strs, 0);
 
     for (int i = 0; i < 50; ++i) {
         set_insert(str, s, strs_rand[i]);
@@ -115,8 +115,8 @@ void test_init_clear(void) {
     compare_strs(ss2, strs, 50);
 
     set_clear(int, si); set_clear(str, ss);
-    compare_ints(si, (int[]){}, 0);
-    compare_strs(ss, (char*[]){}, 0);
+    compare_ints(si, ints, 0);
+    compare_strs(ss, strs, 0);
 
     set_free(int, si); set_free(str, ss);
     set_free(int, si2); set_free(str, ss2);
@@ -135,6 +135,8 @@ void test_membership(void) {
 }
 
 void test_remove(void) {
+    int c1[] = {10,20,35,40};
+    char *c2[] = {"010","020","035","040"};
     Set_int *si = set_new_fromArray(int, ints, 10);
     Set_str *ss = set_new_fromArray(str, strs, 10);
 
@@ -160,34 +162,36 @@ void test_remove(void) {
     begin2 = set_find(str, ss, "025"), end2 = set_find(str, ss, "035");
     set_erase(int, si, begin1, end1); set_erase(str, ss, begin2, end2);
 
-    compare_ints(si, (int[]){10,20,35,40}, 4);
-    compare_strs(ss, (char*[]){"010","020","035","040"}, 4);
+    compare_ints(si, c1, 4);
+    compare_strs(ss, c2, 4);
     set_free(int, si); set_free(str, ss);
 }
 
 void test_insert(void) {
+    int c1[2][8] = {{0,4,5,10,14,15,16,20},{0,4,16,20}};
+    char *c2[2][8] = {{"000","004","005","010","014","015","016","020"},{"000","004","016","020"}};
     Set_int *si = set_new_fromArray(int, ints, 5);
     Set_str *ss = set_new_fromArray(str, strs, 5);
 
     int inserted = -1;
-    set_insert_withResult(int, si, 5, &inserted); //120
+    set_insert_withResult(int, si, 5, &inserted);
     assert(!inserted);
     inserted = -1;
     set_insert_withResult(str, ss, "005", &inserted);
     assert(!inserted);
     inserted = -1;
-    set_insert_withResult(int, si, 4, &inserted); //119
+    set_insert_withResult(int, si, 4, &inserted);
     assert(inserted);
     inserted = -1;
     set_insert_withResult(str, ss, "004", &inserted);
     assert(inserted);
 
-    set_insert_fromArray(int, si, ((int[]){}), 0);
-    set_insert_fromArray(str, ss, ((char*[]){}), 0);
-    set_insert_fromArray(int, si, ((int[]){14,15,16}), 3);
-    set_insert_fromArray(str, ss, ((char*[]){"014","015","016"}), 3);
-    compare_ints(si, (int[]){0,4,5,10,14,15,16,20}, 8);
-    compare_strs(ss, (char*[]){"000","004","005","010","014","015","016","020"}, 8);
+    set_insert_fromArray(int, si, NULL, 0);
+    set_insert_fromArray(str, ss, NULL, 0);
+    set_insert_fromArray(int, si, &c1[0][4], 3);
+    set_insert_fromArray(str, ss, &c2[0][4], 3);
+    compare_ints(si, c1, 8);
+    compare_strs(ss, c2, 8);
 
     Set_int *si2 = set_new(int);
     Set_str *ss2 = set_new(str);
@@ -203,60 +207,68 @@ void test_insert(void) {
     begin1 = set_find(int, si, 16), end1 = NULL;
     begin2 = set_find(str, ss, "016"), end2 = NULL;
     set_insert_fromSet(int, si2, begin1, end1); set_insert_fromSet(str, ss2, begin2, end2);
-    compare_ints(si2, (int[]){0,4,16,20}, 4);
-    compare_strs(ss2, (char*[]){"000","004","016","020"}, 4);
+    compare_ints(si2, c1[1], 4);
+    compare_strs(ss2, c2[1], 4);
     set_free(int, si2); set_free(str, ss2);
     set_free(int, si); set_free(str, ss);
 }
 
 void test_union(void) {
+    int c1[] = {0,5,10,15,20};
+    char *c2[] = {"000","005","010","015","020"};
     Set_int *si1 = set_new_fromArray(int, ints, 3);
     Set_int *si2 = set_new_fromArray(int, &ints[2], 3);
     Set_int *si3 = set_union(int, si1, si2);
     Set_str *ss1 = set_new_fromArray(str, strs, 3);
     Set_str *ss2 = set_new_fromArray(str, &strs[2], 3);
     Set_str *ss3 = set_union(str, ss1, ss2);
-    compare_ints(si3, (int[]){0,5,10,15,20}, 5);
-    compare_strs(ss3, (char*[]){"000","005","010","015","020"}, 5);
+    compare_ints(si3, c1, 5);
+    compare_strs(ss3, c2, 5);
     set_free(int, si1); set_free(int, si2); set_free(int, si3);
     set_free(str, ss1); set_free(str, ss2); set_free(str, ss3);
 }
 
 void test_intersection(void) {
+    int c1[] = {10};
+    char *c2[] = {"010"};
     Set_int *si1 = set_new_fromArray(int, ints, 3);
     Set_int *si2 = set_new_fromArray(int, &ints[2], 3);
     Set_int *si3 = set_intersection(int, si1, si2);
     Set_str *ss1 = set_new_fromArray(str, strs, 3);
     Set_str *ss2 = set_new_fromArray(str, &strs[2], 3);
     Set_str *ss3 = set_intersection(str, ss1, ss2);
-    compare_ints(si3, (int[]){10}, 1);
-    compare_strs(ss3, (char*[]){"010"}, 1);
+    compare_ints(si3, c1, 1);
+    compare_strs(ss3, c2, 1);
     set_free(int, si1); set_free(int, si2); set_free(int, si3);
     set_free(str, ss1); set_free(str, ss2); set_free(str, ss3);
 }
 
 void test_difference(void) {
+    int c1[] = {0,5};
+    char *c2[] = {"000","005"};
     Set_int *si1 = set_new_fromArray(int, ints, 3);
     Set_int *si2 = set_new_fromArray(int, &ints[2], 3);
     Set_int *si3 = set_difference(int, si1, si2);
     Set_str *ss1 = set_new_fromArray(str, strs, 3);
     Set_str *ss2 = set_new_fromArray(str, &strs[2], 3);
     Set_str *ss3 = set_difference(str, ss1, ss2);
-    compare_ints(si3, (int[]){0,5}, 2);
-    compare_strs(ss3, (char*[]){"000","005"}, 2);
+    compare_ints(si3, c1, 2);
+    compare_strs(ss3, c2, 2);
     set_free(int, si1); set_free(int, si2); set_free(int, si3);
     set_free(str, ss1); set_free(str, ss2); set_free(str, ss3);
 }
 
 void test_symmetric_difference(void) {
+    int c1[] = {0,5,15,20};
+    char *c2[] = {"000","005","015","020"};
     Set_int *si1 = set_new_fromArray(int, ints, 3);
     Set_int *si2 = set_new_fromArray(int, &ints[2], 3);
     Set_int *si3 = set_symmetric_difference(int, si1, si2);
     Set_str *ss1 = set_new_fromArray(str, strs, 3);
     Set_str *ss2 = set_new_fromArray(str, &strs[2], 3);
     Set_str *ss3 = set_symmetric_difference(str, ss1, ss2);
-    compare_ints(si3, (int[]){0,5,15,20}, 4);
-    compare_strs(ss3, (char*[]){"000","005","015","020"}, 4);
+    compare_ints(si3, c1, 4);
+    compare_strs(ss3, c2, 4);
     set_free(int, si1); set_free(int, si2); set_free(int, si3);
     set_free(str, ss1); set_free(str, ss2); set_free(str, ss3);
 }

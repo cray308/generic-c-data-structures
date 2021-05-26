@@ -7,7 +7,7 @@ gen_deque(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 #define LEN 151
 #define FIRST 0
 #define LAST 150
-char strs[LEN][16] = {};
+char strs[LEN][16];
 
 const int midFirst = (LEN / 2);
 const int midSecond = ((LEN / 2) + 1);
