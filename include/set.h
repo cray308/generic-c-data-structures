@@ -1,7 +1,7 @@
 #ifndef SET_H
 #define SET_H
 
-#include "rbtree.h"
+#include "avltree.h"
 #include "alg_helper.h"
 
 #define __set_entry_get_key(e) ((e)->data)
@@ -26,14 +26,14 @@
  *
  * @param  it  `SetEntry` which is assigned to the current element. May be dereferenced with it->data.
  */
-#define set_iter(id, s, it) for (it = iter_begin(TREE, id, s, 0); it != iter_end(TREE, id, s, 0); iter_next(TREE, id, it))
+#define set_iter(id, s, it) for (it = iter_begin(AVLTREE, id, s, 0); it != iter_end(AVLTREE, id, s, 0); iter_next(AVLTREE, id, it))
 
 /**
  * Iterates through the set in reverse order.
  *
  * @param  it  `SetEntry` which is assigned to the current element. May be dereferenced with it->data.
  */
-#define set_riter(id, s, it) for (it = iter_rbegin(TREE, id, s, 0); it != iter_rend(TREE, id, s, 0); iter_prev(TREE, id, it))
+#define set_riter(id, s, it) for (it = iter_rbegin(AVLTREE, id, s, 0); it != iter_rend(AVLTREE, id, s, 0); iter_prev(AVLTREE, id, it))
 
 
 /**
@@ -52,7 +52,7 @@
  *
  * @return       Pointer to the newly created set.
  */
-#define set_new_fromArray(id, arr, n) __rbtree_new_fromArray_##id(arr, n)
+#define set_new_fromArray(id, arr, n) __avltree_new_fromArray_##id(arr, n)
 
 
 /**
@@ -62,19 +62,19 @@
  *
  * @return         Pointer to the newly created set.
  */
-#define set_createCopy(id, other) __rbtree_createCopy_##id(other)
+#define set_createCopy(id, other) __avltree_createCopy_##id(other)
 
 
 /**
  * Deletes all elements and frees the set.
  */
-#define set_free(id, s) __rbtree_free_##id(s)
+#define set_free(id, s) __avltree_free_##id(s)
 
 
 /**
  * Removes all elements from the set, leaving it with a size of 0.
  */
-#define set_clear(id, s) __rbtree_clear_##id(s)
+#define set_clear(id, s) __avltree_clear_##id(s)
 
 
 /**
@@ -84,7 +84,7 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define set_contains(id, s, value) (__rbtree_find_key_##id(s, value, false) != NULL)
+#define set_contains(id, s, value) (__avltree_find_key_##id(s, value, false) != NULL)
 
 
 /**
@@ -94,7 +94,7 @@
  *
  * @return         `SetEntry` that was found, or NULL if it was not found.
  */
-#define set_find(id, s, value) __rbtree_find_key_##id(s, value, false)
+#define set_find(id, s, value) __avltree_find_key_##id(s, value, false)
 
 
 /**
@@ -104,7 +104,7 @@
  *
  * @return         `SetEntry` corresponding to the inserted value.
  */
-#define set_insert(id, s, value) __rbtree_insert_##id(s, value, NULL)
+#define set_insert(id, s, value) __avltree_insert_##id(s, value, NULL)
 
 
 /**
@@ -115,7 +115,7 @@
  *
  * @return            `SetEntry` corresponding to the inserted value.
  */
-#define set_insert_withResult(id, s, value, inserted) __rbtree_insert_##id(s, value, inserted)
+#define set_insert_withResult(id, s, value, inserted) __avltree_insert_##id(s, value, inserted)
 
 
 /**
@@ -124,7 +124,7 @@
  * @param  arr  Pointer to the first element to insert.
  * @param  n    Number of elements to include.
  */
-#define set_insert_fromArray(id, s, arr, n) __rbtree_insert_fromArray_##id(s, arr, n)
+#define set_insert_fromArray(id, s, arr, n) __avltree_insert_fromArray_##id(s, arr, n)
 
 
 /**
@@ -134,7 +134,7 @@
  * @param  end    `SetEntry` after the last entry to insert. If this is NULL, all elements from
  *                  `start` through the end (greatest element) of the other set will be inserted.
  */
-#define set_insert_fromSet(id, s, start, end) __rbtree_insert_fromTree_##id(s, start, end)
+#define set_insert_fromSet(id, s, start, end) __avltree_insert_fromTree_##id(s, start, end)
 
 
 /**
@@ -144,7 +144,7 @@
  * @param  end    `SetEntry` after the last entry to be deleted. If this is NULL, all elements from
  *                  `start` through the greatest element in the set will be removed.
  */
-#define set_erase(id, s, begin, end) __rbtree_erase_##id(s, begin, end)
+#define set_erase(id, s, begin, end) __avltree_erase_##id(s, begin, end)
 
 
 /**
@@ -152,7 +152,7 @@
  *
  * @param  value  Value to be deleted.
  */
-#define set_remove_value(id, s, value) __rbtree_remove_key_##id(s, value)
+#define set_remove_value(id, s, value) __avltree_remove_key_##id(s, value)
 
 
 /**
@@ -160,7 +160,7 @@
  *
  * @param  entry  `SetEntry` to remove.
  */
-#define set_remove_entry(id, s, entry) __rbtree_remove_entry_##id(s, entry)
+#define set_remove_entry(id, s, entry) __avltree_remove_entry_##id(s, entry)
 
 
 /**
@@ -170,7 +170,7 @@
  *
  * @return         Newly created set, or NULL if `other` is NULL.
  */
-#define set_union(id, s, other) __set_union_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
+#define set_union(id, s, other) __set_union_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -180,7 +180,7 @@
  *
  * @return         Newly created set, or NULL if `other` is NULL.
  */
-#define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
+#define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -190,7 +190,7 @@
  *
  * @return         Newly created set, or NULL if `other` is NULL.
  */
-#define set_difference(id, s, other) __set_difference_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
+#define set_difference(id, s, other) __set_difference_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -200,7 +200,7 @@
  *
  * @return         Newly created set, or NULL if `other` is NULL.
  */
-#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_TREE(id, s, 0), NULL, iter_begin_TREE(id, other, 0), NULL)
+#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -210,7 +210,7 @@
  *
  * @return         True if each element in this set is in `other`, false if not.
  */
-#define set_issubset(id, s, other) __includes_set_##id(iter_begin_TREE(id, other, 0), NULL, iter_begin_TREE(id, s, 0), NULL)
+#define set_issubset(id, s, other) __includes_set_##id(iter_begin_AVLTREE(id, other, 0), NULL, iter_begin_AVLTREE(id, s, 0), NULL)
 
 
 /**
@@ -248,19 +248,19 @@
  *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
 #define gen_set(id, t, cmp_lt, copyValue, deleteValue)                                                       \
-__gen_rbtree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __set_data_get_key, copyValue, deleteValue, __set_copy_value, __set_delete_value) \
-__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, set_new, SetEntry_##id *, iter_next_TREE, iter_deref_TREE, set_insert, set_insert_fromSet(id, d_new, first1, last1), set_insert_fromSet(id, d_new, first2, last2)) \
+__gen_avltree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __set_data_get_key, copyValue, deleteValue, __set_copy_value, __set_delete_value) \
+__gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, set_new, SetEntry_##id *, iter_next_AVLTREE, iter_deref_AVLTREE, set_insert, set_insert_fromSet(id, d_new, first1, last1), set_insert_fromSet(id, d_new, first2, last2)) \
                                                                                                              \
 __DS_FUNC_PREFIX bool set_disjoint_##id(Set_##id *this, Set_##id *other) {                                   \
     if (!other || !other->root) return false;                                                                \
                                                                                                              \
-    SetEntry_##id *n1 = __rb_successor_##id(this->root);                                                     \
-    SetEntry_##id *n2 = __rb_successor_##id(other->root);                                                    \
+    SetEntry_##id *n1 = __avl_successor_##id(this->root);                                                    \
+    SetEntry_##id *n2 = __avl_successor_##id(other->root);                                                   \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
-            n1 = __rb_inorder_successor_##id(n1);                                                            \
+            n1 = __avl_inorder_successor_##id(n1);                                                           \
         } else if (cmp_lt(n2->data, n1->data)) {                                                             \
-            n2 = __rb_inorder_successor_##id(n2);                                                            \
+            n2 = __avl_inorder_successor_##id(n2);                                                           \
         } else {                                                                                             \
             return false;                                                                                    \
         }                                                                                                    \

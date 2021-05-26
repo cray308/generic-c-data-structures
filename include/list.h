@@ -4,6 +4,8 @@
 #include "iterator.h"
 #include "alg_helper.h"
 
+#define LIST_END ((void*)-1)
+
 #define __list_swap(id, x, y) {                                                                              \
     register ListEntry_##id *ltemp_front = (x)->front;                                                       \
     register ListEntry_##id *ltemp_back = (x)->back;                                                         \
@@ -269,8 +271,8 @@
  *                   from start through the end of the list will be removed.
  *
  * @return         If successful, returns a `ListEntry` corresponding to the element after the last
- *                 deleted element. If an error occurred or if the last deleted element was at the
- *                 end of the list, returns NULL.
+ *                 deleted element; if the last deleted element was the last element in the list, this
+ *                 is ARRAY_END. If an error occurred, returns NULL.
  */
 #define list_erase(id, l, first, last) list_erase_##id(l, first, last)
 
@@ -434,7 +436,7 @@ __DS_FUNC_PREFIX ListEntry_##id *list_erase_##id(List_##id *l, ListEntry_##id *f
         res = last;                                                                                          \
         last->prev = before;                                                                                 \
     } else {                                                                                                 \
-        res = NULL;                                                                                          \
+        res = LIST_END;                                                                                      \
         l->back = before;                                                                                    \
     }                                                                                                        \
     return res;                                                                                              \

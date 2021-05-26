@@ -1,421 +1,332 @@
 #include "map.h"
 #include <assert.h>
 
-#define NWORDS 100
-#define LEN_INTS 30
-
-char words[NWORDS][16] = {0};
-
-int ints[LEN_INTS] = {58490, 13829, 44828, 35725, 20384, 46283, 56369, 21807, 15590, 1520, 60285, 11387,
-    34372, 49312, 52170, 30455, 52223, 41564, 53018, 3098, 25875, 45077, 36617, 58448, 42128, 13655,
-    7077, 62936, 46937, 14427};
-char strs[LEN_INTS][16] = {"58490","13829","44828","35725","20384","46283","56369","21807","15590","1520",
-    "60285","11387","34372","49312","52170","30455","52223","41564","53018","3098","25875","45077","36617",
-    "58448","42128","13655","7077","62936","46937","14427"};
-
 gen_map(int_str, int, char *, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_map(strv_int, char *, int, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_map(strp_int, char *, int, ds_cmp_str_lt, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_map(nested, char *, Map_strv_int *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, __rbtree_free_strv_int)
+gen_map(nested, char *, Map_strv_int *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, __avltree_free_strv_int)
 
-void test_basic_rbtree_ints(void) {
+int ints_rand[] = {200,25,220,120,5,205,50,15,60,235,10,70,130,105,185,225,90,30,155,100,150,0,95,170,190,
+125,210,75,45,160,175,145,55,230,35,65,110,140,115,20,215,85,195,240,245,135,80,180,40,165};
+int ints[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,
+130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,205,210,215,220,225,230,235,240,245};
+char *strs_rand[] = {"200","025","220","120","005","205","050","015","060","235","010","070","130","105",
+"185","225","090","030","155","100","150","000","095","170","190","125","210","075","045","160","175",
+"145","055","230","035","065","110","140","115","020","215","085","195","240","245","135","080","180",
+"040","165"};
+char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050","055","060",
+"065","070","075","080","085","090","095","100","105","110","115","120","125","130","135","140","145",
+"150","155","160","165","170","175","180","185","190","195","200","205","210","215","220","225","230",
+"235","240","245"};
+
+void compare_int_str(Map_int_str *m, int *keys, char **values, int size) {
+    assert(map_size(m) == size);
+    int i = 0;
+    MapEntry_int_str *it;
+    map_iter(int_str, m, it) {
+        assert(it->data.first == keys[i]);
+        assert(streq(it->data.second, values[i++]));
+    }
+    assert(i == size);
+    i = size - 1;
+    map_riter(int_str, m, it) {
+        assert(it->data.first == keys[i]);
+        assert(streq(it->data.second, values[i--]));
+    }
+    assert(i == -1);
+}
+
+void compare_str_int(Map_strv_int *m, char **keys, int *values, int size) {
+    assert(map_size(m) == size);
+    int i = 0;
+    MapEntry_strv_int *it;
+    map_iter(strv_int, m, it) {
+        assert(streq(it->data.first, keys[i]));
+        assert(it->data.second == values[i++]);
+    }
+    assert(i == size);
+    i = size - 1;
+    map_riter(strv_int, m, it) {
+        assert(streq(it->data.first, keys[i]));
+        assert(it->data.second == values[i--]);
+    }
+    assert(i == -1);
+}
+
+void test_basic_ints(void) {
     Map_int_str *m = map_new(int_str);
-    assert(m->root == NULL);
     assert(map_empty(m));
-    assert(map_size(m) == 0);
+    compare_int_str(m, (int[]){}, (char*[]){}, 0);
 
-    {
-        int i = 0;
-        MapEntry_int_str *it;
-        map_iter(int_str, m, it) {
-            i++;
-        }
-        assert(it == NULL);
-        assert(i == 0);
+    for (int i = 0; i < 50; ++i) {
+        map_insert(int_str, m, pair_make(int_str, ints_rand[i], strs_rand[i]));
     }
+    map_insert(int_str, m, pair_make(int_str, ints[0], strs[0]));
+    map_insert(int_str, m, pair_make(int_str, ints[49], strs[49]));
+    assert(!map_empty(m));
+    compare_int_str(m, ints, strs, 50);
 
-    int ints_sorted[] = {1520, 3098, 7077, 11387, 13655, 13829, 14427, 15590, 20384, 21807, 25875, 30455,
-        34372, 35725, 36617, 41564, 42128, 44828, 45077, 46283, 46937, 49312, 52170, 52223, 53018, 56369,
-        58448, 58490, 60285, 62936};
-    char strs_sorted[][16] = {"1520","3098","7077","11387","13655","13829","14427","15590","20384","21807",
-    "25875","30455","34372","35725","36617","41564","42128","44828","45077","46283","46937","49312",
-    "52170","52223","53018","56369","58448","58490","60285","62936"};
+    assert(map_find(int_str, m, 121) == NULL);
+    MapEntry_int_str *e = map_find(int_str, m, 120);
+    assert(e != NULL);
+    map_remove_entry(int_str, m, e);
+    assert(map_find(int_str, m, 120) == NULL);
+    assert(map_size(m) == 49);
+    assert(m->root->data.first == 125);
 
-    {
-        int counter = 0;
-        MapEntry_int_str *ptr;
-
-        for (int i = 0; i < LEN_INTS; ++i) {
-            map_insert(int_str, m, pair_make(int_str, ints[i], strs[i]));
-        }
-        map_iter(int_str, m, ptr) {
-            assert(ptr->data.first == ints_sorted[counter]);
-            assert(streq(ptr->data.second, strs_sorted[counter++]));
-        }
-        assert(counter == LEN_INTS);
-        assert(counter == map_size(m));
-
-        counter = LEN_INTS - 1;
-        map_riter(int_str, m, ptr) {
-            assert(ptr->data.first == ints_sorted[counter]);
-            assert(streq(ptr->data.second, strs_sorted[counter--]));
-        }
-        assert(counter == -1);
-    }
-
-    {
-        int test_int = 20384;
-
-        MapEntry_int_str *e = map_find(int_str, m, test_int);
-        assert(e != NULL);
-        map_remove_entry(int_str, m, e);
-        e = map_find(int_str, m, test_int);
-        assert(e == NULL);
-
-        test_int = 3098;
-        map_remove_key(int_str, m, test_int);
-        e = map_find(int_str, m, test_int);
-        assert(e == NULL);
-
-        assert(map_find(int_str, m, 84896) == NULL);
-        int oldCount = map_size(m);
-        map_remove_key(int_str, m, 84896);
-        assert(oldCount == map_size(m));
-    }
-
+    map_remove_key(int_str, m, 60);
+    assert(map_find(int_str, m, 60) == NULL);
+    map_remove_key(int_str, m, 60);
+    assert(map_size(m) == 48);
     map_free(int_str, m);
 }
 
-void test_basic_rbtree_strs(void) {
-    Map_strv_int *m = map_new(strv_int);
-    assert(m->root == NULL);
+void test_basic_strs(void) {
+    Map_strp_int *m = map_new(strp_int);
     assert(map_empty(m));
     assert(map_size(m) == 0);
 
     {
         int i = 0;
-        MapEntry_strv_int *it;
-        map_iter(strv_int, m, it) {
+        MapEntry_strp_int *it;
+        map_iter(strp_int, m, it) {
             i++;
         }
         assert(it == NULL);
         assert(i == 0);
-    }
-
-    char strs_sorted[][16] = {"11387","13655","13829","14427","1520","15590","20384","21807","25875",
-    "30455","3098","34372","35725","36617","41564","42128","44828","45077","46283","46937","49312","52170",
-    "52223","53018","56369","58448","58490","60285","62936","7077"};
-    int ints_sorted[] = {11387, 13655, 13829, 14427, 1520, 15590, 20384, 21807, 25875, 30455, 3098,
-        34372, 35725, 36617, 41564, 42128, 44828, 45077, 46283, 46937, 49312, 52170, 52223, 53018, 56369,
-        58448, 58490, 60285, 62936, 7077};
-
-    {
-        int counter = 0;
-        MapEntry_strv_int *ptr;
-
-        for (int i = 0; i < LEN_INTS; ++i) {
-            map_insert(strv_int, m, pair_make(strv_int, strs[i], ints[i]));
+        i = -1;
+        map_riter(strp_int, m, it) {
+            i--;
         }
-        map_iter(strv_int, m, ptr) {
-            assert(streq(ptr->data.first, strs_sorted[counter]));
-            assert(ptr->data.second == ints_sorted[counter++]);
-        }
-        assert(counter == LEN_INTS);
-        assert(counter == map_size(m));
-
-        counter = LEN_INTS - 1;
-        map_riter(strv_int, m, ptr) {
-            assert(streq(ptr->data.first, strs_sorted[counter]));
-            assert(ptr->data.second == ints_sorted[counter--]);
-        }
-        assert(counter == -1);
+        assert(i == -1);
     }
 
-    {
-        char *test_str = "20384";
-
-        MapEntry_strv_int *e = map_find(strv_int, m, test_str);
-        assert(e != NULL);
-        map_remove_entry(strv_int, m, e);
-        e = map_find(strv_int, m, test_str);
-        assert(e == NULL);
-
-        test_str = "3098";
-        map_remove_key(strv_int, m, test_str);
-        e = map_find(strv_int, m, test_str);
-        assert(e == NULL);
-
-        assert(map_find(strv_int, m, "0") == NULL);
-        int oldCount = map_size(m);
-        map_remove_key(strv_int, m, "0");
-        assert(oldCount == map_size(m));
+    for (int i = 0; i < 50; ++i) {
+        map_insert(strp_int, m, pair_make(strp_int, strs_rand[i], ints_rand[i]));
     }
-    map_free(strv_int, m);
-}
-
-void test_insert_find_string(void) {
-    Map_strv_int *m = map_new(strv_int);
-    MapEntry_strv_int *it = NULL;
-
-    for (int i = 0; i <= 10; ++i) {
-        map_insert(strv_int, m, pair_make(strv_int, words[i], i));
-        assert(map_size(m) == i + 1);
-    }
+    map_insert(strp_int, m, pair_make(strp_int, strs[0], ints[0]));
+    map_insert(strp_int, m, pair_make(strp_int, strs[49], ints[49]));
     assert(!map_empty(m));
 
-    for (int i = 0; i <= 10; ++i) {
-        it = map_find(strv_int, m, words[i]);
-        assert(it != NULL);
-        assert(it->data.second == i);
-    }
-
-    it = map_find(strv_int, m, "hi");
-    assert(it == NULL);
-
-    *map_at(strv_int, m, "10") = 58;
-    it = map_find(strv_int, m, "10");
-    assert(it->data.second == 58);
-
-    int rv = -1;
-    it = map_insert_withResult(strv_int, m, pair_make(strv_int, "5", 256), &rv);
-    assert(streq(it->data.first, "5"));
-    assert(it->data.second == 256);
-    assert(rv == 0);
-
-    map_clear(strv_int, m);
-    assert(map_size(m) == 0);
-    assert(map_empty(m));
-
-    map_free(strv_int, m);
-}
-
-void test_insert_find_int(void) {
-    Map_int_str *m = map_new(int_str);
-    MapEntry_int_str *it = NULL;
-
-    for (int i = 0; i <= 10; ++i) {
-        map_insert(int_str, m, pair_make(int_str, i, words[i]));
-        assert(map_size(m) == i + 1);
-    }
-
-    for (int i = 0; i <= 10; ++i) {
-        it = map_find(int_str, m, i);
-        assert(streq(it->data.second, words[i]));
-    }
-
-    *map_at(int_str, m, 3) = "Hello";
-    it = map_find(int_str, m, 3);
-    assert(streq(it->data.second, "Hello"));
-
-    map_clear(int_str, m);
-    assert(map_size(m) == 0);
-    assert(map_empty(m));
-
-    map_free(int_str, m);
-}
-
-void test_arr_init_and_insert(void) {
-    Pair_strv_int arr[11] = {};
-    for (int i = 0; i <= 10; ++i) {
-        arr[i] = pair_make(strv_int, words[i], i);
-    }
-    Map_strv_int *m = map_new_fromArray(strv_int, arr, 11);
-    assert(m->size == 11);
-    MapEntry_strv_int *it = NULL;
-    int counter = 0;
-    map_iter(strv_int, m, it) {
-        MapEntry_strv_int *found = map_find(strv_int, m, words[counter]);
-        assert(found);
-        assert(found->data.second == counter++);
-    }
-    assert(counter == 11);
-
-    for (int i = 0; i <= 10; ++i) { arr[i].first = words[50 + i]; }
-    map_insert_fromArray(strv_int, m, arr, 11);
-    assert(m->size == 22);
-
-    for (int i = 0; i <= 10; ++i) {
-        MapEntry_strv_int *found = map_find(strv_int, m, words[50 + i]);
-        assert(found);
-        assert(found->data.second == i);
-    }
-
-    counter = 0;
-    map_iter(strv_int, m, it) {
-        assert(it);
-        ++counter;
-    }
-    assert(counter == 22);
-
-    map_free(strv_int, m);
-}
-
-void test_init_insert_fromMap(void) {
-    Pair_strv_int arr[11] = {};
-    for (int i = 0; i <= 10; ++i) {
-        arr[i] = pair_make(strv_int, words[i], i);
-    }
-    Map_strv_int *m = map_new_fromArray(strv_int, arr, 11);
-
     {
-        Map_strv_int *second = map_createCopy(strv_int, m);
-        assert(second->size == 11);
-        MapEntry_strv_int *it = NULL;
-        int counter = 0;
-        map_iter(strv_int, second, it) {
-            MapEntry_strv_int *found = map_find(strv_int, second, words[counter]);
-            assert(found);
-            assert(found->data.second == counter++);
-        }
-        assert(counter == 11);
-        map_free(strv_int, second);
-    }
-
-    {
-        Map_strv_int *second = map_new(strv_int);
-        MapEntry_strv_int *begin = map_find(strv_int, m, "2");
-        MapEntry_strv_int *end = map_find(strv_int, m, "9");
-
-        Pair_strv_int comparison[7] = {};
-        for (int i = 0; i < 7; ++i) { comparison[i] = arr[i + 2]; }
-
-        map_insert_fromMap(strv_int, second, begin, end);
-        assert(map_size(second) == 7);
-
-        MapEntry_strv_int *it;
         int i = 0;
-        map_iter(strv_int, second, it) {
-            assert(streq(it->data.first, comparison[i].first));
-            assert(it->data.second == comparison[i++].second);
+        MapEntry_strp_int *it;
+        map_iter(strp_int, m, it) {
+            assert(streq(it->data.first, strs[i]));
+            assert(it->data.second == ints[i++]);
         }
-        assert(i == 7);
-        map_free(strv_int, second);
-    }
-    map_free(strv_int, m);
-}
-
-void test_deletion(void) {
-    Map_strp_int *m = map_new(strp_int);
-
-    for (int i = 0; i < NWORDS; ++i) {
-        map_insert(strp_int, m, pair_make(strp_int, words[i], i));
-    }
-
-    MapEntry_strp_int *it = NULL;
-
-    for (int i = 0; i < NWORDS; ++i) {
-        it = map_find(strp_int, m, words[i]);
-        assert(it->data.second == i);
-    }
-
-    {
-        int key = NWORDS - 1;
-        while (!map_empty(m)) {
-            map_remove_key(strp_int, m, words[key]);
-            assert(map_size(m) == key);
-            it = map_find(strp_int, m, words[key]);
-            assert(it == NULL);
-            key--;
+        assert(i == 50);
+        i = 49;
+        map_riter(strp_int, m, it) {
+            assert(streq(it->data.first, strs[i]));
+            assert(it->data.second == ints[i--]);
         }
-        assert(map_size(m) == 0);
-        assert(map_empty(m));
+        assert(i == -1);
     }
+
+    assert(map_find(strp_int, m, "121") == NULL);
+    MapEntry_strp_int *e = map_find(strp_int, m, "120");
+    assert(e != NULL);
+    map_remove_entry(strp_int, m, e);
+    assert(map_find(strp_int, m, "120") == NULL);
+    assert(map_size(m) == 49);
+    assert(streq(m->root->data.first, "125"));
+
+    map_remove_key(strp_int, m, "060");
+    assert(map_find(strp_int, m, "060") == NULL);
+    map_remove_key(strp_int, m, "060");
+    assert(map_size(m) == 48);
     map_free(strp_int, m);
 }
 
-void test_erase_range(void) {
-    char keys[10][4] = {"a","ba","bb","ca","cd","ce","cf","da","ea","fa"};
-    Pair_strv_int arr[10] = {};
+void test_init_clear(void) {
+    Pair_int_str arrInt[50] = {}; Pair_strv_int arrStr[50] = {};
+    for (int i = 0; i < 50; ++i) {
+        arrInt[i] = pair_make(int_str, ints_rand[i], strs_rand[i]);
+        arrStr[i] = pair_make(strv_int, strs_rand[i], ints_rand[i]);
+    }
+    Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 50);
+    Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr, 50);
+    compare_int_str(m1, ints, strs, 50);
+    compare_str_int(m2, strs, ints, 50);
+
+    Map_int_str *m3 = map_createCopy(int_str, m1);
+    Map_strv_int *m4 = map_createCopy(strv_int, m2);
+    compare_int_str(m1, ints, strs, 50);
+    compare_str_int(m2, strs, ints, 50);
+
+    map_clear(int_str, m1); map_clear(strv_int, m2);
+    compare_int_str(m1, ints, strs, 0);
+    compare_str_int(m2, strs, ints, 0);
+
+    map_free(int_str, m1); map_free(strv_int, m2);
+    map_free(int_str, m3); map_free(strv_int, m4);
+}
+
+void test_membership(void) {
+    Pair_int_str arrInt[50] = {}; Pair_strv_int arrStr[50] = {};
+    for (int i = 0; i < 50; ++i) {
+        arrInt[i] = pair_make(int_str, ints_rand[i], strs_rand[i]);
+        arrStr[i] = pair_make(strv_int, strs_rand[i], ints_rand[i]);
+    }
+    Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 50);
+    Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr, 50);
+    assert(!map_find(int_str, m1, 64) && !map_find(strv_int, m2, "064"));
+    assert(!map_find(int_str, m1, 121) && !map_find(strv_int, m2, "121"));
+    assert(map_find(int_str, m1, 0) && map_find(strv_int, m2, "000"));
+    assert(map_find(int_str, m1, 245) && map_find(strv_int, m2, "245"));
+    assert(!map_find(int_str, m1, -1) && !map_find(strv_int, m2, "..."));
+    assert(!map_find(int_str, m1, 246) && !map_find(strv_int, m2, "246"));
+
+    *map_at(int_str, m1, 120) = "500";
+    MapEntry_int_str *p1 = map_find(int_str, m1, 120);
+    assert(p1);
+    assert(p1->data.first == 120 && streq(p1->data.second, "500"));
+    *map_at(strv_int, m2, "120") = 500;
+    MapEntry_strv_int *p2 = map_find(strv_int, m2, "120");
+    assert(p2);
+    assert(streq(p2->data.first, "120") && p2->data.second == 500);
+    map_free(int_str, m1); map_free(strv_int, m2);
+}
+
+void test_remove(void) {
+    Pair_int_str arrInt[10] = {}; Pair_strv_int arrStr[10] = {};
     for (int i = 0; i < 10; ++i) {
-        arr[i] = pair_make(strv_int, keys[i], i);
+        arrInt[i] = pair_make(int_str, ints[i], strs[i]);
+        arrStr[i] = pair_make(strv_int, strs[i], ints[i]);
     }
-    Map_strv_int *m = map_new_fromArray(strv_int, arr, 10);
-    assert(map_size(m) == 10);
+    Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 10);
+    Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr, 10);
 
-    map_remove_key(strv_int, m, "ca");
-    assert(map_size(m) == 9);
+    map_remove_entry(int_str, m1, m1->root); map_remove_entry(strv_int, m2, m2->root);
+    map_remove_key(int_str, m1, 5); map_remove_key(strv_int, m2, "005");
 
-    map_remove_key(strv_int, m, "ca");
-    assert(map_size(m) == 9);
+    MapEntry_int_str *begin1 = NULL, *end1 = NULL;
+    MapEntry_strv_int *begin2 = NULL, *end2 = NULL;
+    map_erase(int_str, m1, begin1, end1); map_erase(strv_int, m2, begin2, end2);
+    begin1 = map_find(int_str, m1, 0), end1 = begin1;
+    begin2 = map_find(strv_int, m2, "000"), end2 = begin2;
+    map_erase(int_str, m1, begin1, end1); map_erase(strv_int, m2, begin2, end2);
+    assert(map_size(m1) == 8 && map_size(m2) == 8);
+
+    end1 = map_find(int_str, m1, 10), end2 = map_find(strv_int, m2, "010");
+    map_erase(int_str, m1, begin1, end1); map_erase(strv_int, m2, begin2, end2);
+
+    begin1 = map_find(int_str, m1, 45), end1 = NULL;
+    begin2 = map_find(strv_int, m2, "045"), end2 = NULL;
+    map_erase(int_str, m1, begin1, end1); map_erase(strv_int, m2, begin2, end2);
+
+    begin1 = map_find(int_str, m1, 25), end1 = map_find(int_str, m1, 35);
+    begin2 = map_find(strv_int, m2, "025"), end2 = map_find(strv_int, m2, "035");
+    map_erase(int_str, m1, begin1, end1); map_erase(strv_int, m2, begin2, end2);
+
+    compare_int_str(m1, (int[]){10,20,35,40}, (char*[]){"010","020","035","040"}, 4);
+    compare_str_int(m2, (char*[]){"010","020","035","040"}, (int[]){10,20,35,40}, 4);
+    map_free(int_str, m1); map_free(strv_int, m2);
+}
+
+void test_insert(void) {
+    Pair_int_str arrInt[5] = {}; Pair_strv_int arrStr[5] = {};
+    for (int i = 0; i < 5; ++i) {
+        arrInt[i] = pair_make(int_str, ints[i], strs[i]);
+        arrStr[i] = pair_make(strv_int, strs[i], ints[i]);
+    }
+    Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 5);
+    Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr, 5);
+
+    int inserted = -1;
+    map_insert_withResult(int_str, m1, pair_make(int_str, 5, "500"), &inserted); //120
+    assert(!inserted);
+    inserted = -1;
+    map_insert_withResult(strv_int, m2, pair_make(strv_int, "005", 500), &inserted);
+    assert(!inserted);
+    inserted = -1;
+    map_insert_withResult(int_str, m1, pair_make(int_str, 4, "004"), &inserted); //119
+    assert(inserted);
+    inserted = -1;
+    map_insert_withResult(strv_int, m2, pair_make(strv_int, "004", 4), &inserted);
+    assert(inserted);
 
     {
-        MapEntry_strv_int *begin = map_find(strv_int, m, "a");
-        MapEntry_strv_int *end = map_find(strv_int, m, "bb");
-
-        map_erase(strv_int, m, begin, end);
-        assert(map_size(m) == 7);
-
-        begin = map_find(strv_int, m, "cf");
-        end = NULL;
-        map_erase(strv_int, m, begin, end);
-        assert(map_size(m) == 3);
+        Pair_int_str arr1[3] = {pair_make(int_str, 14, "014"), pair_make(int_str, 15, "015"), pair_make(int_str, 16, "016")};
+        Pair_strv_int arr2[3] = {pair_make(strv_int, "014", 14), pair_make(strv_int, "015", 15), pair_make(strv_int, "016", 16)};
+        map_insert_fromArray(int_str, m1, arr1, 0);
+        map_insert_fromArray(strv_int, m2, arr2, 0);
+        map_insert_fromArray(int_str, m1, arr1, 3);
+        map_insert_fromArray(strv_int, m2, arr2, 3);
     }
+    compare_int_str(m1, (int[]){0,4,5,10,14,15,16,20}, (char*[]){"000","004","500","010","014","015","016","020"}, 8);
+    compare_str_int(m2, (char*[]){"000","004","005","010","014","015","016","020"}, (int[]){0,4,500,10,14,15,16,20}, 8);
 
-    {
-        Pair_strv_int comparison[] = {pair_make(strv_int, "bb", 2), pair_make(strv_int, "cd", 4), pair_make(strv_int, "ce", 5)};
-        MapEntry_strv_int *it;
-        int i = 0;
-        map_iter(strv_int, m, it) {
-            assert(streq(it->data.first, comparison[i].first));
-            assert(it->data.second == comparison[i++].second);
-        }
-    }
-    map_free(strv_int, m);
+    Map_int_str *m3 = map_new(int_str);
+    Map_strv_int *m4 = map_new(strv_int);
+    MapEntry_int_str *begin1 = map_find(int_str, m1, 0), *end1 = begin1;
+    MapEntry_strv_int *begin2 = map_find(strv_int, m2, "000"), *end2 = begin2;
+    map_insert_fromMap(int_str, m3, begin1, end1); map_insert_fromMap(strv_int, m4, begin2, end2);
+    assert(map_empty(m3) && map_empty(m4));
+
+    end1 = map_find(int_str, m1, 5);
+    end2 = map_find(strv_int, m2, "005");
+    map_insert_fromMap(int_str, m3, begin1, end1); map_insert_fromMap(strv_int, m4, begin2, end2);
+
+    begin1 = map_find(int_str, m1, 16), end1 = NULL;
+    begin2 = map_find(strv_int, m2, "016"), end2 = NULL;
+    map_insert_fromMap(int_str, m3, begin1, end1); map_insert_fromMap(strv_int, m4, begin2, end2);
+    compare_int_str(m3, (int[]){0,4,16,20}, (char*[]){"000","004","016","020"}, 4);
+    compare_str_int(m4, (char*[]){"000","004","016","020"}, (int[]){0,4,16,20}, 4);
+    map_free(int_str, m3); map_free(strv_int, m4);
+    map_free(int_str, m1); map_free(strv_int, m2);
 }
 
 void test_nested_dicts(void) {
+    Pair_strv_int arrStr[50] = {};
+    for (int i = 0; i < 50; ++i) {
+        arrStr[i] = pair_make(strv_int, strs[i], ints[i]);
+    }
     Map_nested *m = map_new(nested);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 5; ++i) {
         int success = 0;
-        Map_strv_int *inner = map_new(strv_int);
-        for (int j = 0; j < 10; ++j) {
-            int value = (i * 10) + j;
-            map_insert(strv_int, inner, pair_make(strv_int, words[value], value));
-        }
-        assert(map_size(inner) == 10);
-        map_insert_withResult(nested, m, pair_make(nested, words[i], inner), &success);
+        Map_strv_int *inner = map_new_fromArray(strv_int, &arrStr[10 * i], 10);
+        map_insert_withResult(nested, m, pair_make(nested, arrStr[10 * i].first, inner), &success);
         assert(success);
         assert(map_size(m) == i + 1);
     }
 
     MapEntry_nested *it = NULL;
 
-    for (int i = 0; i < 10; ++i) {
-        it = map_find(nested, m, words[i]);
-        assert(it);
+    for (int i = 0; i < 5; ++i) {
+        assert(it = map_find(nested, m, arrStr[10 * i].first));
         Map_strv_int *inner = it->data.second;
         for (int j = 0; j < 10; ++j) {
             int value = (i * 10) + j;
-            MapEntry_strv_int *ptr = map_find(strv_int, inner, words[value]);
-            assert(ptr);
-            assert(ptr->data.second == value);
+            MapEntry_strv_int *ptr = map_find(strv_int, inner, arrStr[value].first);
+            assert(ptr && ptr->data.second == arrStr[value].second);
         }
     }
 
-    int counter = 0;
+    int x = 0;
     map_iter(nested, m, it) {
-        MapEntry_strv_int *jt = NULL;
-        map_iter(strv_int, it->data.second, jt) {
-            counter += 1;
-        }
+        assert(streq(it->data.first, arrStr[10 * x].first));
+        compare_str_int(it->data.second, &strs[10 * x], &ints[10 * x], 10);
+        ++x;
     }
-    assert(counter == 100);
+    assert(x == 5);
+    x = 4;
+    map_riter(nested, m, it) {
+        --x;
+    }
+    assert(x == -1);
     map_free(nested, m);
 }
 
 int main(void) {
-    for (int i = 0; i < NWORDS; ++i) {
-        snprintf(words[i], 16, "%d", i);
-    }
-    test_basic_rbtree_ints();
-    test_basic_rbtree_strs();
-    test_insert_find_string();
-    test_insert_find_int();
-    test_arr_init_and_insert();
-    test_init_insert_fromMap();
-    test_deletion();
-    test_erase_range();
+    test_basic_ints();
+    test_basic_strs();
+    test_init_clear();
+    test_membership();
+    test_remove();
+    test_insert();
     test_nested_dicts();
     return 0;
 }

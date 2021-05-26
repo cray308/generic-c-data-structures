@@ -4,7 +4,7 @@
 #include "ds.h"
 
 /* --------------------------------------------------------------------------
- * Types: ARR, LIST, TREE, STR
+ * Types: ARR, LIST, AVLTREE, STR
  * -------------------------------------------------------------------------- */
 
 #define iter_begin(type, id, ds, n) iter_begin_##type(id, ds, n)
@@ -54,18 +54,18 @@
 #define iter_dist_LIST(id, p1, p2)   __iter_dist_helper_LIST_##id(p1, p2)
 
 /* --------------------------------------------------------------------------
- * Tree iterator macros
+ * AVL Tree iterator macros
  * -------------------------------------------------------------------------- */
 
-#define iter_begin_TREE(id, t, n)    __rb_successor_##id((t)->root)
-#define iter_end_TREE(id, t, n)      NULL
-#define iter_rbegin_TREE(id, t, n)   __rb_predecessor_##id((t)->root)
-#define iter_rend_TREE(id, t, n)     NULL
-#define iter_next_TREE(id, p)        ((p) = __rb_inorder_successor_##id((p)))
-#define iter_prev_TREE(id, p)        ((p) = __rb_inorder_predecessor_##id((p)))
-#define iter_deref_TREE(p)           ((p)->data)
-#define iter_advance_TREE(id, p, n)  iterator_advance_helper(TREE, id, p, n)
-#define iter_dist_TREE(id, p1, p2)   __iter_dist_helper_TREE_##id(p1, p2)
+#define iter_begin_AVLTREE(id, t, n)    __avl_successor_##id((t)->root)
+#define iter_end_AVLTREE(id, t, n)      NULL
+#define iter_rbegin_AVLTREE(id, t, n)   __avl_predecessor_##id((t)->root)
+#define iter_rend_AVLTREE(id, t, n)     NULL
+#define iter_next_AVLTREE(id, p)        ((p) = __avl_inorder_successor_##id((p)))
+#define iter_prev_AVLTREE(id, p)        ((p) = __avl_inorder_predecessor_##id((p)))
+#define iter_deref_AVLTREE(p)           ((p)->data)
+#define iter_advance_AVLTREE(id, p, n)  iterator_advance_helper(AVLTREE, id, p, n)
+#define iter_dist_AVLTREE(id, p1, p2)   __iter_dist_helper_AVLTREE_##id(p1, p2)
 
 /* --------------------------------------------------------------------------
  * String iterator macros
