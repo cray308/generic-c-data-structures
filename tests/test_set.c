@@ -18,9 +18,9 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "235","240","245"};
 
 void compare_ints(Set_int *s, int *comparison, int size) {
-    assert(set_size(s) == size);
     int i = 0;
     SetEntry_int *it;
+    assert(set_size(s) == size);
     set_iter(int, s, it) {
         assert(it->data == comparison[i++]);
     }
@@ -33,9 +33,9 @@ void compare_ints(Set_int *s, int *comparison, int size) {
 }
 
 void compare_strs(Set_str *s, char **comparison, int size) {
-    assert(set_size(s) == size);
     int i = 0;
     SetEntry_str *it;
+    assert(set_size(s) == size);
     set_iter(str, s, it) {
         assert(streq(it->data, comparison[i++]));
     }
@@ -49,10 +49,11 @@ void compare_strs(Set_str *s, char **comparison, int size) {
 
 void test_basic_ints(void) {
     Set_int *s = set_new(int);
+    SetEntry_int *e; int i;
     assert(set_empty(s));
     compare_ints(s, ints, 0);
 
-    for (int i = 0; i < 50; ++i) {
+    for (i = 0; i < 50; ++i) {
         set_insert(int, s, ints_rand[i]);
     }
     set_insert(int, s, ints[0]);
@@ -61,7 +62,7 @@ void test_basic_ints(void) {
     compare_ints(s, ints, 50);
 
     assert(set_find(int, s, 121) == NULL);
-    SetEntry_int *e = set_find(int, s, 120);
+    e = set_find(int, s, 120);
     assert(e != NULL);
     set_remove_entry(int, s, e);
     assert(set_find(int, s, 120) == NULL);
@@ -77,10 +78,11 @@ void test_basic_ints(void) {
 
 void test_basic_strs(void) {
     Set_str *s = set_new(str);
+    SetEntry_str *e; int i;
     assert(set_empty(s));
     compare_strs(s, strs, 0);
 
-    for (int i = 0; i < 50; ++i) {
+    for (i = 0; i < 50; ++i) {
         set_insert(str, s, strs_rand[i]);
     }
     set_insert(str, s, strs[0]);
@@ -89,7 +91,7 @@ void test_basic_strs(void) {
     compare_strs(s, strs, 50);
 
     assert(set_find(str, s, "121") == NULL);
-    SetEntry_str *e = set_find(str, s, "120");
+    e = set_find(str, s, "120");
     assert(e != NULL);
     set_remove_entry(str, s, e);
     assert(set_find(str, s, "120") == NULL);
@@ -104,13 +106,13 @@ void test_basic_strs(void) {
 }
 
 void test_init_clear(void) {
-    Set_int *si = set_new_fromArray(int, ints_rand, 50);
-    Set_str *ss = set_new_fromArray(str, strs_rand, 50);
+    Set_int *si = set_new_fromArray(int, ints_rand, 50), *si2;
+    Set_str *ss = set_new_fromArray(str, strs_rand, 50), *ss2;
     compare_ints(si, ints, 50);
     compare_strs(ss, strs, 50);
 
-    Set_int *si2 = set_createCopy(int, si);
-    Set_str *ss2 = set_createCopy(str, ss);
+    si2 = set_createCopy(int, si);
+    ss2 = set_createCopy(str, ss);
     compare_ints(si2, ints, 50);
     compare_strs(ss2, strs, 50);
 
@@ -137,14 +139,14 @@ void test_membership(void) {
 void test_remove(void) {
     int c1[] = {10,20,35,40};
     char *c2[] = {"010","020","035","040"};
+    SetEntry_int *begin1 = NULL, *end1 = NULL;
+    SetEntry_str *begin2 = NULL, *end2 = NULL;
     Set_int *si = set_new_fromArray(int, ints, 10);
     Set_str *ss = set_new_fromArray(str, strs, 10);
 
     set_remove_entry(int, si, si->root); set_remove_entry(str, ss, ss->root);
     set_remove_value(int, si, 5); set_remove_value(str, ss, "005");
 
-    SetEntry_int *begin1 = NULL, *end1 = NULL;
-    SetEntry_str *begin2 = NULL, *end2 = NULL;
     set_erase(int, si, begin1, end1); set_erase(str, ss, begin2, end2);
     begin1 = set_find(int, si, 0), end1 = begin1;
     begin2 = set_find(str, ss, "000"), end2 = begin2;
@@ -170,10 +172,12 @@ void test_remove(void) {
 void test_insert(void) {
     int c1[2][8] = {{0,4,5,10,14,15,16,20},{0,4,16,20}};
     char *c2[2][8] = {{"000","004","005","010","014","015","016","020"},{"000","004","016","020"}};
-    Set_int *si = set_new_fromArray(int, ints, 5);
-    Set_str *ss = set_new_fromArray(str, strs, 5);
-
     int inserted = -1;
+    SetEntry_int *begin1, *end1;
+    SetEntry_str *begin2, *end2;
+    Set_int *si = set_new_fromArray(int, ints, 5), *si2;
+    Set_str *ss = set_new_fromArray(str, strs, 5), *ss2;
+
     set_insert_withResult(int, si, 5, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -190,13 +194,13 @@ void test_insert(void) {
     set_insert_fromArray(str, ss, NULL, 0);
     set_insert_fromArray(int, si, &c1[0][4], 3);
     set_insert_fromArray(str, ss, &c2[0][4], 3);
-    compare_ints(si, c1, 8);
-    compare_strs(ss, c2, 8);
+    compare_ints(si, c1[0], 8);
+    compare_strs(ss, c2[0], 8);
 
-    Set_int *si2 = set_new(int);
-    Set_str *ss2 = set_new(str);
-    SetEntry_int *begin1 = set_find(int, si, 0), *end1 = begin1;
-    SetEntry_str *begin2 = set_find(str, ss, "000"), *end2 = begin2;
+    si2 = set_new(int);
+    ss2 = set_new(str);
+    begin1 = set_find(int, si, 0), end1 = begin1;
+    begin2 = set_find(str, ss, "000"), end2 = begin2;
     set_insert_fromSet(int, si2, begin1, end1); set_insert_fromSet(str, ss2, begin2, end2);
     assert(set_empty(si2) && set_empty(ss2));
 
@@ -299,12 +303,14 @@ void test_subset(void) {
 }
 
 void test_disjoint(void) {
-    Set_int *si1 = set_new_fromArray(int, ((int[]){1, 3, 5}), 3);
-    Set_int *si2 = set_new_fromArray(int, ((int[]){2, 4, 6, 8, 10}), 5);
-    Set_int *si3 = set_new_fromArray(int, ((int[]){5, 7, 8}), 3);
-    Set_str *ss1 = set_new_fromArray(str, ((char*[]){"01","03","05"}), 3);
-    Set_str *ss2 = set_new_fromArray(str, ((char*[]){"02","04","06","08","10"}), 5);
-    Set_str *ss3 = set_new_fromArray(str, ((char*[]){"05","07","08"}), 3);
+    Set_int *si1, *si2, *si3;
+    Set_str *ss1, *ss2, *ss3;
+    {
+        int a1[] = {1,3,5}, a2[] = {2,4,6,8,10}, a3[] = {5,7,8};
+        char *b1[] = {"01","03","05"}, *b2[] = {"02","04","06","08","10"}, *b3[] = {"05","07","08"};
+        si1 = set_new_fromArray(int, a1, 3), si2 = set_new_fromArray(int, a2, 5), si3 = set_new_fromArray(int, a3, 3);
+        ss1 = set_new_fromArray(str, b1, 3), ss2 = set_new_fromArray(str, b2, 5), ss3 = set_new_fromArray(str, b3, 3);
+    }
 
     assert(set_isdisjoint(int, si1, si2) && set_isdisjoint(int, si2, si1));
     assert(!set_isdisjoint(int, si2, si3) && !set_isdisjoint(int, si3, si2));

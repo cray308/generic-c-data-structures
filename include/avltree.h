@@ -11,10 +11,11 @@
     return x;                                                                                                \
 
 #define __avl_nextNode_inorder_body(EntryType, x, dir, nextNode)                                             \
+    EntryType *parent;                                                                                       \
     if (!(x)) return NULL;                                                                                   \
     else if ((x)->dir) return nextNode((x)->dir);                                                            \
                                                                                                              \
-    EntryType *parent = (x)->parent;                                                                         \
+    parent = (x)->parent;                                                                                    \
     while (parent && (x) == parent->dir) {                                                                   \
         (x) = parent;                                                                                        \
         parent = parent->parent;                                                                             \
@@ -109,14 +110,14 @@ __DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {            \
-	EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), true);                               \
+	EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), true), *new, *parent;                \
     if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {                                \
         deleteValue(curr->data.second);                                                                      \
         copyValue(curr->data.second, data.second);                                                           \
         if (inserted) *inserted = 0;                                                                         \
         return curr;                                                                                         \
     }                                                                                                        \
-	EntryType *new = __ds_calloc(1, sizeof(EntryType));                                                      \
+	new = __ds_calloc(1, sizeof(EntryType));                                                                 \
     copyKey(entry_get_key(new), data_get_key(data));                                                         \
     copyValue(new->data.second, data.second);                                                                \
     new->parent = curr;                                                                                      \
@@ -133,8 +134,7 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
     } else {                                                                                                 \
 		curr->right = new;                                                                                   \
     }                                                                                                        \
-    curr = new;                                                                                              \
-    EntryType *parent = curr->parent;                                                                        \
+    curr = new, parent = curr->parent;                                                                       \
                                                                                                              \
 	while (curr && parent) {                                                                                 \
 		if (curr == parent->left) {                                                                          \
@@ -199,8 +199,9 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, size_t n) {             \
+    size_t i;                                                                                                \
     if (!(arr && n)) return;                                                                                 \
-    for (size_t i = 0; i < n; ++i) {                                                                         \
+    for (i = 0; i < n; ++i) {                                                                                \
         __avltree_insert_##id(this, arr[i], NULL);                                                           \
     }                                                                                                        \
 }                                                                                                            \
@@ -226,16 +227,17 @@ __DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n)
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                            \
 	char deleteData = 1;                                                                                     \
+	EntryType *curr, *parent, *child;                                                                                \
 	if (v->left && v->right) {                                                                               \
-        deleteData = 0;                                                                                      \
         EntryType *temp = __avl_inorder_successor_##id(v);                                                   \
+        deleteData = 0;                                                                                      \
         deleteKey(entry_get_key(v));                                                                         \
         deleteValue(v->data.second);                                                                         \
         v->data = temp->data;                                                                                \
         v = temp;                                                                                            \
 	}                                                                                                        \
                                                                                                              \
-	EntryType *curr = v, *parent = curr->parent;                                                             \
+	curr = v, parent = curr->parent;                                                                         \
 	while (curr && parent) {                                                                                 \
 		if (curr == parent->left) {                                                                          \
 			if (parent->bf == -1) {                                                                          \
@@ -304,8 +306,7 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
 		parent = curr->parent;                                                                               \
 	}                                                                                                        \
                                                                                                              \
-	EntryType *child = v->left ? v->left : v->right;                                                         \
-	if (child) {                                                                                             \
+	if ((child = (v->left ? v->left : v->right))) {                                                          \
         child->parent = v->parent;                                                                           \
     }                                                                                                        \
     if (v->parent) {                                                                                         \
@@ -332,19 +333,21 @@ __DS_FUNC_PREFIX void __avltree_remove_key_##id(TreeType *this, const kt key) { 
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {               \
+    EntryType *curr;                                                                                         \
+    kt* keys;                                                                                                \
+    int i = 0, count = 0;                                                                                    \
     if (!begin) return;                                                                                      \
                                                                                                              \
     /* store keys in an array since tree deletions involve swapping values
      * and thus it's not reliable to use node pointers in a bulk delete operation */                         \
-    kt keys[this->size];                                                                                     \
-    int count = 0;                                                                                           \
-    for (EntryType *curr = begin; curr != end; curr = __avl_inorder_successor_##id(curr)) {                  \
+    keys = __ds_malloc(this->size * sizeof(kt));                                                             \
+    for (curr = begin; curr != end; curr = __avl_inorder_successor_##id(curr)) {                             \
         keys[count++] = entry_get_key(curr);                                                                 \
     }                                                                                                        \
-                                                                                                             \
-    for (int i = 0; i < count; ++i) {                                                                        \
+    for (; i < count; ++i) {                                                                                 \
         __avltree_remove_key_##id(this, keys[i]);                                                            \
     }                                                                                                        \
+    free(keys);                                                                                              \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void __avltree_clear_##id(TreeType *this) {                                             \

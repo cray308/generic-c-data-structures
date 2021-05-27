@@ -1,21 +1,17 @@
-CC = gcc
-LD = gcc
-OPTIMIZE = 2
-
-CFLAGS = -std=c89 -pedantic -Iinclude
-CFLAGS += -Wall -Wextra -Werror -Wstrict-prototypes
+CFLAGS = -std=c89 -Iinclude -O2
+CFLAGS += -Wall -Wextra -Werror -Wpedantic -Wstrict-prototypes
 CFLAGS += -funsigned-char -finline-functions
 
-CPPFLAGS = -std=c++11 -pedantic -O$(OPTIMIZE)
-CPPFLAGS += -Wall -Wextra -Werror
+CPPFLAGS = -std=c++11 -O2
+CPPFLAGS += -Wall -Wextra -Werror -Wpedantic
 CPPFLAGS += -funsigned-char -finline-functions
 
 HEADERS = $(wildcard include/*.h)
 
-TEST_BINARIES = bin/c/test_list bin/c/test_array
+TEST_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue
+TEST_BINARIES += bin/c/test_array bin/c/test_str bin/c/test_list
 TEST_BINARIES += bin/c/test_avltree bin/c/test_set bin/c/test_map
 TEST_BINARIES += bin/c/test_unordered_set bin/c/test_unordered_map
-TEST_BINARIES += bin/c/test_deque bin/c/test_stack bin/c/test_queue
 
 BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds
 
@@ -34,10 +30,10 @@ benchmark: $(BENCHMARK_BINARIES)
 
 
 bin/c/test_%: tests/test_%.c include/ds.h include/%.h
-	$(CC) $(CFLAGS) -o $@ $<
+	gcc $(CFLAGS) -o $@ $<
 
 bin/c/benchmark_%: tests/benchmark_%.c $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $<
+	gcc $(CFLAGS) -o $@ $<
 
 bin/cpp/%: tests/%.cpp
 	g++ $(CPPFLAGS) -o $@ $<

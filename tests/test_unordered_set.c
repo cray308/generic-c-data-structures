@@ -5,12 +5,14 @@ gen_uset(int, int, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDe
 gen_uset(str, char *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 void test_init_clear(void) {
+    int i = 0, *it, resultArr[4] = {-1};
+    char *days[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+    char *strResults[7] = {NULL}, **sptr;
     USet_int *s = uset_new(int);
+    USet_str *s2 = uset_new(str), *s3;
     assert(uset_empty(s));
     assert(uset_size(s) == 0);
 
-    int i = 0;
-    int *it;
     uset_iter(int, s, it) {
         i++;
     }
@@ -18,25 +20,22 @@ void test_init_clear(void) {
     assert(i == 0);
     uset_free(int, s);
 
-    s = uset_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
-    assert(uset_size(s) == 4);
-    assert(!uset_empty(s));
+    {
+        int a[] = {8,5,3,3,1};
+        s = uset_new_fromArray(int, a, 5);
+        assert(uset_size(s) == 4);
+        assert(!uset_empty(s));
+    }
 
-    int resultArr[4] = {-1};
     i = 0;
     uset_iter(int, s, it) {
         resultArr[i++] = *it;
     }
     assert(i == 4);
-    for (int x = 0; x < 4; ++x) {
-        assert(resultArr[x] != -1);
+    for (i = 0; i < 4; ++i) {
+        assert(resultArr[i] != -1);
     }
 
-    char *days[] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-    char *strResults[7] = {NULL};
-    char **sptr;
-
-    USet_str *s2 = uset_new(str);
     uset_insert_fromArray(str, s2, days, 7);
     assert(uset_size(s2) == 7);
     i = 0;
@@ -44,11 +43,11 @@ void test_init_clear(void) {
         strResults[i++] = *sptr;
     }
     assert(i == 7);
-    for (int x = 0; x < 7; ++x) {
-        assert(strResults[x]);
+    for (i = 0; i < 7; ++i) {
+        assert(strResults[i]);
     }
 
-    USet_str *s3 = uset_createCopy(str, s2);
+    s3 = uset_createCopy(str, s2);
     memset(strResults, 0, 7 * sizeof(char *));
     assert(uset_size(s2) == 7);
     i = 0;
@@ -56,8 +55,8 @@ void test_init_clear(void) {
         strResults[i++] = *sptr;
     }
     assert(i == 7);
-    for (int x = 0; x < 7; ++x) {
-        assert(strResults[x]);
+    for (i = 0; i < 7; ++i) {
+        assert(strResults[i]);
     }
 
     uset_clear(str, s2);
@@ -71,19 +70,19 @@ void test_init_clear(void) {
 }
 
 void test_membership(void) {
-    USet_int *s = uset_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
-
+    int a1[] = {8,5,3,3,1};
+    USet_int *s = uset_new_fromArray(int, a1, 5);
     assert(!uset_contains(int, s, 4));
     assert(uset_contains(int, s, 3));
     uset_free(int, s);
 }
 
 void test_remove(void) {
-    USet_int *s = uset_new_fromArray(int, ((int[]){8, 5, 3, 3, 1}), 5);
+    int a1[] = {8,5,3,3,1};
+    USet_int *s = uset_new_fromArray(int, a1, 5);
 
     uset_remove(int, s, 4);
     assert(uset_size(s) == 4);
-
     uset_remove(int, s, 8);
     assert(uset_size(s) == 3);
     assert(!uset_contains(int, s, 8));
@@ -92,76 +91,66 @@ void test_remove(void) {
 
 void test_resizing(void) {
     USet_int *s = uset_new(int);
-    for (int i = 0; i < 100; ++i) {
+    int i;
+    for (i = 0; i < 100; ++i) {
         uset_insert(int, s, i);
     }
 
+    assert(s->cap > 32);
     {
-        assert(s->cap > 32);
+        double oldLoadFactor = uset_max_load_factor(s);
         size_t oldCap = s->cap;
         uset_rehash(int, s, oldCap);
         assert(s->cap == oldCap);
-        double oldLoadFactor = uset_max_load_factor(s);
         uset_set_load_factor(int, s, 0.5);
         assert(oldLoadFactor != uset_max_load_factor(s));
     }
 
-    for (int i = 0; i < 100; ++i) {
+    for (i = 0; i < 100; ++i) {
         assert(uset_contains(int, s, i));
     }
-
-    {
-        int key = 99;
-        while (!uset_empty(s)) {
-            uset_remove(int, s, key);
-            assert(uset_size(s) == key);
-            assert(!uset_contains(int, s, key--));
-        }
-        assert(uset_size(s) == 0);
+    while (!uset_empty(s)) {
+        uset_remove(int, s, i);
+        assert(uset_size(s) == i);
+        assert(!uset_contains(int, s, i--));
     }
+    assert(uset_size(s) == 0);
     uset_free(int, s);
 }
 
 void test_insert(void) {
     USet_int *s = uset_new(int);
-    for (int i = 1; i <= 5; ++i) {
+    int i, *it, inserted = -1, results[10] = {-1};
+    for (i = 1; i <= 5; ++i) {
         uset_insert(int, s, i * 10);
     }
     assert(uset_size(s) == 5);
 
-    {
-        int inserted = -1;
-        uset_insert_withResult(int, s, 20, &inserted);
-        assert(uset_size(s) == 5);
-        assert(!inserted);
-
-        inserted = -1;
-        uset_insert_withResult(int, s, 25, &inserted);
-        assert(uset_size(s) == 6);
-        assert(inserted);
-    }
+    uset_insert_withResult(int, s, 20, &inserted);
+    assert(uset_size(s) == 5);
+    assert(!inserted);
+    inserted = -1;
+    uset_insert_withResult(int, s, 25, &inserted);
+    assert(uset_size(s) == 6);
+    assert(inserted);
 
     uset_insert(int, s, 24);
     assert(uset_size(s) == 7);
     uset_insert(int, s, 26);
     assert(uset_size(s) == 8);
-
-    uset_insert_fromArray(int, s, ((int[]){5, 10, 15}), 3);
-    assert(uset_size(s) == 10);
-
-    int results[10] = {-1};
     {
-        int *it;
-        int i = 0;
-        uset_iter(int, s, it) {
-            results[i++] = *it;
-        }
+        int a[] = {5,10,15};
+        uset_insert_fromArray(int, s, a, 3);
+        assert(uset_size(s) == 10);
     }
 
-    for (int i = 0; i < 10; ++i) {
+    i = 0;
+    uset_iter(int, s, it) {
+        results[i++] = *it;
+    }
+    for (i = 0; i < 10; ++i) {
         assert(results[i] != -1);
     }
-
     uset_free(int, s);
 }
 

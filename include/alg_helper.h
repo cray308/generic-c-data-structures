@@ -113,12 +113,12 @@ __DS_FUNC_PREFIX_INL void __ds_pop_heap_##id(t *first, t *last, t *result) {    
                                                                                                              \
 __DS_FUNC_PREFIX void ds_make_heap_##id(t *first, t *last) {                                                 \
     const size_t len = last - first;                                                                         \
+    size_t parent;                                                                                           \
     if (len < 2) return;                                                                                     \
                                                                                                              \
-    size_t parent = (len - 2) >> 1;                                                                          \
-    t value;                                                                                                 \
+    parent = (len - 2) >> 1;                                                                                 \
     while (1) {                                                                                              \
-        value = *(first + parent);                                                                           \
+        t value = *(first + parent);                                                                         \
         __ds_adjust_heap_##id(first, parent, len, &value);                                                   \
         if (!parent) return;                                                                                 \
         --parent;                                                                                            \
@@ -134,13 +134,13 @@ __DS_FUNC_PREFIX void ds_sort_heap_##id(t *first, t *last) {                    
                                                                                                              \
 __DS_FUNC_PREFIX void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {                         \
     while ((last - first) > 16) {                                                                            \
+        t *cut;                                                                                              \
         if (depth_limit == 0) {                                                                              \
             ds_make_heap_##id(first, last);                                                                  \
             ds_sort_heap_##id(first, last);                                                                  \
             return;                                                                                          \
         }                                                                                                    \
         --depth_limit;                                                                                       \
-        t *cut;                                                                                              \
         {                                                                                                    \
             t* b = first + (last - first) / 2;                                                               \
             t* a = first + 1;                                                                                \
@@ -188,7 +188,7 @@ __DS_FUNC_PREFIX void __ds_introsort_##id(t *first, t *last, unsigned depth_limi
  * -------------------------------------------------------------------------- */                             \
                                                                                                              \
 __DS_FUNC_PREFIX void __ds_unguarded_linear_insert_##id(t *last) {                                           \
-    t val = *last;                                                                                           \
+    t const val = *last;                                                                                     \
     t *next = last - 1;                                                                                      \
     while (cmp_lt(val, *next)) {                                                                             \
         *last = *next;                                                                                       \
@@ -199,16 +199,15 @@ __DS_FUNC_PREFIX void __ds_unguarded_linear_insert_##id(t *last) {              
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __ds_insertion_sort_##id(t *first, t *last) {                                          \
+    t *i;                                                                                                    \
+    t* const begin = first + 1;                                                                              \
     if (first == last) return;                                                                               \
                                                                                                              \
-    t val;                                                                                                   \
-    for (t *i = first + 1; i != last; ++i) {                                                                 \
+    for (i = first + 1; i != last; ++i) {                                                                    \
+        t val;                                                                                               \
         if (cmp_lt(*i, *first)) {                                                                            \
             val = *i;                                                                                        \
-            size_t len = (size_t) (i - first);                                                               \
-            if (len) {                                                                                       \
-                memmove((i + 1) - len, first, len * sizeof(t));                                              \
-            }                                                                                                \
+            memmove(begin, first, (i - first) * sizeof(t));                                                  \
             *first = val;                                                                                    \
         } else {                                                                                             \
             __ds_unguarded_linear_insert_##id(i);                                                            \
@@ -217,18 +216,19 @@ __DS_FUNC_PREFIX void __ds_insertion_sort_##id(t *first, t *last) {             
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void ds_sort_##id(t *arr, size_t n) {                                                   \
+    t *first; t *last;                                                                                       \
+    unsigned depth = 0;                                                                                      \
     if (n <= 1) return;                                                                                      \
                                                                                                              \
-    t *first = arr;                                                                                          \
-    t *last = &first[n];                                                                                     \
-    unsigned depth = 0;                                                                                      \
+    first = arr, last = &arr[n];                                                                             \
     while ((n >>= 1) >= 1) ++depth;                                                                          \
     depth <<= 1;                                                                                             \
                                                                                                              \
     __ds_introsort_##id(first, last, depth);                                                                 \
     if ((last - first) > 16) {                                                                               \
+        t *i;                                                                                                \
         __ds_insertion_sort_##id(first, first + 16);                                                         \
-        for (t *i = first + 16; i != last; ++i) {                                                            \
+        for (i = first + 16; i != last; ++i) {                                                               \
             __ds_unguarded_linear_insert_##id(i);                                                            \
         }                                                                                                    \
     } else {                                                                                                 \
@@ -237,9 +237,8 @@ __DS_FUNC_PREFIX_INL void ds_sort_##id(t *arr, size_t n) {                      
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t *ds_binary_search_##id(t *arr, int l, int r, t val) {                                 \
-    int mid;                                                                                                 \
     while (l <= r) {                                                                                         \
-        mid = l + (r - l) / 2;                                                                               \
+        int mid = l + (r - l) / 2;                                                                           \
         if (cmp_lt(arr[mid], val)) {                                                                         \
             l = mid + 1;                                                                                     \
         } else if (cmp_lt(val, arr[mid])) {                                                                  \

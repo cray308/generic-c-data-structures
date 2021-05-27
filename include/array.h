@@ -285,6 +285,7 @@ __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {             
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {                                 \
+    int endIdx, i, res;                                                                                      \
     if (!nelem || a->size == 0) return ARRAY_ERROR;                                                          \
                                                                                                              \
     if ((first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                                            \
@@ -295,12 +296,11 @@ __DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {    
         nelem = min(nelem, array_size(a) - first);                                                           \
     }                                                                                                        \
                                                                                                              \
-    int endIdx = first + nelem;                                                                              \
-    for (int i = first; i < endIdx; ++i) {                                                                   \
+    endIdx = first + nelem;                                                                                  \
+    for (i = first; i < endIdx; ++i) {                                                                       \
         deleteValue(a->arr[i]);                                                                              \
     }                                                                                                        \
                                                                                                              \
-    int res;                                                                                                 \
     if (endIdx < array_size(a)) { /* move elements from endIdx onward back to first */                       \
         memmove(&a->arr[first], &a->arr[endIdx], (array_size(a) - endIdx) * sizeof(t));                      \
         res = first;                                                                                         \
@@ -312,6 +312,7 @@ __DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {    
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void array_resize_usingValue_##id(Array_##id *a, size_t n, t value) {                       \
+    size_t i;                                                                                                \
     if (n == a->size) return;                                                                                \
     else if (n < a->size) {                                                                                  \
         array_erase_##id(a, n, a->size - n);                                                                 \
@@ -320,7 +321,7 @@ __DS_FUNC_PREFIX void array_resize_usingValue_##id(Array_##id *a, size_t n, t va
                                                                                                              \
     array_reserve_##id(a, n);                                                                                \
                                                                                                              \
-    for (size_t i = a->size; i < n; ++i) {                                                                   \
+    for (i = a->size; i < n; ++i) {                                                                          \
         copyValue((a->arr[i]), (value));                                                                     \
     }                                                                                                        \
     a->size = n;                                                                                             \
@@ -333,13 +334,15 @@ __DS_FUNC_PREFIX Array_##id *array_new_repeatingValue_##id(t value, size_t size)
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void array_push_back_##id(Array_##id *a, t value) {                                     \
+    t *loc;                                                                                                  \
     array_reserve_##id(a, a->size + 1); /* allocate more space */                                            \
-    t *loc = &a->arr[a->size];                                                                               \
+    loc = &a->arr[a->size];                                                                                  \
     copyValue((*loc), (value));                                                                              \
     a->size++;                                                                                               \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element) {                                \
+    t *loc;                                                                                                  \
     if (!a->size || index >= (int) a->size) { /* append */                                                   \
         array_push_back_##id(a, element);                                                                    \
         return a->size - 1;                                                                                  \
@@ -349,21 +352,21 @@ __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element) {   
                                                                                                              \
     array_reserve_##id(a, a->size + 1);                                                                      \
     memmove(a->arr + (index + 1), a->arr + index, (array_size(a) - index) * sizeof(t));                      \
-    t *loc = &a->arr[index];                                                                                 \
+    loc = &a->arr[index];                                                                                    \
     copyValue((*loc), (element));                                                                            \
     a->size++;                                                                                               \
     return index;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *a, int index, t *arr, size_t n) {               \
+    bool append;                                                                                             \
+    int i, res, end;                                                                                         \
     if (!arr || !n) return ARRAY_ERROR;                                                                      \
                                                                                                              \
-    bool append = (!a->size || index >= (int) a->size);                                                      \
-    if (!append) {                                                                                           \
+    if (!(append = (!a->size || index >= (int) a->size))) {                                                  \
         if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                        \
     }                                                                                                        \
                                                                                                              \
-    int res;                                                                                                 \
     array_reserve_##id(a, a->size + n);                                                                      \
                                                                                                              \
     if (append) { /* append to a */                                                                          \
@@ -372,8 +375,8 @@ __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *a, int index, t *ar
         memmove(&a->arr[index + n], &a->arr[index], (array_size(a) - index) * sizeof(t));                    \
         res = index;                                                                                         \
     }                                                                                                        \
-    int end = res + (int) n;                                                                                 \
-    for (int i = res; i < end; ++i) {                                                                        \
+    end = res + (int) n;                                                                                     \
+    for (i = res; i < end; ++i) {                                                                            \
         t *loc = &a->arr[i];                                                                                 \
         copyValue((*loc), (*arr));                                                                           \
         ++arr;                                                                                               \
@@ -407,14 +410,17 @@ __DS_FUNC_PREFIX_INL void array_pop_back_##id(Array_##id *a) {                  
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void array_shrink_to_fit_##id(Array_##id *a) {                                          \
+    t *tmp;                                                                                                  \
     if (a->capacity == 8 || a->size == a->capacity || a->size == 0) return;                                  \
                                                                                                              \
-    t *tmp = __ds_realloc(a->arr, a->size * sizeof(t));                                                      \
+    tmp = __ds_realloc(a->arr, a->size * sizeof(t));                                                         \
     a->capacity = a->size;                                                                                   \
     a->arr = tmp;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Array_##id *array_subarr_##id(Array_##id *a, int start, int n, int step_size) {             \
+    Array_##id *sub;                                                                                         \
+    int end, i;                                                                                              \
     if (!a->size || !n) return NULL;                                                                         \
                                                                                                              \
     if (step_size == 0) {                                                                                    \
@@ -423,8 +429,7 @@ __DS_FUNC_PREFIX Array_##id *array_subarr_##id(Array_##id *a, int start, int n, 
                                                                                                              \
     if ((start = modulo(start, a->size)) < 0) return NULL;                                                   \
                                                                                                              \
-    Array_##id *sub = array_new_##id();                                                                      \
-    int end, i;                                                                                              \
+    sub = array_new_##id();                                                                                  \
                                                                                                              \
     if (step_size < 0) {                                                                                     \
         end = (n < 0) ? -1 : max(-1, start + (n * step_size));                                               \
@@ -492,29 +497,31 @@ __DS_FUNC_PREFIX Array_##id *array_subarr_##id(Array_##id *a, int start, int n, 
 gen_array(2d_##id, Array_##id *, DSDefault_shallowCopy, DSDefault_shallowDelete)                             \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* matrix_at_##id(Array_2d_##id *m, int row, int col) {                                 \
-    int _idxRow = modulo(row, m->size);                                                                      \
+    int _idxRow = modulo(row, m->size), _idxCol;                                                             \
     if (_idxRow < 0) return NULL;                                                                            \
-    int _idxCol = modulo(col, m->arr[_idxRow]->size);                                                        \
+    _idxCol = modulo(col, m->arr[_idxRow]->size);                                                            \
     if (_idxCol < 0) return NULL;                                                                            \
     return &(m->arr[_idxRow]->arr[_idxCol]);                                                                 \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Array_2d_##id *matrix_new_##id(int rows, int cols) {                                        \
+    Array_2d_##id *m;                                                                                        \
+    int i = 0;                                                                                               \
     if (!rows || !cols) return NULL;                                                                         \
-    Array_2d_##id *m = __ds_malloc(sizeof(Array_2d_##id));                                                   \
+    m = __ds_malloc(sizeof(Array_2d_##id));                                                                  \
     m->arr = __ds_malloc(sizeof(Array_##id *) * rows);                                                       \
     m->size = 0;                                                                                             \
     m->capacity = rows;                                                                                      \
-    Array_##id *arr;                                                                                         \
-    for (int i = 0; i < rows; ++i) {                                                                         \
-        arr = array_new_repeatingValue_##id(0, cols);                                                        \
+    for (; i < rows; ++i) {                                                                                  \
+        Array_##id *arr = array_new_repeatingValue_##id(0, cols);                                            \
         array_push_back_2d_##id(m, arr);                                                                     \
     }                                                                                                        \
     return m;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void matrix_free_##id(Array_2d_##id *m) {                                               \
-    for (size_t i = 0; i < m->size; ++i) {                                                                   \
+    size_t i;                                                                                                \
+    for (i = 0; i < m->size; ++i) {                                                                          \
         array_free_##id((m->arr[i]));                                                                        \
     }                                                                                                        \
     free(m->arr);                                                                                            \
@@ -653,10 +660,10 @@ gen_alg(id, t, cmp_lt)                                                          
 __gen_alg_set_funcs(id, cmp_lt, Array_##id, array_##id, array_new, t *, iter_next_ARR, iter_deref_ARR, array_push_back, array_insert_fromArray_##id(d_new, array_size(d_new), first1, (last1 - first1)), array_insert_fromArray_##id(d_new, array_size(d_new), first2, (last2 - first2))) \
                                                                                                              \
 __DS_FUNC_PREFIX Array_##id *merge_array_##id(t *first1, t *last1, t *first2, t *last2) {                    \
+    Array_##id *a;                                                                                           \
     if (!(first1 && first2)) return NULL;                                                                    \
                                                                                                              \
-    Array_##id *a = array_new_##id();                                                                        \
-                                                                                                             \
+    a = array_new_##id();                                                                                    \
     while (first1 != last1 && first2 != last2) {                                                             \
         if (cmp_lt(*first2, *first1)) {                                                                      \
             array_push_back_##id(a, *first2);                                                                \

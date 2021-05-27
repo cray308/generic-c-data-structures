@@ -5,11 +5,24 @@
 #include <limits.h>
 
 gen_array_withalg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
-
 gen_list_withalg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
 
 char *ProgName = NULL;
-clock_t before, after;
+unsigned n = 10000;
+
+#define runTest(append, sort) {                                                                              \
+    unsigned i = 0;                                                                                          \
+    double elapsed;                                                                                          \
+    clock_t before, after;                                                                                   \
+    for (; i < n; ++i) {                                                                                     \
+        append;                                                                                              \
+    }                                                                                                        \
+    before = clock();                                                                                        \
+    sort;                                                                                                    \
+    after = clock();                                                                                         \
+    elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;                                           \
+    printf("%.6f\n", elapsed);                                                                               \
+}
 
 typedef enum {
     TEST_QSORT,
@@ -18,75 +31,42 @@ typedef enum {
 } DSTest;
 
 void usage(void) {
-    fprintf(stderr, "Usage: %s\n", ProgName);
-    fprintf(stderr, "    -d DATA_STRUTURE    One of [ARRAY,LIST,QSORT]\n");
-    fprintf(stderr, "    -n NELEM            Number of elements to sort\n");
+    char *s = "Usage: %s\n"
+    "    -d DATA_STRUTURE    One of [ARRAY,LIST,QSORT]\n"
+    "    -n NELEM            Number of elements to sort";
+    fprintf(stderr, s, ProgName);
     exit(1);
 }
 
-void test_list(unsigned n) {
+void test_list(void) {
     List_unsigned *l = list_new(unsigned);
-    for (unsigned i = 0; i < n; ++i) {
-        list_push_back(unsigned, l, rand() % UINT_MAX);
-    }
-
-    before = clock();
-    list_sort(unsigned, l);
-    after = clock();
-
-    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+    runTest(list_push_back(unsigned, l, rand() % UINT_MAX), list_sort(unsigned, l))
     list_free(unsigned, l);
-    
-    printf("%.6f\n", elapsed);
 }
 
-void test_arr(unsigned n) {
+void test_arr(void) {
     Array_unsigned *a = array_new_unsigned();
-    for (unsigned i = 0; i < n; ++i) {
-        array_push_back_unsigned(a, rand() % UINT_MAX);
-    }
-    
-    before = clock();
-    array_sort(unsigned, a);
-    after = clock();
-
-    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
-
+    runTest(array_push_back(unsigned, a, rand() % UINT_MAX), array_sort(unsigned, a))
     array_free(unsigned, a);
-    
-    printf("%.6f\n", elapsed);
 }
 
 int sort_compare(const void *a, const void *b) {
     return *(unsigned *)a < *(unsigned *)b ? -1 : (*(unsigned *)a > *(unsigned *)b ? 1 : 0);
 }
 
-void test_qsort(unsigned n) {
-    unsigned *arr = malloc(sizeof(unsigned) * n);
-    for (unsigned i = 0; i < n; ++i) {
-        arr[i] = rand() % UINT_MAX;
-    }
-    
-    before = clock();
-    qsort(arr, n, sizeof(unsigned), sort_compare);
-    after = clock();
-
-    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
-
-    free(arr);
-    
-    printf("%.6f\n", elapsed);
+void test_qsort(void) {
+    unsigned *a = malloc(sizeof(unsigned) * n);
+    runTest(a[i] = rand() % UINT_MAX, qsort(a, n, sizeof(unsigned), sort_compare))
+    free(a);
 }
 
 int main(int argc, char *argv[]) {
-    ProgName = argv[0];
     int argind = 1;
     DSTest type = TEST_ARRAY;
-    unsigned n = 10000;
-    char *temp;
+    ProgName = argv[0];
 
-    while (argind < argc && strlen(argv[argind]) > 1 && argv[argind][0] == '-') {
-        char* arg = argv[argind++];
+    while (argind < argc && strlen(argv[argind]) && argv[argind][0] == '-') {
+        char* arg = argv[argind++], *temp;
         switch(arg[1]) {
             case 'd':
                 temp = argv[argind++];
@@ -112,15 +92,14 @@ int main(int argc, char *argv[]) {
 
     switch (type) {
         case TEST_QSORT:
-            test_qsort(n);
+            test_qsort();
             break;
         case TEST_ARRAY:
-            test_arr(n);
+            test_arr();
             break;
         default:
-            test_list(n);
+            test_list();
             break;
     }
-
     return 0;
 }

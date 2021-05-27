@@ -113,10 +113,11 @@ __DS_FUNC_PREFIX TypeName *__dq_new_##id(void) {                                
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __dq_free_##id(TypeName *q) {                                                          \
-    for (size_t i = q->pointers.frontStart; i < q->front.size; ++i) {                                        \
+    size_t i;                                                                                                \
+    for (i = q->pointers.frontStart; i < q->front.size; ++i) {                                               \
         deleteValue(q->front.arr[i]);                                                                        \
     }                                                                                                        \
-    for (size_t i = q->pointers.backStart; i < q->back.size; ++i) {                                          \
+    for (i = q->pointers.backStart; i < q->back.size; ++i) {                                                 \
         deleteValue(q->back.arr[i]);                                                                         \
     }                                                                                                        \
     free(q->front.arr);                                                                                      \
@@ -132,25 +133,28 @@ __DS_FUNC_PREFIX void __dq_pop_front_##id(TypeName *q) {                        
         deleteValue(q->back.arr[q->pointers.backStart]);                                                     \
         ++q->pointers.backStart;                                                                             \
         if (q->back.size > 32 && q->pointers.backStart > (q->back.size >> 1)) {                              \
+            size_t half = q->back.cap >> 1;                                                                  \
             memmove(q->back.arr, q->back.arr + q->pointers.backStart, (q->back.size - q->pointers.backStart) * sizeof(t)); \
             q->back.size -= q->pointers.backStart;                                                           \
             q->pointers.backStart = 0;                                                                       \
-            size_t half = q->back.cap >> 1;                                                                  \
             if (half > 8 && q->back.size < half) {                                                           \
                 t *tmp = __ds_realloc(q->back.arr, half * sizeof(t));                                        \
                 q->back.arr = tmp;                                                                           \
+                q->back.cap = half;                                                                          \
             }                                                                                                \
         }                                                                                                    \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __dq_push_back_##id(TypeName *q, t item) {                                             \
+    t* loc;                                                                                                  \
     if (q->back.size == q->back.cap) {                                                                       \
+        t *tmp;                                                                                              \
         q->back.cap <<= 1;                                                                                   \
-        t *tmp = __ds_realloc(q->back.arr, q->back.cap * sizeof(t));                                         \
+        tmp = __ds_realloc(q->back.arr, q->back.cap * sizeof(t));                                            \
         q->back.arr = tmp;                                                                                   \
     }                                                                                                        \
-    t* loc = &q->back.arr[q->back.size];                                                                     \
+    loc = &q->back.arr[q->back.size];                                                                        \
     copyValue((*loc), item);                                                                                 \
     ++q->back.size;                                                                                          \
 }                                                                                                            \
@@ -163,25 +167,28 @@ __DS_FUNC_PREFIX void __dq_pop_back_##id(TypeName *q) {                         
         deleteValue(q->front.arr[q->pointers.frontStart]);                                                   \
         ++q->pointers.frontStart;                                                                            \
         if (q->front.size > 32 && q->pointers.frontStart > (q->front.size >> 1)) {                           \
+            size_t half = q->front.cap >> 1;                                                                 \
             memmove(q->front.arr, q->front.arr + q->pointers.frontStart, (q->front.size - q->pointers.frontStart) * sizeof(t)); \
             q->front.size -= q->pointers.frontStart;                                                         \
             q->pointers.frontStart = 0;                                                                      \
-            size_t half = q->front.cap >> 1;                                                                 \
             if (half > 8 && q->front.size < half) {                                                          \
                 t *tmp = __ds_realloc(q->front.arr, half * sizeof(t));                                       \
                 q->front.arr = tmp;                                                                          \
+                q->back.cap = half;                                                                          \
             }                                                                                                \
         }                                                                                                    \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __dq_push_front_##id(TypeName *q, t item) {                                            \
+    t* loc;                                                                                                  \
     if (q->front.size == q->front.cap) {                                                                     \
-            q->front.cap <<= 1;                                                                              \
-            t *tmp = __ds_realloc(q->front.arr, q->front.cap * sizeof(t));                                   \
-            q->front.arr = tmp;                                                                              \
+        t *tmp;                                                                                              \
+        q->front.cap <<= 1;                                                                                  \
+        tmp = __ds_realloc(q->front.arr, q->front.cap * sizeof(t));                                          \
+        q->front.arr = tmp;                                                                                  \
     }                                                                                                        \
-    t* loc = &q->front.arr[q->front.size];                                                                   \
+    loc = &q->front.arr[q->front.size];                                                                      \
     copyValue((*loc), item);                                                                                 \
     ++q->front.size;                                                                                         \
 }                                                                                                            \

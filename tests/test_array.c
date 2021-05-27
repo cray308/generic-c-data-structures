@@ -13,14 +13,13 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "235","240","245"};
 
 void compare_ints(Array_int *a, int *comparison, int size) {
+    int i = 0, *it;
     assert(array_size(a) == size);
     if (size) {
         assert(*array_front(a) == comparison[0] && *array_back(a) == comparison[size-1]);
     } else {
         assert(!array_front(a) && !array_back(a));
     }
-    int i = 0;
-    int *it;
     array_iter(a, it) {
         assert(*it == comparison[i++]);
     }
@@ -33,14 +32,13 @@ void compare_ints(Array_int *a, int *comparison, int size) {
 }
 
 void compare_strs(Array_str *a, char **comparison, int size) {
+    int i = 0; char **it;
     assert(array_size(a) == size);
     if (size) {
         assert(streq(*array_front(a), comparison[0]) && streq(*array_back(a), comparison[size-1]));
     } else {
         assert(!array_front(a) && !array_back(a));
     }
-    int i = 0;
-    char **it;
     array_iter(a, it) {
         assert(streq(*it, comparison[i++]));
     }
@@ -162,7 +160,7 @@ void test_insert(void) {
     assert(array_insert_fromArray(int, ai, 0, ints, 0) == ARRAY_ERROR);
     assert(array_insert_fromArray(str, as, 0, strs, 0) == ARRAY_ERROR);
     {
-        int a1[] = {1,5}; char *a2 = {"1","5"};
+        int a1[] = {1,5}; char *a2[] = {"1","5"};
         assert(array_insert_fromArray(int, ai, array_size(ai), a1, 2) == 0);
         assert(array_insert_fromArray(str, as, array_size(as), a2, 2) == 0);
     }
@@ -257,24 +255,27 @@ void test_subarr(void) {
 
 void test_2d(void) {
     Array_int **arrptr;
-    int count = 0;
+    int i;
     Array_2d_int *arr2d = matrix_new(int, 5, 10);
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 10; ++j) {
+    for (i = 0; i < 5; ++i) {
+        int j;
+        for (j = 0; j < 10; ++j) {
             *matrix_at(int, arr2d, i, j) = ints[(i * 10) + j];
         }
     }
 
+    i = 0;
     array_iter(arr2d, arrptr) {
         int *iptr;
         array_iter(*arrptr, iptr) {
-            assert(*iptr == ints[count++]);
+            assert(*iptr == ints[i++]);
         }
     }
-    assert(count == 50);
+    assert(i == 50);
 
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 10; ++j) {
+    for (i = 0; i < 5; ++i) {
+        int j;
+        for (j = 0; j < 10; ++j) {
             assert(matrix_index(arr2d, i, j) == ints[((i * 10) + j)]);
         }
     }

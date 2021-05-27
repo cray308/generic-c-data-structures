@@ -18,18 +18,17 @@ typedef struct {
 __DS_FUNC_PREFIX void string_reserve(String *s, size_t n);
 __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 
-#define __str_test_chars_body(f) for(const char *c = s; *c; ++c) { if (!f(*c)) return false; } return true;
+#define __str_test_chars_body(f) const char *c; for(c = s; *c; ++c) { if (!f(*c)) return false; } return true;
 
-#define __str_convert_case_body(f) for(char *c = s; *c; ++c) { *c = f(*c); }
+#define __str_convert_case_body(f) char *c; for(c = s; *c; ++c) { *c = f(*c); }
 
 #define __str_find_x_of_body(checkCharsAction, afterCheckCharsAction, mainLoop, prevChar)                    \
+    const char *c;                                                                                           \
     if (!s->len || !chars) return STRING_NPOS;                                                               \
                                                                                                              \
     if (*chars == '\0') return pos;                                                                          \
                                                                                                              \
     if ((pos = modulo(pos, s->len)) < 0) return STRING_ERROR;                                                \
-                                                                                                             \
-    const char *c;                                                                                           \
                                                                                                              \
     for (c = chars; *c; ++c) {                                                                               \
         if (s->s[pos] == *c) {                                                                               \
@@ -43,16 +42,16 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
             if (s->s[pos] == *c) {                                                                           \
                 checkCharsAction                                                                             \
             }                                                                                                \
-            afterCheckCharsAction                                                                            \
         }                                                                                                    \
+        afterCheckCharsAction                                                                                \
     }                                                                                                        \
     return STRING_NPOS;                                                                                      \
 
 #define __str_prefix_table_body(needle, start, len, incr, decr, whileCond) {                                 \
-    table = __ds_malloc(sizeof(int) * len);                                                                  \
     const int minIndex = start;                                                                              \
     int cnd = minIndex; /* needle position */                                                                \
     int index = cnd incr 1; /* table position */                                                             \
+    table = __ds_malloc(sizeof(int) * len);                                                                  \
     table[cnd] = cnd;                                                                                        \
                                                                                                              \
     whileCond {                                                                                              \
@@ -72,6 +71,8 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 }
 
 #define __str_find_body(pos, hsLength, hsOffset, incr, decr, iMin, iMax, jMin, jMax, tableCall, whileFind, result) \
+    int res, len_haystack;                                                                                   \
+    char *haystack;                                                                                          \
     if (!(needle && s->len)) return STRING_ERROR;                                                            \
                                                                                                              \
     else if (*needle == '\0' || !len_needle) return pos;                                                     \
@@ -80,11 +81,11 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
                                                                                                              \
     if (len_needle < 0) len_needle = strlen(needle);                                                         \
                                                                                                              \
-    int len_haystack = hsLength;                                                                             \
+    len_haystack = hsLength;                                                                                 \
     if (len_needle > len_haystack) return STRING_NPOS;                                                       \
                                                                                                              \
-    char *haystack = s->s + hsOffset;                                                                        \
-    int res = STRING_NPOS;                                                                                   \
+    haystack = s->s + hsOffset;                                                                              \
+    res = STRING_NPOS;                                                                                       \
     {                                                                                                        \
         int *table;                                                                                          \
         tableCall                                                                                            \
@@ -234,9 +235,7 @@ __DS_FUNC_PREFIX String *string_createCopy(const String *other) {
  * Frees memory allocated to the string struct.
  */
 __DS_FUNC_PREFIX_INL void string_free(String *s) {
-    if (s->cap) {
-        free(s->s);
-    }
+    if (s->cap) free(s->s);
     free(s);
 }
 
@@ -247,13 +246,15 @@ __DS_FUNC_PREFIX_INL void string_free(String *s) {
  * @param  n  New capacity.
  */
 __DS_FUNC_PREFIX void string_reserve(String *s, size_t n) {
+    size_t val;
+    char *tmp;
     if (n <= s->cap) return;
 
-    size_t val = s->cap ? s->cap : 1;
+    val = s->cap ? s->cap : 1;
     while (val < n) { /* double the capacity from what it was before */
         val <<= 1;
     }
-    char *tmp = __ds_realloc(s->s, val);
+    tmp = __ds_realloc(s->s, val);
     s->s = tmp;
     s->cap = val;
 }
@@ -295,6 +296,7 @@ __DS_FUNC_PREFIX_INL void string_clear(String *s) {
  *                  until the end will be removed.
  */
 __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
+    int end;
     if (!n || s->len == 0) return;
 
     if ((start = modulo(start, s->len)) < 0) return;
@@ -305,7 +307,7 @@ __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
         n = min(n, (int) s->len - start);
     }
 
-    int end = start + n;
+    end = start + n;
     
     if (end < string_len(s)) { /* move any characters after end to start */
         memmove(&s->s[start], &s->s[end], s->len - (size_t) end);
@@ -320,8 +322,9 @@ __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
  * enough space to fit all characters.
  */
 __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *s) {
+    char *tmp;
     if (s->len == 0 || s->len + 1 == s->cap || s->cap <= 64) return;
-    char *tmp = __ds_realloc(s->s, s->len + 1); /* realloc only enough space for string and '\0' */
+    tmp = __ds_realloc(s->s, s->len + 1); /* realloc only enough space for string and '\0' */
     s->cap = s->len + 1;
     s->s = tmp;
 }
@@ -426,7 +429,7 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len) {
     s->s[s->len] = 0;
 }
 
-
+#if __STDC_VERSION__ >= 199901L
 /**
  * Inserts a format string `format` into this string before `pos`.
  *
@@ -450,8 +453,9 @@ __DS_FUNC_PREFIX_INL void string_printf(String *s, int pos, const char *format, 
             free(buf);
             return;
         } else if (n > -1) { /* buffer was too small */
+            char *temp;
             buf_size <<= 1;
-            char *temp = __ds_realloc(buf, buf_size);
+            temp = __ds_realloc(buf, buf_size);
             buf = temp;
         } else { /* some error with vsnprintf, stop the function */
             free(buf);
@@ -459,6 +463,8 @@ __DS_FUNC_PREFIX_INL void string_printf(String *s, int pos, const char *format, 
         }
     }
 }
+#else
+#endif
 
 
 /**
@@ -505,7 +511,7 @@ __DS_FUNC_PREFIX int string_rfind(String *s, int end_pos, const char *needle, in
  *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_first_of(String *s, int pos, const char *chars) {
-    __str_find_x_of_body(return pos;, , for(++pos; pos < (int) s->len; ++pos), pos-1)
+    __str_find_x_of_body(return pos;, ____cds_do_nothing, for(++pos; pos < (int) s->len; ++pos), pos-1)
 }
 
 
@@ -519,7 +525,7 @@ int string_find_first_of(String *s, int pos, const char *chars) {
  *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_last_of(String *s, int pos, const char *chars) {
-    __str_find_x_of_body(return pos;, , for(--pos; pos >= 0; --pos), pos+1)
+    __str_find_x_of_body(return pos;, ____cds_do_nothing, for(--pos; pos >= 0; --pos), pos+1)
 }
 
 
@@ -565,24 +571,22 @@ int string_find_last_not_of(String *s, int pos, const char *chars) {
  * @return             Newly allocated `String`, or NULL if an error occurred.
  */
 __DS_FUNC_PREFIX String *string_substr(String *s, int start, int n, int step_size) {
+    String *sub;
     if (!s->len || !n) return NULL;
 
-    if (step_size == 0) {
-        step_size = 1;
-    }
+    if (step_size == 0) step_size = 1;
 
     if ((start = modulo(start, s->len)) < 0) return NULL;
 
-    String *sub = string_new();
-    int end;
+    sub = string_new();
 
     if (step_size < 0) {
-        end = (n < 0) ? -1 : max(-1, start + (n * step_size));
+        int end = (n < 0) ? -1 : max(-1, start + (n * step_size));
         for (; start > end; start += step_size) {
             string_push_back(sub, s->s[start]);
         }
     } else {
-        end = (n < 0) ? string_len(s) : min(string_len(s), start + (n * step_size));
+        int end = (n < 0) ? string_len(s) : min(string_len(s), start + (n * step_size));
         for (; start < end; start += step_size) {
             string_push_back(sub, s->s[start]);
         }
@@ -601,20 +605,21 @@ __DS_FUNC_PREFIX String *string_substr(String *s, int start, int n, int step_siz
  *                 NULL if an error occurred.
  */
 __DS_FUNC_PREFIX String **string_split(String *s, const char *delim) {
+    int len_delim, end, *positions, index = 0, arr_len = 0, start = 0;
+    String **arr, *substring = NULL;
     if (!delim || *delim == '\0' || !s->len) return NULL;
 
-    const int len_delim = strlen(delim);
-    int arr_len = 0, *positions = __ds_calloc(8, sizeof(int));
+    len_delim = strlen(delim), positions = __ds_calloc(8, sizeof(int));
 
     {
-        int pos_size = 8, index = 0;
-        int *table;
+        int pos_size = 8, *table;
         __str_prefix_table_body(delim, 0, len_delim, +, -, while(index < len_delim))
     
         __str_find_main_loop(s->s, delim, +, -, 0, string_len(s), 0, len_delim, i < iEnd,                    \
             if (index == pos_size) {                                                                         \
+                int *temp;                                                                                   \
                 pos_size <<= 1;                                                                              \
-                int *temp = __ds_realloc(positions, pos_size * sizeof(int));                                 \
+                temp = __ds_realloc(positions, pos_size * sizeof(int));                                      \
                 positions = temp;                                                                            \
                 memset(&positions[index + 1], 0, (pos_size - index + 1) * sizeof(int));                      \
             }                                                                                                \
@@ -630,21 +635,20 @@ __DS_FUNC_PREFIX String **string_split(String *s, const char *delim) {
         free(table);
     }
     
-    String **arr = __ds_malloc((arr_len + 1) * sizeof(String *));
-    String *substring = NULL;
-    int i = 0, start = 0, end = positions[0];
+    arr = __ds_malloc((arr_len + 1) * sizeof(String *));
+    index = 0, end = positions[0];
 
     while (end != -1) {
         substring = string_new();
         string_insert(substring, 0, &s->s[start], end - start);
-        arr[i++] = substring;
+        arr[index++] = substring;
         start = end + len_delim;
-        end = positions[i];
+        end = positions[index];
     }
 
     substring = string_new();
     string_insert(substring, 0, &s->s[start], string_len(s) - start);
-    arr[i++] = substring;
+    arr[index++] = substring;
     arr[arr_len] = NULL;
     free(positions);
     return arr;    
@@ -657,7 +661,8 @@ __DS_FUNC_PREFIX String **string_split(String *s, const char *delim) {
  * @param  arr  Array allocated by `string_split`.
  */
 __DS_FUNC_PREFIX_INL void string_split_free(String **arr) {
-    for (String **s = arr; *s; ++s) {
+    String **s;
+    for (s = arr; *s; ++s) {
         string_free(*s);
     }
     free(arr);

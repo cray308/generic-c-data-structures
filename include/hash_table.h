@@ -10,12 +10,14 @@
 
 uint32_t murmurhash(const void *key, int len, uint32_t seed) {
     const uint8_t *data = (const uint8_t *) key;
-    const int nblocks = len / 4;
+    const int nblocks = len >> 2; int i;
+    uint32_t h1 = seed, k = 0;
+    uint32_t const *blocks;
+    uint8_t const *tail;
+    blocks = (const uint32_t *) (data + (nblocks * 4));
+    tail = (const uint8_t *) (data + (nblocks * 4));
 
-    uint32_t h1 = seed;
-    const uint32_t *blocks = (const uint32_t *) (data + (nblocks * 4));
-
-    for (int i = -nblocks; i; i++) {
+    for (i = -nblocks; i; i++) {
         uint32_t k1 = blocks[i];
 
         k1 *= 0xcc9e2d51;
@@ -27,22 +29,19 @@ uint32_t murmurhash(const void *key, int len, uint32_t seed) {
         h1 = (h1 * 5) + 0xe6546b64;
     }
 
-    const uint8_t *tail = (const uint8_t *) (data + (nblocks * 4));
-    uint32_t k1 = 0;
-
     switch(len & 3) {
     case 3:
-        k1 ^= tail[2] << 16;
+        k ^= tail[2] << 16;
         /* fall through */
     case 2:
-        k1 ^= tail[1] << 8;
+        k ^= tail[1] << 8;
         /* fall through */
     case 1:
-        k1 ^= tail[0];
-        k1 *= 0xcc9e2d51;
-        k1 = (k1 << 15) | (k1 >> 17);
-        k1 *= 0x1b873593;
-        h1 ^= k1;
+        k ^= tail[0];
+        k *= 0xcc9e2d51;
+        k = (k << 15) | (k >> 17);
+        k *= 0x1b873593;
+        h1 ^= k;
     };
 
     h1 ^= len;
@@ -82,7 +81,7 @@ struct EntryType {                                                              
 typedef struct {                                                                                             \
     size_t size;                                                                                             \
     size_t cap;                                                                                              \
-    const uint32_t seed;                                                                                     \
+    uint32_t seed;                                                                                           \
     double lf;                                                                                               \
     struct {                                                                                                 \
         struct EntryType *curr;                                                                              \
@@ -123,9 +122,9 @@ __DS_FUNC_PREFIX void __htable_insert_fromArray_##id(TableType *ht, DataType* ar
 __DS_FUNC_PREFIX bool __htable_erase_##id(TableType *ht, const kt key);                                      \
                                                                                                              \
 __DS_FUNC_PREFIX TableType *__htable_new_##id(void) {                                                        \
-    TableType *ht = __ds_malloc(sizeof(TableType));                                                          \
+    TableType *ht = __ds_calloc(1, sizeof(TableType));                                                          \
     srand(time(NULL));                                                                                       \
-    memcpy(ht, &((TableType){.cap = 32, .seed = rand() % UINT32_MAX, .lf = 0.75}), sizeof(TableType));       \
+    ht->cap = 32, ht->lf = 0.75, ht->seed = rand() % UINT32_MAX;  \
     ht->buckets = __ds_calloc(ht->cap, sizeof(struct EntryType *));                                          \
     return ht;                                                                                               \
 }                                                                                                            \
@@ -138,12 +137,11 @@ __DS_FUNC_PREFIX TableType *__htable_new_fromArray_##id(DataType *arr, size_t n)
                                                                                                              \
 __DS_FUNC_PREFIX TableType *__htable_createCopy_##id(TableType *other) {                                     \
     TableType *ht = __ds_malloc(sizeof(TableType));                                                          \
-    TableType temp = {.size = other->size, .cap = other->cap, .seed = other->seed, .lf = other->lf};         \
-    memcpy(ht, &temp, sizeof(TableType));                                                                    \
+    size_t i;     \
+    ht->size = other->size, ht->cap = other->cap, ht->seed = other->seed, ht->lf = other->lf;            \
     ht->buckets = __ds_calloc(ht->cap, sizeof(struct EntryType *));                                          \
-    for (size_t i = 0; i < other->cap; ++i) {                                                                \
+    for (i = 0; i < other->cap; ++i) {                                                                \
         struct EntryType *e = other->buckets[i];                                                             \
-                                                                                                             \
         while (e) {                                                                                          \
             struct EntryType *new = __ds_calloc(1, sizeof(struct EntryType));                                \
             copyKey(entry_get_key(new), entry_get_key(e));                                                   \
@@ -170,23 +168,22 @@ __DS_FUNC_PREFIX_INL DataType *__htable_find_##id(TableType *ht, const kt key) {
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __htable_rehash_##id(TableType *ht, size_t nbuckets) {                                 \
+    size_t n; uint32_t i;        \
+    struct EntryType **new;      \
     if (nbuckets <= ht->cap) return;                                                                         \
                                                                                                              \
-    size_t n = ht->cap; /* for consistency, use a multiple of 2 of the capacity */                           \
+    n = ht->cap; /* for consistency, use a multiple of 2 of the capacity */                           \
     while (n < nbuckets) {                                                                                   \
         n <<= 1;                                                                                             \
     }                                                                                                        \
                                                                                                              \
-    struct EntryType **new = __ds_calloc(n, sizeof(struct EntryType *));                                     \
-    struct EntryType *e = NULL, *temp = NULL;                                                                \
-    uint32_t index = 0;                                                                                      \
-                                                                                                             \
-    for (size_t i = 0; i < ht->cap; ++i) {                                                                   \
-        e = ht->buckets[i];                                                                                  \
+    new = __ds_calloc(n, sizeof(struct EntryType *));                                     \
+    for (i = 0; i < ht->cap; ++i) {                                                                   \
+        struct EntryType *e = ht->buckets[i];                                                                                  \
                                                                                                              \
         while (e) {                                                                                          \
-            temp = e->next;                                                                                  \
-            index = murmurhash(addrOfKey(entry_get_key(e)), sizeOfKey(entry_get_key(e)), ht->seed) % n;      \
+            struct EntryType *temp = e->next;                                                                                  \
+            uint32_t index = murmurhash(addrOfKey(entry_get_key(e)), sizeOfKey(entry_get_key(e)), ht->seed) % n;      \
             e->next = new[index];                                                                            \
             new[index] = e;                                                                                  \
             e = temp;                                                                                        \
@@ -199,31 +196,32 @@ __DS_FUNC_PREFIX void __htable_rehash_##id(TableType *ht, size_t nbuckets) {    
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __htable_set_load_factor_##id(TableType *ht, double lf) {                              \
+    double curr_lf;                                                                                          \
     if (lf < 0.500 || lf > 1.000) return;                                                                    \
     ht->lf = lf;                                                                                             \
-    double curr_lf = (double) ht->size / ht->cap;                                                            \
+    curr_lf = (double) ht->size / ht->cap;                                                                   \
     if (curr_lf > ht->lf) {                                                                                  \
         __htable_rehash_##id(ht, ht->cap << 1);                                                              \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX DataType *__htable_insert_##id(TableType *ht, DataType data, int *inserted) {               \
+    uint32_t index; struct EntryType *e = NULL;  \
     double lf = (double) ht->size / ht->cap;                                                                 \
     if (lf > ht->lf) {                                                                                       \
         __htable_rehash_##id(ht, ht->cap << 1);                                                              \
     }                                                                                                        \
                                                                                                              \
     /* get index and entry at that index */                                                                  \
-    uint32_t index = murmurhash(addrOfKey(data_get_key(data)), sizeOfKey(data_get_key(data)), ht->seed) % ht->cap; \
-    struct EntryType *e = NULL;                                                                              \
+    index = murmurhash(addrOfKey(data_get_key(data)), sizeOfKey(data_get_key(data)), ht->seed) % ht->cap; \
     __htable_find_index(struct EntryType, ht, entry_get_key, cmp_eq, e, index, data_get_key(data))           \
-    int _inserted = 0;                                                                                       \
                                                                                                              \
     if (e) {                                                                                                 \
+        if (inserted) *inserted = 0;       \
         deleteValue(e->data.second);                                                                         \
         copyValue(e->data.second, data.second);                                                              \
     } else {                                                                                                 \
-        _inserted = 1;                                                                                       \
+        if (inserted) *inserted = 1;                                                                                       \
         e = __ds_calloc(1, sizeof(struct EntryType));                                                        \
         copyKey(entry_get_key(e), data_get_key(data));                                                       \
         e->next = ht->buckets[index];                                                                        \
@@ -231,23 +229,23 @@ __DS_FUNC_PREFIX DataType *__htable_insert_##id(TableType *ht, DataType data, in
         ht->size++;                                                                                          \
         copyValue(e->data.second, data.second);                                                              \
     }                                                                                                        \
-    if (inserted) *inserted = _inserted;                                                                     \
     return &(e->data);                                                                                       \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __htable_insert_fromArray_##id(TableType *ht, DataType* arr, size_t n) {               \
+    size_t i;    \
     if (!(arr && n)) return;                                                                                 \
-    for (size_t i = 0; i < n; ++i) {                                                                         \
+    for (i = 0; i < n; ++i) {                                                                         \
         __htable_insert_##id(ht, arr[i], NULL);                                                              \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX bool __htable_erase_##id(TableType *ht, const kt key) {                                     \
+    struct EntryType *prev, *curr;      \
     uint32_t index = murmurhash(addrOfKey(key), sizeOfKey(key), ht->seed) % ht->cap;                         \
     if (!(ht->buckets[index])) return false; /* this entry does not exist */                                 \
                                                                                                              \
-    struct EntryType *prev = ht->buckets[index];                                                             \
-    struct EntryType *curr = prev->next;                                                                     \
+    prev = ht->buckets[index], curr = prev->next;                                                                     \
     if (cmp_eq(entry_get_key(prev), key)) { /* special case when it's the first bucket entry */              \
         ht->buckets[index] = curr;                                                                           \
         deleteKey(entry_get_key(prev));                                                                      \
@@ -273,12 +271,12 @@ __DS_FUNC_PREFIX bool __htable_erase_##id(TableType *ht, const kt key) {        
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __htable_clear_##id(TableType *ht) {                                                   \
-    struct EntryType *e = NULL, *temp = NULL;                                                                \
-    for (size_t i = 0; i < ht->cap; ++i) { /* iterate over all buckets */                                    \
-        e = ht->buckets[i];                                                                                  \
+    size_t i;                                                                \
+    for (i = 0; i < ht->cap; ++i) { /* iterate over all buckets */                                    \
+        struct EntryType *e = ht->buckets[i];                                                                                  \
                                                                                                              \
         while (e) { /* iterate through linked list */                                                        \
-            temp = e->next;                                                                                  \
+            struct EntryType *temp = e->next;                                                                                  \
             deleteKey(entry_get_key(e));                                                                     \
             deleteValue(e->data.second);                                                                     \
             free(e);                                                                                         \
