@@ -137,7 +137,7 @@ __DS_FUNC_PREFIX_INL void __rbtree_clear_##id(TreeType *this) {                 
     this->root = NULL;                                                                                       \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX EntryType *__rbtree_find_key_##id(TreeType *this, const kt key, bool candidate) {           \
+__DS_FUNC_PREFIX EntryType *__rbtree_find_key_##id(TreeType *this, const kt key, unsigned char candidate) {  \
     EntryType *temp = this->root;                                                                            \
     while (temp) {                                                                                           \
         if (cmp_lt(key, entry_get_key(temp))) {                                                              \
@@ -170,7 +170,7 @@ __DS_FUNC_PREFIX EntryType *__rbtree_insert_##id(TreeType *this, DataType data, 
         copyValue(newNode->data.second, data.second);                                                        \
         this->root = newNode;                                                                                \
     } else {                                                                                                 \
-        EntryType *temp = __rbtree_find_key_##id(this, data_get_key(data), true);                            \
+        EntryType *temp = __rbtree_find_key_##id(this, data_get_key(data), 1);                               \
         if (ds_cmp_eq(cmp_lt, entry_get_key(temp), data_get_key(data))) {                                    \
             free(newNode);                                                                                   \
             deleteValue(temp->data.second);                                                                  \
@@ -214,7 +214,7 @@ __DS_FUNC_PREFIX void __rbtree_remove_entry_##id(TreeType *this, EntryType *v) {
     else if (v->left) u = v->left;                                                                           \
     else if (v->right) u = v->right;                                                                         \
                                                                                                              \
-    bool uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));                                       \
+    char uvBlack = ((!u || u->color == BLACK) && (v->color == BLACK));                                       \
     EntryType *parent = v->parent;                                                                           \
     if (!u) {                                                                                                \
         if (v == this->root) {                                                                               \

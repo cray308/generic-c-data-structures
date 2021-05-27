@@ -18,17 +18,15 @@ typedef struct {
 __DS_FUNC_PREFIX void string_reserve(String *s, size_t n);
 __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
 
-#define __str_test_chars_body(f) const char *c; for(c = s; *c; ++c) { if (!f(*c)) return false; } return true;
+#define __str_test_chars_body(f) const char *c; for(c = s; *c; ++c) { if (!f(*c)) return 0; } return 1;
 
 #define __str_convert_case_body(f) char *c; for(c = s; *c; ++c) { *c = f(*c); }
 
 #define __str_find_x_of_body(checkCharsAction, afterCheckCharsAction, mainLoop, prevChar)                    \
     const char *c;                                                                                           \
     if (!s->len || !chars) return STRING_NPOS;                                                               \
-                                                                                                             \
-    if (*chars == '\0') return pos;                                                                          \
-                                                                                                             \
-    if ((pos = modulo(pos, s->len)) < 0) return STRING_ERROR;                                                \
+    else if (*chars == '\0') return pos;                                                                     \
+    else if ((pos = modulo(pos, s->len)) < 0) return STRING_ERROR;                                           \
                                                                                                              \
     for (c = chars; *c; ++c) {                                                                               \
         if (s->s[pos] == *c) {                                                                               \
@@ -74,9 +72,7 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
     int res, len_haystack;                                                                                   \
     char *haystack;                                                                                          \
     if (!(needle && s->len)) return STRING_ERROR;                                                            \
-                                                                                                             \
     else if (*needle == '\0' || !len_needle) return pos;                                                     \
-                                                                                                             \
     else if ((pos = modulo(pos, s->len)) < 0) return STRING_ERROR;                                           \
                                                                                                              \
     if (len_needle < 0) len_needle = strlen(needle);                                                         \
@@ -84,8 +80,7 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
     len_haystack = hsLength;                                                                                 \
     if (len_needle > len_haystack) return STRING_NPOS;                                                       \
                                                                                                              \
-    haystack = s->s + hsOffset;                                                                              \
-    res = STRING_NPOS;                                                                                       \
+    haystack = s->s + hsOffset, res = STRING_NPOS;                                                           \
     {                                                                                                        \
         int *table;                                                                                          \
         tableCall                                                                                            \
@@ -157,8 +152,8 @@ __DS_FUNC_PREFIX void string_append(String *s, const char *other, int len);
  * @param  i  Index in string.
  */
 __DS_FUNC_PREFIX_INL char *string_at(String *str, int i) {
-    int _idx = modulo(i, str->len);
-    return (_idx >= 0) ? &(str->s[_idx]) : NULL;
+    int idx = modulo(i, str->len);
+    return (idx >= 0) ? &(str->s[idx]) : NULL;
 }
 
 
@@ -297,9 +292,7 @@ __DS_FUNC_PREFIX_INL void string_clear(String *s) {
  */
 __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
     int end;
-    if (!n || s->len == 0) return;
-
-    if ((start = modulo(start, s->len)) < 0) return;
+    if (!(n && s->len) || (start = modulo(start, s->len)) < 0) return;
 
     if (n < 0) {
         n = (int) s->len - start;
@@ -308,7 +301,6 @@ __DS_FUNC_PREFIX void string_erase(String *s, int start, int n) {
     }
 
     end = start + n;
-    
     if (end < string_len(s)) { /* move any characters after end to start */
         memmove(&s->s[start], &s->s[end], s->len - (size_t) end);
     }
@@ -572,11 +564,9 @@ int string_find_last_not_of(String *s, int pos, const char *chars) {
  */
 __DS_FUNC_PREFIX String *string_substr(String *s, int start, int n, int step_size) {
     String *sub;
-    if (!s->len || !n) return NULL;
+    if (!(s->len && n) || (start = modulo(start, s->len)) < 0) return NULL;
 
     if (step_size == 0) step_size = 1;
-
-    if ((start = modulo(start, s->len)) < 0) return NULL;
 
     sub = string_new();
 
@@ -674,7 +664,7 @@ __DS_FUNC_PREFIX_INL void string_split_free(String **arr) {
  *
  * @return     Whether or not all characters in `s` are alphanumeric.
  */
-__DS_FUNC_PREFIX_INL bool isAlphaNum(const char *s) {
+__DS_FUNC_PREFIX_INL unsigned char isAlphaNum(const char *s) {
     __str_test_chars_body(isalnum)
 }
 
@@ -684,7 +674,7 @@ __DS_FUNC_PREFIX_INL bool isAlphaNum(const char *s) {
  *
  * @return     Whether or not all characters in `s` are letters.
  */
-__DS_FUNC_PREFIX_INL bool isAlpha(const char *s) {
+__DS_FUNC_PREFIX_INL unsigned char isAlpha(const char *s) {
     __str_test_chars_body(isalpha)
 }
 
@@ -694,7 +684,7 @@ __DS_FUNC_PREFIX_INL bool isAlpha(const char *s) {
  *
  * @return     Whether or not all characters in `s` are digits.
  */
-__DS_FUNC_PREFIX_INL bool isDigit(const char *s) {
+__DS_FUNC_PREFIX_INL unsigned char isDigit(const char *s) {
     __str_test_chars_body(isdigit)
 }
 

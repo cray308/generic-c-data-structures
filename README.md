@@ -5,9 +5,8 @@
 This was mainly a personal project to see if I could create some generic data structures
 in C, a language where generic anything is somewhat difficult to implement. I got
 inspiration from the [UThash library](https://github.com/troydhanson/uthash) by Troy D.
-Hanson. When I wrote this library, I designed it to run on Linux; if anyone
-ends up using this in their projects with non-GNU compilers, I will work on
-making it compatible with other compilers.
+Hanson. I wrote this library on Linux using gcc, and the `master` branch conforms to the C89 
+standard. Thus, it should be compatible with most compilers.
 
 Originally, I made everything generic by storing any data type in a `char[]` occupying some number of
 bytes. This works fine, but after adding some "polymorphism" with variable-argument functions
@@ -27,17 +26,20 @@ correct function is called when the macro is expanded.
 
  - List (named `List`). This is analogous to a C++ `std::list` and uses a doubly-linked list internally. This can also function as a deque.
 
- - Queue (named `Queue`). In contrast to `List`, this only allows pushing to the back and popping from the front).
+ - Deque (named `Deque`). Allows adding or removing elements from the front and back.
 
- - Stack (named `Stack`).
+ - Queue (named `Queue`). In contrast to `Deque`, this only allows pushing to the back and popping from the front).
 
- - Red-black tree (named `Tree`).
+ - Stack (named `Stack`). Allows pushing onto the back and popping from the back.
 
- - Set (named `Set`). In this implementation, a `Set` is simply a typedef for `Tree`. Note that set operations may also be performed on arrays (built-in or the `Array` mentioned above) or the `List` data structure.
+ - AVL tree - there are 2 concrete data structures which use this:
+   - Dictionary (named `Map`). This is similar to a C++ `map`; it stores key-value pairs, and is an 
+    alternative to the hash table implementation.
+   - Set (named `Set`). This is similar to a C++ `set`; it stores a unique set of keys, and is an 
+    alternative to the hash table implementation.
 
- - String (named `String`). This is similar to a C++ `std::string`, and also includes a function for inserting a printf-style format string.
+ - Hash table - there are 2 concrete data structures which use this:
+   - Dictionary (named `UMap`). This is similar to a C++ `unordered_map`.
+   - Set (named `USet`). This is similar to a C++ `unordered_set`.
 
- - Hash table (named `UMap`). This is analogous to a C++ `std::unordered_map` and is capable of using most data types as keys.
-   - Any "value" data type (`int`, `float`, `double`, `char`, etc) can be used as a key.
-   - If a given pointer has already been dynamically allocated or is globally accessible, that pointer type may be used as a key.
-   - The only pointer key that can be "deep-copied" at this time is `char *`.
+ - String (named `String`). This is similar to a C++ `std::string`, and also includes a function for inserting a printf-style format string (for C99 and above).

@@ -82,7 +82,7 @@
  *
  * @return     `MapEntry` whose key matches `k`, or NULL if it was not found.
  */
-#define map_find(id, m, k) __avltree_find_key_##id(m, k, false)
+#define map_find(id, m, k) __avltree_find_key_##id(m, k, 0)
 
 
 /**
@@ -186,7 +186,7 @@ gen_pair(id, kt, vt)                                                            
 __gen_avltree(id, kt, cmp_lt, Map_##id, Pair_##id, MapEntry_##id, __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
 __DS_FUNC_PREFIX_INL vt *map_at_##id(Map_##id *m, const kt key) {                                            \
-    MapEntry_##id *e = __avltree_find_key_##id(m, key, false);                                               \
+    MapEntry_##id *e = __avltree_find_key_##id(m, key, 0);                                                   \
     return e ? &(e->data.second) : NULL;                                                                     \
 }                                                                                                            \
 

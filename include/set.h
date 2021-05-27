@@ -84,7 +84,7 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define set_contains(id, s, value) (__avltree_find_key_##id(s, value, false) != NULL)
+#define set_contains(id, s, value) (__avltree_find_key_##id(s, value, 0) != NULL)
 
 
 /**
@@ -94,7 +94,7 @@
  *
  * @return         `SetEntry` that was found, or NULL if it was not found.
  */
-#define set_find(id, s, value) __avltree_find_key_##id(s, value, false)
+#define set_find(id, s, value) __avltree_find_key_##id(s, value, 0)
 
 
 /**
@@ -251,22 +251,21 @@
 __gen_avltree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __set_data_get_key, copyValue, deleteValue, __set_copy_value, __set_delete_value) \
 __gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, set_new, SetEntry_##id *, iter_next_AVLTREE, iter_deref_AVLTREE, set_insert, set_insert_fromSet(id, d_new, first1, last1), set_insert_fromSet(id, d_new, first2, last2)) \
                                                                                                              \
-__DS_FUNC_PREFIX bool set_disjoint_##id(Set_##id *this, Set_##id *other) {                                   \
+__DS_FUNC_PREFIX unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other) {                          \
     SetEntry_##id *n1, *n2;                                                                                  \
-    if (!other || !other->root) return false;                                                                \
+    if (!other || !other->root) return 0;                                                                    \
                                                                                                              \
-    n1 = __avl_successor_##id(this->root);                                                                   \
-    n2 = __avl_successor_##id(other->root);                                                                  \
+    n1 = __avl_successor_##id(this->root), n2 = __avl_successor_##id(other->root);                           \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __avl_inorder_successor_##id(n1);                                                           \
         } else if (cmp_lt(n2->data, n1->data)) {                                                             \
             n2 = __avl_inorder_successor_##id(n2);                                                           \
         } else {                                                                                             \
-            return false;                                                                                    \
+            return 0;                                                                                        \
         }                                                                                                    \
     }                                                                                                        \
-    return true;                                                                                             \
+    return 1;                                                                                                \
 }                                                                                                            \
 
 #endif

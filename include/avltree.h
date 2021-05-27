@@ -85,7 +85,7 @@ __DS_FUNC_PREFIX EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x)
     __avl_tree_x_rotate_body(EntryType, this, x, left, right)                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key, bool candidate) {          \
+__DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate) { \
     EntryType *curr = this->root;                                                                            \
     while (curr) {                                                                                           \
         if (cmp_lt(key, entry_get_key(curr))) {                                                              \
@@ -110,7 +110,7 @@ __DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {            \
-	EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), true), *new, *parent;                \
+	EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1), *new, *parent;                   \
     if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {                                \
         deleteValue(curr->data.second);                                                                      \
         copyValue(curr->data.second, data.second);                                                           \
@@ -227,7 +227,7 @@ __DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n)
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                            \
 	char deleteData = 1;                                                                                     \
-	EntryType *curr, *parent, *child;                                                                                \
+	EntryType *curr, *parent, *child;                                                                        \
 	if (v->left && v->right) {                                                                               \
         EntryType *temp = __avl_inorder_successor_##id(v);                                                   \
         deleteData = 0;                                                                                      \
@@ -327,7 +327,7 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_remove_key_##id(TreeType *this, const kt key) {                              \
-    EntryType *v = __avltree_find_key_##id(this, key, false);                                                \
+    EntryType *v = __avltree_find_key_##id(this, key, 0);                                                    \
     if (!v) return;                                                                                          \
     __avltree_remove_entry_##id(this, v);                                                                    \
 }                                                                                                            \

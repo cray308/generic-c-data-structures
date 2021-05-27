@@ -286,9 +286,7 @@ __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {             
                                                                                                              \
 __DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {                                 \
     int endIdx, i, res;                                                                                      \
-    if (!nelem || a->size == 0) return ARRAY_ERROR;                                                          \
-                                                                                                             \
-    if ((first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                                            \
+    if (!(nelem && a->size) || (first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                     \
                                                                                                              \
     if (nelem < 0) { /* erase from first to end of array */                                                  \
         nelem = array_size(a) - first;                                                                       \
@@ -347,8 +345,7 @@ __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element) {   
         array_push_back_##id(a, element);                                                                    \
         return a->size - 1;                                                                                  \
     }                                                                                                        \
-                                                                                                             \
-    if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                            \
+    else if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                       \
                                                                                                              \
     array_reserve_##id(a, a->size + 1);                                                                      \
     memmove(a->arr + (index + 1), a->arr + index, (array_size(a) - index) * sizeof(t));                      \
@@ -359,11 +356,10 @@ __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element) {   
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *a, int index, t *arr, size_t n) {               \
-    bool append;                                                                                             \
+    char append;                                                                                             \
     int i, res, end;                                                                                         \
     if (!arr || !n) return ARRAY_ERROR;                                                                      \
-                                                                                                             \
-    if (!(append = (!a->size || index >= (int) a->size))) {                                                  \
+    else if (!(append = (!a->size || index >= (int) a->size))) {                                             \
         if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                        \
     }                                                                                                        \
                                                                                                              \
@@ -421,14 +417,9 @@ __DS_FUNC_PREFIX_INL void array_shrink_to_fit_##id(Array_##id *a) {             
 __DS_FUNC_PREFIX Array_##id *array_subarr_##id(Array_##id *a, int start, int n, int step_size) {             \
     Array_##id *sub;                                                                                         \
     int end, i;                                                                                              \
-    if (!a->size || !n) return NULL;                                                                         \
+    if (!(a->size && n) || (start = modulo(start, a->size)) < 0) return NULL;                                \
                                                                                                              \
-    if (step_size == 0) {                                                                                    \
-        step_size = 1;                                                                                       \
-    }                                                                                                        \
-                                                                                                             \
-    if ((start = modulo(start, a->size)) < 0) return NULL;                                                   \
-                                                                                                             \
+    if (step_size == 0) step_size = 1;                                                                       \
     sub = array_new_##id();                                                                                  \
                                                                                                              \
     if (step_size < 0) {                                                                                     \
@@ -497,22 +488,21 @@ __DS_FUNC_PREFIX Array_##id *array_subarr_##id(Array_##id *a, int start, int n, 
 gen_array(2d_##id, Array_##id *, DSDefault_shallowCopy, DSDefault_shallowDelete)                             \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* matrix_at_##id(Array_2d_##id *m, int row, int col) {                                 \
-    int _idxRow = modulo(row, m->size), _idxCol;                                                             \
-    if (_idxRow < 0) return NULL;                                                                            \
-    _idxCol = modulo(col, m->arr[_idxRow]->size);                                                            \
-    if (_idxCol < 0) return NULL;                                                                            \
-    return &(m->arr[_idxRow]->arr[_idxCol]);                                                                 \
+    int idxRow, idxCol;                                                                                      \
+    if ((idxRow = modulo(row, m->size)) < 0) return NULL;                                                    \
+    else if ((idxCol = modulo(col, m->arr[idxRow]->size)) < 0) return NULL;                                  \
+    return &(m->arr[idxRow]->arr[idxCol]);                                                                   \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Array_2d_##id *matrix_new_##id(int rows, int cols) {                                        \
     Array_2d_##id *m;                                                                                        \
-    int i = 0;                                                                                               \
-    if (!rows || !cols) return NULL;                                                                         \
+    int i;                                                                                                   \
+    if (!(rows && cols)) return NULL;                                                                        \
     m = __ds_malloc(sizeof(Array_2d_##id));                                                                  \
     m->arr = __ds_malloc(sizeof(Array_##id *) * rows);                                                       \
     m->size = 0;                                                                                             \
     m->capacity = rows;                                                                                      \
-    for (; i < rows; ++i) {                                                                                  \
+    for (i = 0; i < rows; ++i) {                                                                             \
         Array_##id *arr = array_new_repeatingValue_##id(0, cols);                                            \
         array_push_back_2d_##id(m, arr);                                                                     \
     }                                                                                                        \
