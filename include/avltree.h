@@ -27,11 +27,11 @@
     if ((x) == (t)->root) {                                                                                  \
         (t)->root = nParent;                                                                                 \
     }                                                                                                        \
-	(x)->dir = nParent->rev;                                                                                 \
-	if ((x)->dir) {                                                                                          \
-		(x)->dir->parent = x;                                                                                \
+    (x)->dir = nParent->rev;                                                                                 \
+    if ((x)->dir) {                                                                                          \
+        (x)->dir->parent = x;                                                                                \
     }                                                                                                        \
-	nParent->parent = (x)->parent;                                                                           \
+    nParent->parent = (x)->parent;                                                                           \
     if ((x)->parent) {                                                                                       \
         if ((x) == (x)->parent->left) {                                                                      \
             (x)->parent->left = nParent;                                                                     \
@@ -39,8 +39,8 @@
             (x)->parent->right = nParent;                                                                    \
         }                                                                                                    \
     }                                                                                                        \
-	nParent->rev = x;                                                                                        \
-	(x)->parent = nParent;                                                                                   \
+    nParent->rev = x;                                                                                        \
+    (x)->parent = nParent;                                                                                   \
     return nParent;                                                                                          \
 
 #define __gen_avltree(id, kt, cmp_lt, TreeType, DataType, EntryType, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
@@ -110,14 +110,14 @@ __DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {            \
-	EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1), *new, *parent;                   \
+    EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1), *new, *parent;                   \
     if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {                                \
         deleteValue(curr->data.second);                                                                      \
         copyValue(curr->data.second, data.second);                                                           \
         if (inserted) *inserted = 0;                                                                         \
         return curr;                                                                                         \
     }                                                                                                        \
-	new = __ds_calloc(1, sizeof(EntryType));                                                                 \
+    new = __ds_calloc(1, sizeof(EntryType));                                                                 \
     copyKey(entry_get_key(new), data_get_key(data));                                                         \
     copyValue(new->data.second, data.second);                                                                \
     new->parent = curr;                                                                                      \
@@ -129,20 +129,20 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
         return new;                                                                                          \
     }                                                                                                        \
                                                                                                              \
-	if (cmp_lt(data_get_key(data), entry_get_key(curr))) {                                                   \
-		curr->left = new;                                                                                    \
+    if (cmp_lt(data_get_key(data), entry_get_key(curr))) {                                                   \
+        curr->left = new;                                                                                    \
     } else {                                                                                                 \
-		curr->right = new;                                                                                   \
+        curr->right = new;                                                                                   \
     }                                                                                                        \
     curr = new, parent = curr->parent;                                                                       \
                                                                                                              \
-	while (curr && parent) {                                                                                 \
-		if (curr == parent->left) {                                                                          \
-			if (parent->bf == 1) {                                                                           \
-				parent->bf = 0; break;                                                                       \
-			} else if (parent->bf == 0) {                                                                    \
-				parent->bf = -1;                                                                             \
-			} else if (parent->bf == -1) {                                                                   \
+    while (curr && parent) {                                                                                 \
+        if (curr == parent->left) {                                                                          \
+            if (parent->bf == 1) {                                                                           \
+                parent->bf = 0; break;                                                                       \
+            } else if (parent->bf == 0) {                                                                    \
+                parent->bf = -1;                                                                             \
+            } else if (parent->bf == -1) {                                                                   \
                 if (parent->left->bf == parent->bf) {                                                        \
                     parent = __avl_rightRotate_##id(this, parent);                                           \
                     parent->bf = parent->right->bf = 0;                                                      \
@@ -161,14 +161,14 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
                         parent->left->bf = parent->right->bf = 0;                                            \
                     }                                                                                        \
                 }                                                                                            \
-				break;                                                                                       \
-			}                                                                                                \
-		} else {                                                                                             \
-			if (parent->bf == -1) {                                                                          \
-				parent->bf = 0; break;                                                                       \
-			} else if (parent->bf == 0) {                                                                    \
-				parent->bf = 1;                                                                              \
-			} else if (parent->bf == 1) {                                                                    \
+                break;                                                                                       \
+            }                                                                                                \
+        } else {                                                                                             \
+            if (parent->bf == -1) {                                                                          \
+                parent->bf = 0; break;                                                                       \
+            } else if (parent->bf == 0) {                                                                    \
+                parent->bf = 1;                                                                              \
+            } else if (parent->bf == 1) {                                                                    \
                 if (parent->right->bf == parent->bf) {                                                       \
                     parent = __avl_leftRotate_##id(this, parent);                                            \
                     parent->bf = parent->left->bf = 0;                                                       \
@@ -187,15 +187,15 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
                         parent->left->bf = parent->right->bf = 0;                                            \
                     }                                                                                        \
                 }                                                                                            \
-				break;                                                                                       \
-			}                                                                                                \
-		}                                                                                                    \
-		curr = parent;                                                                                       \
-		parent = curr->parent;                                                                               \
-	}                                                                                                        \
+                break;                                                                                       \
+            }                                                                                                \
+        }                                                                                                    \
+        curr = parent;                                                                                       \
+        parent = curr->parent;                                                                               \
+    }                                                                                                        \
     ++this->size;                                                                                            \
     if (inserted) *inserted = 1;                                                                             \
-	return new;                                                                                              \
+    return new;                                                                                              \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, size_t n) {             \
@@ -226,26 +226,26 @@ __DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n)
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                            \
-	char deleteData = 1;                                                                                     \
-	EntryType *curr, *parent, *child;                                                                        \
-	if (v->left && v->right) {                                                                               \
+    char deleteData = 1;                                                                                     \
+    EntryType *curr, *parent, *child;                                                                        \
+    if (v->left && v->right) {                                                                               \
         EntryType *temp = __avl_inorder_successor_##id(v);                                                   \
         deleteData = 0;                                                                                      \
         deleteKey(entry_get_key(v));                                                                         \
         deleteValue(v->data.second);                                                                         \
         v->data = temp->data;                                                                                \
         v = temp;                                                                                            \
-	}                                                                                                        \
+    }                                                                                                        \
                                                                                                              \
-	curr = v, parent = curr->parent;                                                                         \
-	while (curr && parent) {                                                                                 \
-		if (curr == parent->left) {                                                                          \
-			if (parent->bf == -1) {                                                                          \
-				parent->bf = 0;                                                                              \
-			} else if (parent->bf == 0) {                                                                    \
-				parent->bf = 1;                                                                              \
-				break;                                                                                       \
-			} else if (parent->bf == 1) {                                                                    \
+    curr = v, parent = curr->parent;                                                                         \
+    while (curr && parent) {                                                                                 \
+        if (curr == parent->left) {                                                                          \
+            if (parent->bf == -1) {                                                                          \
+                parent->bf = 0;                                                                              \
+            } else if (parent->bf == 0) {                                                                    \
+                parent->bf = 1;                                                                              \
+                break;                                                                                       \
+            } else if (parent->bf == 1) {                                                                    \
                 if (parent->right->bf == 1) {                                                                \
                     parent = __avl_leftRotate_##id(this, parent);                                            \
                     parent->bf = parent->left->bf = 0;                                                       \
@@ -268,14 +268,14 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
                         parent->left->bf = parent->right->bf = 0;                                            \
                     }                                                                                        \
                 }                                                                                            \
-				if (parent->bf == -1) break;                                                                 \
-			}                                                                                                \
-		} else {                                                                                             \
-			if (parent->bf == 1) {                                                                           \
-				parent->bf = 0;                                                                              \
-			} else if (parent->bf == 0) {                                                                    \
-				parent->bf = -1; break;                                                                      \
-			} else if (parent->bf == -1) {                                                                   \
+                if (parent->bf == -1) break;                                                                 \
+            }                                                                                                \
+        } else {                                                                                             \
+            if (parent->bf == 1) {                                                                           \
+                parent->bf = 0;                                                                              \
+            } else if (parent->bf == 0) {                                                                    \
+                parent->bf = -1; break;                                                                      \
+            } else if (parent->bf == -1) {                                                                   \
                 if (parent->left->bf == -1) {                                                                \
                     parent = __avl_rightRotate_##id(this, parent);                                           \
                     parent->bf = parent->right->bf = 0;                                                      \
@@ -298,15 +298,15 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
                         parent->left->bf = parent->right->bf = 0;                                            \
                     }                                                                                        \
                 }                                                                                            \
-				if (parent->bf == 1) break;                                                                  \
-			}                                                                                                \
-		}                                                                                                    \
+                if (parent->bf == 1) break;                                                                  \
+            }                                                                                                \
+        }                                                                                                    \
                                                                                                              \
-		curr = parent;                                                                                       \
-		parent = curr->parent;                                                                               \
-	}                                                                                                        \
+        curr = parent;                                                                                       \
+        parent = curr->parent;                                                                               \
+    }                                                                                                        \
                                                                                                              \
-	if ((child = (v->left ? v->left : v->right))) {                                                          \
+    if ((child = (v->left ? v->left : v->right))) {                                                          \
         child->parent = v->parent;                                                                           \
     }                                                                                                        \
     if (v->parent) {                                                                                         \
@@ -322,7 +322,7 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
         deleteKey(entry_get_key(v));                                                                         \
         deleteValue(v->data.second);                                                                         \
     }                                                                                                        \
-	free(v);                                                                                                 \
+    free(v);                                                                                                 \
     --this->size;                                                                                            \
 }                                                                                                            \
                                                                                                              \
