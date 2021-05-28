@@ -226,7 +226,8 @@ void test_substr(void) {
     string_append(s, string_c_str(s2), string_len(s2));
     string_push_back(s, ' ');
     string_append(s, string_c_str(s3), string_len(s3));
-    string_free(s2); string_free(s3);
+    string_free(s2);
+    string_free(s3);
     compareStrs(s, "think live in details.", 22);
 
     s4 = string_substr(s, -2, 3, -2);

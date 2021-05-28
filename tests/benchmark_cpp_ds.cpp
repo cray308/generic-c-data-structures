@@ -2,68 +2,56 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include <iomanip>
+//#include <iomanip>
 #include <ctime>
 #include <climits>
 #include <cstring>
-using std::cout; using std::cerr; using std::vector; using std::list;
-using std::fixed; using std::setprecision;
+
 const char *ProgName = NULL;
-clock_t before, after;
+unsigned n = 10000;
+
+#define runTest(append, sort) {                                                                              \
+    clock_t before, after;                                                                                   \
+    for (unsigned i = 0; i < n; ++i) {                                                                       \
+        append;                                                                                              \
+    }                                                                                                        \
+    before = clock();                                                                                        \
+    sort;                                                                                                    \
+    after = clock();                                                                                         \
+    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;                                    \
+    std::cout << std::fixed << elapsed << '\n';                                                              \
+}
 
 enum DSTest {
     TEST_ARRAY,
     TEST_LIST
 };
 
-void usage(void) {
-    cerr << "Usage: " << ProgName << '\n';
-    cerr << "    -d DATA_STRUTURE    One of [ARRAY,LIST]  \n";
-    cerr << "    -n NELEM            Number of elements to sort\n";
+#define usage()                                                                                              \
+    std::cerr << "Usage: " << ProgName << '\n';                                                              \
+    std::cerr << "    -d DATA_STRUTURE    One of [ARRAY,LIST]  \n";                                          \
+    std::cerr << "    -n NELEM            Number of elements to sort\n";                                     \
     exit(1);
-}
 
-void test_list(unsigned n) {
-    list<unsigned> *l = new list<unsigned>;
-    for (unsigned i = 0; i < n; ++i) {
-        l->push_back(rand() % UINT_MAX);
-    }
-    
-    before = clock();
-    l->sort();
-    after = clock();
-
-    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+void test_list(void) {
+    std::list<unsigned> *l = new std::list<unsigned>;
+    runTest(l->push_back(rand() % UINT_MAX), l->sort())
     delete l;
-    
-    cout << fixed << elapsed << '\n';
 }
 
-void test_arr(unsigned n) {
-    vector<unsigned> *a = new vector<unsigned>;
-    for (unsigned i = 0; i < n; ++i) {
-        a->push_back(rand() % UINT_MAX);
-    }
-    
-    before = clock();
-    std::sort(a->begin(), a->end());
-    after = clock();
-
-    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+void test_arr(void) {
+    std::vector<unsigned> *a = new std::vector<unsigned>;
+    runTest(a->push_back(rand() % UINT_MAX), std::sort(a->begin(), a->end()))
     delete a;
-    
-    cout << fixed << elapsed << '\n';
 }
 
 int main(int argc, char *argv[]) {
-    ProgName = argv[0];
     int argind = 1;
-    unsigned n = 100000;
     DSTest type = TEST_ARRAY;
-    char *temp;
+    ProgName = argv[0];
 
     while (argind < argc && strlen(argv[argind]) > 1 && argv[argind][0] == '-') {
-        char* arg = argv[argind++];
+        char* arg = argv[argind++], *temp;
         switch(arg[1]) {
             case 'd':
                 temp = argv[argind++];
@@ -80,17 +68,16 @@ int main(int argc, char *argv[]) {
                 break;
             default:
                 usage();
-                break;
         }
     }
     srand(time(NULL));
 
     switch (type) {
         case TEST_ARRAY:
-            test_arr(n);
+            test_arr();
             break;
         case TEST_LIST:
-            test_list(n);
+            test_list();
             break;
     }
     return 0;
