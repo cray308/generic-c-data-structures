@@ -4,8 +4,8 @@
 gen_list_withalg(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_list_withalg(str, char *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
-__DS_FUNC_PREFIX_INL int testCond(int *val) { return (*val == 1); }
-__DS_FUNC_PREFIX_INL int strTestCond(char **val) { return streq(*val, "1"); }
+int testCond(int *val) { return (*val == 0); }
+int strTestCond(char **val) { return streq(*val, "000"); }
 
 int ints[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,
 130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,205,210,215,220,225,230,235,240,245};
@@ -19,9 +19,11 @@ void compare_ints(List_int *l, int *comparison, int size) {
     ListEntry_int *it;
     assert(list_size(l) == size);
     if (size) {
+        assert(!list_empty(l));
         assert(list_front(l) && *list_front(l) == comparison[0]);
         assert(list_back(l) && *list_back(l) == comparison[size-1]);
     } else {
+        assert(list_empty(l));
         assert(list_front(l) == NULL && list_back(l) == NULL);
     }
     list_iter(l, it) {
@@ -40,9 +42,11 @@ void compare_strs(List_str *l, char **comparison, int size) {
     ListEntry_str *it;
     assert(list_size(l) == size);
     if (size) {
+        assert(!list_empty(l));
         assert(list_front(l) && streq(*list_front(l), comparison[0]));
         assert(list_back(l) && streq(*list_back(l), comparison[size-1]));
     } else {
+        assert(list_empty(l));
         assert(list_front(l) == NULL && list_back(l) == NULL);
     }
     list_iter(l, it) {
@@ -56,245 +60,487 @@ void compare_strs(List_str *l, char **comparison, int size) {
     assert(i == -1);
 }
 
-void test_push_pop(void) {
-    int c1[] = {0,1};
-    char *c2[] = {"0", "1"};
+void test_empty_init(void) {
     List_int *li = list_new(int);
     List_str *ls = list_new(str);
     compare_ints(li, ints, 0);
     compare_strs(ls, strs, 0);
+    list_free(int, li);
+    list_free(str, ls);
+}
 
-    /* push front, pop front */
-    list_push_front(str, ls, "1");
-    list_push_front(int, li, 1);
-    compare_ints(li, &c1[1], 1);
-    compare_strs(ls, &c2[1], 1);
-    list_push_front(str, ls, "0");
-    list_push_front(int, li, 0);
+void test_init_repeatingValue(void) {
+    int c1[] = {5, 5};
+    char *c2[] = {"005", "005"};
+    List_int *li = list_new_repeatingValue(int, 0, 5);
+    List_str *ls;
+    compare_ints(li, c1, 0);
+    list_free(int, li);
+
+    li = list_new_repeatingValue(int, 1, 5);
+    ls = list_new_repeatingValue(str, 1, "005");
+    compare_ints(li, c1, 1);
+    compare_strs(ls, c2, 1);
+    list_free(int, li);
+    list_free(str, ls);
+
+    li = list_new_repeatingValue(int, 2, 5);
+    ls = list_new_repeatingValue(str, 2, "005");
     compare_ints(li, c1, 2);
     compare_strs(ls, c2, 2);
-    list_pop_front(str, ls);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_init_fromArray(void) {
+    List_int *li = list_new_fromArray(int, NULL, 5);
+    List_str *ls;
+    compare_ints(li, ints, 0);
+    list_free(int, li);
+    li = list_new_fromArray(int, ints, 0);
+    compare_ints(li, ints, 0);
+    list_free(int, li);
+
+    li = list_new_fromArray(int, ints, 1);
+    ls = list_new_fromArray(str, strs, 1);
+    compare_ints(li, ints, 1);
+    compare_strs(ls, strs, 1);
+    list_free(int, li);
+    list_free(str, ls);
+
+    li = list_new_fromArray(int, ints, 2);
+    ls = list_new_fromArray(str, strs, 2);
+    compare_ints(li, ints, 2);
+    compare_strs(ls, strs, 2);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_init_copy(void) {
+    int i;
+    List_int *arr1[3] = {0}, *li;
+    List_str *arr2[3] = {0}, *ls;
+    arr1[0] = list_new(int), arr1[1] = list_new_fromArray(int, ints, 1), arr1[2] = list_new_fromArray(int, ints, 2);
+    arr2[0] = list_new(str), arr2[1] = list_new_fromArray(str, strs, 1), arr2[2] = list_new_fromArray(str, strs, 2);
+    
+    li = list_createCopy(int, arr1[0]);
+    compare_ints(li, ints, 0);
+    list_free(int, li);
+
+    li = list_createCopy(int, arr1[1]);
+    ls = list_createCopy(str, arr2[1]);
+    compare_ints(li, ints, 1);
+    compare_strs(ls, strs, 1);
+    list_free(int, li);
+    list_free(str, ls);
+
+    li = list_createCopy(int, arr1[2]);
+    ls = list_createCopy(str, arr2[2]);
+    compare_ints(li, ints, 2);
+    compare_strs(ls, strs, 2);
+    list_free(int, li);
+    list_free(str, ls);
+
+    for (i = 0; i < 3; ++i) {
+        list_free(int, arr1[i]);
+        list_free(str, arr2[i]);
+    }
+}
+
+void test_push_front(void) {
+    int c1[] = {10, 5, 0};
+    char *c2[] = {"010", "005", "000"};
+    int i;
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
+    for (i = 0; i < 3; ++i) {
+        list_push_front(int, li, ints[i]);
+        list_push_front(str, ls, strs[i]);
+    }
+    compare_ints(li, c1, 3);
+    compare_strs(ls, c2, 3);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_push_back(void) {
+    int i;
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
+    for (i = 0; i < 3; ++i) {
+        list_push_back(int, li, ints[i]);
+        list_push_back(str, ls, strs[i]);
+    }
+    compare_ints(li, ints, 3);
+    compare_strs(ls, strs, 3);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_pop_front(void) {
+    int i = 1, j = 2;
+    List_int *li = list_new_fromArray(int, ints, 3);
+    List_str *ls = list_new_fromArray(str, strs, 3);
+    while (!list_empty(li)) {
+        list_pop_front(int, li);
+        compare_ints(li, &ints[i++], j--);
+    }
     list_pop_front(int, li);
-    compare_ints(li, &c1[1], 1);
-    compare_strs(ls, &c2[1], 1);
+    i = 1, j = 2;
+    while (!list_empty(ls)) {
+        list_pop_front(str, ls);
+        compare_strs(ls, &strs[i++], j--);
+    }
     list_pop_front(str, ls);
-    list_pop_front(int, li);
+    compare_ints(li, ints, 0);
+    compare_strs(ls, strs, 0);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_pop_back(void) {
+    int i = 2;
+    List_int *li = list_new_fromArray(int, ints, 3);
+    List_str *ls = list_new_fromArray(str, strs, 3);
+    while (!list_empty(li)) {
+        list_pop_back(int, li);
+        compare_ints(li, ints, i--);
+    }
+    list_pop_back(int, li);
+    i = 2;
+    while (!list_empty(ls)) {
+        list_pop_back(str, ls);
+        compare_strs(ls, strs, i--);
+    }
+    list_pop_back(str, ls);
+    compare_ints(li, ints, 0);
+    compare_strs(ls, strs, 0);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_resize(void) {
+    int c1[] = {15,15,15,20,20};
+    char *c2[] = {"015","015","015","020","020"};
+    int i = 2;
+    List_int *li = list_new_fromArray(int, ints, 3);
+    List_str *ls = list_new_fromArray(str, strs, 3);
+    while (!list_empty(li)) {
+        list_resize(int, li, i);
+        compare_ints(li, ints, i--);
+    }
+    list_resize(int, li, 0);
+    i = 2;
+    while (!list_empty(ls)) {
+        list_resize(str, ls, i);
+        compare_strs(ls, strs, i--);
+    }
+    list_resize(str, ls, 0);
     compare_ints(li, ints, 0);
     compare_strs(ls, strs, 0);
 
-    /* push back, pop back */
-    list_push_back(str, ls, "0");
-    list_push_back(int, li, 0);
-    compare_ints(li, c1, 1);
-    compare_strs(ls, c2, 1);
-    list_push_back(str, ls, "1");
-    list_push_back(int, li, 1);
-    compare_ints(li, c1, 2);
-    compare_strs(ls, c2, 2);
-    list_pop_back(str, ls);
-    list_pop_back(int, li);
-    compare_ints(li, c1, 1);
-    compare_strs(ls, c2, 1);
-    list_pop_back(str, ls);
-    list_pop_back(int, li);
-    compare_ints(li, ints, 0);
-    compare_strs(ls, strs, 0);
+    list_resize_usingValue(int, li, 3, 15);
+    list_resize_usingValue(str, ls, 3, "015");
+    list_resize_usingValue(int, li, 5, 20);
+    list_resize_usingValue(str, ls, 5, "020");
+    list_resize(int, li, 5);
+    list_resize(str, ls, 5);
+    compare_ints(li, c1, 5);
+    compare_strs(ls, c2, 5);
+    list_free(int, li);
+    list_free(str, ls);
+}
 
-    /* push front, pop back */
-    list_push_front(str, ls, "1");
-    list_push_front(int, li, 1);
-    compare_ints(li, &c1[1], 1);
-    compare_strs(ls, &c2[1], 1);
-    list_push_front(str, ls, "0");
-    list_push_front(int, li, 0);
-    compare_ints(li, c1, 2);
-    compare_strs(ls, c2, 2);
-    list_pop_back(str, ls);
-    list_pop_back(int, li);
-    compare_ints(li, c1, 1);
-    compare_strs(ls, c2, 1);
-    list_pop_back(str, ls);
-    list_pop_back(int, li);
-    compare_ints(li, ints, 0);
-    compare_strs(ls, strs, 0);
+void test_insert_element(void) {
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
 
-    /* push back, pop front */
-    list_push_back(str, ls, "0");
-    list_push_back(int, li, 0);
-    compare_ints(li, c1, 1);
-    compare_strs(ls, c2, 1);
-    list_push_back(str, ls, "1");
-    list_push_back(int, li, 1);
-    compare_ints(li, c1, 2);
-    compare_strs(ls, c2, 2);
-    list_pop_front(str, ls);
-    list_pop_front(int, li);
-    compare_ints(li, &c1[1], 1);
-    compare_strs(ls, &c2[1], 1);
-    list_pop_front(str, ls);
-    list_pop_front(int, li);
-    compare_ints(li, ints, 0);
-    compare_strs(ls, strs, 0);
+    assert(list_insert(int, li, NULL, 10)->data == 10);
+    assert(streq(list_insert(str, ls, NULL, "010")->data, "010"));
+    assert(list_insert(int, li, li->front, 0)->data == 0);
+    assert(streq(list_insert(str, ls, ls->front, "000")->data, "000"));
+    assert(list_insert(int, li, li->back, 5)->data == 5);
+    assert(streq(list_insert(str, ls, ls->back, "005")->data, "005"));
+    assert(list_insert(int, li, NULL, 15)->data == 15);
+    assert(streq(list_insert(str, ls, NULL, "015")->data, "015"));
+    compare_ints(li, ints, 4);
+    compare_strs(ls, strs, 4);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_insert_repeatedValue(void) {
+    int c1[] = {0,0,5,5,10,15,15};
+    char *c2[] = {"000","000","005","005","010","015","015"};
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
+
+    assert(list_insert_repeatingValue(int, li, NULL, 0, 1) == NULL);
+    assert(list_insert_repeatingValue(int, li, NULL, 1, 10)->data == 10);
+    assert(streq(list_insert_repeatingValue(str, ls, NULL, 1, "010")->data, "010"));
+    assert(list_insert_repeatingValue(int, li, li->front, 2, 0)->data == 0);
+    assert(streq(list_insert_repeatingValue(str, ls, ls->front, 2, "000")->data, "000"));
+    assert(list_insert_repeatingValue(int, li, li->back, 2, 5)->data == 5);
+    assert(streq(list_insert_repeatingValue(str, ls, ls->back, 2, "005")->data, "005"));
+    assert(list_insert_repeatingValue(int, li, NULL, 2, 15)->data == 15);
+    assert(streq(list_insert_repeatingValue(str, ls, NULL, 2, "015")->data, "015"));
+    compare_ints(li, c1, 7);
+    compare_strs(ls, c2, 7);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_insert_fromArray(void) {
+    int arr1[4][2] = {{10,10},{0,0},{5,5},{15,15}};
+    char *arr2[4][2] = {{"010","010"},{"000","000"},{"005","005"},{"015","015"}};
+    int c1[] = {0,0,5,5,10,15,15};
+    char *c2[] = {"000","000","005","005","010","015","015"};
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
+
+    assert(list_insert_fromArray(int, li, NULL, NULL, 2) == NULL);
+    assert(list_insert_fromArray(int, li, NULL, ints, 0) == NULL);
+    assert(list_insert_fromArray(int, li, NULL, arr1[0], 1)->data == 10);
+    assert(streq(list_insert_fromArray(str, ls, NULL, arr2[0], 1)->data, "010"));
+    assert(list_insert_fromArray(int, li, li->front, arr1[1], 2)->data == 0);
+    assert(streq(list_insert_fromArray(str, ls, ls->front, arr2[1], 2)->data, "000"));
+    assert(list_insert_fromArray(int, li, li->back, arr1[2], 2)->data == 5);
+    assert(streq(list_insert_fromArray(str, ls, ls->back, arr2[2], 2)->data, "005"));
+    assert(list_insert_fromArray(int, li, NULL, arr1[3], 2)->data == 15);
+    assert(streq(list_insert_fromArray(str, ls, NULL, arr2[3], 2)->data, "015"));
+    compare_ints(li, c1, 7);
+    compare_strs(ls, c2, 7);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_insert_fromList(void) {
+    int c1[] = {0,0,5,5,10,15,15};
+    char *c2[] = {"000","000","005","005","010","015","015"};
+    List_int *from1, *li = list_new(int);
+    List_str *from2, *ls = list_new(str);
+    ListEntry_int *p1 = NULL;
+    ListEntry_str *p3 = NULL;
+    {
+       int arr1[] = {10,0,0,5,5,15,15};
+       char *arr2[] = {"010","000","000","005","005","015","015"};
+       from1 = list_new_fromArray(int, arr1, 7), from2 = list_new_fromArray(str, arr2, 7);
+    }
+
+    assert(list_insert_fromList(int, li, NULL, p1, p1) == NULL);
+    p1 = from1->front, p3 = from2->front;
+    assert(list_insert_fromList(int, li, NULL, p1, p1) == NULL);
+    assert(list_insert_fromList(int, li, NULL, p1, p1->next)->data == 10);
+    assert(streq(list_insert_fromList(str, ls, NULL, p3, p3->next)->data, "010"));
+    p1 = p1->next; p3 = p3->next;
+    assert(list_insert_fromList(int, li, li->front, p1, p1->next->next)->data == 0);
+    assert(streq(list_insert_fromList(str, ls, ls->front, p3, p3->next->next)->data, "000"));
+    p1 = p1->next->next; p3 = p3->next->next;
+    assert(list_insert_fromList(int, li, li->back, p1, p1->next->next)->data == 5);
+    assert(streq(list_insert_fromList(str, ls, ls->back, p3, p3->next->next)->data, "005"));
+    p1 = p1->next->next; p3 = p3->next->next;
+    assert(list_insert_fromList(int, li, NULL, p1, NULL)->data == 15);
+    assert(streq(list_insert_fromList(str, ls, NULL, p3, NULL)->data, "015"));
+    compare_ints(li, c1, 7);
+    compare_strs(ls, c2, 7);
+    list_free(int, li);
+    list_free(str, ls);
+    list_free(int, from1);
+    list_free(str, from2);
+}
+
+void test_insert_sorted_element(void) {
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
+
+    assert(list_insert_sorted(int, li, 10)->data == 10);
+    assert(streq(list_insert_sorted(str, ls, "010")->data, "010"));
+    assert(list_insert_sorted(int, li, 0)->data == 0);
+    assert(streq(list_insert_sorted(str, ls, "000")->data, "000"));
+    assert(list_insert_sorted(int, li, 5)->data == 5);
+    assert(streq(list_insert_sorted(str, ls, "005")->data, "005"));
+    assert(list_insert_sorted(int, li, 15)->data == 15);
+    assert(streq(list_insert_sorted(str, ls, "015")->data, "015"));
+    compare_ints(li, ints, 4);
+    compare_strs(ls, strs, 4);
     list_free(str, ls);
     list_free(int, li);
 }
 
-void test_custom_init(void) {
-    List_int *li = list_new_fromArray(int, NULL, 0), *x;
-    List_str *ls = list_new_fromArray(str, NULL, 0), *y;
+void test_insert_sorted_fromArray(void) {
+    int randInts[] = {10, 0, 5, 15};
+    char *randStrs[] = {"010", "000", "005", "015"};
+    List_int *li = list_new(int);
+    List_str *ls = list_new(str);
+
+    list_insert_fromArray_sorted(int, li, NULL, 4);
     compare_ints(li, ints, 0);
-    compare_strs(ls, strs, 0);
-    list_free(str, ls);
-    list_free(int, li);
-
-    li = list_new_fromArray(int, ints, 10);
-    ls = list_new_fromArray(str, strs, 10);
-    compare_ints(li, ints, 10);
-    compare_strs(ls, strs, 10);
-
-    x = list_createCopy(int, li);
-    y = list_createCopy(str, ls);
-    compare_ints(x, ints, 10);
-    compare_strs(y, strs, 10);
-    list_free(str, y);
-    list_free(int, x);
+    list_insert_fromArray_sorted(int, li, randInts, 0);
+    compare_ints(li, ints, 0);
+    list_insert_fromArray_sorted(int, li, randInts, 4);
+    list_insert_fromArray_sorted(str, ls, randStrs, 4);
+    compare_ints(li, ints, 4);
+    compare_strs(ls, strs, 4);
     list_free(str, ls);
     list_free(int, li);
 }
 
-void test_insert(void) {
-    int c1[] = {-1, 0, 1, 2, 3, 4, 5, 6, 7};
-    char *c2[] = {"-1", "0", "1", "2", "3", "4", "5", "6", "7"};
-    List_int *li = list_new(int), *li2;
-    List_str *ls = list_new(str), *ls2;
-    ListEntry_int *frontI, *backI;
-    ListEntry_str *frontS, *backS;
+void test_insert_sorted_fromList(void) {
+    int randInts[] = {10, 0, 5, 15};
+    char *randStrs[] = {"010", "000", "005", "015"};
+    List_int *li = list_new(int), *from1 = list_new_fromArray(int, randInts, 4);
+    List_str *ls = list_new(str), *from2 = list_new_fromArray(str, randStrs, 4);
 
-    /* Single element */
-    frontI = list_insert(int, li, NULL, 3);
-    frontS = list_insert(str, ls, NULL, "3"); /* 3 */
-    assert(frontI->data == 3);
-    assert(streq(frontS->data, "3"));
-    frontI = list_insert(int, li, NULL, 4);
-    frontS = list_insert(str, ls, NULL, "4"); /* 3, 4 */
-    assert(frontI->data == 4);
-    assert(streq(frontS->data, "4"));
-    frontI = list_insert(int, li, li->front, 2);
-    frontS = list_insert(str, ls, ls->front, "2"); /* 2, 3, 4 */
-    assert(frontI->data == 2);
-    assert(streq(frontS->data, "2"));
-    frontI = list_insert(int, li, li->front, 1);
-    frontS = list_insert(str, ls, ls->front, "1"); /* 1, 2, 3, 4 */
-    assert(frontI->data == 1);
-    assert(streq(frontS->data, "1"));
-    frontI = list_insert(int, li, NULL, 5);
-    frontS = list_insert(str, ls, NULL, "5"); /* 1, 2, 3, 4, 5 */
-    assert(frontI->data == 5);
-    assert(streq(frontS->data, "5"));
-    compare_ints(li, &c1[2], 5);
-    compare_strs(ls, &c2[2], 5);
-
-    /* From array */
-    assert(list_insert_fromArray(int, li, NULL, NULL, 0) == NULL);
-    assert(list_insert_fromArray(str, ls, NULL, NULL, 0) == NULL);
-
-    frontI = list_insert_fromArray(int, li, li->front, c1, 2);
-    frontS = list_insert_fromArray(str, ls, ls->front, c2, 2);
-    assert(frontI->data == -1);
-    assert(streq(frontS->data, "-1"));
-    backI = list_insert_fromArray(int, li, NULL, &c1[7], 2);
-    backS = list_insert_fromArray(str, ls, NULL, &c2[7], 2);
-    assert(backI->data == 6);
-    assert(streq(backS->data, "6"));
-    compare_ints(li, c1, 9);
-    compare_strs(ls, c2, 9);
-
-    li2 = list_new_fromArray(int, &c1[2], 5);
-    ls2 = list_new_fromArray(str, &c2[2], 5);
-
-    /* From list */
-    frontI = list_insert_fromList(int, li2, li2->front, frontI, frontI->next->next);
-    frontS = list_insert_fromList(str, ls2, ls2->front, frontS, frontS->next->next);
-    assert(frontI->data == -1);
-    assert(streq(frontS->data, "-1"));
-    backI = list_insert_fromList(int, li2, NULL, backI, NULL);
-    backS = list_insert_fromList(str, ls2, NULL, backS, NULL);
-    assert(backI->data == 6);
-    assert(streq(backS->data, "6"));
-    compare_ints(li2, c1, 9);
-    compare_strs(ls2, c2, 9);
-
-    list_free(str, ls2);
-    list_free(int, li2);
+    list_insert_fromList_sorted(int, li, NULL, NULL);
+    compare_ints(li, ints, 0);
+    list_insert_fromList_sorted(int, li, from1->front, from1->front);
+    compare_ints(li, ints, 0);
+    list_insert_fromList_sorted(int, li, from1->front, NULL);
+    list_insert_fromList_sorted(str, ls, from2->front, NULL);
+    compare_ints(li, ints, 4);
+    compare_strs(ls, strs, 4);
+    list_free(str, from2);
+    list_free(int, from1);
     list_free(str, ls);
     list_free(int, li);
 }
 
-void test_insert_sorted(void) {
-    int revInts[] = {2, 1, 0};
-    char *revStrs[] = {"2", "1", "0"};
-    int c1[3][9] = {{0,1,2},{0,0,1,1,2,2},{0,0,0,1,1,1,2,2,2}};
-    char *c2[3][9] = {{"0","1","2"},{"0","0","1","1","2","2"},{"0","0","0","1","1","1","2","2","2"}};
-    List_int *li = list_new(int), *tempI;
-    List_str *ls = list_new(str), *tempS;
-    list_insert_sorted(int, li, 2);
-    list_insert_sorted(str, ls, "2");
-    list_insert_sorted(int, li, 1);
-    list_insert_sorted(str, ls, "1");
-    list_insert_sorted(int, li, 0);
-    list_insert_sorted(str, ls, "0");
-    compare_ints(li, c1[0], 3);
-    compare_strs(ls, c2[0], 3);
+void test_remove_element(void) {
+    int c1[] = {5,15};
+    char *c2[] = {"005","015"};
+    List_int *li = list_new_fromArray(int, ints, 5);
+    List_str *ls = list_new_fromArray(str, strs, 5);
 
-    tempI = list_new_fromArray(int, revInts, 3);
-    tempS = list_new_fromArray(str, revStrs, 3);
-
-    list_insert_fromArray_sorted(int, li, revInts, 3);
-    list_insert_fromArray_sorted(str, ls, revStrs, 3);
-    compare_ints(li, c1[1], 6);
-    compare_strs(ls, c2[1], 6);
-
-    list_insert_fromList_sorted(int, li, tempI->front, NULL);
-    list_insert_fromList_sorted(str, ls, tempS->front, NULL);
-    compare_ints(li, c1[2], 9);
-    compare_strs(ls, c2[2], 9);
-    list_free(str, tempS);
-    list_free(int, tempI);
-    list_free(str, ls);
+    list_remove(int, li, li->back->next);
+    list_remove(int, li, li->front);
+    list_remove(str, ls, ls->front);
+    list_remove(int, li, li->back);
+    list_remove(str, ls, ls->back);
+    list_remove(int, li, li->front->next);
+    list_remove(str, ls, ls->front->next);
+    compare_ints(li, c1, 2);
+    compare_strs(ls, c2, 2);
     list_free(int, li);
+    list_free(str, ls);
 }
 
-void test_erase(void) {
+void test_erase_elements(void) {
     int c1[] = {10, 15, 30, 35};
     char *c2[] = {"010","015","030","035"};
     List_int *li = list_new_fromArray(int, ints, 10);
     List_str *ls = list_new_fromArray(str, strs, 10);
-    ListEntry_int *x;
-    ListEntry_str *y;
 
     assert(list_erase(int, li, NULL, li->back) == NULL);
-    assert(list_erase(str, ls, NULL, ls->back) == NULL);
     assert(list_erase(int, li, li->front, li->front) == NULL);
-    assert(list_erase(str, ls, ls->front, ls->front) == NULL);
-    x = list_erase(int, li, li->front, li->front->next->next);
-    y = list_erase(str, ls, ls->front, ls->front->next->next); /* 10, 15, 20, 25, 30, 35, 40, 45 */
-    assert(x == li->front);
-    assert(y == ls->front);
-    assert(list_erase(int, li, li->back->prev, NULL) == LIST_END); /* 10, 15, 20, 25, 30, 35 */
-    assert(list_erase(str, ls, ls->back->prev, NULL) == LIST_END); /* 10, 15, 20, 25, 30, 35 */
-    x = list_erase(int, li, li->front->next->next, li->back->prev);
-    y = list_erase(str, ls, ls->front->next->next, ls->back->prev); /* 10, 15, 30, 35 */
-    assert(x && x->data == 30);
-    assert(y && streq(y->data, "030"));
+    assert(list_erase(int, li, li->front, li->front->next->next) == li->front);
+    assert(list_erase(str, ls, ls->front, ls->front->next->next) == ls->front);
+    assert(list_erase(int, li, li->back->prev, NULL) == LIST_END);
+    assert(list_erase(str, ls, ls->back->prev, NULL) == LIST_END);
+    assert(list_erase(int, li, li->front->next->next, li->back->prev)->data == 30);
+    assert(streq(list_erase(str, ls, ls->front->next->next, ls->back->prev)->data, "030"));
     compare_ints(li, c1, 4);
     compare_strs(ls, c2, 4);
-
-    assert(list_erase(int, li, li->front, NULL) == LIST_END);
-    assert(list_erase(str, ls, ls->front, NULL) == LIST_END);
-    compare_ints(li, ints, 0);
-    compare_strs(ls, strs, 0);
-    list_free(str, ls);
     list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_splice_all(void) {
+    int i;
+    List_int *arr1[4] = {0}, *li = list_new(int);
+    List_str *arr2[4] = {0}, *ls = list_new(str);
+    arr1[0] = list_new(int), arr1[1] = list_new_fromArray(int, ints, 2), arr1[2] = list_new_fromArray(int, &ints[2], 3), arr1[3] = list_new_fromArray(int, &ints[5], 2);
+    arr2[0] = list_new(str), arr2[1] = list_new_fromArray(str, strs, 2), arr2[2] = list_new_fromArray(str, &strs[2], 3), arr2[3] = list_new_fromArray(str, &strs[5], 2);
+
+    list_splice(int, li, li->front, arr1[0]);
+    compare_ints(li, ints, 0);
+    list_splice(int, li, li->front, arr1[1]);
+    list_splice(str, ls, ls->front, arr2[1]);
+    list_splice(int, li, NULL, arr1[3]);
+    list_splice(str, ls, NULL, arr2[3]);
+    list_splice(int, li, li->back->prev, arr1[2]);
+    list_splice(str, ls, ls->back->prev, arr2[2]);
+    for (i = 0; i < 4; ++i) {
+        compare_ints(arr1[i], ints, 0);
+        compare_strs(arr2[i], strs, 0);
+        list_free(int, arr1[i]);
+        list_free(str, arr2[i]);
+    }
+    compare_ints(li, ints, 7);
+    compare_strs(ls, strs, 7);
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_splice_element(void) {
+    int c1[2][3] = {{5,15},{0,10,20}};
+    char *c2[2][3] = {{"005","015"},{"000","010","020"}};
+    List_int *from1 = list_new_fromArray(int, ints, 5), *li = list_new(int);
+    List_str *from2 = list_new_fromArray(str, strs, 5), *ls = list_new(str);
+
+    list_splice_element(int, li, li->front, from1, from1->back->next);
+    compare_ints(li, ints, 0);
+    list_splice_element(int, li, li->front, from1, from1->back->prev->prev);
+    list_splice_element(str, ls, ls->front, from2, from2->back->prev->prev);
+    list_splice_element(int, li, li->front, from1, from1->front);
+    list_splice_element(str, ls, ls->front, from2, from2->front);
+    list_splice_element(int, li, NULL, from1, from1->back);
+    list_splice_element(str, ls, NULL, from2, from2->back);
+    compare_ints(from1, c1[0], 2);
+    compare_strs(from2, c2[0], 2);
+    compare_ints(li, c1[1], 3);
+    compare_strs(ls, c2[1], 3);
+    list_splice_element(int, li, li->front->next, from1, from1->front);
+    list_splice_element(str, ls, ls->front->next, from2, from2->front);
+    list_splice_element(int, li, li->back, from1, from1->back);
+    list_splice_element(str, ls, ls->back, from2, from2->back);
+    compare_ints(from1, ints, 0);
+    compare_strs(from2, strs, 0);
+    compare_ints(li, ints, 5);
+    compare_strs(ls, strs, 5);
+    list_free(int, from1);
+    list_free(str, from2);
+
+    list_free(int, li);
+    list_free(str, ls);
+}
+
+void test_splice_range(void) {
+    int c1[2][6] = {{10,15,30,35},{0,5,20,25,40,45}};
+    char *c2[2][6] = {{"010","015","030","035"},{"000","005","020","025","040","045"}};
+    List_int *from1 = list_new_fromArray(int, ints, 10), *li = list_new(int);
+    List_str *from2 = list_new_fromArray(str, strs, 10), *ls = list_new(str);
+    ListEntry_int *p1;
+    ListEntry_str *p2;
+
+    list_splice_range(int, li, li->front, from1, from1->back->next, NULL);
+    compare_ints(li, ints, 0);
+    list_splice_range(int, li, li->front, from1, from1->back, from1->back);
+    compare_ints(li, ints, 0);
+    p1 = from1->front, p2 = from2->front;
+    iter_advance_LIST(int, p1, 4);
+    iter_advance_LIST(str, p2, 4);
+    list_splice_range(int, li, li->front, from1, p1, p1->next->next);
+    list_splice_range(str, ls, ls->front, from2, p2, p2->next->next);
+    list_splice_range(int, li, li->front, from1, from1->front, from1->front->next->next);
+    list_splice_range(str, ls, ls->front, from2, from2->front, from2->front->next->next);
+    list_splice_range(int, li, NULL, from1, from1->back->prev, NULL);
+    list_splice_range(str, ls, NULL, from2, from2->back->prev, NULL);
+    compare_ints(from1, c1[0], 4);
+    compare_strs(from2, c2[0], 4);
+    compare_ints(li, c1[1], 6);
+    compare_strs(ls, c2[1], 6);
+    list_splice_range(int, li, li->front->next->next, from1, from1->front, from1->front->next->next);
+    list_splice_range(str, ls, ls->front->next->next, from2, from2->front, from2->front->next->next);
+    list_splice_range(int, li, li->back->prev, from1, from1->front, NULL);
+    list_splice_range(str, ls, ls->back->prev, from2, from2->front, NULL);
+    compare_ints(from1, ints, 0);
+    compare_strs(from2, strs, 0);
+    compare_ints(li, ints, 10);
+    compare_strs(ls, strs, 10);
+    list_free(int, from1);
+    list_free(str, from2);
+    list_free(int, li);
+    list_free(str, ls);
 }
 
 void test_reverse(void) {
@@ -305,30 +551,79 @@ void test_reverse(void) {
     list_free(int, l);
 }
 
-void test_utility_funcs(void) {
-    int c1[3][3] = {{1,2,3},{1,3},{3}};
-    char *c2[3][3] = {{"1","2","3"},{"1","3"},{"3"}};
-    int start1[] = {1,2,2,2,3,3};
-    char *start2[] = {"1","2","2","2","3","3"};
-    List_int *li = list_new_fromArray(int, start1, 6);
-    List_str *ls = list_new_fromArray(str, start2, 6);
-
-    list_unique(int, li);
-    list_unique(str, ls);
-    compare_ints(li, c1[0], 3);
-    compare_strs(ls, c2[0], 3);
-
-    list_remove_value(int, li, 2);
-    list_remove_value(str, ls, "2");
-    compare_ints(li, c1[1], 2);
-    compare_strs(ls, c2[1], 2);
-
+void test_remove_if(void) {
+    int a1[] = {0,5,0,10,0};
+    char *a2[] = {"000","005","000","010","000"};
+    List_int *li = list_new_fromArray(int, a1, 5);
+    List_str *ls = list_new_fromArray(str, a2, 5);
     list_remove_if(int, li, testCond);
     list_remove_if(str, ls, strTestCond);
-    compare_ints(li, c1[2], 1);
-    compare_strs(ls, c2[2], 1);
+    compare_ints(li, &ints[1], 2);
+    compare_strs(ls, &strs[1], 2);
     list_free(str, ls);
     list_free(int, li);
+}
+
+void test_unique(void) {
+    int a1[] = {0,0,5,5,5,10,10,10,15,15};
+    char *a2[] = {"000","000","005","005","005","010","010","010","015","015"};
+    List_int *li = list_new_fromArray(int, a1, 10);
+    List_str *ls = list_new_fromArray(str, a2, 10);
+    list_unique(int, li);
+    list_unique(str, ls);
+    compare_ints(li, ints, 4);
+    compare_strs(ls, strs, 4);
+    list_free(str, ls);
+    list_free(int, li);
+}
+
+void test_remove_value(void) {
+    int a1[] = {2,5,2,10,2};
+    char *a2[] = {"002","005","002","010","002"};
+    List_int *li = list_new_fromArray(int, a1, 5);
+    List_str *ls = list_new_fromArray(str, a2, 5);
+    list_remove_value(int, li, 2);
+    list_remove_value(str, ls, "002");
+    compare_ints(li, &ints[1], 2);
+    compare_strs(ls, &strs[1], 2);
+    list_free(str, ls);
+    list_free(int, li);
+}
+
+void test_find(void) {
+    List_int *li = list_new_fromArray(int, ints, 10);
+    List_str *ls = list_new_fromArray(str, strs, 10);
+    assert(list_find(int, li, 30)->data == 30);
+    assert(streq(list_find(str, ls, "030")->data, "030"));
+    assert(list_find(int, li, 11) == NULL);
+    assert(list_find(str, ls, "011") == NULL);
+    list_free(str, ls);
+    list_free(int, li);
+}
+
+void test_merge(void) {
+    int a1[] = {10,20,30,40,50}, c1[] = {5,10,10,15,20,20,25,30,40,50};
+    char *a2[] = {"010","020","030","040","050"}, *c2[] = {"005","010","010","015","020","020","025","030","040","050"};
+    List_str *ls1 = list_new_fromArray(str, &strs[1], 5), *ls2 = list_new_fromArray(str, a2, 5);
+    List_int *li1 = list_new_fromArray(int, &ints[1], 5), *li2 = list_new_fromArray(int, a1, 5), *li3 = list_new(int);
+
+    list_merge(int, li1, li3);
+    compare_ints(li1, &ints[1], 5);
+    compare_ints(li3, ints, 0);
+    list_merge(int, li3, li1);
+    compare_ints(li3, &ints[1], 5);
+    compare_ints(li1, ints, 0);
+    list_merge(int, li3, li2);
+    list_merge(str, ls1, ls2);
+    compare_ints(li3, c1, 10);
+    compare_ints(li2, ints, 0);
+    compare_strs(ls1, c2, 10);
+    compare_strs(ls2, strs, 0);
+    list_free(int, li1);
+    list_free(int, li2);
+    list_free(int, li3);
+    list_free(str, ls1);
+    list_free(str, ls2);
 }
 
 void test_sort(void) {
@@ -348,172 +643,122 @@ void test_sort(void) {
     list_free(int, li);
 }
 
-void test_find(void) {
-    List_int *li = list_new_fromArray(int, ints, 10);
-    List_str *ls = list_new_fromArray(str, strs, 10);
-    ListEntry_int *x = list_find(int, li, 30);
-    ListEntry_str *y = list_find(str, ls, "030");
-    assert(x && x->data == 30);
-    assert(y && streq(y->data, "030"));
-    assert(list_find(int, li, 11) == NULL);
-    assert(list_find(str, ls, "011") == NULL);
-    list_free(str, ls);
-    list_free(int, li);
-}
-
-void test_merge(void) {
-    int a1[] = {50,40,30,20,10}, c1[] = {5,10,10,15,20,20,25,30,40,50};
-    char *a2[] = {"050","040","030","020","010"}, *c2[] = {"005","010","010","015","020","020","025","030","040","050"};
-    List_str *ls1 = list_new_fromArray(str, &strs[1], 5);
-    List_str *ls2 = list_new_fromArray(str, a2, 5);
-    List_int *li1 = list_new_fromArray(int, &ints[1], 5);
-    List_int *li2 = list_new_fromArray(int, a1, 5);
-
-    list_sort(int, li2);
-    list_merge(int, li1, li2);
-    list_sort(str, ls2);
-    list_merge(str, ls1, ls2);
-
-    compare_ints(li1, c1, 10);
-    compare_ints(li2, ints, 0);
-    compare_strs(ls1, c2, 10);
-    compare_strs(ls2, strs, 0);
+void test_union(void) {
+    int c1[] = {0,5,10,15,20};
+    char *c2[] = {"000","005","010","015","020"};
+    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
+    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
+    List_int *ri = set_union_list(int, li1, li2);
+    List_str *rs = set_union_list(str, ls1, ls2);
+    assert(__set_union_list_int(NULL, li1->back, li2->front, li2->back) == NULL);
+    assert(__set_union_list_int(li1->front, li1->back, NULL, li2->back) == NULL);
+    compare_ints(ri, c1, 5);
+    compare_strs(rs, c2, 5);
+    list_free(int, ri);
+    list_free(str, rs);
     list_free(int, li1);
     list_free(int, li2);
     list_free(str, ls1);
     list_free(str, ls2);
 }
 
-void test_splice(void) {
-    int secondCmpInt[] = {2};
-    char *secondCmpStr[] = {"02"};
-    int c1[4][11] = {{1,2,3,4,10,20,30},{1,3,4,10,20,30},{1,3,4,10,20,30,40,50},{1,3,4,5,6,7,10,20,30,40,50}};
-    char *c2[4][11] = {{"01","02","03","04","10","20","30"},{"01","03","04","10","20","30"},
-    {"01","03","04","10","20","30","40","50"},{"01","03","04","05","06","07","10","20","30","40","50"}};
-    List_str *ls1, *ls2;
-    List_int *li1, *li2;
-    {
-        int a1[] = {10,20,30}, a2[] = {1,2,3,4};
-        char *a3[] = {"10","20","30"}, *a4[] = {"01","02","03","04"};
-        li1 = list_new_fromArray(int, a1, 3);
-        li2 = list_new_fromArray(int, a2, 4);
-        ls1 = list_new_fromArray(str, a3, 3);
-        ls2 = list_new_fromArray(str, a4, 4);
-    }
-
-    list_splice(int, li1, li1->front, li2);
-    list_splice(str, ls1, ls1->front, ls2);
-    compare_ints(li1, c1[0], 7);
-    compare_ints(li2, secondCmpInt, 0);
-    compare_strs(ls1, c2[0], 7);
-    compare_strs(ls2, c2[0], 0);
-
-    list_splice_element(int, li2, NULL, li1, li1->front->next);
-    list_splice_element(str, ls2, NULL, ls1, ls1->front->next);
-    compare_ints(li1, c1[1], 6);
-    compare_ints(li2, secondCmpInt, 1);
-    compare_strs(ls1, c2[1], 6);
-    compare_strs(ls2, secondCmpStr, 1);
-
-    {
-        int a1[] = {40,50};
-        char *a2[] = {"40","50"};
-        list_insert_fromArray(int, li2, NULL, a1, 2);
-        list_insert_fromArray(str, ls2, NULL, a2, 2);
-    }
-    list_splice_range(int, li1, NULL, li2, li2->front->next, NULL);
-    list_splice_range(str, ls1, NULL, ls2, ls2->front->next, NULL);
-    compare_ints(li1, c1[2], 8);
-    compare_ints(li2, secondCmpInt, 1);
-    compare_strs(ls1, c2[2], 8);
-    compare_strs(ls2, secondCmpStr, 1);
-
-    {
-        int a1[] = {5,6,7};
-        char *a2[] = {"05","06","07"};
-        ListEntry_int *x = li1->front;
-        ListEntry_str *y = ls1->front;
-        iter_advance(LIST, int, x, 3);
-        iter_advance(LIST, str, y, 3);
-        list_insert_fromArray(int, li2, li2->front, a1, 3);
-        list_insert_fromArray(str, ls2, ls2->front, a2, 3);
-        list_splice_range(int, li1, x, li2, li2->front, li2->back);
-        list_splice_range(str, ls1, y, ls2, ls2->front, ls2->back);
-    }
-    compare_ints(li1, c1[3], 11);
-    compare_ints(li2, secondCmpInt, 1);
-    compare_strs(ls1, c2[3], 11);
-    compare_strs(ls2, secondCmpStr, 1);
+void test_intersection(void) {
+    int c1[] = {10};
+    char *c2[] = {"010"};
+    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
+    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
+    List_int *ri = set_intersection_list(int, li1, li2);
+    List_str *rs = set_intersection_list(str, ls1, ls2);
+    compare_ints(ri, c1, 1);
+    compare_strs(rs, c2, 1);
+    list_free(int, ri);
+    list_free(str, rs);
     list_free(int, li1);
     list_free(int, li2);
     list_free(str, ls1);
     list_free(str, ls2);
 }
 
-void test_alg_funcs(void) {
-    int c1[4][5] = {{0,5,10,15,20},{10},{0,5},{0,5,15,20}};
-    char *c2[4][5] = {{"000","005","010","015","020"},{"010"},{"000","005"},{"000","005","015","020"}};
-    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3), *rs;
-    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3), *ri;
-
-    ri = set_union_list(int, li1, li2);
-    rs = set_union_list(str, ls1, ls2);
-    compare_ints(ri, c1[0], 5);
-    compare_strs(rs, c2[0], 5);
+void test_difference(void) {
+    int c1[] = {0,5};
+    char *c2[] = {"000","005"};
+    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
+    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
+    List_int *ri = set_difference_list(int, li1, li2);
+    List_str *rs = set_difference_list(str, ls1, ls2);
+    compare_ints(ri, c1, 2);
+    compare_strs(rs, c2, 2);
     list_free(int, ri);
     list_free(str, rs);
-
-    ri = set_intersection_list(int, li1, li2);
-    rs = set_intersection_list(str, ls1, ls2);
-    compare_ints(ri, c1[1], 1);
-    compare_strs(rs, c2[1], 1);
-    list_free(int, ri);
-    list_free(str, rs);
-
-    ri = set_difference_list(int, li1, li2);
-    rs = set_difference_list(str, ls1, ls2);
-    compare_ints(ri, c1[2], 2);
-    compare_strs(rs, c2[2], 2);
-    list_free(int, ri);
-    list_free(str, rs);
-
-    ri = set_symmetric_difference_list(int, li1, li2);
-    rs = set_symmetric_difference_list(str, ls1, ls2);
-    compare_ints(ri, c1[3], 4);
-    compare_strs(rs, c2[3], 4);
-    list_free(int, ri);
-    list_free(str, rs);
-
-    {
-        int a1[2][10] = {{5,10,15,20,25,30,35,40,45,50},{10,20,30,40}};
-        char *a2[2][10] = {{"05","10","15","20","25","30","35","40","45","50"},{"10","20","30","40"}};
-        List_int *container1 = list_new_fromArray(int, a1[0], 10), *continent1 = list_new_fromArray(int, a1[1], 4);
-        List_str *container2 = list_new_fromArray(str, a2[0], 10), *continent2 = list_new_fromArray(str, a2[1], 4);
-        assert(includes_list(int, container1, continent1));
-        assert(includes_list(str, container2, continent2));
-        list_free(int, container1);
-        list_free(int, continent1);
-        list_free(str, container2);
-        list_free(str, continent2);
-    }
     list_free(int, li1);
     list_free(int, li2);
     list_free(str, ls1);
     list_free(str, ls2);
+}
+
+void test_symmetric_difference(void) {
+    int c1[] = {0,5,15,20};
+    char *c2[] = {"000","005","015","020"};
+    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
+    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
+    List_int *ri = set_symmetric_difference_list(int, li1, li2);
+    List_str *rs = set_symmetric_difference_list(str, ls1, ls2);
+    compare_ints(ri, c1, 4);
+    compare_strs(rs, c2, 4);
+    list_free(int, ri);
+    list_free(str, rs);
+    list_free(int, li1);
+    list_free(int, li2);
+    list_free(str, ls1);
+    list_free(str, ls2);
+}
+
+void test_includes(void) {
+    int a1[2][10] = {{5,10,15,20,25,30,35,40,45,50},{10,20,30,40}};
+    char *a2[2][10] = {{"05","10","15","20","25","30","35","40","45","50"},{"10","20","30","40"}};
+    List_int *container1 = list_new_fromArray(int, a1[0], 10), *continent1 = list_new_fromArray(int, a1[1], 4);
+    List_str *container2 = list_new_fromArray(str, a2[0], 10), *continent2 = list_new_fromArray(str, a2[1], 4);
+    assert(includes_list(int, container1, continent1));
+    assert(includes_list(str, container2, continent2));
+    list_free(int, container1);
+    list_free(int, continent1);
+    list_free(str, container2);
+    list_free(str, continent2);
 }
 
 int main(void) {
-    test_push_pop();
-    test_custom_init();
-    test_insert();
-    test_insert_sorted();
-    test_erase();
+    test_empty_init();
+    test_init_repeatingValue();
+    test_init_fromArray();
+    test_init_copy();
+    test_push_front();
+    test_push_back();
+    test_pop_front();
+    test_pop_back();
+    test_resize();
+    test_insert_element();
+    test_insert_repeatedValue();
+    test_insert_fromArray();
+    test_insert_fromList();
+    test_insert_sorted_element();
+    test_insert_sorted_fromArray();
+    test_insert_sorted_fromList();
+    test_remove_element();
+    test_erase_elements();
+    test_splice_all();
+    test_splice_element();
+    test_splice_range();
     test_reverse();
-    test_utility_funcs();
-    test_sort();
+    test_remove_if();
+    test_unique();
+    test_remove_value();
     test_find();
     test_merge();
-    test_splice();
-    test_alg_funcs();
+    test_sort();
+    test_union();
+    test_intersection();
+    test_difference();
+    test_symmetric_difference();
+    test_includes();
     return 0;
 }

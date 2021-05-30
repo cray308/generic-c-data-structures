@@ -32,12 +32,11 @@
  *
  * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
  */
-__DS_FUNC_PREFIX_INL int modulo(int index, size_t size) {
+__DS_FUNC_PREFIX_INL int modulo(int index, int size) {
     int m;
-    if (!(index < 0 ? ((int) size + index >= 0) : (index < (int) size))) return -1;
-
-    m = index % (int) size;
-    return (m < 0) ? (m + (int) size) : m;
+    if (!(index < 0 ? (size + index >= 0) : (index < size))) return -1;
+    m = index % size;
+    return (m < 0) ? (m + size) : m;
 }
 
 __DS_FUNC_PREFIX_INL void *__ds_malloc(size_t size) {

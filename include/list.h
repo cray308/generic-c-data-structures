@@ -168,6 +168,17 @@
 
 
 /**
+ * Creates a new list with size `n`, where each element is set to `value`.
+ *
+ * @param   n      Number of elements to initialize.
+ * @param   value  Value to set for each of the elements.
+ *
+ * @return         Pointer to the newly created list.
+ */
+#define list_new_repeatingValue(id, n, value) list_new_repeatingValue_##id(n, value)
+
+
+/**
  * Creates a new list using `n` elements in a built-in array `arr`.
  *
  * @param   arr  Pointer to the first element to insert.
@@ -192,6 +203,27 @@
  * Deletes all elements and frees the list.
  */
 #define list_free(id, l) list_free_##id(l) 
+
+
+/**
+ * Resizes the list to a size of `n`. If this is less than the current size, all but the first `n` 
+ * elements are removed. If this is greater than the current size, elements are appended to the list 
+ * with a value of 0.
+ *
+ * @param  n  The new list size.
+ */
+#define list_resize(id, l, n) list_resize_usingValue_##id(l, n, 0)
+
+
+/**
+ * Resizes the list to a size of `n`. If this is less than the current size, all but the first `n` 
+ * elements are removed. If this is greater than the current size, elements are appended to the list 
+ * with a value of `value`.
+ *
+ * @param  n      The new list size.
+ * @param  value  Value to hold in the new elements if `n` is greater than the current size.
+ */
+#define list_resize_usingValue(id, l, n, value) list_resize_usingValue_##id(l, n, value)
 
 
 /**
@@ -229,10 +261,23 @@
  *                    defaults to `list_push_back`.
  * @param   value   Value to insert.
  *
- * @return          If successful, returns a `ListEntry` corresponding to the inserted element. If
- *                  an error occurred, returns NULL.
+ * @return          `ListEntry` corresponding to the inserted element.
  */
 #define list_insert(id, l, pos, value) list_insert_##id(l, pos, value)
+
+
+/**
+ * Inserts `n` copies of `value` before `pos`.
+ *
+ * @param   pos     `ListEntry` before which the elements should be inserted. If this is NULL, it
+ *                    defaults to `list_push_back`.
+ * @param   n       Number of copies of `value` to insert.
+ * @param   value   Value to insert.
+ *
+ * @return          If successful, returns a `ListEntry` corresponding to the first inserted element.
+ *                  If an error occurred, returns NULL.
+ */
+#define list_insert_repeatingValue(id, l, pos, n, value) list_insert_repeatingValue_##id(l, pos, n, value)
 
 
 /**
@@ -265,15 +310,27 @@
 
 
 /**
+ * Removes the element at `pos`.
+ *
+ * @param   pos  `ListEntry` to be removed.
+ *
+ * @return       If successful, returns a `ListEntry` corresponding to the element that was after `pos`;
+ *               if `pos` was the last element in the list, this is LIST_END. If an error occurred,
+ *               returns NULL.
+ */
+#define list_remove(id, l, pos) list_erase_##id(l, pos, pos ? (pos)->next : NULL)
+
+
+/**
  * Erases elements within the range [`first`, `last`).
  *
  * @param   first  First `ListEntry` to be removed - must be provided.
  * @param   last   `ListEntry` after the last entry to be deleted. If this is NULL, all elements
- *                   from start through the end of the list will be removed.
+ *                   from `first` through the end of the list will be removed.
  *
  * @return         If successful, returns a `ListEntry` corresponding to the element after the last
  *                 deleted element; if the last deleted element was the last element in the list, this
- *                 is ARRAY_END. If an error occurred, returns NULL.
+ *                 is LIST_END. If an error occurred, returns NULL.
  */
 #define list_erase(id, l, first, last) list_erase_##id(l, first, last)
 
@@ -390,12 +447,26 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_##id(List_##id *l, ListEntry_##id *
     return new;                                                                                              \
 }                                                                                                            \
                                                                                                              \
+__DS_FUNC_PREFIX ListEntry_##id *list_insert_repeatingValue_##id(List_##id *l, ListEntry_##id *pos, size_t n, t value) { \
+    size_t i;                                                                                                \
+    if (!n) return NULL;                                                                                     \
+    for (i = 0; i < n; ++i) {                                                                                \
+        pos = list_insert_##id(l, pos, value);                                                               \
+    }                                                                                                        \
+    return pos;                                                                                              \
+}                                                                                                            \
 __DS_FUNC_PREFIX ListEntry_##id *list_insert_fromArray_##id(List_##id *l, ListEntry_##id *pos, t *arr, size_t n) { \
     __list_iterable_insert_body(id, l, pos, arr, end, t *end;, if (!arr || !n) return NULL;, end = &arr[n];, iter_next_ARR, iter_deref_ARR, copyValue) \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *l, ListEntry_##id *pos, ListEntry_##id *start, ListEntry_##id *end) { \
-    __list_iterable_insert_body(id, l, pos, start, end, ____cds_do_nothing, if (!start) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
+    __list_iterable_insert_body(id, l, pos, start, end, ____cds_do_nothing, if (!start || start == end) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
+    List_##id *l = list_new(id);                                                                             \
+    list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
+    return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
@@ -438,6 +509,19 @@ __DS_FUNC_PREFIX ListEntry_##id *list_erase_##id(List_##id *l, ListEntry_##id *f
         l->back = before;                                                                                    \
     }                                                                                                        \
     return res;                                                                                              \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX void list_resize_usingValue_##id(List_##id *l, size_t n, t value) {                         \
+    if (n == l->size) return;                                                                                \
+    else if (n < l->size) {                                                                                  \
+        ListEntry_##id *first = l->front;                                                                    \
+        const int toAdvance = n;                                                                             \
+        iter_advance_LIST(id, first, toAdvance);                                                             \
+        list_erase_##id(l, first, NULL);                                                                     \
+        return;                                                                                              \
+    }                                                                                                        \
+                                                                                                             \
+    list_insert_repeatingValue_##id(l, NULL, n - l->size, value);                                            \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void list_free_##id(List_##id *l) {                                                     \
@@ -528,8 +612,7 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
  *
  * @param   value  Value to insert.
  *
- * @return         If successful, returns a `ListEntry` corresponding to the inserted element. If an
- *                 error occurred, returns NULL.
+ * @return         `ListEntry` corresponding to the inserted element.
  */
 #define list_insert_sorted(id, l, value) list_insert_sorted_##id(l, value)
 
@@ -726,7 +809,7 @@ __DS_FUNC_PREFIX_INL ListEntry_##id *list_find_##id(List_##id *l, t val) {      
                                                                                                              \
 __DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other) {                                   \
     ListEntry_##id *first1, *first2, *last1 = NULL, *last2 = NULL;                                           \
-    if (!other || !other->front) { /* nothing to merge */                                                    \
+    if (!other->front) { /* nothing to merge */                                                              \
         return;                                                                                              \
     } else if (!this->front) { /* "this" is empty, set it to other and return */                             \
         this->front = other->front;                                                                          \
