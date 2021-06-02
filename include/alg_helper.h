@@ -262,10 +262,9 @@ __DS_FUNC_PREFIX_INL void ds_pop_heap_##id(t *first, t *last) {                 
  * TEMPLATE SET OPERATIONS
  * -------------------------------------------------------------------------- */
 
-#define __alg_func_body(deref, cmp_lt, decl, earlyReturn, beforeLoop, afterFirst, afterSecond, afterThird, afterLoop1, afterLoop2, returnVal) \
+#define __alg_func_body(deref, cmp_lt, decl, earlyReturn, afterFirst, afterSecond, afterThird, afterLoop1, afterLoop2, returnVal) \
     decl                                                                                                     \
-    if (!(first1 && first2)) return earlyReturn;                                                             \
-    beforeLoop                                                                                               \
+    if (!(first1 && first2)) { earlyReturn }                                                                 \
     while (first1 != last1 && first2 != last2) {                                                             \
         if (cmp_lt(deref(first1), deref(first2))) {                                                          \
             afterFirst                                                                                       \
@@ -281,23 +280,23 @@ __DS_FUNC_PREFIX_INL void ds_pop_heap_##id(t *first, t *last) {                 
 
 #define __gen_alg_set_funcs(id, cmp_lt, Adt, ds_type, init, iter_type, iter_next, deref, insert_single, insert_multi_1, insert_multi_2) \
 __DS_FUNC_PREFIX Adt *__set_union_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-    __alg_func_body(deref, cmp_lt, Adt *d_new;, NULL, d_new = init(id);, insert_single(id, d_new, deref(first1));iter_next(id, first1);, insert_single(id, d_new, deref(first2));iter_next(id, first2);, insert_single(id, d_new, deref(first1));iter_next(id, first1);iter_next(id, first2);, if(first1 != last1) {insert_multi_1;}, if(first2 != last2) {insert_multi_2;}, d_new) \
+    __alg_func_body(deref, cmp_lt, Adt *d_new = init(id);, if(first1){insert_multi_1;}else if(first2){insert_multi_2;}return d_new;, insert_single(id, d_new, deref(first1));iter_next(id, first1);, insert_single(id, d_new, deref(first2));iter_next(id, first2);, insert_single(id, d_new, deref(first1));iter_next(id, first1);iter_next(id, first2);, if(first1 != last1) {insert_multi_1;}, if(first2 != last2) {insert_multi_2;}, d_new) \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Adt *__set_intersection_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-    __alg_func_body(deref, cmp_lt, Adt *d_new;, NULL, d_new = init(id);, iter_next(id, first1);, iter_next(id, first2);, insert_single(id, d_new, deref(first1));iter_next(id, first1);iter_next(id, first2);, ____cds_do_nothing, ____cds_do_nothing, d_new) \
+    __alg_func_body(deref, cmp_lt, Adt *d_new = init(id);, return d_new;, iter_next(id, first1);, iter_next(id, first2);, insert_single(id, d_new, deref(first1));iter_next(id, first1);iter_next(id, first2);, ____cds_do_nothing, ____cds_do_nothing, d_new) \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Adt *__set_difference_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-    __alg_func_body(deref, cmp_lt, Adt *d_new;, NULL, d_new = init(id);, insert_single(id, d_new, deref(first1));iter_next(id, first1);, iter_next(id, first2);, iter_next(id, first1);iter_next(id, first2);, if(first1 != last1) {insert_multi_1;}, ____cds_do_nothing, d_new) \
+    __alg_func_body(deref, cmp_lt, Adt *d_new = init(id);, if(first1){insert_multi_1;}return d_new;, insert_single(id, d_new, deref(first1));iter_next(id, first1);, iter_next(id, first2);, iter_next(id, first1);iter_next(id, first2);, if(first1 != last1) {insert_multi_1;}, ____cds_do_nothing, d_new) \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Adt *__set_symmetric_difference_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-    __alg_func_body(deref, cmp_lt, Adt *d_new;, NULL, d_new = init(id);, insert_single(id, d_new, deref(first1));iter_next(id, first1);, insert_single(id, d_new, deref(first2));iter_next(id, first2);, iter_next(id, first1);iter_next(id, first2);, if(first1 != last1) {insert_multi_1;}, if(first2 != last2) {insert_multi_2;}, d_new) \
+    __alg_func_body(deref, cmp_lt, Adt *d_new = init(id);, if(first1){insert_multi_1;}else if(first2){insert_multi_2;}return d_new;, insert_single(id, d_new, deref(first1));iter_next(id, first1);, insert_single(id, d_new, deref(first2));iter_next(id, first2);, iter_next(id, first1);iter_next(id, first2);, if(first1 != last1) {insert_multi_1;}, if(first2 != last2) {insert_multi_2;}, d_new) \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX unsigned char __includes_##ds_type(iter_type first1, iter_type last1, iter_type first2, iter_type last2) { \
-    __alg_func_body(deref, cmp_lt, ____cds_do_nothing, 0, ____cds_do_nothing, iter_next(id, first1);, return 0;, iter_next(id, first1);iter_next(id, first2);, ____cds_do_nothing, ____cds_do_nothing, first2 == last2) \
+    __alg_func_body(deref, cmp_lt, ____cds_do_nothing, if(first1){return 1;}else if(first2){return 0;}else{return 1;}, iter_next(id, first1);, return 0;, iter_next(id, first1);iter_next(id, first2);, ____cds_do_nothing, ____cds_do_nothing, first2 == last2) \
 }                                                                                                            \
 
 #endif

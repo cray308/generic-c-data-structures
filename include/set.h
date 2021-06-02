@@ -168,7 +168,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set, or NULL if `other` is NULL.
+ * @return         Newly created set.
  */
 #define set_union(id, s, other) __set_union_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
@@ -178,7 +178,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set, or NULL if `other` is NULL.
+ * @return         Newly created set.
  */
 #define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
@@ -188,7 +188,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set, or NULL if `other` is NULL.
+ * @return         Newly created set.
  */
 #define set_difference(id, s, other) __set_difference_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
@@ -198,7 +198,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         Newly created set, or NULL if `other` is NULL.
+ * @return         Newly created set.
  */
 #define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
@@ -252,10 +252,7 @@ __gen_avltree(id, t, cmp_lt, Set_##id, t, SetEntry_##id, __set_entry_get_key, __
 __gen_alg_set_funcs(id, cmp_lt, Set_##id, set_##id, set_new, SetEntry_##id *, iter_next_AVLTREE, iter_deref_AVLTREE, set_insert, set_insert_fromSet(id, d_new, first1, last1), set_insert_fromSet(id, d_new, first2, last2)) \
                                                                                                              \
 __DS_FUNC_PREFIX unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other) {                          \
-    SetEntry_##id *n1, *n2;                                                                                  \
-    if (!other || !other->root) return 0;                                                                    \
-                                                                                                             \
-    n1 = __avl_successor_##id(this->root), n2 = __avl_successor_##id(other->root);                           \
+    SetEntry_##id *n1 = __avl_successor_##id(this->root), *n2 = __avl_successor_##id(other->root);           \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __avl_inorder_successor_##id(n1);                                                           \

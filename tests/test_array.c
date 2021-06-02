@@ -123,6 +123,25 @@ void test_init_fromArray(void) {
     array_free(str, as);
 }
 
+void test_create_copy(void) {
+    Array_int *b = array_new_fromArray(int, ints, 0), *ai;
+    Array_str *c = array_new_fromArray(str, strs, 5), *as;
+    ai = array_createCopy(int, b);
+    compare_ints(ai, ints, 0);
+    array_free(int, ai);
+    array_free(int, b);
+    b = array_new_fromArray(int, ints, 5);
+
+    ai = array_createCopy(int, b);
+    as = array_createCopy(str, c);
+    compare_ints(ai, ints, 5);
+    compare_strs(as, strs, 5);
+    array_free(int, ai);
+    array_free(str, as);
+    array_free(int, b);
+    array_free(str, c);
+}
+
 void test_push_back(void) {
     int i;
     Array_int *ai = array_new(int);
@@ -429,66 +448,133 @@ void test_sort(void) {
 }
 
 void test_union(void) {
-    int c1[] = {0,5,10,15,20};
-    char *c2[] = {"000","005","010","015","020"};
+    int c1[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70};
+    char *c2[] = {"000","005","010","015","020","025","030","035","040","045","050","055","060","065","070"};
     Array_int *ri;
     Array_str *rs;
-    assert(set_union_array(int, NULL, &ints[3], &ints[2], &ints[5]) == NULL);
-    assert(set_union_array(int, ints, &ints[3], NULL, &ints[5]) == NULL);
-    ri = set_union_array(int, ints, &ints[3], &ints[2], &ints[5]);
-    rs = set_union_array(str, strs, &strs[3], &strs[2], &strs[5]);
+
+    ri = set_union_array(int, NULL, &ints[15], ints, &ints[10]);
+    compare_ints(ri, ints, 10);
+    array_free(int, ri);
+    ri = set_union_array(int, ints, &ints[10], NULL, &ints[15]);
+    compare_ints(ri, ints, 10);
+    array_free(int, ri);
+    ri = set_union_array(int, NULL, &ints[15], NULL, &ints[15]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+
+    ri = set_union_array(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = set_union_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    compare_ints(ri, c1, 15);
+    compare_strs(rs, c2, 15);
+    array_free(int, ri);
+    array_free(str, rs);
+}
+
+void test_intersection(void) {
+    int c1[] = {25,30,35,40,45};
+    char *c2[] = {"025","030","035","040","045"};
+    Array_int *ri;
+    Array_str *rs;
+
+    ri = set_intersection_array(int, NULL, &ints[15], ints, &ints[10]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+    ri = set_intersection_array(int, ints, &ints[10], NULL, &ints[15]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+    ri = set_intersection_array(int, NULL, &ints[15], NULL, &ints[15]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+
+    ri = set_intersection_array(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = set_intersection_array(str, strs, &strs[10], &strs[5], &strs[15]);
     compare_ints(ri, c1, 5);
     compare_strs(rs, c2, 5);
     array_free(int, ri);
     array_free(str, rs);
 }
 
-void test_intersection(void) {
-    int c1[] = {10};
-    char *c2[] = {"010"};
-    Array_int *ri = set_intersection_array(int, ints, &ints[3], &ints[2], &ints[5]);
-    Array_str *rs = set_intersection_array(str, strs, &strs[3], &strs[2], &strs[5]);
-    compare_ints(ri, c1, 1);
-    compare_strs(rs, c2, 1);
-    array_free(int, ri);
-    array_free(str, rs);
-}
-
 void test_difference(void) {
-    int c1[] = {0,5};
-    char *c2[] = {"000","005"};
-    Array_int *ri = set_difference_array(int, ints, &ints[3], &ints[2], &ints[5]);
-    Array_str *rs = set_difference_array(str, strs, &strs[3], &strs[2], &strs[5]);
-    compare_ints(ri, c1, 2);
-    compare_strs(rs, c2, 2);
+    int c1[] = {0,5,10,15,20};
+    char *c2[] = {"000","005","010","015","020"};
+    Array_int *ri;
+    Array_str *rs;
+
+    ri = set_difference_array(int, NULL, &ints[15], ints, &ints[10]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+    ri = set_difference_array(int, ints, &ints[10], NULL, &ints[15]);
+    compare_ints(ri, ints, 10);
+    array_free(int, ri);
+    ri = set_difference_array(int, NULL, &ints[15], NULL, &ints[15]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+
+    ri = set_difference_array(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = set_difference_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    compare_ints(ri, c1, 5);
+    compare_strs(rs, c2, 5);
     array_free(int, ri);
     array_free(str, rs);
 }
 
 void test_symmetric_difference(void) {
-    int c1[] = {0,5,15,20};
-    char *c2[] = {"000","005","015","020"};
-    Array_int *ri = set_symmetric_difference_array(int, ints, &ints[3], &ints[2], &ints[5]);
-    Array_str *rs = set_symmetric_difference_array(str, strs, &strs[3], &strs[2], &strs[5]);
-    compare_ints(ri, c1, 4);
-    compare_strs(rs, c2, 4);
+    int c1[] = {0,5,10,15,20,50,55,60,65,70};
+    char *c2[] = {"000","005","010","015","020","050","055","060","065","070"};
+    Array_int *ri;
+    Array_str *rs;
+
+    ri = set_symmetric_difference_array(int, NULL, &ints[15], ints, &ints[10]);
+    compare_ints(ri, ints, 10);
+    array_free(int, ri);
+    ri = set_symmetric_difference_array(int, ints, &ints[10], NULL, &ints[15]);
+    compare_ints(ri, ints, 10);
+    array_free(int, ri);
+    ri = set_symmetric_difference_array(int, NULL, &ints[15], NULL, &ints[15]);
+    compare_ints(ri, ints, 0);
+    array_free(int, ri);
+
+    ri = set_symmetric_difference_array(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = set_symmetric_difference_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    compare_ints(ri, c1, 10);
+    compare_strs(rs, c2, 10);
     array_free(int, ri);
     array_free(str, rs);
 }
 
 void test_includes(void) {
-    int continent[] = {10,20,30,40};
-    char *continent2[] = {"010","020","030","040"};
-    assert(includes_array(int, NULL, &ints[11], continent, &continent[4]) == 0);
-    assert(includes_array(int, ints, &ints[11], NULL, &continent[4]) == 0);
-    assert(includes_array(int, ints, &ints[11], continent, &continent[4]));
-    assert(includes_array(str, strs, &strs[11], continent2, &continent2[4]));
+    assert(includes_array(int, NULL, &ints[6], NULL, &ints[6]));
+    assert(!includes_array(int, NULL, &ints[6], &ints[5], &ints[11]));
+    assert(includes_array(int, &ints[5], &ints[11], NULL, &ints[6]));
+
+    assert(includes_array(int, ints, &ints[6], ints, &ints[6]));
+    assert(includes_array(str, strs, &strs[6], strs, &strs[6]));
+    assert(includes_array(int, &ints[5], &ints[11], &ints[5], &ints[11]));
+    assert(includes_array(str, &strs[5], &strs[11], &strs[5], &strs[11]));
+    assert(includes_array(int, ints, &ints[11], ints, &ints[11]));
+    assert(includes_array(str, strs, &strs[11], strs, &strs[11]));
+
+    assert(!includes_array(int, ints, &ints[6], ints, &ints[11]));
+    assert(includes_array(int, ints, &ints[11], ints, &ints[6]));
+    assert(!includes_array(str, strs, &strs[6], strs, &strs[11]));
+    assert(includes_array(str, strs, &strs[11], strs, &strs[6]));
+    assert(!includes_array(int, &ints[5], &ints[11], ints, &ints[11]));
+    assert(includes_array(int, ints, &ints[11], &ints[5], &ints[11]));
+    assert(!includes_array(str, &strs[5], &strs[11], strs, &strs[11]));
+    assert(includes_array(str, strs, &strs[11], &strs[5], &strs[11]));
+
+    assert(!includes_array(int, ints, &ints[6], &ints[5], &ints[11]));
+    assert(!includes_array(int, &ints[5], &ints[11], ints, &ints[6]));
+    assert(!includes_array(str, strs, &strs[6], &strs[5], &strs[11]));
+    assert(!includes_array(str, &strs[5], &strs[11], strs, &strs[6]));
 }
 
 int main(void) {    
     test_empty_init();
     test_init_repeatingValue();
     test_init_fromArray();
+    test_create_copy();
     test_push_back();
     test_pop_back();
     test_resize();

@@ -644,14 +644,53 @@ void test_sort(void) {
 }
 
 void test_union(void) {
-    int c1[] = {0,5,10,15,20};
-    char *c2[] = {"000","005","010","015","020"};
-    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
-    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
-    List_int *ri = set_union_list(int, li1, li2);
-    List_str *rs = set_union_list(str, ls1, ls2);
-    assert(__set_union_list_int(NULL, li1->back, li2->front, li2->back) == NULL);
-    assert(__set_union_list_int(li1->front, li1->back, NULL, li2->back) == NULL);
+    int c1[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70};
+    char *c2[] = {"000","005","010","015","020","025","030","035","040","045","050","055","060","065","070"};
+    List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
+    List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
+
+    ri = set_union_list(int, li1, li2);
+    compare_ints(ri, ints, 10);
+    list_free(int, ri);
+    ri = set_union_list(int, li2, li1);
+    compare_ints(ri, ints, 10);
+    list_free(int, ri);
+    ri = set_union_list(int, li2, li2);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+
+    list_insert_fromArray(int, li2, NULL, &ints[5], 10);
+    ri = set_union_list(int, li1, li2);
+    rs = set_union_list(str, ls1, ls2);
+    compare_ints(ri, c1, 15);
+    compare_strs(rs, c2, 15);
+    list_free(int, ri);
+    list_free(str, rs);
+    list_free(int, li1);
+    list_free(int, li2);
+    list_free(str, ls1);
+    list_free(str, ls2);
+}
+
+void test_intersection(void) {
+    int c1[] = {25,30,35,40,45};
+    char *c2[] = {"025","030","035","040","045"};
+    List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
+    List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
+
+    ri = set_intersection_list(int, li1, li2);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+    ri = set_intersection_list(int, li2, li1);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+    ri = set_intersection_list(int, li2, li2);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+
+    list_insert_fromArray(int, li2, NULL, &ints[5], 10);
+    ri = set_intersection_list(int, li1, li2);
+    rs = set_intersection_list(str, ls1, ls2);
     compare_ints(ri, c1, 5);
     compare_strs(rs, c2, 5);
     list_free(int, ri);
@@ -662,32 +701,27 @@ void test_union(void) {
     list_free(str, ls2);
 }
 
-void test_intersection(void) {
-    int c1[] = {10};
-    char *c2[] = {"010"};
-    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
-    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
-    List_int *ri = set_intersection_list(int, li1, li2);
-    List_str *rs = set_intersection_list(str, ls1, ls2);
-    compare_ints(ri, c1, 1);
-    compare_strs(rs, c2, 1);
-    list_free(int, ri);
-    list_free(str, rs);
-    list_free(int, li1);
-    list_free(int, li2);
-    list_free(str, ls1);
-    list_free(str, ls2);
-}
-
 void test_difference(void) {
-    int c1[] = {0,5};
-    char *c2[] = {"000","005"};
-    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
-    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
-    List_int *ri = set_difference_list(int, li1, li2);
-    List_str *rs = set_difference_list(str, ls1, ls2);
-    compare_ints(ri, c1, 2);
-    compare_strs(rs, c2, 2);
+    int c1[] = {0,5,10,15,20};
+    char *c2[] = {"000","005","010","015","020"};
+    List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
+    List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
+
+    ri = set_difference_list(int, li1, li2);
+    compare_ints(ri, ints, 10);
+    list_free(int, ri);
+    ri = set_difference_list(int, li2, li1);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+    ri = set_difference_list(int, li2, li2);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+
+    list_insert_fromArray(int, li2, NULL, &ints[5], 10);
+    ri = set_difference_list(int, li1, li2);
+    rs = set_difference_list(str, ls1, ls2);
+    compare_ints(ri, c1, 5);
+    compare_strs(rs, c2, 5);
     list_free(int, ri);
     list_free(str, rs);
     list_free(int, li1);
@@ -697,14 +731,26 @@ void test_difference(void) {
 }
 
 void test_symmetric_difference(void) {
-    int c1[] = {0,5,15,20};
-    char *c2[] = {"000","005","015","020"};
-    List_str *ls1 = list_new_fromArray(str, strs, 3), *ls2 = list_new_fromArray(str, &strs[2], 3);
-    List_int *li1 = list_new_fromArray(int, ints, 3), *li2 = list_new_fromArray(int, &ints[2], 3);
-    List_int *ri = set_symmetric_difference_list(int, li1, li2);
-    List_str *rs = set_symmetric_difference_list(str, ls1, ls2);
-    compare_ints(ri, c1, 4);
-    compare_strs(rs, c2, 4);
+    int c1[] = {0,5,10,15,20,50,55,60,65,70};
+    char *c2[] = {"000","005","010","015","020","050","055","060","065","070"};
+    List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
+    List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
+
+    ri = set_symmetric_difference_list(int, li1, li2);
+    compare_ints(ri, ints, 10);
+    list_free(int, ri);
+    ri = set_symmetric_difference_list(int, li2, li1);
+    compare_ints(ri, ints, 10);
+    list_free(int, ri);
+    ri = set_symmetric_difference_list(int, li2, li2);
+    compare_ints(ri, ints, 0);
+    list_free(int, ri);
+
+    list_insert_fromArray(int, li2, NULL, &ints[5], 10);
+    ri = set_symmetric_difference_list(int, li1, li2);
+    rs = set_symmetric_difference_list(str, ls1, ls2);
+    compare_ints(ri, c1, 10);
+    compare_strs(rs, c2, 10);
     list_free(int, ri);
     list_free(str, rs);
     list_free(int, li1);
@@ -714,16 +760,38 @@ void test_symmetric_difference(void) {
 }
 
 void test_includes(void) {
-    int a1[2][10] = {{5,10,15,20,25,30,35,40,45,50},{10,20,30,40}};
-    char *a2[2][10] = {{"05","10","15","20","25","30","35","40","45","50"},{"10","20","30","40"}};
-    List_int *container1 = list_new_fromArray(int, a1[0], 10), *continent1 = list_new_fromArray(int, a1[1], 4);
-    List_str *container2 = list_new_fromArray(str, a2[0], 10), *continent2 = list_new_fromArray(str, a2[1], 4);
-    assert(includes_list(int, container1, continent1));
-    assert(includes_list(str, container2, continent2));
-    list_free(int, container1);
-    list_free(int, continent1);
-    list_free(str, container2);
-    list_free(str, continent2);
+    int i;
+    List_int *a[3];
+    List_str *b[3];
+    a[0] = list_new(int), a[1] = list_new_fromArray(int, &ints[5], 6), a[2] = list_new_fromArray(int, ints, 11);
+    b[0] = list_new_fromArray(str, strs, 6), b[1] = list_new_fromArray(str, &strs[5], 6), b[2] = list_new_fromArray(str, strs, 11);
+
+    assert(includes_list(int, a[0], a[0]));
+    assert(!includes_list(int, a[0], a[1]));
+    assert(includes_list(int, a[1], a[0]));
+    list_insert_fromArray(int, a[0], NULL, ints, 6);
+
+    for (i = 0; i < 3; ++i) {
+        assert(includes_list(int, a[i], a[i]));
+        assert(includes_list(str, b[i], b[i]));
+    }
+
+    for (i = 0; i < 2; ++i) {
+        assert(!includes_list(int, a[i], a[2]));
+        assert(includes_list(int, a[2], a[i]));
+        assert(!includes_list(str, b[i], b[2]));
+        assert(includes_list(str, b[2], b[i]));
+    }
+
+    assert(!includes_list(int, a[0], a[1]));
+    assert(!includes_list(int, a[1], a[0]));
+    assert(!includes_list(str, b[0], b[1]));
+    assert(!includes_list(str, b[1], b[0]));
+
+    for (i = 0; i < 3; ++i) {
+        list_free(int, a[i]);
+        list_free(str, b[i]);
+    }
 }
 
 int main(void) {
