@@ -12,25 +12,25 @@
 /**
  * The number of entries in the set.
  */
-#define uset_size(s) ((int) (s)->size)
+#define uset_size(this) ((int) (this)->size)
 
 
 /**
  * The current value of the set's max load factor.
  */
-#define uset_max_load_factor(s) ((s)->lf)
+#define uset_max_load_factor(this) ((this)->lf)
 
 
 /**
  * The total number of buckets in the set.
  */
-#define uset_bucket_count(s) ((s)->cap)
+#define uset_bucket_count(this) ((this)->cap)
 
 
 /**
  * Whether the set is empty.
  */
-#define uset_empty(s) (!((s)->size))
+#define uset_empty(this) (!((this)->size))
 
 
 /**
@@ -38,7 +38,7 @@
  *
  * @param  it  Pointer to element, which is assigned to the current element.
  */
-#define uset_iter(id, s, it) for (it = iter_begin_HTABLE(id, s); it != iter_end_HTABLE(id, s); iter_next_HTABLE(id, s, it))
+#define uset_iter(id, this, it) for (it = iter_begin_HTABLE(id, this); it != iter_end_HTABLE(id, this); iter_next_HTABLE(id, this, it))
 
 
 /**
@@ -73,7 +73,7 @@
 /**
  * Deletes all elements and frees the set.
  */
-#define uset_free(id, s) __htable_free_##id(s)
+#define uset_free(id, this) __htable_free_##id(this)
 
 
 /**
@@ -81,7 +81,7 @@
  *
  * @param  value  Value to insert.
  */
-#define uset_insert(id, s, value) __htable_insert_##id(s, value, NULL)
+#define uset_insert(id, this, value) __htable_insert_##id(this, value, NULL)
 
 
 /**
@@ -90,7 +90,7 @@
  * @param  value     Value to insert.
  * @param  inserted  Set to 1 if the value was newly inserted, or 0 if the value was already a member.
  */
-#define uset_insert_withResult(id, s, value, inserted) __htable_insert_##id(s, value, inserted)
+#define uset_insert_withResult(id, this, value, inserted) __htable_insert_##id(this, value, inserted)
 
 
 /**
@@ -99,7 +99,7 @@
  * @param  arr  Pointer to the first element to insert.
  * @param  n    Number of elements to include.
  */
-#define uset_insert_fromArray(id, s, arr, n) __htable_insert_fromArray_##id(s, arr, n)
+#define uset_insert_fromArray(id, this, arr, n) __htable_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -109,7 +109,7 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define uset_contains(id, s, value) (__htable_find_##id(s, value) != NULL)
+#define uset_contains(id, this, value) (__htable_find_##id(this, value) != NULL)
 
 
 /**
@@ -117,7 +117,7 @@
  *
  * @param  value  Value to be deleted.
  */
-#define uset_remove(id, s, value) __htable_erase_##id(s, value)
+#define uset_remove(id, this, value) __htable_erase_##id(this, value)
 
 
 /**
@@ -126,7 +126,7 @@
  *
  * @param  nbuckets  New number of buckets to use in the set.
  */
-#define uset_rehash(id, s, nbuckets) __htable_rehash_##id(s, nbuckets)
+#define uset_rehash(id, this, nbuckets) __htable_rehash_##id(this, nbuckets)
 
 
 /**
@@ -134,13 +134,13 @@
  *
  * @param  lf  The new load factor to use.
  */
-#define uset_set_load_factor(id, s, lf) __htable_set_load_factor_##id(s, lf) 
+#define uset_set_load_factor(id, this, lf) __htable_set_load_factor_##id(this, lf) 
 
 
 /**
  * Removes all entries from the set.
  */
-#define uset_clear(id, s) __htable_clear_##id(s)
+#define uset_clear(id, this) __htable_clear_##id(this)
 
 
 /**

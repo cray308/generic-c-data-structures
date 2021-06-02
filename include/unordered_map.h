@@ -9,25 +9,25 @@
 /**
  * The number of entries in the map.
  */
-#define umap_size(m) ((int) (m)->size)
+#define umap_size(this) ((int) (this)->size)
 
 
 /**
  * The current value of the map's max load factor.
  */
-#define umap_max_load_factor(m) ((m)->lf)
+#define umap_max_load_factor(this) ((this)->lf)
 
 
 /**
  * The total number of buckets in the map.
  */
-#define umap_bucket_count(m) ((m)->cap)
+#define umap_bucket_count(this) ((this)->cap)
 
 
 /**
  * Whether the map is empty.
  */
-#define umap_empty(m) (!((m)->size))
+#define umap_empty(this) (!((this)->size))
 
 
 /**
@@ -35,7 +35,7 @@
  *
  * @param  it  Pointer to `Pair` which is assigned to the current element.
  */
-#define umap_iter(id, m, it) for (it = iter_begin_HTABLE(id, m); it != iter_end_HTABLE(id, m); iter_next_HTABLE(id, m, it))
+#define umap_iter(id, this, it) for (it = iter_begin_HTABLE(id, this); it != iter_end_HTABLE(id, this); iter_next_HTABLE(id, this, it))
 
 
 /**
@@ -70,7 +70,7 @@
 /**
  * Deletes all elements and frees the map.
  */
-#define umap_free(id, m) __htable_free_##id(m)
+#define umap_free(id, this) __htable_free_##id(this)
 
 
 /**
@@ -80,7 +80,7 @@
  *
  * @return       Pointer to the inserted pair.
  */
-#define umap_insert(id, m, pair) __htable_insert_##id(m, pair, NULL)
+#define umap_insert(id, this, pair) __htable_insert_##id(this, pair, NULL)
 
 
 /**
@@ -92,7 +92,7 @@
  *
  * @return            Pointer to the inserted pair.
  */
-#define umap_insert_withResult(id, m, pair, inserted) __htable_insert_##id(m, pair, inserted)
+#define umap_insert_withResult(id, this, pair, inserted) __htable_insert_##id(this, pair, inserted)
 
 
 /**
@@ -101,7 +101,7 @@
  * @param  arr  Pointer to the first element to insert.
  * @param  n    Number of elements to include.
  */
-#define umap_insert_fromArray(id, m, arr, n) __htable_insert_fromArray_##id(m, arr, n)
+#define umap_insert_fromArray(id, this, arr, n) __htable_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -111,7 +111,7 @@
  *
  * @return     Pointer to `Pair` whose key matches `k`, or NULL if it was not found.
  */
-#define umap_find(id, m, k) __htable_find_##id(m, k)
+#define umap_find(id, this, k) __htable_find_##id(this, k)
 
 
 /**
@@ -119,7 +119,7 @@
  *
  * @param  k  Key to find.
  */
-#define umap_at(id, m, k) umap_at_##id(m, k)
+#define umap_at(id, this, k) umap_at_##id(this, k)
 
 
 /**
@@ -127,7 +127,7 @@
  *
  * @param  k  Key to be deleted.
  */
-#define umap_remove_key(id, m, k) __htable_erase_##id(m, k)
+#define umap_remove_key(id, this, k) __htable_erase_##id(this, k)
 
 
 /**
@@ -136,7 +136,7 @@
  *
  * @param  nbuckets  New number of buckets to use in the map.
  */
-#define umap_rehash(id, m, nbuckets) __htable_rehash_##id(m, nbuckets)
+#define umap_rehash(id, this, nbuckets) __htable_rehash_##id(this, nbuckets)
 
 
 /**
@@ -144,13 +144,13 @@
  *
  * @param  lf  The new load factor to use.
  */
-#define umap_set_load_factor(id, m, lf) __htable_set_load_factor_##id(m, lf) 
+#define umap_set_load_factor(id, this, lf) __htable_set_load_factor_##id(this, lf) 
 
 
 /**
  * Removes all entries from the map.
  */
-#define umap_clear(id, m) __htable_clear_##id(m)
+#define umap_clear(id, this) __htable_clear_##id(this)
 
 
 /**
@@ -185,8 +185,8 @@
 gen_pair(id, kt, vt)                                                                                         \
 __gen_hash_table(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
-__DS_FUNC_PREFIX_INL vt *umap_at_##id(UMap_##id *m, const kt key) {                                          \
-    Pair_##id *p = __htable_find_##id(m, key);                                                               \
+__DS_FUNC_PREFIX_INL vt *umap_at_##id(UMap_##id *this, const kt key) {                                       \
+    Pair_##id *p = __htable_find_##id(this, key);                                                            \
     return p ? &(p->second) : NULL;                                                                          \
 }                                                                                                            \
 
