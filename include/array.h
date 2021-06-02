@@ -108,6 +108,14 @@
 
 
 /**
+ * Creates a new array as a copy of `Array` object `a`.
+ *
+ * @return  Pointer to the newly created array.
+ */
+#define array_createCopy(id, a) array_new_fromArray_##id((a)->arr, (a)->size)
+
+
+/**
  * Deletes all elements and frees the array.
  */
 #define array_free(id, a) array_free_##id(a)
@@ -280,7 +288,7 @@ __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {             
     t *tmp;                                                                                                  \
     if (n <= a->capacity) return;                                                                            \
                                                                                                              \
-    ncap = a->capacity ? a->capacity : 1;                                                                    \
+    ncap = a->capacity;                                                                                      \
     while (ncap < n) {                                                                                       \
         ncap <<= 1; /* use multiple of 2 */                                                                  \
     }                                                                                                        \
@@ -292,7 +300,7 @@ __DS_FUNC_PREFIX void array_reserve_##id(Array_##id *a, size_t n) {             
                                                                                                              \
 __DS_FUNC_PREFIX int array_erase_##id(Array_##id *a, int first, int nelem) {                                 \
     int endIdx, i, res;                                                                                      \
-    if (!(nelem && a->size) || (first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                     \
+    if (!nelem || (first = modulo(first, a->size)) < 0) return ARRAY_ERROR;                                  \
                                                                                                              \
     if (nelem < 0) { /* erase from first to end of array */                                                  \
         nelem = array_size(a) - first;                                                                       \
@@ -320,7 +328,7 @@ __DS_FUNC_PREFIX int array_insert_repeatingValue_##id(Array_##id *a, int index, 
     t* i; t* end;                                                                                            \
     int res;                                                                                                 \
     if (!n) return ARRAY_ERROR;                                                                              \
-    else if (!(append = (index >= (int) a->size))) {                                                         \
+    else if (!(append = (index == (int) a->size))) {                                                         \
         if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                        \
     }                                                                                                        \
                                                                                                              \
@@ -366,7 +374,7 @@ __DS_FUNC_PREFIX_INL void array_push_back_##id(Array_##id *a, t value) {        
                                                                                                              \
 __DS_FUNC_PREFIX int array_insert_##id(Array_##id *a, int index, t element) {                                \
     t *loc;                                                                                                  \
-    if (index >= (int) a->size) { /* append */                                                               \
+    if (index == (int) a->size) { /* append */                                                               \
         array_push_back_##id(a, element);                                                                    \
         return a->size - 1;                                                                                  \
     }                                                                                                        \
@@ -384,8 +392,8 @@ __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *a, int index, t *ar
     char append;                                                                                             \
     t* i; t* end;                                                                                            \
     int res;                                                                                                 \
-    if (!arr || !n) return ARRAY_ERROR;                                                                      \
-    else if (!(append = (index >= (int) a->size))) {                                                         \
+    if (!(arr && n)) return ARRAY_ERROR;                                                                     \
+    else if (!(append = (index == (int) a->size))) {                                                         \
         if ((index = modulo(index, a->size)) < 0) return ARRAY_ERROR;                                        \
     }                                                                                                        \
                                                                                                              \
