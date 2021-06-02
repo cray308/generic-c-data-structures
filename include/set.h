@@ -12,13 +12,13 @@
 /**
  * The number of elements in the set.
  */
-#define set_size(s) ((int) (s)->size)
+#define set_size(this) ((int) (this)->size)
 
 
 /**
  * Tests whether the set is empty.
  */
-#define set_empty(s) (!((s)->root))
+#define set_empty(this) (!((this)->root))
 
 
 /**
@@ -26,14 +26,14 @@
  *
  * @param  it  `SetEntry` which is assigned to the current element. May be dereferenced with it->data.
  */
-#define set_iter(id, s, it) for (it = iter_begin(AVLTREE, id, s, 0); it != iter_end(AVLTREE, id, s, 0); iter_next(AVLTREE, id, it))
+#define set_iter(id, this, it) for (it = iter_begin(AVLTREE, id, this, 0); it != iter_end(AVLTREE, id, this, 0); iter_next(AVLTREE, id, it))
 
 /**
  * Iterates through the set in reverse order.
  *
  * @param  it  `SetEntry` which is assigned to the current element. May be dereferenced with it->data.
  */
-#define set_riter(id, s, it) for (it = iter_rbegin(AVLTREE, id, s, 0); it != iter_rend(AVLTREE, id, s, 0); iter_prev(AVLTREE, id, it))
+#define set_riter(id, this, it) for (it = iter_rbegin(AVLTREE, id, this, 0); it != iter_rend(AVLTREE, id, this, 0); iter_prev(AVLTREE, id, it))
 
 
 /**
@@ -68,13 +68,13 @@
 /**
  * Deletes all elements and frees the set.
  */
-#define set_free(id, s) __avltree_free_##id(s)
+#define set_free(id, this) __avltree_free_##id(this)
 
 
 /**
  * Removes all elements from the set, leaving it with a size of 0.
  */
-#define set_clear(id, s) __avltree_clear_##id(s)
+#define set_clear(id, this) __avltree_clear_##id(this)
 
 
 /**
@@ -84,7 +84,7 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define set_contains(id, s, value) (__avltree_find_key_##id(s, value, 0) != NULL)
+#define set_contains(id, this, value) (__avltree_find_key_##id(this, value, 0) != NULL)
 
 
 /**
@@ -94,7 +94,7 @@
  *
  * @return         `SetEntry` that was found, or NULL if it was not found.
  */
-#define set_find(id, s, value) __avltree_find_key_##id(s, value, 0)
+#define set_find(id, this, value) __avltree_find_key_##id(this, value, 0)
 
 
 /**
@@ -104,7 +104,7 @@
  *
  * @return         `SetEntry` corresponding to the inserted value.
  */
-#define set_insert(id, s, value) __avltree_insert_##id(s, value, NULL)
+#define set_insert(id, this, value) __avltree_insert_##id(this, value, NULL)
 
 
 /**
@@ -115,7 +115,7 @@
  *
  * @return            `SetEntry` corresponding to the inserted value.
  */
-#define set_insert_withResult(id, s, value, inserted) __avltree_insert_##id(s, value, inserted)
+#define set_insert_withResult(id, this, value, inserted) __avltree_insert_##id(this, value, inserted)
 
 
 /**
@@ -124,7 +124,7 @@
  * @param  arr  Pointer to the first element to insert.
  * @param  n    Number of elements to include.
  */
-#define set_insert_fromArray(id, s, arr, n) __avltree_insert_fromArray_##id(s, arr, n)
+#define set_insert_fromArray(id, this, arr, n) __avltree_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -134,7 +134,7 @@
  * @param  end    `SetEntry` after the last entry to insert. If this is NULL, all elements from
  *                  `start` through the end (greatest element) of the other set will be inserted.
  */
-#define set_insert_fromSet(id, s, start, end) __avltree_insert_fromTree_##id(s, start, end)
+#define set_insert_fromSet(id, this, start, end) __avltree_insert_fromTree_##id(this, start, end)
 
 
 /**
@@ -144,7 +144,7 @@
  * @param  end    `SetEntry` after the last entry to be deleted. If this is NULL, all elements from
  *                  `start` through the greatest element in the set will be removed.
  */
-#define set_erase(id, s, begin, end) __avltree_erase_##id(s, begin, end)
+#define set_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
 
 /**
@@ -152,7 +152,7 @@
  *
  * @param  value  Value to be deleted.
  */
-#define set_remove_value(id, s, value) __avltree_remove_key_##id(s, value)
+#define set_remove_value(id, this, value) __avltree_remove_key_##id(this, value)
 
 
 /**
@@ -160,7 +160,7 @@
  *
  * @param  entry  `SetEntry` to remove.
  */
-#define set_remove_entry(id, s, entry) __avltree_remove_entry_##id(s, entry)
+#define set_remove_entry(id, this, entry) __avltree_remove_entry_##id(this, entry)
 
 
 /**
@@ -170,7 +170,7 @@
  *
  * @return         Newly created set.
  */
-#define set_union(id, s, other) __set_union_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_union(id, this, other) __set_union_set_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -180,7 +180,7 @@
  *
  * @return         Newly created set.
  */
-#define set_intersection(id, s, other) __set_intersection_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_intersection(id, this, other) __set_intersection_set_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -190,7 +190,7 @@
  *
  * @return         Newly created set.
  */
-#define set_difference(id, s, other) __set_difference_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_difference(id, this, other) __set_difference_set_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -200,7 +200,7 @@
  *
  * @return         Newly created set.
  */
-#define set_symmetric_difference(id, s, other) __set_symmetric_difference_set_##id(iter_begin_AVLTREE(id, s, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_symmetric_difference(id, this, other) __set_symmetric_difference_set_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
 
 
 /**
@@ -210,7 +210,7 @@
  *
  * @return         True if each element in this set is in `other`, false if not.
  */
-#define set_issubset(id, s, other) __includes_set_##id(iter_begin_AVLTREE(id, other, 0), NULL, iter_begin_AVLTREE(id, s, 0), NULL)
+#define set_issubset(id, this, other) __includes_set_##id(iter_begin_AVLTREE(id, other, 0), NULL, iter_begin_AVLTREE(id, this, 0), NULL)
 
 
 /**
@@ -221,7 +221,7 @@
  *
  * @return         True if this set contains each element in `other`, false if not.
  */
-#define set_issuperset(id, s, other) set_issubset(id, other, s)
+#define set_issuperset(id, this, other) set_issubset(id, other, this)
 
 
 /**
@@ -231,7 +231,7 @@
  *
  * @return         True if this set and `other` have no common elements, false if they do.
  */
-#define set_isdisjoint(id, s, other) set_disjoint_##id(s, other)
+#define set_isdisjoint(id, this, other) set_disjoint_##id(this, other)
 
 
 /**
