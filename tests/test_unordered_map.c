@@ -1,247 +1,556 @@
 #include "unordered_map.h"
 #include <assert.h>
 
-#define LEN 100
-
-char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","010","011","012","013","014",
-"015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",
-"034","035","036","037","038","039","040","041","042","043","044","045","046","047","048","049","050","051","052",
-"053","054","055","056","057","058","059","060","061","062","063","064","065","066","067","068","069","070","071",
-"072","073","074","075","076","077","078","079","080","081","082","083","084","085","086","087","088","089","090",
-"091","092","093","094","095","096","097","098","099"};
-
 gen_umap(strv_int, char *, int, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_umap(int_str, int, char *, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_umap(strp_int, char *, int, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_umap(nested, char *, UMap_strv_int *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, __htable_free_strv_int)
 
-void test_insert_find_string(void) {
-    int i, rv = -1;
-    Pair_strv_int entry = {"005", 256}, *it;
-    UMap_strv_int *m = umap_new(strv_int);
-    assert(umap_empty(m));
+char *strs[] = {"000","001","002","003","004","005","006","007","008","009","010","011","012","013","014",
+"015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",
+"034","035","036","037","038","039","040","041","042","043","044","045","046","047","048","049"};
 
-    for (i = 0; i <= 10; ++i) {
-        Pair_strv_int p;
-        p.first = strs[i], p.second = i;
-        umap_insert(strv_int, m, p);
-        assert(umap_size(m) == i + 1);
-    }
-    assert(!umap_empty(m));
+typedef struct {
+    int i;
+    char *s;
+    int found;
+} DictData;
 
-    for (i = 0; i <= 10; ++i) {
-        it = umap_find(strv_int, m, strs[i]);
-        assert(it && it->second == i);
-    }
+typedef struct {
+    char *s;
+    DictData *data;
+    int found;
+} NestedDictData;
 
-    assert(umap_find(strv_int, m, "hi") == NULL);
-
-    *umap_at(strv_int, m, "010") = 58;
-    it = umap_find(strv_int, m, "010");
-    assert(it->second == 58);
-
-    it = umap_insert_withResult(strv_int, m, entry, &rv);
-    assert(streq(it->first, "005"));
-    assert(it->second == 256);
-    assert(rv == 0);
-
-    umap_clear(strv_int, m);
-    assert(umap_size(m) == 0);
-    assert(umap_empty(m));
-    umap_free(strv_int, m);
+int search_int(const void *a, const void *b) {
+    int x = ((DictData *) a)->i, y = ((DictData *) b)->i;
+    return x < y ? -1 : (x > y ? 1 : 0);
 }
 
-void test_insert_find_int(void) {
-    int i;
-    UMap_int_str *m = umap_new(int_str); Pair_int_str *it;
-
-    for (i = 0; i <= 10; ++i) {
-        Pair_int_str p;
-        p.first = i, p.second = strs[i];
-        umap_insert(int_str, m, p);
-        assert(umap_size(m) == i + 1);
-    }
-    for (i = 0; i <= 10; ++i) {
-        it = umap_find(int_str, m, i);
-        assert(streq(it->second, strs[i]));
-    }
-
-    *umap_at(int_str, m, 3) = "Hello";
-    it = umap_find(int_str, m, 3);
-    assert(streq(it->second, "Hello"));
-
-    umap_clear(int_str, m);
-    assert(umap_size(m) == 0);
-    assert(umap_empty(m));
-    umap_free(int_str, m);
+int search_str(const void *a, const void *b) {
+    return strcmp(((DictData *) a)->s, ((DictData *) b)->s);
 }
 
-void test_arr_init_and_insert(void) {
-    int i;
-    Pair_strv_int arr[11], *it; UMap_strv_int *m;
-    for (i = 0; i <= 10; ++i) {
-        arr[i].first = strs[i], arr[i].second = i;
-    }
-    m = umap_new_fromArray(strv_int, arr, 11);
-    assert(m->size == 11);
-    i = 0;
-    umap_iter(strv_int, m, it) {
-        Pair_strv_int *found = umap_find(strv_int, m, strs[i]);
-        assert(found && found->second == i++);
-    }
-    assert(i == 11);
-
-    for (i = 0; i <= 10; ++i) { arr[i].first = strs[50 + i]; }
-    umap_insert_fromArray(strv_int, m, arr, 11);
-    assert(m->size == 22);
-
-    for (i = 0; i <= 10; ++i) {
-        Pair_strv_int *found = umap_find(strv_int, m, strs[50 + i]);
-        assert(found);
-        assert(found->second == i);
-    }
-
-    i = 0;
-    umap_iter(strv_int, m, it) {
-        assert(it);
-        ++i;
-    }
-    assert(i == 22);
-    umap_free(strv_int, m);
-}
-
-void test_create_copy(void) {
-    int i;
-    Pair_strv_int arr[11], *it; UMap_strv_int *m, *second;
-    for (i = 0; i <= 10; ++i) {
-        arr[i].first = strs[i], arr[i].second = i;
-    }
-    m = umap_new_fromArray(strv_int, arr, 11);
-    second = umap_createCopy(strv_int, m);
-    assert(second->size == 11);
-    i = 0;
-    umap_iter(strv_int, second, it) {
-        Pair_strv_int *found = umap_find(strv_int, second, strs[i]);
-        assert(found);
-        assert(found->second == i++);
-    }
-    assert(i == 11);
-    umap_free(strv_int, second); umap_free(strv_int, m);
-}
-
-void test_resizing_deletion(void) {
-    int i;
-    Pair_strp_int *it = NULL;
-    UMap_strp_int *m = umap_new(strp_int);
-
-    for (i = 0; i < LEN; ++i) {
-        Pair_strp_int p;
-        p.first = strs[i], p.second = i;
-        umap_insert(strp_int, m, p);
+#define __compare_str_int_body(id)                                                                           \
+    int i = 0;                                                                                               \
+    int *at;                                                                                                 \
+    Pair_##id *it;                                                                                           \
+    DictData data, *found;                                                                                   \
+    assert(umap_size(m) == size);                                                                            \
+    if (size) {                                                                                              \
+        assert(!umap_empty(m));                                                                              \
+    } else {                                                                                                 \
+        assert(umap_empty(m));                                                                               \
+    }                                                                                                        \
+    for (i = 0; i < size; ++i) {                                                                             \
+        comparison[i].found = 0;                                                                             \
+    }                                                                                                        \
+    i = 0;                                                                                                   \
+    umap_iter(id, m, it) {                                                                                   \
+        data.s = it->first;                                                                                  \
+        found = bsearch(&data, comparison, size, sizeof(DictData), search_str);                              \
+        assert(found && streq(found->s, it->first));                                                         \
+        assert(found->found == 0);                                                                           \
+        at = umap_at(id, m, it->first);                                                                      \
+        assert(at && *at == found->i);                                                                       \
+        assert(it->second == found->i);                                                                      \
+        found->found = 1;                                                                                    \
+        ++i;                                                                                                 \
+    }                                                                                                        \
+    assert(i == size);                                                                                       \
+    for (i = 0; i < size; ++i) {                                                                             \
+        assert(comparison[i].found);                                                                         \
     }
 
-    assert(m->cap != 32);
-    {
-        double oldLoadFactor = umap_max_load_factor(m);
-        size_t oldCap = m->cap;
-        umap_rehash(strp_int, m, oldCap);
-        assert(m->cap == oldCap);
-        umap_set_load_factor(strp_int, m, 0.5);
-        assert(oldLoadFactor != umap_max_load_factor(m));
-    }
-
-    for (i = 0; i < LEN; ++i) {
-        it = umap_find(strp_int, m, strs[i]);
-        assert(it->second == i);
-    }
-
-    i = LEN - 1;
-    while (!umap_empty(m)) {
-        umap_remove_key(strp_int, m, strs[i]);
-        assert(umap_size(m) == i);
-        it = umap_find(strp_int, m, strs[i]);
-        assert(it == NULL);
-        i--;
-    }
-    assert(umap_size(m) == 0);
-    umap_free(strp_int, m);
-}
-
-void test_iter(void) {
-    int i;
+void compare_int_str(UMap_int_str *m, DictData *comparison, int size) {
+    int i = 0;
+    char **at;
     Pair_int_str *it;
-    UMap_int_str *m = umap_new(int_str);
-
-    for (i = 0; i <= 10; ++i) {
-        Pair_int_str p;
-        p.first = i, p.second = strs[i];
-        umap_insert(int_str, m, p);
-        assert(umap_size(m) == i + 1);
+    DictData data, *found;
+    assert(umap_size(m) == size);
+    if (size) {
+        assert(!umap_empty(m));
+    } else {
+        assert(umap_empty(m));
     }
-
+    for (i = 0; i < size; ++i) {
+        comparison[i].found = 0;
+    }
     i = 0;
     umap_iter(int_str, m, it) {
-        assert(it != NULL);
-        assert(strlen(it->second) > 0);
+        data.i = it->first;
+        found = bsearch(&data, comparison, size, sizeof(DictData), search_int);
+        assert(found && found->i == it->first);
+        assert(found->found == 0);
+        at = umap_at(int_str, m, it->first);
+        assert(at && streq(*at, found->s));
+        assert(streq(it->second, found->s));
+        found->found = 1;
         ++i;
     }
-    assert(i == 11);
-    umap_free(int_str, m);
+    assert(i == size);
+    for (i = 0; i < size; ++i) {
+        assert(comparison[i].found);
+    }
+}
+
+void compare_strv_int(UMap_strv_int *m, DictData *comparison, int size) {
+    __compare_str_int_body(strv_int)
+}
+
+void compare_strp_int(UMap_strp_int *m, DictData *comparison, int size) {
+    __compare_str_int_body(strp_int)
+}
+
+void test_empty_init(void) {
+    DictData c[] = {{0,"000",0}};
+    UMap_int_str *m1 = umap_new(int_str);
+    UMap_strv_int *m2 = umap_new(strv_int);
+    UMap_strp_int *m3 = umap_new(strp_int);
+    compare_int_str(m1, c, 0);
+    compare_strv_int(m2, c, 0);
+    compare_strp_int(m3, c, 0);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_init_fromArray(void) {
+    DictData c1[] = {{0,"000",0}};
+    UMap_int_str *m1 = umap_new_fromArray(int_str, NULL, 5);
+    UMap_strv_int *m2;
+    UMap_strp_int *m3;
+
+    Pair_int_str arrInt[50];
+    Pair_strv_int arrStr1[50];
+    Pair_strp_int arrStr2[50];
+    DictData data[50] = {0};
+    int i;
+    for (i = 0; i < 50; ++i) {
+        arrInt[i].first = i, arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i], arrStr1[i].second = i;
+        arrStr2[i].first = strs[i], arrStr2[i].second = i;
+        data[i].i = i, data[i].s = strs[i];
+    }
+    compare_int_str(m1, data, 0);
+    umap_free(int_str, m1);
+    m1 = umap_new_fromArray(int_str, arrInt, 0);
+    compare_int_str(m1, data, 0);
+    umap_free(int_str, m1);
+
+    m1 = umap_new_fromArray(int_str, arrInt, 1);
+    m2 = umap_new_fromArray(strv_int, arrStr1, 1);
+    m3 = umap_new_fromArray(strp_int, arrStr2, 1);
+    compare_int_str(m1, c1, 1);
+    compare_strv_int(m2, c1, 1);
+    compare_strp_int(m3, c1, 1);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+
+    m1 = umap_new_fromArray(int_str, arrInt, 50);
+    m2 = umap_new_fromArray(strv_int, arrStr1, 50);
+    m3 = umap_new_fromArray(strp_int, arrStr2, 50);
+    compare_int_str(m1, data, 50);
+    compare_strv_int(m2, data, 50);
+    compare_strp_int(m3, data, 50);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_createCopy(void) {
+    UMap_int_str *b = umap_new_fromArray(int_str, NULL, 0), *m1;
+    UMap_strv_int *c, *m2;
+    UMap_strp_int *d, *m3;
+    Pair_int_str arrInt[50];
+    Pair_strv_int arrStr1[50];
+    Pair_strp_int arrStr2[50];
+    DictData data[50] = {0};
+    int i;
+    for (i = 0; i < 50; ++i) {
+        arrInt[i].first = i, arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i], arrStr1[i].second = i;
+        arrStr2[i].first = strs[i], arrStr2[i].second = i;
+        data[i].i = i, data[i].s = strs[i];
+    }
+    m1 = umap_createCopy(int_str, b);
+    compare_int_str(m1, data, 0);
+    umap_free(int_str, m1);
+    umap_free(int_str, b);
+    b = umap_new_fromArray(int_str, arrInt, 50);
+    c = umap_new_fromArray(strv_int, arrStr1, 50);
+    d = umap_new_fromArray(strp_int, arrStr2, 50);
+    m1 = umap_createCopy(int_str, b);
+    m2 = umap_createCopy(strv_int, c);
+    m3 = umap_createCopy(strp_int, d);
+    umap_free(int_str, b);
+    umap_free(strv_int, c);
+    umap_free(strp_int, d);
+    compare_int_str(m1, data, 50);
+    compare_strv_int(m2, data, 50);
+    compare_strp_int(m3, data, 50);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_insert_element(void) {
+    UMap_int_str *m1 = umap_new(int_str);
+    UMap_strv_int *m2 = umap_new(strv_int);
+    UMap_strp_int *m3 = umap_new(strp_int);
+    Pair_int_str x;
+    Pair_strv_int y;
+    Pair_strp_int z;
+    int a1[] = {50,40,30,20,10}, i, inserted = -1;
+    char *a2[] = {"050","040","030","020","010"};
+    DictData c1[] = {{10,"010",0},{20,"020",0},{30,"030",0},{40,"040",0},{50,"050",0}}, c2[] = {{10,"100",0},{20,"020",0},{30,"030",0},{40,"400",0},{50,"500",0}}, c3[] = {{100,"010",0},{20,"020",0},{30,"030",0},{400,"040",0},{500,"050",0}};
+
+    for (i = 0; i < 5; ++i) {
+        x.first = a1[i], x.second = a2[i], y.first = a2[i], y.second = a1[i], z.first = a2[i], z.second = a1[i];
+        umap_insert_withResult(int_str, m1, x, &inserted);
+        assert(inserted);
+        inserted = -1;
+        umap_insert_withResult(strv_int, m2, y, &inserted);
+        assert(inserted);
+        inserted = -1;
+        umap_insert_withResult(strp_int, m3, z, &inserted);
+        assert(inserted);
+        inserted = -1;
+    }
+    compare_int_str(m1, c1, 5);
+    compare_strv_int(m2, c1, 5);
+    compare_strp_int(m3, c1, 5);
+
+    x.first = 40, x.second = "400", y.first = "040", y.second = 400, z.first = "040", z.second = 400;
+    umap_insert_withResult(int_str, m1, x, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    umap_insert_withResult(strv_int, m2, y, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    umap_insert_withResult(strp_int, m3, z, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    x.first = 10, x.second = "100", y.first = "010", y.second = 100, z.first = "010", z.second = 100;
+    umap_insert_withResult(int_str, m1, x, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    umap_insert_withResult(strv_int, m2, y, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    umap_insert_withResult(strp_int, m3, z, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    x.first = 50, x.second = "500", y.first = "050", y.second = 500, z.first = "050", z.second = 500;
+    umap_insert_withResult(int_str, m1, x, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    umap_insert_withResult(strv_int, m2, y, &inserted);
+    assert(!inserted);
+    inserted = -1;
+    umap_insert_withResult(strp_int, m3, z, &inserted);
+    assert(!inserted);
+    compare_int_str(m1, c2, 5);
+    compare_strv_int(m2, c3, 5);
+    compare_strp_int(m3, c3, 5);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_insert_fromArray(void) {
+    Pair_int_str arrInt[7] = {{50,"050"},{50,"500"},{40,"040"},{30,"030"},{20,"020"},{10,"010"},{30,"300"}};
+    Pair_strv_int arrStr1[7] = {{"050",50},{"050",500},{"040",40},{"030",30},{"020",20},{"010",10},{"030",300}};
+    Pair_strp_int arrStr2[7] = {{"050",50},{"050",500},{"040",40},{"030",30},{"020",20},{"010",10},{"030",300}};
+    DictData c1[] = {{10,"010",0},{20,"020",0},{30,"300",0},{40,"040",0},{50,"500",0}}, c2[] = {{10,"010",0},{20,"020",0},{300,"030",0},{40,"040",0},{500,"050",0}};
+    UMap_int_str *m1 = umap_new(int_str);
+    UMap_strv_int *m2 = umap_new(strv_int);
+    UMap_strp_int *m3 = umap_new(strp_int);
+
+    umap_insert_fromArray(int_str, m1, NULL, 5);
+    umap_insert_fromArray(int_str, m1, arrInt, 0);
+    compare_int_str(m1, c1, 0);
+    umap_insert_fromArray(int_str, m1, arrInt, 7);
+    umap_insert_fromArray(strv_int, m2, arrStr1, 7);
+    umap_insert_fromArray(strp_int, m3, arrStr2, 7);
+    compare_int_str(m1, c1, 5);
+    compare_strv_int(m2, c2, 5);
+    compare_strp_int(m3, c2, 5);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_remove_key(void) {
+    DictData c[] = {{20,"020",0},{30,"030",0}};
+    int removedInts[] = {0,60,39,41,40,10,50,40}, i;
+    char *removedStrs[] = {"000","060","039","041","040","010","050","040"};
+    Pair_int_str arrInt[5] = {{50,"050"},{40,"040"},{30,"030"},{20,"020"},{10,"010"}};
+    Pair_strv_int arrStr1[5] = {{"050",50},{"040",40},{"030",30},{"020",20},{"010",10}};
+    Pair_strp_int arrStr2[5] = {{"050",50},{"040",40},{"030",30},{"020",20},{"010",10}};
+    UMap_int_str *m1 = umap_new_fromArray(int_str, arrInt, 5);
+    UMap_strv_int *m2 = umap_new_fromArray(strv_int, arrStr1, 5);
+    UMap_strp_int *m3 = umap_new_fromArray(strp_int, arrStr2, 5);
+
+    for (i = 0; i < 8; ++i) {
+        umap_remove_key(int_str, m1, removedInts[i]);
+        umap_remove_key(strv_int, m2, removedStrs[i]);
+        umap_remove_key(strp_int, m3, removedStrs[i]);
+    }
+    compare_int_str(m1, c, 2);
+    compare_strv_int(m2, c, 2);
+    compare_strp_int(m3, c, 2);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_find(void) {
+    Pair_int_str arrInt[10] = {{100,"100"},{90,"090"},{80,"080"},{70,"070"},{60,"060"},{50,"050"},{40,"040"},{30,"030"},{20,"020"},{10,"010"}};
+    Pair_strv_int arrStr1[10] = {{"100",100},{"090",90},{"080",80},{"070",70},{"060",60},{"050",50},{"040",40},{"030",30},{"020",20},{"010",10}};
+    Pair_strp_int arrStr2[10] = {{"100",100},{"090",90},{"080",80},{"070",70},{"060",60},{"050",50},{"040",40},{"030",30},{"020",20},{"010",10}};
+    UMap_int_str *m1 = umap_new(int_str);
+    UMap_strv_int *m2 = umap_new_fromArray(strv_int, arrStr1, 10);
+    UMap_strp_int *m3 = umap_new_fromArray(strp_int, arrStr2, 10);
+    Pair_int_str p1;
+    Pair_strv_int p2;
+    Pair_strp_int p3;
+
+    assert(!umap_find(int_str, m1, 0));
+    umap_insert_fromArray(int_str, m1, arrInt, 10);
+    assert(!umap_find(int_str, m1, 9));
+    assert(!umap_find(strv_int, m2, "009"));
+    assert(!umap_find(strp_int, m3, "009"));
+    assert(!umap_find(int_str, m1, 101));
+    assert(!umap_find(strv_int, m2, "101"));
+    assert(!umap_find(strp_int, m3, "101"));
+    assert(!umap_find(int_str, m1, 69));
+    assert(!umap_find(strv_int, m2, "069"));
+    assert(!umap_find(strp_int, m3, "069"));
+    assert(!umap_find(int_str, m1, 71));
+    assert(!umap_find(strv_int, m2, "071"));
+    assert(!umap_find(strp_int, m3, "071"));
+
+    p1 = *umap_find(int_str, m1, 70);
+    p2 = *umap_find(strv_int, m2, "070");
+    p3 = *umap_find(strp_int, m3, "070");
+    assert(p1.first == 70 && streq(p1.second, "070"));
+    assert(streq(p2.first, "070") && p2.second == 70);
+    assert(streq(p3.first, "070") && p3.second == 70);
+    p1 = *umap_find(int_str, m1, 60);
+    p2 = *umap_find(strv_int, m2, "060");
+    p3 = *umap_find(strp_int, m3, "060");
+    assert(p1.first == 60 && streq(p1.second, "060"));
+    assert(streq(p2.first, "060") && p2.second == 60);
+    assert(streq(p3.first, "060") && p3.second == 60);
+    p1 = *umap_find(int_str, m1, 80);
+    p2 = *umap_find(strv_int, m2, "080");
+    p3 = *umap_find(strp_int, m3, "080");
+    assert(p1.first == 80 && streq(p1.second, "080"));
+    assert(streq(p2.first, "080") && p2.second == 80);
+    assert(streq(p3.first, "080") && p3.second == 80);
+    p1 = *umap_find(int_str, m1, 10);
+    p2 = *umap_find(strv_int, m2, "010");
+    p3 = *umap_find(strp_int, m3, "010");
+    assert(p1.first == 10 && streq(p1.second, "010"));
+    assert(streq(p2.first, "010") && p2.second == 10);
+    assert(streq(p3.first, "010") && p3.second == 10);
+    p1 = *umap_find(int_str, m1, 100);
+    p2 = *umap_find(strv_int, m2, "100");
+    p3 = *umap_find(strp_int, m3, "100");
+    assert(p1.first == 100 && streq(p1.second, "100"));
+    assert(streq(p2.first, "100") && p2.second == 100);
+    assert(streq(p3.first, "100") && p3.second == 100);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_set_load_factor(void) {
+    UMap_int_str *m1 = umap_new(int_str);
+    UMap_strv_int *m2 = umap_new(strv_int);
+    UMap_strp_int *m3 = umap_new(strp_int);
+    Pair_int_str arrInt[50];
+    Pair_strv_int arrStr1[50];
+    Pair_strp_int arrStr2[50];
+    DictData data[50] = {0};
+    int i;
+    for (i = 0; i < 50; ++i) {
+        arrInt[i].first = i, arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i], arrStr1[i].second = i;
+        arrStr2[i].first = strs[i], arrStr2[i].second = i;
+        data[i].i = i, data[i].s = strs[i];
+    }
+
+    assert(umap_max_load_factor(m1) == 0.75);
+    assert(umap_max_load_factor(m2) == 0.75);
+    assert(umap_max_load_factor(m3) == 0.75);
+    umap_set_load_factor(int_str, m1, 0.25);
+    umap_set_load_factor(strv_int, m2, 0.25);
+    umap_set_load_factor(strp_int, m3, 0.25);
+    assert(umap_max_load_factor(m1) == 0.75);
+    assert(umap_max_load_factor(m2) == 0.75);
+    assert(umap_max_load_factor(m3) == 0.75);
+    umap_set_load_factor(int_str, m1, 1.25);
+    umap_set_load_factor(strv_int, m2, 1.25);
+    umap_set_load_factor(strp_int, m3, 1.25);
+    assert(umap_max_load_factor(m1) == 0.75);
+    assert(umap_max_load_factor(m2) == 0.75);
+    assert(umap_max_load_factor(m3) == 0.75);
+
+    umap_insert_fromArray(int_str, m1, arrInt, 50);
+    umap_insert_fromArray(strv_int, m2, arrStr1, 50);
+    umap_insert_fromArray(strp_int, m3, arrStr2, 50);
+    assert(umap_max_load_factor(m1) == 0.75);
+    assert(umap_max_load_factor(m2) == 0.75);
+    assert(umap_max_load_factor(m3) == 0.75);
+    umap_set_load_factor(int_str, m1, 1);
+    umap_set_load_factor(strv_int, m2, 1);
+    umap_set_load_factor(strp_int, m3, 1);
+    assert(umap_max_load_factor(m1) == 1.0);
+    assert(umap_max_load_factor(m2) == 1.0);
+    assert(umap_max_load_factor(m3) == 1.0);
+    compare_int_str(m1, data, 50);
+    compare_strv_int(m2, data, 50);
+    compare_strp_int(m3, data, 50);
+    umap_set_load_factor(int_str, m1, 0.5);
+    umap_set_load_factor(strv_int, m2, 0.5);
+    umap_set_load_factor(strp_int, m3, 0.5);
+    assert(umap_max_load_factor(m1) == 0.5);
+    assert(umap_max_load_factor(m2) == 0.5);
+    assert(umap_max_load_factor(m3) == 0.5);
+    compare_int_str(m1, data, 50);
+    compare_strv_int(m2, data, 50);
+    compare_strp_int(m3, data, 50);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
+}
+
+void test_rehash(void) {
+    UMap_int_str *m1 = umap_new(int_str);
+    UMap_strv_int *m2 = umap_new(strv_int);
+    UMap_strp_int *m3 = umap_new(strp_int);
+    Pair_int_str arrInt[50];
+    Pair_strv_int arrStr1[50];
+    Pair_strp_int arrStr2[50];
+    DictData data[50] = {0};
+    int i;
+    for (i = 0; i < 50; ++i) {
+        arrInt[i].first = i, arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i], arrStr1[i].second = i;
+        arrStr2[i].first = strs[i], arrStr2[i].second = i;
+        data[i].i = i, data[i].s = strs[i];
+    }
+
+    assert(umap_bucket_count(m1) == 32);
+    assert(umap_bucket_count(m2) == 32);
+    assert(umap_bucket_count(m3) == 32);
+    umap_rehash(int_str, m1, 16);
+    umap_rehash(strv_int, m2, 16);
+    umap_rehash(strp_int, m3, 16);
+    assert(umap_bucket_count(m1) == 32);
+    assert(umap_bucket_count(m2) == 32);
+    assert(umap_bucket_count(m3) == 32);
+    umap_rehash(int_str, m1, 33);
+    umap_rehash(strv_int, m2, 33);
+    umap_rehash(strp_int, m3, 33);
+    assert(umap_bucket_count(m1) == 64);
+    assert(umap_bucket_count(m2) == 64);
+    assert(umap_bucket_count(m3) == 64);
+
+    umap_insert_fromArray(int_str, m1, arrInt, 50);
+    umap_insert_fromArray(strv_int, m2, arrStr1, 50);
+    umap_insert_fromArray(strp_int, m3, arrStr2, 50);
+    assert(umap_bucket_count(m1) == 128);
+    assert(umap_bucket_count(m2) == 128);
+    assert(umap_bucket_count(m3) == 128);
+    umap_rehash(int_str, m1, 1024);
+    umap_rehash(strv_int, m2, 1024);
+    umap_rehash(strp_int, m3, 1024);
+    assert(umap_bucket_count(m1) == 1024);
+    assert(umap_bucket_count(m2) == 1024);
+    assert(umap_bucket_count(m3) == 1024);
+    compare_int_str(m1, data, 50);
+    compare_strv_int(m2, data, 50);
+    compare_strp_int(m3, data, 50);
+    umap_free(int_str, m1);
+    umap_free(strv_int, m2);
+    umap_free(strp_int, m3);
 }
 
 void test_nested_dicts(void) {
+    Pair_strv_int arrStr[50];
+    DictData data[50] = {0};
+    NestedDictData results[5] = {0};
+    UMap_nested *m = umap_new(nested);
+    Pair_nested *it;
     int i;
-    UMap_nested *m = umap_new(nested); Pair_nested *it;
-
-    for (i = 0; i < 10; ++i) {
-        Pair_nested outer;
-        int success = 0, j;
-        UMap_strv_int *inner = umap_new(strv_int);
-        for (j = 0; j < 10; ++j) {
-            int value = (i * 10) + j;
-            Pair_strv_int p;
-            p.first = strs[value], p.second = value;
-            umap_insert(strv_int, inner, p);
-        }
-        assert(umap_size(inner) == 10);
-        outer.first = strs[i], outer.second = inner;
-        umap_insert_withResult(nested, m, outer, &success);
-        assert(success);
-        assert(umap_size(m) == i + 1);
+    for (i = 0; i < 50; ++i) {
+        arrStr[i].first = strs[i], arrStr[i].second = i;
+        data[i].i = i, data[i].s = strs[i];
     }
 
-    for (i = 0; i < 10; ++i) {
+    for (i = 0; i < 5; ++i) {
+        int success = 0;
+        Pair_nested p;
+        UMap_strv_int *inner = umap_new_fromArray(strv_int, &arrStr[10 * i], 10);
+        p.first = arrStr[10 * i].first, p.second = inner;
+        umap_insert_withResult(nested, m, p, &success);
+        assert(success);
+        assert(umap_size(m) == i + 1);
+        results[i].s = arrStr[10 * i].first, results[i].data = &data[10 * i];
+    }
+
+    for (i = 0; i < 5; ++i) {
         UMap_strv_int *inner;
-        int j;
-        it = umap_find(nested, m, strs[i]);
-        assert(it);
+        int j = 0;
+        assert((it = umap_find(nested, m, arrStr[10 * i].first)));
         inner = it->second;
-        for (j = 0; j < 10; ++j) {
+        for (; j < 10; ++j) {
             int value = (i * 10) + j;
-            Pair_strv_int *ptr = umap_find(strv_int, inner, strs[value]);
-            assert(ptr);
-            assert(ptr->second == value);
+            Pair_strv_int *ptr = umap_find(strv_int, inner, arrStr[value].first);
+            assert(ptr && ptr->second == arrStr[value].second);
         }
     }
 
     i = 0;
     umap_iter(nested, m, it) {
-        Pair_strv_int *jt;
-        umap_iter(strv_int, it->second, jt) {
-            i += 1;
+        UMap_strv_int **at;
+        int j;
+        NestedDictData *r = NULL;
+        for (j = 0; j < 5; ++j) {
+            if (streq(it->first, results[j].s)) {
+                r = &results[j];
+                break;
+            }
         }
+        assert(r);
+        assert(r->found == 0);
+        at = umap_at(nested, m, it->first);
+        assert(at && *at == it->second);
+        compare_strv_int(it->second, r->data, 10);
+        r->found = 1;
+        ++i;
     }
-    assert(i == 100);
+    assert(i == 5);
+    for (i = 0; i < 5; ++i) {
+        assert(results[i].found);
+    }
     umap_free(nested, m);
 }
 
 int main(void) {
-    test_insert_find_string();
-    test_insert_find_int();
-    test_arr_init_and_insert();
-    test_create_copy();
-    test_resizing_deletion();
-    test_iter();
+    test_empty_init();
+    test_init_fromArray();
+    test_createCopy();
+    test_insert_element();
+    test_insert_fromArray();
+    test_remove_key();
+    test_find();
+    test_set_load_factor();
+    test_rehash();
     test_nested_dicts();
     return 0;
 }

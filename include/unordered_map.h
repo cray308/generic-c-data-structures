@@ -19,6 +19,12 @@
 
 
 /**
+ * The total number of buckets in the map.
+ */
+#define umap_bucket_count(m) ((m)->cap)
+
+
+/**
  * Whether the map is empty.
  */
 #define umap_empty(m) (!((m)->size))

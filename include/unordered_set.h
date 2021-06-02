@@ -22,6 +22,12 @@
 
 
 /**
+ * The total number of buckets in the set.
+ */
+#define uset_bucket_count(s) ((s)->cap)
+
+
+/**
  * Whether the set is empty.
  */
 #define uset_empty(s) (!((s)->size))
