@@ -108,11 +108,11 @@ __DS_FUNC_PREFIX void __ds_adjust_heap_##id(t *first, size_t i, size_t len, t *v
 __DS_FUNC_PREFIX_INL void __ds_pop_heap_##id(t *first, t *last, t *result) {                                 \
     t value = *result;                                                                                       \
     *result = *first;                                                                                        \
-    __ds_adjust_heap_##id(first, 0, last - first, &value);                                                   \
+    __ds_adjust_heap_##id(first, 0, (size_t)(last - first), &value);                                         \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void ds_make_heap_##id(t *first, t *last) {                                                 \
-    const size_t len = last - first;                                                                         \
+    const size_t len = (size_t)(last - first);                                                               \
     size_t parent;                                                                                           \
     if (len < 2) return;                                                                                     \
                                                                                                              \
@@ -203,7 +203,7 @@ __DS_FUNC_PREFIX void __ds_insertion_sort_##id(t *first, t *last) {             
         t val;                                                                                               \
         if (cmp_lt(*i, *first)) {                                                                            \
             val = *i;                                                                                        \
-            memmove(begin, first, (i - first) * sizeof(t));                                                  \
+            memmove(begin, first, (size_t)(i - first) * sizeof(t));                                          \
             *first = val;                                                                                    \
         } else {                                                                                             \
             __ds_unguarded_linear_insert_##id(i);                                                            \
@@ -248,7 +248,7 @@ __DS_FUNC_PREFIX_INL t *ds_binary_search_##id(t *arr, int l, int r, t val) {    
                                                                                                              \
 __DS_FUNC_PREFIX_INL void ds_push_heap_##id(t *first, t *last) {                                             \
     t value = *(last - 1);                                                                                   \
-    __ds_push_heap_##id(first, (last - first) - 1, 0, &value);                                               \
+    __ds_push_heap_##id(first, (size_t)(last - first) - 1, 0, &value);                                       \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void ds_pop_heap_##id(t *first, t *last) {                                              \

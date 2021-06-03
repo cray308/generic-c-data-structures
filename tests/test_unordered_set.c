@@ -45,7 +45,7 @@ void compare_ints(USet_int *s, IntData *comparison, int size) {
     i = 0;
     uset_iter(int, s, it) {
         data.i = *it;
-        found = bsearch(&data, comparison, size, sizeof(IntData), search_int);
+        found = bsearch(&data, comparison, (size_t) size, sizeof(IntData), search_int);
         assert(found && found->i == *it);
         assert(found->found == 0);
         found->found = 1;
@@ -73,7 +73,7 @@ void compare_strs(USet_str *s, StrData *comparison, int size) {
     i = 0;
     uset_iter(str, s, it) {
         data.s = *it;
-        found = bsearch(&data, comparison, size, sizeof(StrData), search_str);
+        found = bsearch(&data, comparison, (size_t) size, sizeof(StrData), search_str);
         assert(found && streq(found->s, *it));
         assert(found->found == 0);
         found->found = 1;

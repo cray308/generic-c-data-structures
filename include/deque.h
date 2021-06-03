@@ -104,9 +104,10 @@ typedef struct {                                                                
 } TypeName;                                                                                                  \
                                                                                                              \
 __DS_FUNC_PREFIX TypeName *__dq_new_##id(void) {                                                             \
-    TypeName *q = __ds_malloc(sizeof(TypeName));                                                             \
-    q->front.arr = __ds_malloc(8 * sizeof(t));                                                               \
-    q->back.arr = __ds_malloc(8 * sizeof(t));                                                                \
+    TypeName *q;                                                                                             \
+    __ds_malloc(q, sizeof(TypeName))                                                                         \
+    __ds_malloc(q->front.arr, 8 * sizeof(t))                                                                 \
+    __ds_malloc(q->back.arr, 8 * sizeof(t))                                                                  \
     q->front.cap = q->back.cap = 8;                                                                          \
     q->front.size = q->back.size = q->pointers.frontStart = q->pointers.backStart = 0;                       \
     return q;                                                                                                \
@@ -138,7 +139,8 @@ __DS_FUNC_PREFIX void __dq_pop_front_##id(TypeName *this) {                     
             this->back.size -= this->pointers.backStart;                                                     \
             this->pointers.backStart = 0;                                                                    \
             if (half > 8 && this->back.size < half) {                                                        \
-                t *tmp = __ds_realloc(this->back.arr, half * sizeof(t));                                     \
+                  t *tmp;                                                                                    \
+                __ds_realloc(tmp, this->back.arr, half * sizeof(t))                                          \
                 this->back.arr = tmp;                                                                        \
                 this->back.cap = half;                                                                       \
             }                                                                                                \
@@ -151,7 +153,7 @@ __DS_FUNC_PREFIX void __dq_push_back_##id(TypeName *this, t item) {             
     if (this->back.size == this->back.cap) {                                                                 \
         t *tmp;                                                                                              \
         this->back.cap <<= 1;                                                                                \
-        tmp = __ds_realloc(this->back.arr, this->back.cap * sizeof(t));                                      \
+        __ds_realloc(tmp, this->back.arr, this->back.cap * sizeof(t))                                        \
         this->back.arr = tmp;                                                                                \
     }                                                                                                        \
     loc = &this->back.arr[this->back.size];                                                                  \
@@ -172,7 +174,8 @@ __DS_FUNC_PREFIX void __dq_pop_back_##id(TypeName *this) {                      
             this->front.size -= this->pointers.frontStart;                                                   \
             this->pointers.frontStart = 0;                                                                   \
             if (half > 8 && this->front.size < half) {                                                       \
-                t *tmp = __ds_realloc(this->front.arr, half * sizeof(t));                                    \
+                  t *tmp;                                                                                    \
+                __ds_realloc(tmp, this->front.arr, half * sizeof(t))                                         \
                 this->front.arr = tmp;                                                                       \
                 this->back.cap = half;                                                                       \
             }                                                                                                \
@@ -185,7 +188,7 @@ __DS_FUNC_PREFIX void __dq_push_front_##id(TypeName *this, t item) {            
     if (this->front.size == this->front.cap) {                                                               \
         t *tmp;                                                                                              \
         this->front.cap <<= 1;                                                                               \
-        tmp = __ds_realloc(this->front.arr, this->front.cap * sizeof(t));                                    \
+        __ds_realloc(tmp, this->front.arr, this->front.cap * sizeof(t))                                      \
         this->front.arr = tmp;                                                                               \
     }                                                                                                        \
     loc = &this->front.arr[this->front.size];                                                                \

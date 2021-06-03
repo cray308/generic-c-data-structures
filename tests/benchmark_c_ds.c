@@ -40,13 +40,13 @@ void usage(void) {
 
 void test_list(void) {
     List_unsigned *l = list_new(unsigned);
-    runTest(list_push_back(unsigned, l, rand() % UINT_MAX), list_sort(unsigned, l))
+    runTest(list_push_back(unsigned, l, ((unsigned) rand()) % UINT_MAX), list_sort(unsigned, l))
     list_free(unsigned, l);
 }
 
 void test_arr(void) {
     Array_unsigned *a = array_new_unsigned();
-    runTest(array_push_back(unsigned, a, rand() % UINT_MAX), array_sort(unsigned, a))
+    runTest(array_push_back(unsigned, a, ((unsigned) rand()) % UINT_MAX), array_sort(unsigned, a))
     array_free(unsigned, a);
 }
 
@@ -56,7 +56,7 @@ int sort_compare(const void *a, const void *b) {
 
 void test_qsort(void) {
     unsigned *a = malloc(sizeof(unsigned) * n);
-    runTest(a[i] = rand() % UINT_MAX, qsort(a, n, sizeof(unsigned), sort_compare))
+    runTest(a[i] = ((unsigned) rand()) % UINT_MAX, qsort(a, n, sizeof(unsigned), sort_compare))
     free(a);
 }
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
                 break;
         }
     }
-    srand(time(NULL));
+    srand((unsigned) time(NULL));
 
     switch (type) {
         case TEST_QSORT:

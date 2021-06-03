@@ -48,7 +48,7 @@ int search_str(const void *a, const void *b) {
     i = 0;                                                                                                   \
     umap_iter(id, m, it) {                                                                                   \
         data.s = it->first;                                                                                  \
-        found = bsearch(&data, comparison, size, sizeof(DictData), search_str);                              \
+        found = bsearch(&data, comparison, (size_t) size, sizeof(DictData), search_str);                     \
         assert(found && streq(found->s, it->first));                                                         \
         assert(found->found == 0);                                                                           \
         at = umap_at(id, m, it->first);                                                                      \
@@ -79,7 +79,7 @@ void compare_int_str(UMap_int_str *m, DictData *comparison, int size) {
     i = 0;
     umap_iter(int_str, m, it) {
         data.i = it->first;
-        found = bsearch(&data, comparison, size, sizeof(DictData), search_int);
+        found = bsearch(&data, comparison, (size_t) size, sizeof(DictData), search_int);
         assert(found && found->i == it->first);
         assert(found->found == 0);
         at = umap_at(int_str, m, it->first);

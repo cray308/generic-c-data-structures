@@ -1,5 +1,5 @@
 CFLAGS = -std=c89 -Iinclude -O2
-CFLAGS += -Wall -Wextra -Werror -Wpedantic -Wstrict-prototypes
+CFLAGS += -Wall -Wextra -Werror -Wpedantic -Wconversion -Wstrict-prototypes
 CFLAGS += -funsigned-char -finline-functions
 
 CPPFLAGS = -std=c++11 -O2

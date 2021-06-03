@@ -17,13 +17,14 @@ typedef struct {
 
 #define __str_test_chars_body(f) const char *c; if (!*s) return 0; for(c = s; *c; ++c) { if (!f(*c)) return 0; } return 1;
 
-#define __str_convert_case_body(f) char *c; for(c = s; *c; ++c) { *c = f(*c); }
+#define __str_convert_case_body(f) char *c; for(c = s; *c; ++c) { *c = (char) f(*c); }
 
 #define __str_find_x_of_body(checkCharsAction, afterCheckCharsAction, mainLoop, prevChar)                    \
     const char *c; char const *end;                                                                          \
-    if (!chars) return STRING_ERROR;                                                                         \
+    int size = string_len(this);                                                                             \
+    __ds_adjust_index(pos, size)                                                                             \
+    if (!chars || pos < 0) return STRING_ERROR;                                                              \
     else if (!(*chars && n)) return pos;                                                                     \
-    else if ((pos = modulo(pos, this->size)) < 0) return STRING_ERROR;                                       \
     end = (n < 0) ? &chars[strlen(chars)] : &chars[n];                                                       \
                                                                                                              \
     for (c = chars; c != end; ++c) {                                                                         \
@@ -47,7 +48,7 @@ typedef struct {
     const int minIndex = start;                                                                              \
     int cnd = minIndex; /* needle position */                                                                \
     int index = cnd incr 1; /* table position */                                                             \
-    table = __ds_malloc(sizeof(int) * len);                                                                  \
+    __ds_malloc(table, sizeof(int) * (size_t) len)                                                           \
     table[cnd] = cnd;                                                                                        \
                                                                                                              \
     whileCond {                                                                                              \
@@ -67,13 +68,13 @@ typedef struct {
 }
 
 #define __str_find_body(pos, hsLength, hsOffset, incr, decr, iMin, iMax, jMin, jMax, singleCharAction, tableCall, whileFind, result) \
-    int res, len_haystack;                                                                                   \
+    int res, len_haystack, size = string_len(this);                                                          \
     char *haystack;                                                                                          \
-    if (!needle) return STRING_ERROR;                                                                        \
+    __ds_adjust_index(pos, size)                                                                             \
+    if (!needle || pos < 0) return STRING_ERROR;                                                             \
     else if (!(*needle && len_needle)) return pos;                                                           \
-    else if ((pos = modulo(pos, this->size)) < 0) return STRING_ERROR;                                       \
                                                                                                              \
-    if (len_needle < 0) len_needle = strlen(needle);                                                         \
+    if (len_needle < 0) len_needle = (int) strlen(needle);                                                   \
                                                                                                              \
     len_haystack = hsLength;                                                                                 \
     if (len_needle > len_haystack) return STRING_NPOS;                                                       \
@@ -151,8 +152,9 @@ typedef struct {
  * @param  i  Index in string.
  */
 __DS_FUNC_PREFIX_INL char *string_at(String *this, int i) {
-    int idx = modulo(i, this->size);
-    return (idx >= 0) ? &(this->s[idx]) : NULL;
+    int size = string_len(this);
+    __ds_adjust_index(i, size)
+    return (i >= 0) ? &(this->s[i]) : NULL;
 }
 
 
@@ -198,7 +200,7 @@ __DS_FUNC_PREFIX void string_reserve(String *this, size_t n) {
     while (val < n) { /* double the capacity from what it was before */
         val <<= 1;
     }
-    tmp = __ds_realloc(this->s, val);
+    __ds_realloc(tmp, this->s, val)
     this->s = tmp;
     this->cap = val;
 }
@@ -215,19 +217,21 @@ __DS_FUNC_PREFIX void string_reserve(String *this, size_t n) {
  */
 __DS_FUNC_PREFIX void string_insert(String *this, int pos, const char *s, int len) {
     char append;
+    int size = string_len(this);
     if (!(s && *s && len)) return;
-    else if (!(append = (pos == (int) this->size))) {
-        if ((pos = modulo(pos, this->size)) < 0) return;
+    else if (!(append = (pos == size))) {
+        __ds_adjust_index(pos, size)
+        if (pos < 0) return;
     }
 
-    if (len < 0) len = strlen(s);
+    if (len < 0) len = (int) strlen(s);
 
     string_reserve(this, this->size + (size_t) len + 1);
 
     if (!append) {
         memmove(&this->s[pos + len], &this->s[pos], this->size - (size_t) pos);
     }
-    memcpy(&this->s[pos], s, len);
+    memcpy(&this->s[pos], s, (size_t) len);
     this->size += (size_t) len;
     this->s[this->size] = 0;
 }
@@ -244,12 +248,14 @@ __DS_FUNC_PREFIX void string_insert(String *this, int pos, const char *s, int le
  *                   through the end of `other` will be inserted.
  */
 __DS_FUNC_PREFIX void string_insert_fromString(String *this, int pos, const String *other, int subpos, int len) {
-    if (!len || (subpos = modulo(subpos, other->size)) < 0) return;
+    int size = string_len(other);
+    __ds_adjust_index(subpos, size)
+    if (!len || subpos < 0) return;
 
     if (len < 0) {
-        len = (int) other->size - subpos;
+        len = size - subpos;
     } else {
-        len = min(len, (int) other->size - subpos);
+        len = min(len, size - subpos);
     }
     string_insert(this, pos, &other->s[subpos], len);
 }
@@ -265,15 +271,17 @@ __DS_FUNC_PREFIX void string_insert_fromString(String *this, int pos, const Stri
  */
 __DS_FUNC_PREFIX void string_insert_repeatingChar(String *this, int pos, size_t n, char c) {
     char append;
+    int size = string_len(this);
     if (!n) return;
-    else if (!(append = (pos == (int) this->size))) {
-        if ((pos = modulo(pos, this->size)) < 0) return;
+    else if (!(append = (pos == size))) {
+        __ds_adjust_index(pos, size)
+        if (pos < 0) return;
     }
 
     string_reserve(this, this->size + n + 1);
 
     if (!append) {
-        memmove(&this->s[pos + n], &this->s[pos], this->size - (size_t) pos);
+        memmove(&this->s[pos + (int) n], &this->s[pos], this->size - (size_t) pos);
     }
     memset(&this->s[pos], c, n);
     this->size += (size_t) n;
@@ -288,7 +296,7 @@ __DS_FUNC_PREFIX void string_insert_repeatingChar(String *this, int pos, size_t 
  * @param  len  Number of characters from `s` to insert. If this is -1, all characters from `s` will
  *                be used.
  */
-#define string_append(this, s, len) string_insert(this, (this)->size, s, len)
+#define string_append(this, s, len) string_insert(this, string_len(this), s, len)
 
 
 /**
@@ -299,7 +307,7 @@ __DS_FUNC_PREFIX void string_insert_repeatingChar(String *this, int pos, size_t 
  * @param  len     Number of characters from `other` to insert. If this is -1, all characters from `subpos`
  *                   through the end of `other` will be inserted.
  */
-#define string_append_fromString(this, other, subpos, len) string_insert_fromString(this, (this)->size, other, subpos, len)
+#define string_append_fromString(this, other, subpos, len) string_insert_fromString(this, string_len(this), other, subpos, len)
 
 
 /**
@@ -308,7 +316,7 @@ __DS_FUNC_PREFIX void string_insert_repeatingChar(String *this, int pos, size_t 
  * @param  n  Number of copies of `c` to insert.
  * @param  c  Character to insert.
  */
-#define string_append_repeatingChar(this, n, c) string_insert_repeatingChar(this, (this)->size, n, c)
+#define string_append_repeatingChar(this, n, c) string_insert_repeatingChar(this, string_len(this), n, c)
 
 
 /**
@@ -317,8 +325,9 @@ __DS_FUNC_PREFIX void string_insert_repeatingChar(String *this, int pos, size_t 
  * @return  Pointer to newly created string.
  */
 __DS_FUNC_PREFIX String *string_new(void) {
-    String *s = __ds_malloc(sizeof(String));
-    s->s = __ds_malloc(64);
+    String *s;
+    __ds_malloc(s, sizeof(String))
+    __ds_malloc(s->s, 64)
     s->size = 0;
     s->cap = 64;
     s->s[0] = 0;
@@ -349,7 +358,7 @@ __DS_FUNC_PREFIX String *string_new_fromCStr(const char *s, int n) {
  *
  * @return         Pointer to newly created string.
  */
-#define string_createCopy(other) string_new_fromCStr((other)->s, (other)->size)
+#define string_createCopy(other) string_new_fromCStr((other)->s, string_len(other))
 
 
 /**
@@ -420,17 +429,18 @@ __DS_FUNC_PREFIX_INL void string_resize_usingChar(String *this, size_t n, char c
  *                  until the end will be removed.
  */
 __DS_FUNC_PREFIX void string_erase(String *this, int start, int n) {
-    int end;
-    if (!n || (start = modulo(start, this->size)) < 0) return;
+    int end, size = string_len(this);
+    __ds_adjust_index(start, size)
+    if (!n || start < 0) return;
 
     if (n < 0) {
-        n = (int) this->size - start;
+        n = size - start;
     } else {
-        n = min(n, (int) this->size - start);
+        n = min(n, size - start);
     }
 
     end = start + n;
-    if (end < string_len(this)) { /* move any characters after end to start */
+    if (end < size) { /* move any characters after end to start */
         memmove(&this->s[start], &this->s[end], this->size - (size_t) end);
     }
     this->size -= (size_t) n;
@@ -467,31 +477,31 @@ __DS_FUNC_PREFIX_INL void string_free(String *this) {
  *                       from `s` will be used.
  */
 __DS_FUNC_PREFIX void string_replace(String *this, int pos, int nToReplace, const char *s, int len) {
-    int end, difference;
+    int end, difference, size = string_len(this);
     if (!(s && *s && len)) return;
-    else if (pos != (int) this->size) {
-        if ((pos = modulo(pos, this->size)) < 0) return;
+    else if (pos != size) {
+        __ds_adjust_index(pos, size)
+        if (pos < 0) return;
     }
 
-    if (len < 0) len = strlen(s);
+    if (len < 0) len = (int) strlen(s);
 
     if (nToReplace < 0) {
-        nToReplace = (int) this->size - pos;
+        nToReplace = size - pos;
     } else {
-        nToReplace = min(nToReplace, (int) this->size - pos);
+        nToReplace = min(nToReplace, size - pos);
     }
 
     string_reserve(this, this->size + (size_t) len + 1);
     end = pos + nToReplace;
-    if (end < string_len(this)) { 
+    if (end < size) { 
         memmove(&this->s[pos + len], &this->s[end], this->size - (size_t) end);
     }
-    memcpy(&this->s[pos], s, len);
+    memcpy(&this->s[pos], s, (size_t) len);
 
     difference = len - nToReplace;
     if (difference < 0) {
-        size_t diff = -difference;
-        this->size -= diff;
+        this->size -= ((size_t) -difference);
     } else {
         this->size += (size_t) difference;
     }
@@ -511,12 +521,14 @@ __DS_FUNC_PREFIX void string_replace(String *this, int pos, int nToReplace, cons
  *                       `subpos` through the end of `other` will be used.
  */
 __DS_FUNC_PREFIX void string_replace_fromString(String *this, int pos, int nToReplace, const String *other, int subpos, int len) {
-    if (!len || (subpos = modulo(subpos, other->size)) < 0) return;
+    int size = string_len(other);
+    __ds_adjust_index(subpos, size)
+    if (!len || subpos < 0) return;
 
     if (len < 0) {
-        len = (int) other->size - subpos;
+        len = size - subpos;
     } else {
-        len = min(len, (int) other->size - subpos);
+        len = min(len, size - subpos);
     }
     string_replace(this, pos, nToReplace, &other->s[subpos], len);
 }
@@ -531,29 +543,29 @@ __DS_FUNC_PREFIX void string_replace_fromString(String *this, int pos, int nToRe
  * @param  c           Character to insert.
  */
 __DS_FUNC_PREFIX void string_replace_repeatingChar(String *this, int pos, int nToReplace, size_t n, char c) {
-    int end, difference;
+    int end, difference, size = string_len(this);
     if (!n) return;
-    else if (pos != (int) this->size) {
-        if ((pos = modulo(pos, this->size)) < 0) return;
+    else if (pos != size) {
+        __ds_adjust_index(pos, size)
+        if (pos < 0) return;
     }
 
     if (nToReplace < 0) {
-        nToReplace = (int) this->size - pos;
+        nToReplace = size - pos;
     } else {
-        nToReplace = min(nToReplace, (int) this->size - pos);
+        nToReplace = min(nToReplace, size - pos);
     }
 
     string_reserve(this, this->size + n + 1);
     end = pos + nToReplace;
-    if (end < string_len(this)) { 
-        memmove(&this->s[pos + n], &this->s[end], this->size - (size_t) end);
+    if (end < size) { 
+        memmove(&this->s[pos + (int) n], &this->s[end], this->size - (size_t) end);
     }
     memset(&this->s[pos], c, n);
 
     difference = (int) n - nToReplace;
     if (difference < 0) {
-        size_t diff = -difference;
-        this->size -= diff;
+        this->size -= ((size_t) -difference);
     } else {
         this->size += (size_t) difference;
     }
@@ -568,7 +580,7 @@ __DS_FUNC_PREFIX void string_replace_repeatingChar(String *this, int pos, int nT
 __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *this) {
     char *tmp;
     if (this->size == 0 || this->size + 1 == this->cap || this->cap <= 64) return;
-    tmp = __ds_realloc(this->s, this->size + 1); /* realloc only enough space for string and '\0' */
+    __ds_realloc(tmp, this->s, this->size + 1) /* realloc only enough space for string and '\0' */
     this->cap = this->size + 1;
     this->s = tmp;
 }
@@ -606,7 +618,7 @@ __DS_FUNC_PREFIX_INL void string_pop_back(String *this) {
  *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_first_of(String *this, int pos, const char *chars, int n) {
-    __str_find_x_of_body(return pos;, ____cds_do_nothing, for(++pos; pos < (int) this->size; ++pos), pos-1)
+    __str_find_x_of_body(return pos;, ____cds_do_nothing, for(++pos; pos < size; ++pos), pos-1)
 }
 
 
@@ -636,7 +648,7 @@ int string_find_last_of(String *this, int pos, const char *chars, int n) {
  *                   `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 int string_find_first_not_of(String *this, int pos, const char *chars, int n) {
-    __str_find_x_of_body(break;, if (c == end) return pos;, for(++pos; pos < (int) this->size; ++pos), pos-1)
+    __str_find_x_of_body(break;, if (c == end) return pos;, for(++pos; pos < size; ++pos), pos-1)
 }
 
 
@@ -668,7 +680,7 @@ int string_find_last_not_of(String *this, int pos, const char *chars, int n) {
  *                      `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
 __DS_FUNC_PREFIX int string_find(String *this, int start_pos, const char *needle, int len_needle) {
-    __str_find_body(start_pos, (int) this->size - start_pos, start_pos, +, -, 0, len_haystack, 0, len_needle, string_find_first_of(this, start_pos, needle, 1), __str_prefix_table_body(needle, 0, len_needle, +, -, while(index < len_needle)), i < iEnd, start_pos + (i - j))
+    __str_find_body(start_pos, size - start_pos, start_pos, +, -, 0, len_haystack, 0, len_needle, string_find_first_of(this, start_pos, needle, 1), __str_prefix_table_body(needle, 0, len_needle, +, -, while(index < len_needle)), i < iEnd, start_pos + (i - j))
 }
 
 
@@ -704,7 +716,9 @@ __DS_FUNC_PREFIX int string_rfind(String *this, int end_pos, const char *needle,
  */
 __DS_FUNC_PREFIX String *string_substr(String *this, int start, int n, int step_size) {
     String *sub;
-    if (!n || (start = modulo(start, this->size)) < 0) return NULL;
+    int size = string_len(this);
+    __ds_adjust_index(start, size)
+    if (!n || start < 0) return NULL;
 
     if (!step_size) step_size = 1;
 
@@ -716,7 +730,7 @@ __DS_FUNC_PREFIX String *string_substr(String *this, int start, int n, int step_
             string_push_back(sub, this->s[start]);
         }
     } else {
-        int end = (n < 0) ? string_len(this) : min(string_len(this), start + (n * step_size));
+        int end = (n < 0) ? size : min(size, start + (n * step_size));
         for (; start < end; start += step_size) {
             string_push_back(sub, this->s[start]);
         }
@@ -739,7 +753,8 @@ __DS_FUNC_PREFIX String **string_split(String *this, const char *delim) {
     String **arr, *substring = NULL;
     if (!(delim && *delim && this->size)) return NULL;
 
-    len_delim = strlen(delim), positions = __ds_calloc(8, sizeof(int));
+    len_delim = (int) strlen(delim);
+    __ds_calloc(positions, 8, sizeof(int))
 
     {
         int pos_size = 8, *table;
@@ -749,15 +764,16 @@ __DS_FUNC_PREFIX String **string_split(String *this, const char *delim) {
             if (index == pos_size) {                                                                         \
                 int *temp;                                                                                   \
                 pos_size <<= 1;                                                                              \
-                temp = __ds_realloc(positions, pos_size * sizeof(int));                                      \
+                __ds_realloc(temp, positions, (size_t) pos_size * sizeof(int))                               \
                 positions = temp;                                                                            \
-                memset(&positions[index + 1], 0, (pos_size - index + 1) * sizeof(int));                      \
+                memset(&positions[index + 1], 0, (size_t)(pos_size - index + 1) * sizeof(int));              \
             }                                                                                                \
             positions[index++] = (i - j);                                                                    \
             j = table[j - 1];                                                                                \
         )
         if (index == pos_size) {
-            int *temp = __ds_realloc(positions, (pos_size + 1) * sizeof(int));
+            int *temp;
+            __ds_realloc(temp, positions, (size_t)(pos_size + 1) * sizeof(int))
             positions = temp;
         }
         positions[index++] = -1;
@@ -765,7 +781,7 @@ __DS_FUNC_PREFIX String **string_split(String *this, const char *delim) {
         free(table);
     }
     
-    arr = __ds_malloc((arr_len + 1) * sizeof(String *));
+    __ds_malloc(arr, (size_t)(arr_len + 1) * sizeof(String *))
     index = 0, end = positions[0];
 
     while (end != -1) {
@@ -854,7 +870,8 @@ __DS_FUNC_PREFIX char *__string_read_format(int *n, const char *format, va_list 
     va_list localArgs;
     int _n = 0;
     size_t buf_size = 256;
-    char *buf = __ds_malloc(buf_size), *temp;
+    char *buf, *temp;
+    __ds_malloc(buf, buf_size)
     va_copy(localArgs, args);
 
     _n = vsnprintf(buf, buf_size, format, args);
@@ -867,7 +884,7 @@ __DS_FUNC_PREFIX char *__string_read_format(int *n, const char *format, va_list 
         return buf;
     }
     buf_size = (size_t) _n + 1; /* buffer was too small */
-    temp = __ds_realloc(buf, buf_size);
+    __ds_realloc(temp, buf, buf_size)
     buf = temp;
 
     _n = vsnprintf(buf, buf_size, format, localArgs);
@@ -903,7 +920,7 @@ __DS_FUNC_PREFIX void string_insert_withFormat(String *this, int pos, const char
  *
  * @param  format  Format string.
  */
-#define string_append_withFormat(this, format, ...) string_insert_withFormat(this, (this)->size, format, __VA_ARGS__)
+#define string_append_withFormat(this, format, ...) string_insert_withFormat(this, string_len(this), format, __VA_ARGS__)
 
 /**
  * Replaces `nToReplace` characters in this string, starting at `pos`, with the format string `format`.

@@ -16,7 +16,7 @@
 
 #define DSDefault_shallowCopy(dest, src) ((dest) = (src))
 #define DSDefault_shallowDelete(x) /* do nothing */
-#define DSDefault_deepCopyStr(dest, src) do { dest = __ds_malloc(strlen(src) + 1); strcpy(dest, src); } while(0)
+#define DSDefault_deepCopyStr(dest, src) do { __ds_malloc(dest, strlen(src) + 1); strcpy(dest, src); } while(0)
 #define DSDefault_deepDelete(x) free(x)
 
 #define DSDefault_addrOfVal(x) &(x)
@@ -24,45 +24,35 @@
 #define DSDefault_sizeOfVal(x) sizeof(x)
 #define DSDefault_sizeOfStr(x) strlen(x)
 
-/**
- * If successful, returns the positive modulus.
- *
- * @param   index  Index in data structure.
- * @param   size   Size of data structure to be indexed.
- *
- * @return         If the index is valid, returns the positive modulus. Otherwise, returns -1.
- */
-__DS_FUNC_PREFIX_INL int modulo(int index, int size) {
-    if (!(index < 0 ? (size + index >= 0) : (index < size))) return -1;
-    return index >= 0 ? index : size + index;
-}
-
-__DS_FUNC_PREFIX_INL void *__ds_malloc(size_t size) {
-    void *ptr = malloc(size);
-    if (!ptr) {
-        fprintf(stderr, "Out of memory error.\n");
-        exit(1);  
+#define __ds_adjust_index(index, size) \
+    if ((index) < 0) { \
+        int _tmpIdx = (size) + (index);  \
+        if (_tmpIdx >= 0) (index) = _tmpIdx; \
+        else (index) = -1;    \
+    } else if ((index) >= (size)) { \
+        (index) = -1;   \
     }
-    return ptr;
-}
 
-__DS_FUNC_PREFIX_INL void *__ds_calloc(size_t nmemb, size_t size) {
-    void *ptr = calloc(nmemb, size);
-    if (!ptr) {
-        fprintf(stderr, "Out of memory error.\n");
-        exit(1);  
-    }
-    return ptr;
-}
+#define __ds_malloc(ptr, size)                                                                               \
+    ptr = malloc(size);                                                                                      \
+    if (!ptr) {                                                                                              \
+        fprintf(stderr, "Out of memory error.\n");                                                           \
+        exit(1);                                                                                             \
+    }                                                                                                        \
 
-__DS_FUNC_PREFIX_INL void *__ds_realloc(void *ptr, size_t size) {
-    void *new = realloc(ptr, size);
-    if (!new) {
-        fprintf(stderr, "Out of memory error.\n");
-        exit(1);  
-    }
-    return new;
-}
+#define __ds_calloc(ptr, nmemb, size)                                                                        \
+    ptr = calloc(nmemb, size);                                                                               \
+    if (!ptr) {                                                                                              \
+        fprintf(stderr, "Out of memory error.\n");                                                           \
+        exit(1);                                                                                             \
+    }                                                                                                        \
+
+#define __ds_realloc(newPtr, oldPtr, size)                                                                   \
+    newPtr = realloc(oldPtr, size);                                                                          \
+    if (!newPtr) {                                                                                           \
+        fprintf(stderr, "Out of memory error.\n");                                                           \
+        exit(1);                                                                                             \
+    }                                                                                                        \
 
 #define min(a,b) (((a) <= (b)) ? (a) : (b))
 #define max(a,b) (((a) >= (b)) ? (a) : (b))

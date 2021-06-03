@@ -117,7 +117,7 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
         if (inserted) *inserted = 0;                                                                         \
         return curr;                                                                                         \
     }                                                                                                        \
-    new = __ds_calloc(1, sizeof(EntryType));                                                                 \
+    __ds_calloc(new, 1, sizeof(EntryType))                                                                   \
     copyKey(entry_get_key(new), data_get_key(data));                                                         \
     copyValue(new->data.second, data.second);                                                                \
     new->parent = curr;                                                                                      \
@@ -214,14 +214,20 @@ __DS_FUNC_PREFIX void __avltree_insert_fromTree_##id(TreeType *this, EntryType *
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
+__DS_FUNC_PREFIX TreeType *__avltree_new_##id(void) {                                                        \
+    TreeType *t;                                                                                             \
+    __ds_calloc(t, 1, sizeof(TreeType))                                                                      \
+    return t;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
 __DS_FUNC_PREFIX TreeType *__avltree_createCopy_##id(TreeType *other) {                                      \
-    TreeType *t = __ds_calloc(1, sizeof(TreeType));                                                          \
+    TreeType *t = __avltree_new_##id();                                                                      \
     __avltree_insert_fromTree_##id(t, __avl_successor_##id(other->root), NULL);                              \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n) {                           \
-    TreeType *t = __ds_calloc(1, sizeof(TreeType));                                                          \
+    TreeType *t = __avltree_new_##id();                                                                      \
     __avltree_insert_fromArray_##id(t, arr, n);                                                              \
     return t;                                                                                                \
 }                                                                                                            \
@@ -340,7 +346,7 @@ __DS_FUNC_PREFIX void __avltree_erase_##id(TreeType *this, EntryType *begin, Ent
                                                                                                              \
     /* store keys in an array since tree deletions involve swapping values
      * and thus it's not reliable to use node pointers in a bulk delete operation */                         \
-    keys = __ds_malloc(this->size * sizeof(kt));                                                             \
+    __ds_malloc(keys, this->size * sizeof(kt))                                                               \
     for (curr = begin; curr != end; curr = __avl_inorder_successor_##id(curr)) {                             \
         keys[count++] = entry_get_key(curr);                                                                 \
     }                                                                                                        \

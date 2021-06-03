@@ -50,7 +50,8 @@
     (this)->back = prev;                                                                                     \
 
 #define __list_push_body(id, dir, rev, loc, copyValue)                                                       \
-    ListEntry_##id *new = __ds_calloc(1, sizeof(ListEntry_##id));                                            \
+    ListEntry_##id *new;                                                                                     \
+    __ds_calloc(new, 1, sizeof(ListEntry_##id))                                                              \
     copyValue((new->data), (value));                                                                         \
                                                                                                              \
     if (!(this->front)) {                                                                                    \
@@ -83,11 +84,12 @@
     size_t count = 1;                                                                                        \
     earlyReturn                                                                                              \
     assignment                                                                                               \
-    first = __ds_calloc(1, sizeof(ListEntry_##id)), last = first;                                            \
+    __ds_calloc(first, 1, sizeof(ListEntry_##id))                                                            \
+    last = first;                                                                                            \
     copyValue((first->data), (getData(start)));                                                              \
     iter_next(id, start);                                                                                    \
     while ((start) != (end)) {                                                                               \
-        curr = __ds_calloc(1, sizeof(ListEntry_##id));                                                       \
+        __ds_calloc(curr, 1, sizeof(ListEntry_##id))                                                         \
         copyValue((curr->data), (getData(start)));                                                           \
         curr->prev = last;                                                                                   \
         last->next = curr;                                                                                   \
@@ -164,7 +166,7 @@
  *
  * @return  Pointer to the newly allocated list.
  */
-#define list_new(id) __ds_calloc(1, sizeof(List_##id))
+#define list_new(id) list_new_##id()
 
 
 /**
@@ -433,7 +435,8 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_##id(List_##id *this, ListEntry_##i
         return this->back;                                                                                   \
     }                                                                                                        \
                                                                                                              \
-    prev = pos->prev, new = __ds_calloc(1, sizeof(ListEntry_##id));                                          \
+    prev = pos->prev;                                                                                        \
+    __ds_calloc(new, 1, sizeof(ListEntry_##id))                                                              \
     copyValue((new->data), (value));                                                                         \
     new->next = pos;                                                                                         \
     pos->prev = new;                                                                                         \
@@ -463,20 +466,26 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *this, List
     __list_iterable_insert_body(id, this, pos, start, end, ____cds_do_nothing, if (!start || start == end) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
 }                                                                                                            \
                                                                                                              \
+__DS_FUNC_PREFIX List_##id *list_new_##id(void) {                                                            \
+    List_##id *l;                                                                                            \
+    __ds_calloc(l, 1, sizeof(List_##id))                                                                     \
+    return l;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
 __DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
-    List_##id *l = list_new(id);                                                                             \
+    List_##id *l = list_new_##id();                                                                          \
     list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
-    List_##id *l = list_new(id);                                                                             \
+    List_##id *l = list_new_##id();                                                                          \
     list_insert_fromArray_##id(l, NULL, arr, size);                                                          \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX List_##id *list_createCopy_##id(List_##id *other) {                                         \
-    List_##id *l = list_new(id);                                                                             \
+    List_##id *l = list_new_##id();                                                                          \
     list_insert_fromList_##id(l, NULL, other->front, NULL);                                                  \
     return l;                                                                                                \
 }                                                                                                            \
@@ -515,7 +524,7 @@ __DS_FUNC_PREFIX void list_resize_usingValue_##id(List_##id *this, size_t n, t v
     if (n == this->size) return;                                                                             \
     else if (n < this->size) {                                                                               \
         ListEntry_##id *first = this->front;                                                                 \
-        const int toAdvance = n;                                                                             \
+        const int toAdvance = (int) n;                                                                       \
         iter_advance_LIST(id, first, toAdvance);                                                             \
         list_erase_##id(this, first, NULL);                                                                  \
         return;                                                                                              \
@@ -862,7 +871,9 @@ __DS_FUNC_PREFIX void list_sort_##id(List_##id *this) {                         
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    carry = list_new(id), tmp = __ds_calloc(64, sizeof(List_##id)), fill = tmp;                              \
+    carry = list_new_##id();                                                                                 \
+    __ds_calloc(tmp, 64, sizeof(List_##id))                                                                  \
+    fill = tmp;                                                                                              \
                                                                                                              \
     do {                                                                                                     \
         list_splice_element(id, carry, carry->front, this, this->front);                                     \

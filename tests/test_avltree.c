@@ -8,7 +8,7 @@
 
 #define tree_iter(id, s, it) for (it = iter_begin(AVLTREE, id, s, 0); it != iter_end(AVLTREE, id, s, 0); iter_next(AVLTREE, id, it))
 #define tree_riter(id, s, it) for (it = iter_rbegin(AVLTREE, id, s, 0); it != iter_rend(AVLTREE, id, s, 0); iter_prev(AVLTREE, id, it))
-#define tree_new(id) __ds_calloc(1, sizeof(AVLTree_##id))
+#define tree_new(id) __avltree_new_##id()
 #define tree_free(id, s) __avltree_free_##id(s)
 #define tree_find(id, s, value) __avltree_find_key_##id(s, value, 0)
 #define tree_insert(id, s, value) __avltree_insert_##id(s, value, NULL)

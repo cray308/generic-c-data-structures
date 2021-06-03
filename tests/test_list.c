@@ -226,13 +226,13 @@ void test_resize(void) {
     List_int *li = list_new_fromArray(int, ints, 3);
     List_str *ls = list_new_fromArray(str, strs, 3);
     while (!list_empty(li)) {
-        list_resize(int, li, i);
+        list_resize(int, li, (size_t) i);
         compare_ints(li, ints, i--);
     }
     list_resize(int, li, 0);
     i = 2;
     while (!list_empty(ls)) {
-        list_resize(str, ls, i);
+        list_resize(str, ls, (size_t) i);
         compare_strs(ls, strs, i--);
     }
     list_resize(str, ls, 0);

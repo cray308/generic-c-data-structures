@@ -1,7 +1,7 @@
 #include "array.h"
 #include <assert.h>
 
-#define customStrCopy(dest, src) do { if (src) { dest = __ds_malloc(strlen(src) + 1); strcpy(dest, src); } } while(0)
+#define customStrCopy(dest, src) do { if (src) { __ds_malloc(dest, strlen(src) + 1); strcpy(dest, src); } } while(0)
 #define customStrDelete(x) do { if (x) free(x); } while(0)
 
 gen_array_withalg(str, char *, ds_cmp_str_lt, customStrCopy, customStrDelete)
@@ -184,13 +184,13 @@ void test_resize(void) {
     Array_int *ai = array_new_fromArray(int, ints, 3);
     Array_str *as = array_new_fromArray(str, strs, 3);
     while (!array_empty(ai)) {
-        array_resize(int, ai, i);
+        array_resize(int, ai, (size_t) i);
         compare_ints(ai, ints, i--);
     }
     array_resize(int, ai, 0);
     i = 2;
     while (!array_empty(as)) {
-        array_resize(str, as, i);
+        array_resize(str, as, (size_t) i);
         compare_strs(as, strs, i--);
     }
     array_resize(str, as, 0);

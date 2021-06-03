@@ -39,7 +39,7 @@
  *
  * @return  Pointer to the newly created map.
  */
-#define map_new(id) __ds_calloc(1, sizeof(Map_##id))
+#define map_new(id) __avltree_new_##id()
 
 
 /**

@@ -41,7 +41,7 @@
  *
  * @return  Pointer to the newly created set.
  */
-#define set_new(id) __ds_calloc(1, sizeof(Set_##id))
+#define set_new(id) __avltree_new_##id()
 
 
 /**

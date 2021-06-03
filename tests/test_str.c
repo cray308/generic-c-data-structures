@@ -126,7 +126,7 @@ void test_resize(void) {
     int i = 2;
     String *s = string_new_fromCStr(testStr, 3);
     while (!string_empty(s)) {
-        string_resize(s, i);
+        string_resize(s, (size_t) i);
         compareStrs(s, testStr, i--);
     }
     string_resize(s, 0);
