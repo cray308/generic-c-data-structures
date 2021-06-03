@@ -37,7 +37,7 @@
 /**
  * Creates a new, empty map.
  *
- * @return   Pointer to the newly created map.
+ * @return  Pointer to the newly created map.
  */
 #define map_new(id) __ds_calloc(1, sizeof(Map_##id))
 
