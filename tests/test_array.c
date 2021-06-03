@@ -420,8 +420,17 @@ void test_merge(void) {
     char *a2[] = {"010","020","030","040","050"}, *c2[] = {"005","010","010","015","020","020","025","030","040","050"};
     Array_str *as;
     Array_int *ai;
-    assert(merge_array(int, NULL, &ints[3], &ints[2], &ints[5]) == NULL);
-    assert(merge_array(int, ints, &ints[3], NULL, &ints[5]) == NULL);
+
+    ai = merge_array(int, NULL, &ints[6], a1, &a1[5]);
+    compare_ints(ai, a1, 5);
+    array_free(int, ai);
+    ai = merge_array(int, a1, &a1[5], NULL, &ints[6]);
+    compare_ints(ai, a1, 5);
+    array_free(int, ai);
+    ai = merge_array(int, NULL, &ints[6], NULL, &ints[6]);
+    compare_ints(ai, c1, 0);
+    array_free(int, ai);
+
     ai = merge_array(int, &ints[1], &ints[6], a1, &a1[5]);
     as = merge_array(str, &strs[1], &strs[6], a2, &a2[5]);
     compare_ints(ai, c1, 10);
