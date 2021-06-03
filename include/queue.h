@@ -7,31 +7,31 @@
 /**
  * The number of elements in the queue.
  */
-#define queue_size(q) deque_size(q)
+#define queue_size(this) deque_size(this)
 
 
 /**
  * Pointer to the first element in the queue, if it is not empty.
  */
-#define queue_front(q) deque_front(q)
+#define queue_front(this) deque_front(this)
 
 
 /**
  * Pointer to the last element in the queue, if it is not empty.
  */
-#define queue_back(q) deque_back(q)
+#define queue_back(this) deque_back(this)
 
 
 /**
  * Tests whether there are no elements in the queue.
  */
-#define queue_empty(q) deque_empty(q)
+#define queue_empty(this) deque_empty(this)
 
 
 /**
  * Creates a new, empty queue.
  *
- * @return      Pointer to the newly allocated queue.
+ * @return  Pointer to the newly allocated queue.
  */
 #define queue_new(id) deque_new(id)
 
@@ -39,23 +39,21 @@
 /**
  * Frees the queue and deletes any remaining elements.
  */
-#define queue_free(id, q) deque_free(id, q)
+#define queue_free(id, this) deque_free(id, this)
 
 
 /**
  * Removes the first element in the queue, if it is not empty.
  */
-#define queue_pop(id, q) deque_pop_front(id, q)
+#define queue_pop(id, this) deque_pop_front(id, this)
 
 
 /**
  * Appends `value` to the back of the queue.
 
- * @param  id     ID used with gen_queue.
- * @param  q      Pointer to queue.
  * @param  value  Value to be emplaced.
  */
-#define queue_push(id, q, value) deque_push_back(id, q, value)
+#define queue_push(id, this, value) deque_push_back(id, this, value)
 
 
 /**

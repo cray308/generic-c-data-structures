@@ -7,25 +7,25 @@
 /**
  * The number of elements in the stack.
  */
-#define stack_size(s) deque_size(s)
+#define stack_size(this) deque_size(this)
 
 
 /**
  * Tests whether there are no elements in the stack.
  */
-#define stack_empty(s) deque_empty(s)
+#define stack_empty(this) deque_empty(this)
 
 
 /**
  * Pointer to the top element in the stack, if it is not empty.
  */
-#define stack_top(s) deque_back(s)
+#define stack_top(this) deque_back(this)
 
 
 /**
  * Creates a new, empty stack.
  *
- * @return      Pointer to the newly allocated stack.
+ * @return  Pointer to the newly allocated stack.
  */
 #define stack_new(id) deque_new(id)
 
@@ -33,22 +33,20 @@
 /**
  * Frees the stack and deletes any remaining elements.
  */
-#define stack_free(id, s) deque_free(id, s)
+#define stack_free(id, this) deque_free(id, this)
 
 
 /**
  * Removes the top element from the stack, if it is not empty.
  */
-#define stack_pop(id, s) deque_pop_back(id, s)
+#define stack_pop(id, this) deque_pop_back(id, this)
 
 /**
  * Pushes `value` onto the top of the stack.
  *
- * @param  id     ID used with gen_stack.
- * @param  s      Pointer to stack.
  * @param  value  Value to be emplaced.
  */
-#define stack_push(id, s, value) deque_push_back(id, s, value)
+#define stack_push(id, this, value) deque_push_back(id, this, value)
 
 
 /**
