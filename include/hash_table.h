@@ -175,7 +175,7 @@ __DS_FUNC_PREFIX void __htable_insert_fromArray_##id(TableType *this, DataType* 
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX TableType *__htable_new_##id(void) {                                                        \
+__DS_FUNC_PREFIX TableType *__htable_new_fromArray_##id(DataType *arr, size_t n) {                           \
     TableType *ht;                                                                                           \
     __ds_calloc(ht, 1, sizeof(TableType))                                                                    \
     srand((unsigned) time(NULL));                                                                            \
@@ -183,11 +183,6 @@ __DS_FUNC_PREFIX TableType *__htable_new_##id(void) {                           
     ht->lf = 0.75;                                                                                           \
     ht->seed = ((uint32_t) rand()) % UINT32_MAX;                                                             \
     __ds_calloc(ht->buckets, ht->cap, sizeof(struct EntryType *))                                            \
-    return ht;                                                                                               \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX TableType *__htable_new_fromArray_##id(DataType *arr, size_t n) {                           \
-    TableType *ht = __htable_new_##id();                                                                     \
     __htable_insert_fromArray_##id(ht, arr, n);                                                              \
     return ht;                                                                                               \
 }                                                                                                            \
@@ -261,12 +256,6 @@ __DS_FUNC_PREFIX void __htable_clear_##id(TableType *this) {                    
     }                                                                                                        \
     memset(this->buckets, 0, sizeof(struct EntryType *) * this->cap);                                        \
     this->size = 0;                                                                                          \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void __htable_free_##id(TableType *this) {                                              \
-    __htable_clear_##id(this);                                                                               \
-    free(this->buckets);                                                                                     \
-    free(this);                                                                                              \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL DataType *__htable_find_##id(TableType *this, const kt key) {                           \

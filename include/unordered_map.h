@@ -44,7 +44,7 @@
  *
  * @return  Pointer to newly created map.
  */
-#define umap_new(id)  __htable_new_##id() 
+#define umap_new(id) __htable_new_fromArray_##id(NULL, 0)
 
 
 /**
@@ -71,7 +71,7 @@
 /**
  * Deletes all elements and frees the map.
  */
-#define umap_free(id, this) __htable_free_##id(this)
+#define umap_free(id, this) do { __htable_clear_##id(this); free((this)->buckets); free(this); } while(0)
 
 
 /**
