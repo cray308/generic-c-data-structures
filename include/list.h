@@ -138,7 +138,7 @@
  *
  * @return  Pointer to the newly allocated list.
  */
-#define list_new(id) list_new_repeatingValue_##id(0, 0)
+#define list_new(id) list_new_fromArray_##id(NULL, 0)
 
 
 /**
@@ -434,16 +434,16 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *this, List
     __list_iterable_insert_body(id, this, pos, start, end, ____cds_do_nothing, if (!start || start == end) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
+__DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
     List_##id *l;                                                                                            \
     __ds_calloc(l, 1, sizeof(List_##id))                                                                     \
-    list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
+    list_insert_fromArray_##id(l, NULL, arr, size);                                                          \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
+__DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
     List_##id *l = list_new(id);                                                                             \
-    list_insert_fromArray_##id(l, NULL, arr, size);                                                          \
+    list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \

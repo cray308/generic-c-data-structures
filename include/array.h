@@ -81,7 +81,7 @@
  *
  * @return  Pointer to the newly created array.
  */
-#define array_new(id) array_new_repeatingValue_##id(0, 0)
+#define array_new(id) array_new_fromArray_##id(NULL, 0)
 
 
 /**
@@ -351,16 +351,6 @@ __DS_FUNC_PREFIX void array_resize_usingValue_##id(Array_##id *this, size_t n, t
     array_insert_repeatingValue_##id(this, array_size(this), n - this->size, value);                         \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX Array_##id *array_new_repeatingValue_##id(size_t n, t value) {                              \
-    Array_##id *a;                                                                                           \
-    __ds_malloc(a, sizeof(Array_##id))                                                                       \
-    __ds_malloc(a->arr, 8 * sizeof(t))                                                                       \
-    a->size = 0;                                                                                             \
-    a->capacity = 8;                                                                                         \
-    array_insert_repeatingValue_##id(a, 0, n, value);                                                        \
-    return a;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
 __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *this, int index, t *arr, size_t n) {            \
     char append;                                                                                             \
     t* i; t* end;                                                                                            \
@@ -388,8 +378,18 @@ __DS_FUNC_PREFIX int array_insert_fromArray_##id(Array_##id *this, int index, t 
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX Array_##id *array_new_fromArray_##id(t *arr, size_t size) {                                 \
-    Array_##id *a = array_new(id);                                                                           \
+    Array_##id *a;                                                                                           \
+    __ds_malloc(a, sizeof(Array_##id))                                                                       \
+    __ds_malloc(a->arr, 8 * sizeof(t))                                                                       \
+    a->size = 0;                                                                                             \
+    a->capacity = 8;                                                                                         \
     array_insert_fromArray_##id(a, 0, arr, size);                                                            \
+    return a;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
+__DS_FUNC_PREFIX Array_##id *array_new_repeatingValue_##id(size_t n, t value) {                              \
+    Array_##id *a = array_new(id);                                                                           \
+    array_insert_repeatingValue_##id(a, 0, n, value);                                                        \
     return a;                                                                                                \
 }                                                                                                            \
                                                                                                              \
