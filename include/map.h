@@ -39,7 +39,7 @@
  *
  * @return  Pointer to the newly created map.
  */
-#define map_new(id) __avltree_new_##id()
+#define map_new(id) __avltree_new_fromArray_##id(NULL, 0)
 
 
 /**
@@ -66,13 +66,13 @@
 /**
  * Deletes all elements and frees the map.
  */
-#define map_free(id, this) __avltree_free_##id(this)
+#define map_free(id, this) do { map_clear(id, this); free(this); } while(0)
 
 
 /**
  * Removes all keys from the map, leaving it with a size of 0.
  */
-#define map_clear(id, this) __avltree_clear_##id(this)
+#define map_clear(id, this) __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
 
 
 /**
@@ -150,7 +150,7 @@
  *
  * @param  key  Key to be deleted.
  */
-#define map_remove_key(id, this, key) __avltree_remove_key_##id(this, key)
+#define map_remove_key(id, this, key) __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, key, 0))
 
 
 /**

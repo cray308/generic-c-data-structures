@@ -41,7 +41,7 @@
  *
  * @return  Pointer to the newly created set.
  */
-#define set_new(id) __avltree_new_##id()
+#define set_new(id) __avltree_new_fromArray_##id(NULL, 0)
 
 
 /**
@@ -68,13 +68,13 @@
 /**
  * Deletes all elements and frees the set.
  */
-#define set_free(id, this) __avltree_free_##id(this)
+#define set_free(id, this) do { set_clear(id, this); free(this); } while(0)
 
 
 /**
  * Removes all elements from the set, leaving it with a size of 0.
  */
-#define set_clear(id, this) __avltree_clear_##id(this)
+#define set_clear(id, this) __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
 
 
 /**
@@ -152,7 +152,7 @@
  *
  * @param  value  Value to be deleted.
  */
-#define set_remove_value(id, this, value) __avltree_remove_key_##id(this, value)
+#define set_remove_value(id, this, value) __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, value, 0))
 
 
 /**

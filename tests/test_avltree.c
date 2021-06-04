@@ -8,11 +8,12 @@
 
 #define tree_iter(id, s, it) for (it = iter_begin(AVLTREE, id, s, 0); it != iter_end(AVLTREE, id, s, 0); iter_next(AVLTREE, id, it))
 #define tree_riter(id, s, it) for (it = iter_rbegin(AVLTREE, id, s, 0); it != iter_rend(AVLTREE, id, s, 0); iter_prev(AVLTREE, id, it))
-#define tree_new(id) __avltree_new_##id()
-#define tree_free(id, s) __avltree_free_##id(s)
+#define tree_new(id) __avltree_new_fromArray_##id(NULL, 0)
+#define tree_clear(id, s) __avltree_erase_##id(s, __avl_successor_##id((s)->root), NULL)
+#define tree_free(id, s) do { tree_clear(id, s); free(s); } while(0)
 #define tree_find(id, s, value) __avltree_find_key_##id(s, value, 0)
 #define tree_insert(id, s, value) __avltree_insert_##id(s, value, NULL)
-#define tree_remove_value(id, s, value) __avltree_remove_key_##id(s, value)
+#define tree_remove_value(id, s, value) __avltree_remove_entry_##id(s, __avltree_find_key_##id(s, value, 0))
 #define tree_remove_entry(id, s, entry) __avltree_remove_entry_##id(s, entry)
 
 __gen_avltree(int, int, ds_cmp_num_lt, AVLTree_int, int, AVLNode_int, __tree_entry_get_key, __tree_data_get_key, DSDefault_shallowCopy, DSDefault_shallowDelete, __tree_copy_value, __tree_delete_value)

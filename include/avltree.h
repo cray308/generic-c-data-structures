@@ -214,21 +214,16 @@ __DS_FUNC_PREFIX void __avltree_insert_fromTree_##id(TreeType *this, EntryType *
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX TreeType *__avltree_new_##id(void) {                                                        \
+__DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n) {                           \
     TreeType *t;                                                                                             \
     __ds_calloc(t, 1, sizeof(TreeType))                                                                      \
+    __avltree_insert_fromArray_##id(t, arr, n);                                                              \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX TreeType *__avltree_createCopy_##id(TreeType *other) {                                      \
-    TreeType *t = __avltree_new_##id();                                                                      \
+    TreeType *t = __avltree_new_fromArray_##id(NULL, 0);                                                     \
     __avltree_insert_fromTree_##id(t, __avl_successor_##id(other->root), NULL);                              \
-    return t;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n) {                           \
-    TreeType *t = __avltree_new_##id();                                                                      \
-    __avltree_insert_fromArray_##id(t, arr, n);                                                              \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
@@ -334,10 +329,6 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
     --this->size;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __avltree_remove_key_##id(TreeType *this, const kt key) {                              \
-    __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, key, 0));                                \
-}                                                                                                            \
-                                                                                                             \
 __DS_FUNC_PREFIX void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {               \
     EntryType *curr;                                                                                         \
     kt* keys;                                                                                                \
@@ -351,23 +342,9 @@ __DS_FUNC_PREFIX void __avltree_erase_##id(TreeType *this, EntryType *begin, Ent
         keys[count++] = entry_get_key(curr);                                                                 \
     }                                                                                                        \
     for (; i < count; ++i) {                                                                                 \
-        __avltree_remove_key_##id(this, keys[i]);                                                            \
+        __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, keys[i], 0));                        \
     }                                                                                                        \
     free(keys);                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void __avltree_clear_##id(TreeType *this) {                                             \
-    EntryType *curr = this->root;                                                                            \
-    while (curr) {                                                                                           \
-        __avltree_remove_entry_##id(this, curr);                                                             \
-        curr = this->root;                                                                                   \
-    }                                                                                                        \
-    this->root = NULL;                                                                                       \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void __avltree_free_##id(TreeType *this) {                                              \
-    __avltree_clear_##id(this);                                                                              \
-    free(this);                                                                                              \
 }                                                                                                            \
 
 #endif /* DS_AVL_TREE_H */
