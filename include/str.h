@@ -207,267 +207,6 @@ __DS_FUNC_PREFIX void string_reserve(String *this, size_t n) {
 
 
 /**
- * Inserts `len` characters from `s` into this string before `pos`.
- *
- * @param  pos  Index in this string before which characters will be inserted. If this is `string_len`,
- *                characters from `s` will be appended.
- * @param  s    C-string from which characters will be inserted.
- * @param  len  Number of characters from `s` to insert. If this is -1, all characters from `s` will
- *                be used.
- */
-__DS_FUNC_PREFIX void string_insert(String *this, int pos, const char *s, int len) {
-    char append;
-    int size = string_len(this);
-    if (!(s && *s && len)) return;
-    else if (!(append = (pos == size))) {
-        __ds_adjust_index(pos, size)
-        if (pos < 0) return;
-    }
-
-    if (len < 0) len = (int) strlen(s);
-
-    string_reserve(this, this->size + (size_t) len + 1);
-
-    if (!append) {
-        memmove(&this->s[pos + len], &this->s[pos], this->size - (size_t) pos);
-    }
-    memcpy(&this->s[pos], s, (size_t) len);
-    this->size += (size_t) len;
-    this->s[this->size] = 0;
-}
-
-
-/**
- * Inserts a substring of `other`, starting at `subpos`, into this string before `pos`.
- *
- * @param  pos     Index in this string before which characters will be inserted. If this is `string_len`,
- *                   characters from `other` will be appended to this string.
- * @param  other   Existing `String` from which characters will be inserted.
- * @param  subpos  Index in `other` denoting the position of the first character to be inserted.
- * @param  len     Number of characters from `other` to insert. If this is -1, all characters from `subpos`
- *                   through the end of `other` will be inserted.
- */
-__DS_FUNC_PREFIX void string_insert_fromString(String *this, int pos, const String *other, int subpos, int len) {
-    int size = string_len(other);
-    __ds_adjust_index(subpos, size)
-    if (!len || subpos < 0) return;
-
-    if (len < 0) {
-        len = size - subpos;
-    } else {
-        len = min(len, size - subpos);
-    }
-    string_insert(this, pos, &other->s[subpos], len);
-}
-
-
-/**
- * Inserts `n` instances of the character `c` into this string before `pos`.
- *
- * @param  pos  Index in this string before which characters will be inserted. If this is `string_len`,
- *                characters from `other` will be appended to this string.
- * @param  n    Number of copies of `c` to insert.
- * @param  c    Character to insert.
- */
-__DS_FUNC_PREFIX void string_insert_repeatingChar(String *this, int pos, size_t n, char c) {
-    char append;
-    int size = string_len(this);
-    if (!n) return;
-    else if (!(append = (pos == size))) {
-        __ds_adjust_index(pos, size)
-        if (pos < 0) return;
-    }
-
-    string_reserve(this, this->size + n + 1);
-
-    if (!append) {
-        memmove(&this->s[pos + (int) n], &this->s[pos], this->size - (size_t) pos);
-    }
-    memset(&this->s[pos], c, n);
-    this->size += (size_t) n;
-    this->s[this->size] = 0;
-}
-
-
-/**
- * Appends `len` characters from `s` to the end of this string.
- *
- * @param  s    C-string from which characters will be inserted.
- * @param  len  Number of characters from `s` to insert. If this is -1, all characters from `s` will
- *                be used.
- */
-#define string_append(this, s, len) string_insert(this, string_len(this), s, len)
-
-
-/**
- * Appends a substring of `other`, starting at `subpos`, to this string.
- *
- * @param  other   Existing `String` from which characters will be inserted.
- * @param  subpos  Index in `other` denoting the position of the first character to be inserted.
- * @param  len     Number of characters from `other` to insert. If this is -1, all characters from `subpos`
- *                   through the end of `other` will be inserted.
- */
-#define string_append_fromString(this, other, subpos, len) string_insert_fromString(this, string_len(this), other, subpos, len)
-
-
-/**
- * Appends `n` instances of the character `c` to this string.
- *
- * @param  n  Number of copies of `c` to insert.
- * @param  c  Character to insert.
- */
-#define string_append_repeatingChar(this, n, c) string_insert_repeatingChar(this, string_len(this), n, c)
-
-
-/**
- * Creates a new, empty string.
- *
- * @return  Pointer to newly created string.
- */
-__DS_FUNC_PREFIX String *string_new(void) {
-    String *s;
-    __ds_malloc(s, sizeof(String))
-    __ds_malloc(s->s, 64)
-    s->size = 0;
-    s->cap = 64;
-    s->s[0] = 0;
-    return s;
-}
-
-
-/**
- * Creates a new string from a c-string `s`.
- * 
- * @param   s  C-string.
- * @param   n  Number of characters from `s` to include. If this is -1, `strlen(s)` characters
- *               will be used.
- *
- * @return     Pointer to newly created string.
- */
-__DS_FUNC_PREFIX String *string_new_fromCStr(const char *s, int n) {
-    String *t = string_new();
-    string_append(t, s, n);
-    return t;
-}
-
-
-/**
- * Creates a new string as a copy of `other`.
- * 
- * @param   other  Pointer to existing `String`.
- *
- * @return         Pointer to newly created string.
- */
-#define string_createCopy(other) string_new_fromCStr((other)->s, string_len(other))
-
-
-/**
- * Creates a new string as a substring of `other`, starting at index `pos` and using `n` characters.
- *
- * @param   other  Pointer to existing `String`.
- * @param   pos    Index of the first character in `other` to be copied.
- * @param   n      Maximum number of characters to be used. If this is -1, all characters from `pos`
- *                   to the end of `other` will be used.
- *
- * @return         Pointer to newly created string.
- */
-__DS_FUNC_PREFIX String *string_new_fromString(const String *other, int pos, int n) {
-    String *s = string_new();
-    string_append_fromString(s, other, pos, n);
-    return s;
-}
-
-
-/**
- * Creates a new string with size `n`, where each index is set to `c`.
- *
- * @param   n  Number of characters to initialize.
- * @param   c  Character to set for each of the indices.
- *
- * @return     Pointer to the newly created string.
- */
-__DS_FUNC_PREFIX String *string_new_repeatingChar(size_t n, char c) {
-    String *s = string_new();
-    string_append_repeatingChar(s, n, c);
-    return s;
-}
-
-
-/**
- * Resizes the string to be `n` characters long. If this is less than the current size, all but the 
- * first `n` characters are removed. If this is greater than or equal to the current size, the provided 
- * character `c` is appended.
- *
- * @param  n  The new size.
- * @param  c  Character to append.
- */
-__DS_FUNC_PREFIX_INL void string_resize_usingChar(String *this, size_t n, char c) {
-    if (n > this->size) {
-        string_reserve(this, n + 1);
-        memset(&this->s[this->size], c, n - this->size);
-    }
-    this->s[n] = 0;
-    this->size = n;
-}
-
-
-/**
- * Resizes the string to be `n` characters long. If this is less than the current size, all but the 
- * first `n` characters are removed. If this is greater than or equal to the current size, the null 
- * character is appended.
- *
- * @param  n  The new size.
- */
-#define string_resize(this, n) string_resize_usingChar(this, n, 0)
-
-
-/**
- * Removes `n` characters from the string, starting at index `start`.
- *
- * @param  start  The first index to delete.
- * @param  n      The number of characters to delete. If this is -1, all characters from `start`
- *                  until the end will be removed.
- */
-__DS_FUNC_PREFIX void string_erase(String *this, int start, int n) {
-    int end, size = string_len(this);
-    __ds_adjust_index(start, size)
-    if (!n || start < 0) return;
-
-    if (n < 0) {
-        n = size - start;
-    } else {
-        n = min(n, size - start);
-    }
-
-    end = start + n;
-    if (end < size) { /* move any characters after end to start */
-        memmove(&this->s[start], &this->s[end], this->size - (size_t) end);
-    }
-    this->size -= (size_t) n;
-    this->s[this->size] = 0;
-}
-
-
-/**
- * Removes all characters, leaving the string with a size of 0.
- */
-__DS_FUNC_PREFIX_INL void string_clear(String *this) {
-    if (!(this->s)) return;
-    this->s[0] = 0;
-    this->size = 0;
-}
-
-
-/**
- * Frees memory allocated to the string struct.
- */
-__DS_FUNC_PREFIX_INL void string_free(String *this) {
-    if (this->cap) free(this->s);
-    free(this);
-}
-
-
-/**
  * Replaces `nToReplace` characters in this string, starting at `pos`, with `len` characters from `s`.
  *
  * @param  pos         Index in the string where the replacement will occur.
@@ -574,12 +313,216 @@ __DS_FUNC_PREFIX void string_replace_repeatingChar(String *this, int pos, int nT
 
 
 /**
+ * Inserts `len` characters from `s` into this string before `pos`.
+ *
+ * @param  pos  Index in this string before which characters will be inserted. If this is `string_len`,
+ *                characters from `s` will be appended.
+ * @param  s    C-string from which characters will be inserted.
+ * @param  len  Number of characters from `s` to insert. If this is -1, all characters from `s` will
+ *                be used.
+ */
+#define string_insert(this, pos, s, len) string_replace(this, pos, 0, s, len)
+
+
+/**
+ * Inserts a substring of `other`, starting at `subpos`, into this string before `pos`.
+ *
+ * @param  pos     Index in this string before which characters will be inserted. If this is `string_len`,
+ *                   characters from `other` will be appended to this string.
+ * @param  other   Existing `String` from which characters will be inserted.
+ * @param  subpos  Index in `other` denoting the position of the first character to be inserted.
+ * @param  len     Number of characters from `other` to insert. If this is -1, all characters from `subpos`
+ *                   through the end of `other` will be inserted.
+ */
+#define string_insert_fromString(this, pos, other, subpos, len) string_replace_fromString(this, pos, 0, other, subpos, len)
+
+
+/**
+ * Inserts `n` instances of the character `c` into this string before `pos`.
+ *
+ * @param  pos  Index in this string before which characters will be inserted. If this is `string_len`,
+ *                characters from `other` will be appended to this string.
+ * @param  n    Number of copies of `c` to insert.
+ * @param  c    Character to insert.
+ */
+#define string_insert_repeatingChar(this, pos, n, c) string_replace_repeatingChar(this, pos, 0, n, c)
+
+
+/**
+ * Appends `len` characters from `s` to the end of this string.
+ *
+ * @param  s    C-string from which characters will be inserted.
+ * @param  len  Number of characters from `s` to insert. If this is -1, all characters from `s` will
+ *                be used.
+ */
+#define string_append(this, s, len) string_insert(this, string_len(this), s, len)
+
+
+/**
+ * Appends a substring of `other`, starting at `subpos`, to this string.
+ *
+ * @param  other   Existing `String` from which characters will be inserted.
+ * @param  subpos  Index in `other` denoting the position of the first character to be inserted.
+ * @param  len     Number of characters from `other` to insert. If this is -1, all characters from `subpos`
+ *                   through the end of `other` will be inserted.
+ */
+#define string_append_fromString(this, other, subpos, len) string_insert_fromString(this, string_len(this), other, subpos, len)
+
+
+/**
+ * Appends `n` instances of the character `c` to this string.
+ *
+ * @param  n  Number of copies of `c` to insert.
+ * @param  c  Character to insert.
+ */
+#define string_append_repeatingChar(this, n, c) string_insert_repeatingChar(this, string_len(this), n, c)
+
+
+/**
+ * Creates a new string from a c-string `s`.
+ * 
+ * @param   s  C-string.
+ * @param   n  Number of characters from `s` to include. If this is -1, `strlen(s)` characters
+ *               will be used.
+ *
+ * @return     Pointer to newly created string.
+ */
+__DS_FUNC_PREFIX String *string_new_fromCStr(const char *s, int n) {
+    String *t;
+    __ds_malloc(t, sizeof(String))
+    __ds_malloc(t->s, 64)
+    t->size = 0;
+    t->cap = 64;
+    t->s[0] = 0;
+    string_append(t, s, n);
+    return t;
+}
+
+
+/**
+ * Creates a new, empty string.
+ *
+ * @return  Pointer to newly created string.
+ */
+#define string_new() string_new_fromCStr(NULL, 0)
+
+
+/**
+ * Creates a new string as a copy of `other`.
+ * 
+ * @param   other  Pointer to existing `String`.
+ *
+ * @return         Pointer to newly created string.
+ */
+#define string_createCopy(other) string_new_fromCStr((other)->s, string_len(other))
+
+
+/**
+ * Creates a new string as a substring of `other`, starting at index `pos` and using `n` characters.
+ *
+ * @param   other  Pointer to existing `String`.
+ * @param   pos    Index of the first character in `other` to be copied.
+ * @param   n      Maximum number of characters to be used. If this is -1, all characters from `pos`
+ *                   to the end of `other` will be used.
+ *
+ * @return         Pointer to newly created string.
+ */
+__DS_FUNC_PREFIX String *string_new_fromString(const String *other, int pos, int n) {
+    String *s = string_new();
+    string_append_fromString(s, other, pos, n);
+    return s;
+}
+
+
+/**
+ * Creates a new string with size `n`, where each index is set to `c`.
+ *
+ * @param   n  Number of characters to initialize.
+ * @param   c  Character to set for each of the indices.
+ *
+ * @return     Pointer to the newly created string.
+ */
+__DS_FUNC_PREFIX String *string_new_repeatingChar(size_t n, char c) {
+    String *s = string_new();
+    string_append_repeatingChar(s, n, c);
+    return s;
+}
+
+
+/**
+ * Resizes the string to be `n` characters long. If this is less than the current size, all but the 
+ * first `n` characters are removed. If this is greater than or equal to the current size, the provided 
+ * character `c` is appended.
+ *
+ * @param  n  The new size.
+ * @param  c  Character to append.
+ */
+__DS_FUNC_PREFIX_INL void string_resize_usingChar(String *this, size_t n, char c) {
+    if (n > this->size) {
+        string_reserve(this, n + 1);
+        memset(&this->s[this->size], c, n - this->size);
+    }
+    this->s[n] = 0;
+    this->size = n;
+}
+
+
+/**
+ * Resizes the string to be `n` characters long. If this is less than the current size, all but the 
+ * first `n` characters are removed. If this is greater than or equal to the current size, the null 
+ * character is appended.
+ *
+ * @param  n  The new size.
+ */
+#define string_resize(this, n) string_resize_usingChar(this, n, 0)
+
+
+/**
+ * Removes `n` characters from the string, starting at index `start`.
+ *
+ * @param  start  The first index to delete.
+ * @param  n      The number of characters to delete. If this is -1, all characters from `start`
+ *                  until the end will be removed.
+ */
+__DS_FUNC_PREFIX void string_erase(String *this, int start, int n) {
+    int end, size = string_len(this);
+    __ds_adjust_index(start, size)
+    if (!n || start < 0) return;
+
+    if (n < 0) {
+        n = size - start;
+    } else {
+        n = min(n, size - start);
+    }
+
+    end = start + n;
+    if (end < size) { /* move any characters after end to start */
+        memmove(&this->s[start], &this->s[end], this->size - (size_t) end);
+    }
+    this->size -= (size_t) n;
+    this->s[this->size] = 0;
+}
+
+
+/**
+ * Removes all characters, leaving the string with a size of 0.
+ */
+#define string_clear(this) do { this->s[0] = 0; this->size = 0; } while(0)
+
+
+/**
+ * Frees memory allocated to the string struct.
+ */
+#define string_free(this) do { free((this)->s); free(this); } while(0)
+
+
+/**
  * If the string's capacity is greater than its length plus the null terminator, reallocates only 
  * enough space to fit all characters.
  */
 __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *this) {
     char *tmp;
-    if (this->size == 0 || this->size + 1 == this->cap || this->cap <= 64) return;
+    if (this->size == 0 || this->cap <= 64 || this->size + 1 == this->cap) return;
     __ds_realloc(tmp, this->s, this->size + 1) /* realloc only enough space for string and '\0' */
     this->cap = this->size + 1;
     this->s = tmp;
@@ -591,20 +534,13 @@ __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *this) {
  *
  * @param  c  Character to append.
  */
-__DS_FUNC_PREFIX_INL void string_push_back(String *this, char c) {
-    string_reserve(this, this->size + 1);
-    this->s[this->size++] = c;
-    this->s[this->size] = 0;
-}
+#define string_push_back(this, c) string_resize_usingChar(this, (this)->size + 1, c)
 
 
 /**
  * Removes the last character, if the string is not empty.
  */
-__DS_FUNC_PREFIX_INL void string_pop_back(String *this) {
-    if (!this->size) return;
-    this->s[this->size-- - 1] = 0;
-}
+#define string_pop_back(this) string_erase(this, string_len(this) - 1, 1)
 
 
 /**
@@ -897,32 +833,6 @@ __DS_FUNC_PREFIX char *__string_read_format(int *n, const char *format, va_list 
 }
 
 /**
- * Inserts a format string `format` into this string before `pos`.
- *
- * @param  pos     Index in this string before which characters will be inserted. If this is `string_len`,
- *                   characters from `format` will be appended to this string.
- * @param  format  Format string.
- */
-__DS_FUNC_PREFIX void string_insert_withFormat(String *this, int pos, const char *format, ...) {
-    va_list args;
-    int n = 0;
-    char *result;
-    va_start(args, format);
-    result = __string_read_format(&n, format, args);
-    va_end(args);
-    if (!result) return;
-    string_insert(this, pos, result, n);
-    free(result);
-}
-
-/**
- * Appends a format string `format` to this string.
- *
- * @param  format  Format string.
- */
-#define string_append_withFormat(this, format, ...) string_insert_withFormat(this, string_len(this), format, __VA_ARGS__)
-
-/**
  * Replaces `nToReplace` characters in this string, starting at `pos`, with the format string `format`.
  *
  * @param  pos         Index in the string where the replacement will occur.
@@ -940,6 +850,22 @@ __DS_FUNC_PREFIX void string_replace_withFormat(String *this, int pos, int nToRe
     string_replace(this, pos, nToReplace, result, n);
     free(result);
 }
+
+/**
+ * Inserts a format string `format` into this string before `pos`.
+ *
+ * @param  pos     Index in this string before which characters will be inserted. If this is `string_len`,
+ *                   characters from `format` will be appended to this string.
+ * @param  format  Format string.
+ */
+#define string_insert_withFormat(this, pos, format, ...) string_replace_withFormat(this, pos, 0, format, __VA_ARGS__)
+
+/**
+ * Appends a format string `format` to this string.
+ *
+ * @param  format  Format string.
+ */
+#define string_append_withFormat(this, format, ...) string_insert_withFormat(this, string_len(this), format, __VA_ARGS__)
 
 /**
  * Creates a new string from the format string `format`.

@@ -45,7 +45,7 @@ void test_list(void) {
 }
 
 void test_arr(void) {
-    Array_unsigned *a = array_new_unsigned();
+    Array_unsigned *a = array_new(unsigned);
     runTest(array_push_back(unsigned, a, ((unsigned) rand()) % UINT_MAX), array_sort(unsigned, a))
     array_free(unsigned, a);
 }
