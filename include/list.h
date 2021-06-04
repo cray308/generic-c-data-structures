@@ -49,34 +49,6 @@
     }                                                                                                        \
     (this)->back = prev;                                                                                     \
 
-#define __list_push_body(id, dir, rev, loc, copyValue)                                                       \
-    ListEntry_##id *new;                                                                                     \
-    __ds_calloc(new, 1, sizeof(ListEntry_##id))                                                              \
-    copyValue((new->data), (value));                                                                         \
-                                                                                                             \
-    if (!(this->front)) {                                                                                    \
-        this->front = this->back = new;                                                                      \
-    } else {                                                                                                 \
-        new->dir = loc;                                                                                      \
-        loc->rev = new;                                                                                      \
-        loc = new;                                                                                           \
-    }                                                                                                        \
-    this->size++;                                                                                            \
-
-#define __list_pop_body(id, loc, dir, rev, tail, deleteValue)                                                \
-    ListEntry_##id *repl;                                                                                    \
-    if (!(this->front)) return;                                                                              \
-                                                                                                             \
-    repl = loc, loc = repl->dir;                                                                             \
-    if (loc) {                                                                                               \
-        loc->rev = NULL;                                                                                     \
-    } else {                                                                                                 \
-        tail = NULL;                                                                                         \
-    }                                                                                                        \
-    deleteValue((repl->data));                                                                               \
-    free(repl);                                                                                              \
-    this->size--;                                                                                            \
-
 #define __list_iterable_insert_body(id, this, pos, start, end, decls, earlyReturn, assignment, iter_next, getData, copyValue) \
     decls                                                                                                    \
     ListEntry_##id *prev = (pos) ? (pos)->prev : NULL;                                                       \
@@ -166,7 +138,7 @@
  *
  * @return  Pointer to the newly allocated list.
  */
-#define list_new(id) list_new_##id()
+#define list_new(id) list_new_repeatingValue_##id(0, 0)
 
 
 /**
@@ -204,7 +176,7 @@
 /**
  * Deletes all elements and frees the list.
  */
-#define list_free(id, this) list_free_##id(this) 
+#define list_free(id, this) do { list_erase(id, this, (this)->front, NULL); free(this); } while(0)
 
 
 /**
@@ -233,7 +205,7 @@
  *
  * @param  value  Value to insert.
  */
-#define list_push_front(id, this, value) list_push_front_##id(this, value)
+#define list_push_front(id, this, value) list_insert(id, this, (this)->front, value)
 
 
 /**
@@ -241,19 +213,19 @@
  *
  * @param  value  Value to insert.
  */
-#define list_push_back(id, this, value) list_push_back_##id(this, value)
+#define list_push_back(id, this, value) list_insert(id, this, NULL, value)
 
 
 /**
  * Removes the first element from the list, if it is not empty.
  */
-#define list_pop_front(id, this) list_pop_front_##id(this)
+#define list_pop_front(id, this) list_erase_##id(this, (this)->front, (this)->front ? (this)->front->next : NULL)
 
 
 /**
  * Removes the last element from the list, if it is not empty.
  */
-#define list_pop_back(id, this) list_pop_back_##id(this)
+#define list_pop_back(id, this) list_erase_##id(this, (this)->back, NULL)
 
 
 /**
@@ -265,7 +237,7 @@
  *
  * @return          `ListEntry` corresponding to the inserted element.
  */
-#define list_insert(id, this, pos, value) list_insert_##id(this, pos, value)
+#define list_insert(id, this, pos, value) list_insert_repeatingValue_##id(this, pos, 1, value)
 
 
 /**
@@ -420,41 +392,37 @@ typedef struct {                                                                
                                                                                                              \
 create_iterator_distance_helper(LIST, id, ListEntry_##id *)                                                  \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void list_push_front_##id(List_##id *this, t value) {                                   \
-    __list_push_body(id, next, prev, this->front, copyValue)                                                 \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void list_push_back_##id(List_##id *this, t value) {                                    \
-    __list_push_body(id, prev, next, this->back, copyValue)                                                  \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX ListEntry_##id *list_insert_##id(List_##id *this, ListEntry_##id *pos, t value) {           \
-    ListEntry_##id *prev, *new;                                                                              \
-    if (!pos) {                                                                                              \
-        list_push_back_##id(this, value);                                                                    \
-        return this->back;                                                                                   \
-    }                                                                                                        \
-                                                                                                             \
-    prev = pos->prev;                                                                                        \
-    __ds_calloc(new, 1, sizeof(ListEntry_##id))                                                              \
-    copyValue((new->data), (value));                                                                         \
-    new->next = pos;                                                                                         \
-    pos->prev = new;                                                                                         \
-    new->prev = prev;                                                                                        \
-    if (prev) {                                                                                              \
-        prev->next = new;                                                                                    \
-    } else {                                                                                                 \
-        this->front = new;                                                                                   \
-    }                                                                                                        \
-    this->size++;                                                                                            \
-    return new;                                                                                              \
-}                                                                                                            \
-                                                                                                             \
 __DS_FUNC_PREFIX ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, size_t n, t value) { \
     size_t i;                                                                                                \
     if (!n) return NULL;                                                                                     \
     for (i = 0; i < n; ++i) {                                                                                \
-        pos = list_insert_##id(this, pos, value);                                                            \
+        ListEntry_##id *prev, *new;                                                                          \
+        __ds_calloc(new, 1, sizeof(ListEntry_##id))                                                          \
+        copyValue((new->data), (value));                                                                     \
+        if (!pos) {                                                                                          \
+            if (!(this->front)) {                                                                            \
+                this->front = this->back = new;                                                              \
+            } else {                                                                                         \
+                new->prev = this->back;                                                                      \
+                this->back->next = new;                                                                      \
+                this->back = new;                                                                            \
+            }                                                                                                \
+            ++this->size;                                                                                    \
+            pos = new;                                                                                       \
+            continue;                                                                                        \
+        }                                                                                                    \
+                                                                                                             \
+        prev = pos->prev;                                                                                    \
+        new->next = pos;                                                                                     \
+        pos->prev = new;                                                                                     \
+        new->prev = prev;                                                                                    \
+        if (prev) {                                                                                          \
+            prev->next = new;                                                                                \
+        } else {                                                                                             \
+            this->front = new;                                                                               \
+        }                                                                                                    \
+        ++this->size;                                                                                        \
+        pos = new;                                                                                           \
     }                                                                                                        \
     return pos;                                                                                              \
 }                                                                                                            \
@@ -466,26 +434,21 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *this, List
     __list_iterable_insert_body(id, this, pos, start, end, ____cds_do_nothing, if (!start || start == end) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_new_##id(void) {                                                            \
+__DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
     List_##id *l;                                                                                            \
     __ds_calloc(l, 1, sizeof(List_##id))                                                                     \
-    return l;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
-    List_##id *l = list_new_##id();                                                                          \
     list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
-    List_##id *l = list_new_##id();                                                                          \
+    List_##id *l = list_new(id);                                                                             \
     list_insert_fromArray_##id(l, NULL, arr, size);                                                          \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX List_##id *list_createCopy_##id(List_##id *other) {                                         \
-    List_##id *l = list_new_##id();                                                                          \
+    List_##id *l = list_new(id);                                                                             \
     list_insert_fromList_##id(l, NULL, other->front, NULL);                                                  \
     return l;                                                                                                \
 }                                                                                                            \
@@ -531,19 +494,6 @@ __DS_FUNC_PREFIX void list_resize_usingValue_##id(List_##id *this, size_t n, t v
     }                                                                                                        \
                                                                                                              \
     list_insert_repeatingValue_##id(this, NULL, n - this->size, value);                                      \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void list_free_##id(List_##id *this) {                                                  \
-    list_erase_##id(this, this->front, NULL);                                                                \
-    free(this);                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void list_pop_front_##id(List_##id *this) {                                             \
-    __list_pop_body(id, this->front, next, prev, this->back, deleteValue)                                    \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL void list_pop_back_##id(List_##id *this) {                                              \
-    __list_pop_body(id, this->back, prev, next, this->front, deleteValue)                                    \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL void list_reverse_##id(List_##id *this) {                                               \
@@ -767,18 +717,18 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_sorted_##id(List_##id *this, t valu
     ListEntry_##id *curr = this->front, *prev;                                                               \
                                                                                                              \
     if (!curr || ds_cmp_leq(cmp_lt, value, curr->data)) {                                                    \
-        list_push_front_##id(this, value);                                                                   \
+        list_push_front(id, this, value);                                                                    \
         return this->front;                                                                                  \
     }                                                                                                        \
     prev = this->front, curr = curr->next;                                                                   \
     while (curr != NULL) {                                                                                   \
         if (ds_cmp_eq(cmp_lt, value, curr->data) ||                                                          \
             (cmp_lt(value, curr->data) && cmp_lt(prev->data, value))) {                                      \
-            return list_insert_##id(this, curr, value);                                                      \
+            return list_insert(id, this, curr, value);                                                       \
         }                                                                                                    \
         prev = prev->next, curr = curr->next;                                                                \
     }                                                                                                        \
-    list_push_back_##id(this, value);                                                                        \
+    list_push_back(id, this, value);                                                                         \
     return this->back;                                                                                       \
 }                                                                                                            \
                                                                                                              \
@@ -858,7 +808,7 @@ __DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other) {      
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX void list_sort_##id(List_##id *this) {                                                      \
-    List_##id *carry, *tmp, *fill, *counter;                                                                 \
+    List_##id *carry, *fill, *counter, tmp[64] = {0};                                                        \
     if (this->front == this->back) {                                                                         \
         return;                                                                                              \
     } else if (this->size == 2 && cmp_lt(this->back->data, this->front->data)) {                             \
@@ -871,14 +821,13 @@ __DS_FUNC_PREFIX void list_sort_##id(List_##id *this) {                         
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    carry = list_new_##id();                                                                                 \
-    __ds_calloc(tmp, 64, sizeof(List_##id))                                                                  \
-    fill = tmp;                                                                                              \
+    carry = list_new(id);                                                                                    \
+    fill = &tmp[0];                                                                                          \
                                                                                                              \
     do {                                                                                                     \
         list_splice_element(id, carry, carry->front, this, this->front);                                     \
                                                                                                              \
-        for (counter = tmp; counter != fill && !(list_empty(counter)); ++counter) {                          \
+        for (counter = &tmp[0]; counter != fill && !(list_empty(counter)); ++counter) {                      \
             list_merge_##id(counter, carry);                                                                 \
             __list_swap(id, carry, counter)                                                                  \
         }                                                                                                    \
@@ -889,13 +838,12 @@ __DS_FUNC_PREFIX void list_sort_##id(List_##id *this) {                         
         }                                                                                                    \
     } while (!(list_empty(this)));                                                                           \
                                                                                                              \
-    for (counter = tmp + 1; counter != fill; ++counter) {                                                    \
+    for (counter = &tmp[1]; counter != fill; ++counter) {                                                    \
         list_merge_##id(counter, (counter - 1));                                                             \
     }                                                                                                        \
                                                                                                              \
     __list_swap(id, this, (fill - 1))                                                                        \
-    list_free_##id(carry);                                                                                   \
-    free(tmp);                                                                                               \
+    list_free(id, carry);                                                                                    \
 }                                                                                                            \
 
 #endif
