@@ -89,7 +89,8 @@
 
 #define __setup_deque(id, t, TypeName, copyValue, deleteValue)                                               \
                                                                                                              \
-typedef struct {                                                                                             \
+typedef struct TypeName TypeName;                                                                            \
+struct TypeName {                                                                                            \
     struct {                                                                                                 \
         t *arr;                                                                                              \
         size_t size, cap;                                                                                    \
@@ -101,7 +102,7 @@ typedef struct {                                                                
     struct {                                                                                                 \
         size_t frontStart, backStart;                                                                        \
     } pointers;                                                                                              \
-} TypeName;                                                                                                  \
+};                                                                                                           \
                                                                                                              \
 __DS_FUNC_PREFIX TypeName *__dq_new_##id(void) {                                                             \
     TypeName *q;                                                                                             \

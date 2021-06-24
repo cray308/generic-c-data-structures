@@ -54,10 +54,11 @@ struct EntryType {                                                              
     DataType data;                                                                                           \
 };                                                                                                           \
                                                                                                              \
-typedef struct {                                                                                             \
+typedef struct TreeType TreeType;                                                                            \
+struct TreeType {                                                                                            \
     EntryType *root;                                                                                         \
     size_t size;                                                                                             \
-} TreeType;                                                                                                  \
+};                                                                                                           \
                                                                                                              \
 __DS_FUNC_PREFIX_INL EntryType *__avl_successor_##id(EntryType *x) {                                         \
     __avl_nextNode_body(x, left)                                                                             \

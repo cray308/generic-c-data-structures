@@ -384,11 +384,12 @@ struct ListEntry_##id {                                                         
     t data;                                                                                                  \
 };                                                                                                           \
                                                                                                              \
-typedef struct {                                                                                             \
+typedef struct List_##id List_##id;                                                                          \
+struct List_##id {                                                                                           \
     size_t size;                                                                                             \
     ListEntry_##id *front;                                                                                   \
     ListEntry_##id *back;                                                                                    \
-} List_##id;                                                                                                 \
+};                                                                                                           \
                                                                                                              \
 create_iterator_distance_helper(LIST, id, ListEntry_##id *)                                                  \
                                                                                                              \

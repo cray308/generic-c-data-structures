@@ -6,11 +6,12 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-typedef struct {
+typedef struct String String;
+struct String {
     size_t size;
     size_t cap;
     char *s;
-} String;
+};
 
 #define STRING_NPOS (-1)
 #define STRING_ERROR (-2)

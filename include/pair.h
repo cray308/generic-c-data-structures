@@ -11,9 +11,10 @@
  * @param   t2  Type of second member of the pair.
  */
 #define gen_pair(id, t1, t2)                                                                                 \
-typedef struct {                                                                                             \
+typedef struct Pair_##id Pair_##id;                                                                          \
+struct Pair_##id {                                                                                           \
     t1 first;                                                                                                \
     t2 second;                                                                                               \
-} Pair_##id;                                                                                                 \
+};                                                                                                           \
 
 #endif

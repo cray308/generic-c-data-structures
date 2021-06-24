@@ -77,7 +77,8 @@ struct EntryType {                                                              
     DataType data;                                                                                           \
 };                                                                                                           \
                                                                                                              \
-typedef struct {                                                                                             \
+typedef struct TableType TableType;                                                                          \
+struct TableType {                                                                                           \
     size_t size;                                                                                             \
     size_t cap;                                                                                              \
     uint32_t seed;                                                                                           \
@@ -87,7 +88,7 @@ typedef struct {                                                                
         size_t idx;                                                                                          \
     } it;                                                                                                    \
     struct EntryType **buckets;                                                                              \
-} TableType;                                                                                                 \
+};                                                                                                           \
                                                                                                              \
 __DS_FUNC_PREFIX_INL DataType* __htable_iter_begin_##id(TableType *this) {                                   \
     if (!(this->size)) {                                                                                     \

@@ -264,11 +264,12 @@
  */
 #define gen_array(id, t, copyValue, deleteValue)                                                             \
                                                                                                              \
-typedef struct {                                                                                             \
+typedef struct Array_##id Array_##id;                                                                        \
+struct Array_##id {                                                                                          \
     size_t size;                                                                                             \
     size_t capacity;                                                                                         \
     t *arr;                                                                                                  \
-} Array_##id;                                                                                                \
+};                                                                                                           \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *this, int i) {                                             \
     int size = array_size(this);                                                                             \
