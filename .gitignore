@@ -1,4 +1,6 @@
-bin/c/
-bin/cpp/
+bin/c/*
+!bin/c/.gitkeep
+bin/cpp/*
+!bin/cpp/.gitkeep
 *.o
 vgcore.*
