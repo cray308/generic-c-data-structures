@@ -1,8 +1,10 @@
 #include "unordered_set.h"
 #include <assert.h>
 
-gen_uset(int, int, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_uset(str, char *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_uset_headers(int, int)
+gen_uset_headers(str, char *)
+gen_uset_source(int, int, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_uset_source(str, char *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 char *strs[] = {"000","001","002","003","004","005","006","007","008","009","010","011","012","013","014",
 "015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",

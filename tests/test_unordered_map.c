@@ -3,10 +3,15 @@
 
 #define freeNestedMap(x) umap_free(strv_int, x)
 
-gen_umap(strv_int, char *, int, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_umap(int_str, int, char *, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_umap(strp_int, char *, int, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_umap(nested, char *, UMap_strv_int *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, freeNestedMap)
+gen_umap_headers(strv_int, char *, int)
+gen_umap_headers(int_str, int, char *)
+gen_umap_headers(strp_int, char *, int)
+gen_umap_headers(nested, char *, UMap_strv_int *)
+
+gen_umap_source(strv_int, char *, int, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_umap_source(int_str, int, char *, ds_cmp_num_eq, DSDefault_addrOfVal, DSDefault_sizeOfVal, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_umap_source(strp_int, char *, int, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_shallowCopy, DSDefault_shallowDelete, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_umap_source(nested, char *, UMap_strv_int *, ds_cmp_str_eq, DSDefault_addrOfRef, DSDefault_sizeOfStr, DSDefault_deepCopyStr, DSDefault_deepDelete, DSDefault_shallowCopy, freeNestedMap)
 
 char *strs[] = {"000","001","002","003","004","005","006","007","008","009","010","011","012","013","014",
 "015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",

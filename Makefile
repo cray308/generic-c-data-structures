@@ -28,8 +28,13 @@ test: $(TEST_BINARIES)
 benchmark: $(BENCHMARK_BINARIES)
 	@python3 bin/run_benchmarks.py
 
+bin/c/test_unordered_set: tests/test_unordered_set.c include/unordered_set.h
+	gcc $(CFLAGS) -o $@ $< src/hash.c
 
-bin/c/test_%: tests/test_%.c include/ds.h include/%.h
+bin/c/test_unordered_map: tests/test_unordered_map.c include/unordered_map.h
+	gcc $(CFLAGS) -o $@ $< src/hash.c
+
+bin/c/test_%: tests/test_%.c include/%.h
 	gcc $(CFLAGS) -o $@ $<
 
 bin/c/benchmark_%: tests/benchmark_%.c $(HEADERS)

@@ -155,38 +155,52 @@
 
 
 /**
- * Generates `UMap` code for the given key type and value type.
+ * Generates @c UMap function declarations for the given key type and value type.
  *
- * @param  id           ID to be used for the `UMap` and `Pair` types (must be unique).
- * @param  kt           Key type.
- * @param  vt           Value type.
- * @param  cmp_eq       Macro of the form (x, y) that returns whether x is equal to y.
- * @param  addrOfKey    Macro of the form (x) that returns a pointer to x.
- *                        - For value types (i.e. int) pass DSDefault_addrOfVal.
- *                        - For pointer types, pass DSDefault_addrOfRef.
- * @param  sizeOfKey    Macro of the form (x) that returns the number of bytes in x, where x is a key for the map.
- *                        This is necessary so that the hashing function works correctly.
- *                        - For value types (i.e. int), pass DSDefault_sizeOfVal.
- *                        - For a string (char *), pass DSDefault_sizeOfStr.
- * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the key is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteKey    Macro of the form (x), which is a complement to `copyKey`; if memory was dynamically allocated in `copyKey`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyKey`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr was used in `copyKey`, pass DSDefault_deepDelete here.
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr  was used in `copyValue`, pass DSDefault_deepDelete here.
+ * @param  id  ID to be used for the @c UMap and @c Pair types (must be unique).
+ * @param  kt  Key type.
+ * @param  vt  Value type.
  */
-#define gen_umap(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue)       \
+#define gen_umap_headers(id, kt, vt)                                                                         \
                                                                                                              \
 gen_pair(id, kt, vt)                                                                                         \
-__gen_hash_table(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+__gen_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                                       \
                                                                                                              \
-__DS_FUNC_PREFIX_INL vt *umap_at_##id(UMap_##id *this, const kt key) {                                       \
+vt *umap_at_##id(UMap_##id *this, const kt key);                                                             \
+
+
+/**
+ * Generates @c UMap function definitions for the given key type and value type.
+ *
+ * @param  id           ID used in @c gen_umap_headers .
+ * @param  kt           Key type used in @c gen_umap_headers .
+ * @param  vt           Value type used in @c gen_umap_headers .
+ * @param  cmp_eq       Macro of the form (x, y) that returns whether x is equal to y.
+ * @param  addrOfKey    Macro of the form (x) that returns a pointer to x.
+ *                        - For value types (i.e. int) pass @c DSDefault_addrOfVal .
+ *                        - For pointer types, pass @c DSDefault_addrOfRef .
+ * @param  sizeOfKey    Macro of the form (x) that returns the number of bytes in x, where x is a key for the map.
+ *                        This is necessary so that the hashing function works correctly.
+ *                        - For value types (i.e. int), pass @c DSDefault_sizeOfVal .
+ *                        - For a string (char *), pass @c DSDefault_sizeOfStr .
+ * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the key is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was dynamically allocated in @c copyKey , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass @c DSDefault_deepDelete here.
+ * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr  was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ */
+#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+                                                                                                             \
+__gen_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+                                                                                                             \
+vt *umap_at_##id(UMap_##id *this, const kt key) {                                                            \
     Pair_##id *p = __htable_find_##id(this, key);                                                            \
     return p ? &(p->second) : NULL;                                                                          \
 }                                                                                                            \

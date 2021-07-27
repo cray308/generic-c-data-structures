@@ -144,26 +144,36 @@
 
 
 /**
- * Generates `USet` code for the given value type.
+ * Generates @c USet function declarations for the given value type.
  *
- * @param  id           ID to be used for the `USet` type (must be unique).
- * @param  t            Type to be stored in the set.
+ * @param  id  ID to be used for the @c USet type (must be unique).
+ * @param  t   Type to be stored in the set.
+ */
+#define gen_uset_headers(id, t)                                                                              \
+__gen_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)                                                \
+
+
+/**
+ * Generates @c USet function definitions for the given value type.
+ *
+ * @param  id           ID used in @c gen_uset_headers .
+ * @param  t            Type used in @c gen_uset_headers .
  * @param  cmp_eq       Macro of the form (x, y) that returns whether x is equal to y.
  * @param  addrOfValue  Macro of the form (x) that returns a pointer to x.
- *                        - For value types (i.e. int) pass DSDefault_addrOfVal.
- *                        - For pointer types, pass DSDefault_addrOfRef.
+ *                        - For value types (i.e. int) pass @c DSDefault_addrOfVal .
+ *                        - For pointer types, pass @c DSDefault_addrOfRef .
  * @param  sizeOfValue  Macro of the form (x) that returns the number of bytes in x, where x is an element in the set.
  *                        This is necessary so that the hashing function works correctly.
- *                        - For value types (i.e. int), pass DSDefault_sizeOfVal.
- *                        - For a string (char *), pass DSDefault_sizeOfStr.
+ *                        - For value types (i.e. int), pass @c DSDefault_sizeOfVal .
+ *                        - For a string (char *), pass @c DSDefault_sizeOfStr .
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_uset(id, t, cmp_eq, addrOfValue, sizeOfValue, copyValue, deleteValue)                            \
-__gen_hash_table(id, t, cmp_eq, USet_##id, t, USetEntry_##id, __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue, copyValue, deleteValue, __uset_copy_value, __uset_delete_value) \
+#define gen_uset_source(id, t, cmp_eq, addrOfValue, sizeOfValue, copyValue, deleteValue)                     \
+__gen_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id, __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue, copyValue, deleteValue, __uset_copy_value, __uset_delete_value)
 
 #endif /* DS_UNORDERED_SET_H */
