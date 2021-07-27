@@ -1,12 +1,21 @@
 #include "array.h"
 #include <assert.h>
+#include <limits.h>
 
 #define customStrCopy(dest, src) do { if (src) { __ds_malloc(dest, strlen(src) + 1); strcpy(dest, src); } } while(0)
 #define customStrDelete(x) do { if (x) free(x); } while(0)
 
-gen_array_withalg(str, char *, ds_cmp_str_lt, customStrCopy, customStrDelete)
-gen_array_withalg(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_matrix(str, char*)
+gen_array_headers(str, char *)
+gen_array_alg_headers(str, char *)
+gen_array_headers(int, int)
+gen_array_alg_headers(int, int)
+gen_matrix_headers(str, char *)
+
+gen_array_source(str, char *, customStrCopy, customStrDelete)
+gen_array_alg_source(str, char *, ds_cmp_str_lt, customStrCopy, customStrDelete)
+gen_array_source(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_array_alg_source(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_matrix_source(str, char *)
 
 int ints[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,
 130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,205,210,215,220,225,230,235,240,245};
@@ -15,8 +24,9 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "150","155","160","165","170","175","180","185","190","195","200","205","210","215","220","225","230",
 "235","240","245"};
 
-void compare_ints(Array_int *a, int *comparison, int size) {
-    int i = 0, j = -size, *it;
+void compare_ints(Array_int *a, int *comparison, unsigned size) {
+    unsigned i = 0, j = size;
+    int *it;
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
@@ -26,22 +36,22 @@ void compare_ints(Array_int *a, int *comparison, int size) {
         assert(!array_front(a) && !array_back(a));
     }
     array_iter(a, it) {
-        assert(*array_at(int, a, j) == comparison[i]);
+        assert(*array_at(int, a, size - j) == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
-        assert(*it == comparison[i++]); ++j;
+        assert(*it == comparison[i++]); --j;
     }
     assert(i == size);
-    i = size - 1, j = -1;
+    i = size - 1, j = 1;
     array_riter(a, it) {
-        assert(*array_at(int, a, j) == comparison[i]);
+        assert(*array_at(int, a, size - j) == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
-        assert(*it == comparison[i--]); --j;
+        assert(*it == comparison[i--]); ++j;
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
-void compare_strs(Array_str *a, char **comparison, int size) {
-    int i = 0, j = -size;
+void compare_strs(Array_str *a, char **comparison, unsigned size) {
+    unsigned i = 0, j = size;
     char **it;
     assert(array_size(a) == size);
     if (size) {
@@ -52,18 +62,18 @@ void compare_strs(Array_str *a, char **comparison, int size) {
         assert(!array_front(a) && !array_back(a));
     }
     array_iter(a, it) {
-        assert(streq(*array_at(str, a, j), comparison[i]));
+        assert(streq(*array_at(str, a, size - j), comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
-        assert(streq(*it, comparison[i++])); ++j;
+        assert(streq(*it, comparison[i++])); --j;
     }
     assert(i == size);
-    i = size - 1, j = -1;
+    i = size - 1, j = 1;
     array_riter(a, it) {
-        assert(streq(*array_at(str, a, j), comparison[i]));
+        assert(streq(*array_at(str, a, size - j), comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
-        assert(streq(*it, comparison[i--])); --j;
+        assert(streq(*it, comparison[i--])); ++j;
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
 void test_empty_init(void) {
@@ -157,7 +167,7 @@ void test_push_back(void) {
 }
 
 void test_pop_back(void) {
-    int i = 2;
+    unsigned i = 2;
     Array_int *ai = array_new_fromArray(int, ints, 3);
     Array_str *as = array_new_fromArray(str, strs, 3);
     while (!array_empty(ai)) {
@@ -180,17 +190,17 @@ void test_pop_back(void) {
 void test_resize(void) {
     int c1[] = {15,15,15,20,20};
     char *c2[] = {"015","015","015","020","020"};
-    int i = 2;
+    unsigned i = 2;
     Array_int *ai = array_new_fromArray(int, ints, 3);
     Array_str *as = array_new_fromArray(str, strs, 3);
     while (!array_empty(ai)) {
-        array_resize(int, ai, (size_t) i);
+        array_resize(int, ai, i);
         compare_ints(ai, ints, i--);
     }
     array_resize(int, ai, 0);
     i = 2;
     while (!array_empty(as)) {
-        array_resize(str, as, (size_t) i);
+        array_resize(str, as, i);
         compare_strs(as, strs, i--);
     }
     array_resize(str, as, 0);
@@ -226,7 +236,7 @@ void test_shrink(void) {
     array_insert_fromArray(str, a, 0, strs, 8);
     array_shrink_to_fit(str, a);
     assert(array_capacity(a) == 8);
-    array_insert_fromArray(str, a, -1, &strs[8], 1);
+    array_insert_fromArray(str, a, a->size - 1, &strs[8], 1);
     assert(array_capacity(a) == 16);
     array_shrink_to_fit(str, a);
     assert(array_capacity(a) == 9);
@@ -236,13 +246,13 @@ void test_shrink(void) {
 void test_insert_element(void) {
     Array_int *ai = array_new(int);
     Array_str *as = array_new(str);
-    assert(array_insert(int, ai, -1, 10) == ARRAY_ERROR);
+    assert(array_insert(int, ai, ai->size - 1, 10) == ARRAY_ERROR);
     assert(array_insert(int, ai, array_size(ai), 10) == 0);
     assert(array_insert(str, as, array_size(as), "010") == 0);
     assert(array_insert(int, ai, 0, 0) == 0);
     assert(array_insert(str, as, 0, "000") == 0);
-    assert(array_insert(int, ai, -1, 5) == 1);
-    assert(array_insert(str, as, -1, "005") == 1);
+    assert(array_insert(int, ai, ai->size - 1, 5) == 1);
+    assert(array_insert(str, as, as->size - 1, "005") == 1);
     assert(array_insert(int, ai, array_size(ai), 15) == 3);
     assert(array_insert(str, as, array_size(as), "015") == 3);
     compare_ints(ai, ints, 4);
@@ -257,13 +267,13 @@ void test_insert_repeatedValue(void) {
     Array_int *ai = array_new(int);
     Array_str *as = array_new(str);
     assert(array_insert_repeatingValue(int, ai, array_size(ai), 0, 1) == ARRAY_ERROR);
-    assert(array_insert_repeatingValue(int, ai, -1, 1, 1) == ARRAY_ERROR);
+    assert(array_insert_repeatingValue(int, ai, ai->size - 1, 1, 1) == ARRAY_ERROR);
     assert(array_insert_repeatingValue(int, ai, array_size(ai), 1, 10) == 0);
     assert(array_insert_repeatingValue(str, as, array_size(as), 1, "010") == 0);
     assert(array_insert_repeatingValue(int, ai, 0, 2, 0) == 0);
     assert(array_insert_repeatingValue(str, as, 0, 2, "000") == 0);
-    assert(array_insert_repeatingValue(int, ai, -1, 2, 5) == 2);
-    assert(array_insert_repeatingValue(str, as, -1, 2, "005") == 2);
+    assert(array_insert_repeatingValue(int, ai, ai->size - 1, 2, 5) == 2);
+    assert(array_insert_repeatingValue(str, as, as->size - 1, 2, "005") == 2);
     assert(array_insert_repeatingValue(int, ai, array_size(ai), 2, 15) == 5);
     assert(array_insert_repeatingValue(str, as, array_size(as), 2, "015") == 5);
     compare_ints(ai, c1, 7);
@@ -281,13 +291,13 @@ void test_insert_fromArray(void) {
     Array_str *as = array_new(str);
     assert(array_insert_fromArray(int, ai, 0, NULL, 2) == ARRAY_ERROR);
     assert(array_insert_fromArray(int, ai, 0, ints, 0) == ARRAY_ERROR);
-    assert(array_insert_fromArray(int, ai, -1, ints, 1) == ARRAY_ERROR);
+    assert(array_insert_fromArray(int, ai, ai->size - 1, ints, 1) == ARRAY_ERROR);
     assert(array_insert_fromArray(int, ai, array_size(ai), arr1[0], 1) == 0);
     assert(array_insert_fromArray(str, as, array_size(as), arr2[0], 1) == 0);
     assert(array_insert_fromArray(int, ai, 0, arr1[1], 2) == 0);
     assert(array_insert_fromArray(str, as, 0, arr2[1], 2) == 0);
-    assert(array_insert_fromArray(int, ai, -1, arr1[2], 2) == 2);
-    assert(array_insert_fromArray(str, as, -1, arr2[2], 2) == 2);
+    assert(array_insert_fromArray(int, ai, ai->size - 1, arr1[2], 2) == 2);
+    assert(array_insert_fromArray(str, as, as->size - 1, arr2[2], 2) == 2);
     assert(array_insert_fromArray(int, ai, array_size(ai), arr1[3], 2) == 5);
     assert(array_insert_fromArray(str, as, array_size(as), arr2[3], 2) == 5);
     compare_ints(ai, c1, 7);
@@ -306,8 +316,8 @@ void test_remove_element(void) {
     assert(array_erase(int, ai, 4, 0) == ARRAY_ERROR);
     assert(array_erase(int, ai, 0, 1) == 0);
     assert(array_erase(str, as, 0, 1) == 0);
-    assert(array_erase(int, ai, -1, 1) == 3);
-    assert(array_erase(str, as, -1, 1) == 3);
+    assert(array_erase(int, ai, ai->size - 1, 1) == 3);
+    assert(array_erase(str, as, as->size - 1, 1) == 3);
     assert(array_erase(int, ai, 1, 1) == 1);
     assert(array_erase(str, as, 1, 1) == 1);
     compare_ints(ai, c1, 2);
@@ -324,8 +334,8 @@ void test_erase_elements(void) {
 
     assert(array_erase(int, ai, 0, 2) == 0);
     assert(array_erase(str, as, 0, 2) == 0);
-    assert(array_erase(int, ai, -2, -1) == 6);
-    assert(array_erase(str, as, -2, -1) == 6);
+    assert(array_erase(int, ai, ai->size - 2, -1) == 6);
+    assert(array_erase(str, as, as->size - 2, -1) == 6);
     assert(array_erase(int, ai, 2, 2) == 2);
     assert(array_erase(str, as, 2, 2) == 2);
     compare_ints(ai, c1, 4);
@@ -341,14 +351,14 @@ void test_subarr(void) {
     Array_str *as1 = array_new_fromArray(str, strs, 10), *as2;
 
     assert(array_subarr(int, ai1, 0, 0, 1) == NULL);
-    assert(array_subarr(int, ai2, -1, -1, 0) == NULL);
+    assert(array_subarr(int, ai2, ai2->size - 1, -1, 0) == NULL);
     array_free(int, ai2);
     ai2 = array_subarr(int, ai1, 0, 200, 1), as2 = array_subarr(str, as1, 0, 200, 1);
     compare_ints(ai2, ints, 10);
     compare_strs(as2, strs, 10);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, -2, 200, -1), as2 = array_subarr(str, as1, -2, 200, -1);
+    ai2 = array_subarr(int, ai1, ai1->size - 2, 200, -1), as2 = array_subarr(str, as1, as1->size - 2, 200, -1);
     compare_ints(ai2, c1[0], 9);
     compare_strs(as2, c2[0], 9);
     array_free(int, ai2);
@@ -358,12 +368,12 @@ void test_subarr(void) {
     compare_strs(as2, strs, 5);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, -2, 5, -1), as2 = array_subarr(str, as1, -2, 5, -1);
+    ai2 = array_subarr(int, ai1, ai1->size -2, 5, -1), as2 = array_subarr(str, as1, as1->size - 2, 5, -1);
     compare_ints(ai2, c1[0], 5);
     compare_strs(as2, c2[0], 5);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, -2, -1, -2), as2 = array_subarr(str, as1, -2, -1, -2);
+    ai2 = array_subarr(int, ai1, ai1->size - 2, -1, -2), as2 = array_subarr(str, as1, as1->size - 2, -1, -2);
     compare_ints(ai2, c1[1], 5);
     compare_strs(as2, c2[1], 5);
     array_free(int, ai2);
@@ -374,10 +384,10 @@ void test_subarr(void) {
 
 void test_2d(void) {
     Array_str **arrptr;
-    int i;
+    unsigned i;
     Array_2d_str *arr2d = matrix_new(str, 5, 10);
     for (i = 0; i < 5; ++i) {
-        int j;
+        unsigned j;
         for (j = 0; j < 10; ++j) {
             char **ptr = matrix_at(str, arr2d, i, j);
             DSDefault_deepCopyStr(*ptr, strs[(i * 10) + j]);
@@ -392,7 +402,7 @@ void test_2d(void) {
     array_riter(arr2d, arrptr) {
         compare_strs(*arrptr, &strs[i * 10], 10); --i;
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
     matrix_free(str, arr2d);
 }
 

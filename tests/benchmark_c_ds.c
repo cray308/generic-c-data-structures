@@ -4,7 +4,11 @@
 #include <time.h>
 #include <limits.h>
 
-gen_array_withalg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_array_headers(unsigned, unsigned)
+gen_array_alg_headers(unsigned, unsigned)
+gen_array_source(unsigned, unsigned, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_array_alg_source(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
+
 gen_list_withalg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
 
 char *ProgName = NULL;

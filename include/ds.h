@@ -24,13 +24,9 @@
 #define DSDefault_sizeOfVal(x) sizeof(x)
 #define DSDefault_sizeOfStr(x) strlen(x)
 
-#define __ds_adjust_index(index, size) \
-    if ((index) < 0) { \
-        int _tmpIdx = (size) + (index);  \
-        if (_tmpIdx >= 0) (index) = _tmpIdx; \
-        else (index) = -1;    \
-    } else if ((index) >= (size)) { \
-        (index) = -1;   \
+#define __ds_adjust_index(index, size, earlyReturn) \
+    if ((index) >= (size)) { \
+        earlyReturn;   \
     }
 
 #define __ds_malloc(ptr, size)                                                                               \
