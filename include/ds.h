@@ -2,8 +2,8 @@
 #define DS_H
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #define ____cds_do_nothing
 
@@ -32,21 +32,21 @@
 #define __ds_malloc(ptr, size)                                                                               \
     ptr = malloc(size);                                                                                      \
     if (!ptr) {                                                                                              \
-        fprintf(stderr, "Out of memory error.\n");                                                           \
+        write(2, "[DS] Out of memory error.\n", 26);                                                         \
         exit(1);                                                                                             \
     }                                                                                                        \
 
 #define __ds_calloc(ptr, nmemb, size)                                                                        \
     ptr = calloc(nmemb, size);                                                                               \
     if (!ptr) {                                                                                              \
-        fprintf(stderr, "Out of memory error.\n");                                                           \
+        write(2, "[DS] Out of memory error.\n", 26);                                                         \
         exit(1);                                                                                             \
     }                                                                                                        \
 
 #define __ds_realloc(newPtr, oldPtr, size)                                                                   \
     newPtr = realloc(oldPtr, size);                                                                          \
     if (!newPtr) {                                                                                           \
-        fprintf(stderr, "Out of memory error.\n");                                                           \
+        write(2, "[DS] Out of memory error.\n", 26);                                                         \
         exit(1);                                                                                             \
     }                                                                                                        \
 

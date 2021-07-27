@@ -1,6 +1,7 @@
 #include "array.h"
 #include "list.h"
 #include "alg_helper.h"
+#include <stdio.h>
 #include <time.h>
 #include <limits.h>
 

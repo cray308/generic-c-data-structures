@@ -5,11 +5,12 @@
 #include "iterator.h"
 #include <ctype.h>
 #include <stdarg.h>
+#include <limits.h>
 
 typedef struct String String;
 struct String {
-    size_t size;
-    size_t cap;
+    unsigned size;
+    unsigned cap;
     char *s;
 };
 
@@ -22,10 +23,9 @@ struct String {
 
 #define __str_find_x_of_body(checkCharsAction, afterCheckCharsAction, mainLoop, prevChar)                    \
     const char *c; char const *end;                                                                          \
-    int size = string_len(this);                                                                             \
-    __ds_adjust_index(pos, size)                                                                             \
-    if (!chars || pos < 0) return STRING_ERROR;                                                              \
-    else if (!(*chars && n)) return pos;                                                                     \
+    __ds_adjust_index(pos, this->size, return STRING_ERROR)                                                                             \
+    if (!chars) return STRING_ERROR;                                                              \
+    else if (!(*chars && n)) return (int) pos;                                                                     \
     end = (n < 0) ? &chars[strlen(chars)] : &chars[n];                                                       \
                                                                                                              \
     for (c = chars; c != end; ++c) {                                                                         \
@@ -69,15 +69,14 @@ struct String {
 }
 
 #define __str_find_body(pos, hsLength, hsOffset, incr, decr, iMin, iMax, jMin, jMax, singleCharAction, tableCall, whileFind, result) \
-    int res, len_haystack, size = string_len(this);                                                          \
+    int res, len_haystack = hsLength;                                                          \
     char *haystack;                                                                                          \
-    __ds_adjust_index(pos, size)                                                                             \
-    if (!needle || pos < 0) return STRING_ERROR;                                                             \
-    else if (!(*needle && len_needle)) return pos;                                                           \
+    __ds_adjust_index(pos, this->size, return STRING_ERROR)                                                                             \
+    if (!needle) return STRING_ERROR;                                                             \
+    else if (!(*needle && len_needle)) return (int) pos;                                                           \
                                                                                                              \
     if (len_needle < 0) len_needle = (int) strlen(needle);                                                   \
                                                                                                              \
-    len_haystack = hsLength;                                                                                 \
     if (len_needle > len_haystack) return STRING_NPOS;                                                       \
     if (len_needle == 1) return singleCharAction;                                                            \
                                                                                                              \
@@ -124,13 +123,13 @@ struct String {
 /**
  * The number of characters in the string (analogous to strlen, but O(1) time complexity in this case).
  */
-#define string_len(this) ((int) (this)->size)
+#define string_len(this) ((this)->size)
 
 
 /**
  * The capacity of the string (maximum size + 1, to account for the null character).
  */
-#define string_capacity(this) ((int) (this)->cap)
+#define string_capacity(this) ((this)->cap)
 
 
 /**
@@ -152,10 +151,9 @@ struct String {
  *
  * @param  i  Index in string.
  */
-__DS_FUNC_PREFIX_INL char *string_at(String *this, int i) {
-    int size = string_len(this);
-    __ds_adjust_index(i, size)
-    return (i >= 0) ? &(this->s[i]) : NULL;
+__DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
+    __ds_adjust_index(i, this->size, return NULL)
+    return &(this->s[i]);
 }
 
 
@@ -192,8 +190,8 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, int i) {
  *
  * @param  n  New capacity.
  */
-__DS_FUNC_PREFIX void string_reserve(String *this, size_t n) {
-    size_t val;
+__DS_FUNC_PREFIX void string_reserve(String *this, unsigned n) {
+    unsigned val;
     char *tmp;
     if (n <= this->cap) return;
 
@@ -216,34 +214,26 @@ __DS_FUNC_PREFIX void string_reserve(String *this, size_t n) {
  * @param  len         Number of characters from `s` that will be used. If this is -1, all characters
  *                       from `s` will be used.
  */
-__DS_FUNC_PREFIX void string_replace(String *this, int pos, int nToReplace, const char *s, int len) {
-    int end, difference, size = string_len(this);
+__DS_FUNC_PREFIX void string_replace(String *this, unsigned pos, int nToReplace, const char *s, int len) {
+    unsigned end, l = (unsigned) len, n = this->size - pos;
     if (!(s && *s && len)) return;
-    else if (pos != size) {
-        __ds_adjust_index(pos, size)
-        if (pos < 0) return;
+    else if (pos != this->size) {
+        __ds_adjust_index(pos, this->size, return)
     }
 
-    if (len < 0) len = (int) strlen(s);
+    if (len < 0) l = (unsigned) strlen(s);
+    if (nToReplace >= 0) n = min(n, (unsigned) nToReplace);
 
-    if (nToReplace < 0) {
-        nToReplace = size - pos;
+    string_reserve(this, this->size + l + 1);
+    if ((end = pos + n) < this->size) { 
+        memmove(&this->s[pos + l], &this->s[end], this->size - end);
+    }
+    memcpy(&this->s[pos], s, l);
+
+    if (l < n) {
+        this->size -= (n - l);
     } else {
-        nToReplace = min(nToReplace, size - pos);
-    }
-
-    string_reserve(this, this->size + (size_t) len + 1);
-    end = pos + nToReplace;
-    if (end < size) { 
-        memmove(&this->s[pos + len], &this->s[end], this->size - (size_t) end);
-    }
-    memcpy(&this->s[pos], s, (size_t) len);
-
-    difference = len - nToReplace;
-    if (difference < 0) {
-        this->size -= ((size_t) -difference);
-    } else {
-        this->size += (size_t) difference;
+        this->size += (l - n);
     }
     this->s[this->size] = 0;
 }
@@ -260,17 +250,13 @@ __DS_FUNC_PREFIX void string_replace(String *this, int pos, int nToReplace, cons
  * @param  len         Number of characters from `other` to insert. If this is -1, all characters from
  *                       `subpos` through the end of `other` will be used.
  */
-__DS_FUNC_PREFIX void string_replace_fromString(String *this, int pos, int nToReplace, const String *other, int subpos, int len) {
-    int size = string_len(other);
-    __ds_adjust_index(subpos, size)
-    if (!len || subpos < 0) return;
+__DS_FUNC_PREFIX void string_replace_fromString(String *this, unsigned pos, int nToReplace, const String *other, unsigned subpos, int len) {
+    unsigned l = other->size - subpos;
+    __ds_adjust_index(subpos, other->size, return)
+    if (!len) return;
 
-    if (len < 0) {
-        len = size - subpos;
-    } else {
-        len = min(len, size - subpos);
-    }
-    string_replace(this, pos, nToReplace, &other->s[subpos], len);
+    if (len >= 0) l = min(l, (unsigned) len);
+    string_replace(this, pos, nToReplace, &other->s[subpos], (int) l);
 }
 
 
@@ -282,32 +268,25 @@ __DS_FUNC_PREFIX void string_replace_fromString(String *this, int pos, int nToRe
  * @param  n           Number of copies of `c` to insert.
  * @param  c           Character to insert.
  */
-__DS_FUNC_PREFIX void string_replace_repeatingChar(String *this, int pos, int nToReplace, size_t n, char c) {
-    int end, difference, size = string_len(this);
+__DS_FUNC_PREFIX void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, unsigned n, char c) {
+    unsigned end, n2r = this->size - pos;
     if (!n) return;
-    else if (pos != size) {
-        __ds_adjust_index(pos, size)
-        if (pos < 0) return;
+    else if (pos != this->size) {
+        __ds_adjust_index(pos, this->size, return)
     }
 
-    if (nToReplace < 0) {
-        nToReplace = size - pos;
-    } else {
-        nToReplace = min(nToReplace, size - pos);
-    }
+    if (nToReplace >= 0) n2r = min(n2r, (unsigned) nToReplace);
 
     string_reserve(this, this->size + n + 1);
-    end = pos + nToReplace;
-    if (end < size) { 
-        memmove(&this->s[pos + (int) n], &this->s[end], this->size - (size_t) end);
+    if ((end = pos + n2r) < this->size) { 
+        memmove(&this->s[pos + n], &this->s[end], this->size - end);
     }
     memset(&this->s[pos], c, n);
 
-    difference = (int) n - nToReplace;
-    if (difference < 0) {
-        this->size -= ((size_t) -difference);
+    if (n < n2r) {
+        this->size -= (n2r - n);
     } else {
-        this->size += (size_t) difference;
+        this->size += (n - n2r);
     }
     this->s[this->size] = 0;
 }
@@ -415,7 +394,7 @@ __DS_FUNC_PREFIX String *string_new_fromCStr(const char *s, int n) {
  *
  * @return         Pointer to newly created string.
  */
-#define string_createCopy(other) string_new_fromCStr((other)->s, string_len(other))
+#define string_createCopy(other) string_new_fromCStr((other)->s, (int) (other)->size)
 
 
 /**
@@ -428,7 +407,7 @@ __DS_FUNC_PREFIX String *string_new_fromCStr(const char *s, int n) {
  *
  * @return         Pointer to newly created string.
  */
-__DS_FUNC_PREFIX String *string_new_fromString(const String *other, int pos, int n) {
+__DS_FUNC_PREFIX String *string_new_fromString(const String *other, unsigned pos, int n) {
     String *s = string_new();
     string_append_fromString(s, other, pos, n);
     return s;
@@ -443,7 +422,7 @@ __DS_FUNC_PREFIX String *string_new_fromString(const String *other, int pos, int
  *
  * @return     Pointer to the newly created string.
  */
-__DS_FUNC_PREFIX String *string_new_repeatingChar(size_t n, char c) {
+__DS_FUNC_PREFIX String *string_new_repeatingChar(unsigned n, char c) {
     String *s = string_new();
     string_append_repeatingChar(s, n, c);
     return s;
@@ -458,7 +437,7 @@ __DS_FUNC_PREFIX String *string_new_repeatingChar(size_t n, char c) {
  * @param  n  The new size.
  * @param  c  Character to append.
  */
-__DS_FUNC_PREFIX_INL void string_resize_usingChar(String *this, size_t n, char c) {
+__DS_FUNC_PREFIX_INL void string_resize_usingChar(String *this, unsigned n, char c) {
     if (n > this->size) {
         string_reserve(this, n + 1);
         memset(&this->s[this->size], c, n - this->size);
@@ -485,22 +464,17 @@ __DS_FUNC_PREFIX_INL void string_resize_usingChar(String *this, size_t n, char c
  * @param  n      The number of characters to delete. If this is -1, all characters from `start`
  *                  until the end will be removed.
  */
-__DS_FUNC_PREFIX void string_erase(String *this, int start, int n) {
-    int end, size = string_len(this);
-    __ds_adjust_index(start, size)
-    if (!n || start < 0) return;
+__DS_FUNC_PREFIX void string_erase(String *this, unsigned start, int n) {
+    unsigned end, n2d = this->size - start;
+    __ds_adjust_index(start, this->size, return)
+    if (!n) return;
 
-    if (n < 0) {
-        n = size - start;
-    } else {
-        n = min(n, size - start);
-    }
+    if (n >= 0) n2d = min(n2d, (unsigned) n);
 
-    end = start + n;
-    if (end < size) { /* move any characters after end to start */
-        memmove(&this->s[start], &this->s[end], this->size - (size_t) end);
+    if ((end = start + n2d) < this->size) { /* move any characters after end to start */
+        memmove(&this->s[start], &this->s[end], this->size - end);
     }
-    this->size -= (size_t) n;
+    this->size -= n2d;
     this->s[this->size] = 0;
 }
 
@@ -554,8 +528,8 @@ __DS_FUNC_PREFIX_INL void string_shrink_to_fit(String *this) {
  * @return         The first index at or after `pos` where one of the supplied characters was
  *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
-int string_find_first_of(String *this, int pos, const char *chars, int n) {
-    __str_find_x_of_body(return pos;, ____cds_do_nothing, for(++pos; pos < size; ++pos), pos-1)
+int string_find_first_of(String *this, unsigned pos, const char *chars, int n) {
+    __str_find_x_of_body(return (int) pos;, ____cds_do_nothing, for(++pos; pos < this->size; ++pos), pos-1)
 }
 
 
@@ -569,8 +543,8 @@ int string_find_first_of(String *this, int pos, const char *chars, int n) {
  * @return         The last index at or before `pos` where one of the supplied characters was
  *                   found, `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
-int string_find_last_of(String *this, int pos, const char *chars, int n) {
-    __str_find_x_of_body(return pos;, ____cds_do_nothing, for(--pos; pos >= 0; --pos), pos+1)
+int string_find_last_of(String *this, unsigned pos, const char *chars, int n) {
+    __str_find_x_of_body(return (int) pos;, ____cds_do_nothing, for(--pos; pos != UINT_MAX; --pos), pos+1)
 }
 
 
@@ -584,8 +558,8 @@ int string_find_last_of(String *this, int pos, const char *chars, int n) {
  * @return         The first index at or after `pos` where a different character was found,
  *                   `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
-int string_find_first_not_of(String *this, int pos, const char *chars, int n) {
-    __str_find_x_of_body(break;, if (c == end) return pos;, for(++pos; pos < size; ++pos), pos-1)
+int string_find_first_not_of(String *this, unsigned pos, const char *chars, int n) {
+    __str_find_x_of_body(break;, if (c == end) return (int) pos;, for(++pos; pos < this->size; ++pos), pos-1)
 }
 
 
@@ -599,8 +573,8 @@ int string_find_first_not_of(String *this, int pos, const char *chars, int n) {
  * @return         The last index at or before `pos` where a different character was found,
  *                   `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
-int string_find_last_not_of(String *this, int pos, const char *chars, int n) {
-    __str_find_x_of_body(break;, if (c == end) return pos;, for(--pos; pos >= 0; --pos), pos+1)
+int string_find_last_not_of(String *this, unsigned pos, const char *chars, int n) {
+    __str_find_x_of_body(break;, if (c == end) return (int) pos;, for(--pos; pos != UINT_MAX; --pos), pos+1)
 }
 
 
@@ -616,8 +590,8 @@ int string_find_last_not_of(String *this, int pos, const char *chars, int n) {
  * @return              The index in this string, corresponding to needle[0], where `needle` was found,
  *                      `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
-__DS_FUNC_PREFIX int string_find(String *this, int start_pos, const char *needle, int len_needle) {
-    __str_find_body(start_pos, size - start_pos, start_pos, +, -, 0, len_haystack, 0, len_needle, string_find_first_of(this, start_pos, needle, 1), __str_prefix_table_body(needle, 0, len_needle, +, -, while(index < len_needle)), i < iEnd, start_pos + (i - j))
+__DS_FUNC_PREFIX int string_find(String *this, unsigned start_pos, const char *needle, int len_needle) {
+    __str_find_body(start_pos, (int)(this->size - start_pos), start_pos, +, -, 0, len_haystack, 0, len_needle, string_find_first_of(this, start_pos, needle, 1), __str_prefix_table_body(needle, 0, len_needle, +, -, while(index < len_needle)), i < iEnd, (int)start_pos + (i - j))
 }
 
 
@@ -633,8 +607,8 @@ __DS_FUNC_PREFIX int string_find(String *this, int start_pos, const char *needle
  * @return              The index in this string, corresponding to needle[0], where `needle` was found,
  *                        `STRING_NPOS` if it was not found, or `STRING_ERROR` if an error occurred.
  */
-__DS_FUNC_PREFIX int string_rfind(String *this, int end_pos, const char *needle, int len_needle) {
-    __str_find_body(end_pos, end_pos + 1, 0, -, +, end_pos, -1, len_needle - 1, -1, string_find_last_of(this, end_pos, needle, 1), __str_prefix_table_body(needle, (len_needle-1), len_needle, -, +, while(index > -1)), i > iEnd, i + 1)
+__DS_FUNC_PREFIX int string_rfind(String *this, unsigned end_pos, const char *needle, int len_needle) {
+    __str_find_body(end_pos, (int)(end_pos + 1), 0, -, +, (int)end_pos, -1, len_needle - 1, -1, string_find_last_of(this, end_pos, needle, 1), __str_prefix_table_body(needle, (len_needle-1), len_needle, -, +, while(index > -1)), i > iEnd, i + 1)
 }
 
 
@@ -651,25 +625,26 @@ __DS_FUNC_PREFIX int string_rfind(String *this, int end_pos, const char *needle,
  *
  * @return             Newly allocated `String`, or NULL if an error occurred.
  */
-__DS_FUNC_PREFIX String *string_substr(String *this, int start, int n, int step_size) {
+__DS_FUNC_PREFIX String *string_substr(String *this, unsigned start, int n, int step_size) {
     String *sub;
-    int size = string_len(this);
-    __ds_adjust_index(start, size)
-    if (!n || start < 0) return NULL;
+    int i = (int) start;
+    __ds_adjust_index(start, this->size, return NULL)
+    if (!n) return NULL;
 
     if (!step_size) step_size = 1;
 
     sub = string_new();
 
     if (step_size < 0) {
-        int end = (n < 0) ? -1 : max(-1, start + (n * step_size));
-        for (; start > end; start += step_size) {
-            string_push_back(sub, this->s[start]);
+        int end = (n < 0) ? -1 : max(-1, i + (n * step_size));
+        for (; i > end; i += step_size) {
+            string_push_back(sub, this->s[i]);
         }
     } else {
-        int end = (n < 0) ? size : min(size, start + (n * step_size));
-        for (; start < end; start += step_size) {
-            string_push_back(sub, this->s[start]);
+        int size = (int) this->size;
+        int end = (n < 0) ? size : min(size, i + (n * step_size));
+        for (; i < end; i += step_size) {
+            string_push_back(sub, this->s[i]);
         }
     }
     return sub;
@@ -686,7 +661,8 @@ __DS_FUNC_PREFIX String *string_substr(String *this, int start, int n, int step_
  *                 NULL if an error occurred.
  */
 __DS_FUNC_PREFIX String **string_split(String *this, const char *delim) {
-    int len_delim, end, *positions, index = 0, arr_len = 0, start = 0;
+    int len_delim, end, *positions, start = 0;
+    unsigned arrIdx = 0, arrLen = 0;
     String **arr, *substring = NULL;
     if (!(delim && *delim && this->size)) return NULL;
 
@@ -694,45 +670,46 @@ __DS_FUNC_PREFIX String **string_split(String *this, const char *delim) {
     __ds_calloc(positions, 8, sizeof(int))
 
     {
-        int pos_size = 8, *table;
+        unsigned pos_size = 8;
+        int *table;
         __str_prefix_table_body(delim, 0, len_delim, +, -, while(index < len_delim))
     
-        __str_find_main_loop(this->s, delim, +, -, 0, string_len(this), 0, len_delim, i < iEnd,              \
-            if (index == pos_size) {                                                                         \
+        __str_find_main_loop(this->s, delim, +, -, 0, (int) this->size, 0, len_delim, i < iEnd,              \
+            if (arrIdx == pos_size) {                                                                         \
                 int *temp;                                                                                   \
                 pos_size <<= 1;                                                                              \
-                __ds_realloc(temp, positions, (size_t) pos_size * sizeof(int))                               \
+                __ds_realloc(temp, positions, pos_size * sizeof(int))                               \
                 positions = temp;                                                                            \
-                memset(&positions[index + 1], 0, (size_t)(pos_size - index + 1) * sizeof(int));              \
+                memset(&positions[arrIdx + 1], 0, (pos_size - arrIdx + 1) * sizeof(int));              \
             }                                                                                                \
-            positions[index++] = (i - j);                                                                    \
+            positions[arrIdx++] = (i - j);                                                                    \
             j = table[j - 1];                                                                                \
         )
-        if (index == pos_size) {
+        if (arrIdx == pos_size) {
             int *temp;
-            __ds_realloc(temp, positions, (size_t)(pos_size + 1) * sizeof(int))
+            __ds_realloc(temp, positions, (pos_size + 1) * sizeof(int))
             positions = temp;
         }
-        positions[index++] = -1;
-        arr_len = index;
+        positions[arrIdx++] = -1;
+        arrLen = arrIdx;
         free(table);
     }
     
-    __ds_malloc(arr, (size_t)(arr_len + 1) * sizeof(String *))
-    index = 0, end = positions[0];
+    __ds_malloc(arr, (arrLen + 1) * sizeof(String *))
+    arrIdx = 0, end = positions[0];
 
     while (end != -1) {
         substring = string_new();
         string_insert(substring, 0, &this->s[start], end - start);
-        arr[index++] = substring;
+        arr[arrIdx++] = substring;
         start = end + len_delim;
-        end = positions[index];
+        end = positions[arrIdx];
     }
 
     substring = string_new();
-    string_insert(substring, 0, &this->s[start], string_len(this) - start);
-    arr[index++] = substring;
-    arr[arr_len] = NULL;
+    string_insert(substring, 0, &this->s[start], (int) this->size - start);
+    arr[arrIdx++] = substring;
+    arr[arrLen] = NULL;
     free(positions);
     return arr;    
 }
@@ -806,7 +783,7 @@ __DS_FUNC_PREFIX_INL void toUppercase(char *s) {
 __DS_FUNC_PREFIX char *__string_read_format(int *n, const char *format, va_list args) {
     va_list localArgs;
     int _n = 0;
-    size_t buf_size = 256;
+    unsigned buf_size = 256;
     char *buf, *temp;
     __ds_malloc(buf, buf_size)
     va_copy(localArgs, args);
@@ -816,16 +793,16 @@ __DS_FUNC_PREFIX char *__string_read_format(int *n, const char *format, va_list 
         free(buf);
         return NULL;
     }
-    else if ((size_t) _n < buf_size) {
+    else if ((unsigned) _n < buf_size) {
         *n = _n;
         return buf;
     }
-    buf_size = (size_t) _n + 1; /* buffer was too small */
+    buf_size = (unsigned) _n + 1; /* buffer was too small */
     __ds_realloc(temp, buf, buf_size)
     buf = temp;
 
     _n = vsnprintf(buf, buf_size, format, localArgs);
-    if (_n < 0 || (size_t) _n >= buf_size) {
+    if (_n < 0 || (unsigned) _n >= buf_size) {
         free(buf);
         return NULL;
     }
@@ -840,7 +817,7 @@ __DS_FUNC_PREFIX char *__string_read_format(int *n, const char *format, va_list 
  * @param  nToReplace  Number of characters to overwrite in this string.
  * @param  format      Format string.
  */
-__DS_FUNC_PREFIX void string_replace_withFormat(String *this, int pos, int nToReplace, const char *format, ...) {
+__DS_FUNC_PREFIX void string_replace_withFormat(String *this, unsigned pos, int nToReplace, const char *format, ...) {
     va_list args;
     int n = 0;
     char *result;

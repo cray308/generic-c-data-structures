@@ -1,11 +1,12 @@
 #include "str.h"
 #include <assert.h>
+#include <limits.h>
 
 #define LEN 78
 const char *testStr = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
 
-void compareStrs(String *s, const char *comparison, int size) {
-    int i = 0, j = -size;
+void compareStrs(String *s, const char *comparison, unsigned size) {
+    unsigned i = 0, j = size;
     const char *it;
     assert(string_len(s) == size);
     if (size) {
@@ -16,18 +17,18 @@ void compareStrs(String *s, const char *comparison, int size) {
         assert(!string_front(s) && !string_back(s));
     }
     string_iter(s, it) {
-        assert(*string_at(s, j) == comparison[i]);
+        assert(*string_at(s, size - j) == comparison[i]);
         assert(string_index(s, i) == comparison[i]);
-        assert(*it == comparison[i++]); ++j;
+        assert(*it == comparison[i++]); --j;
     }
     assert(i == size);
-    i = size - 1, j = -1;
+    i = size - 1, j = 1;
     string_riter(s, it) {
-        assert(*string_at(s, j) == comparison[i]);
+        assert(*string_at(s, size - j) == comparison[i]);
         assert(string_index(s, i) == comparison[i]);
-        assert(*it == comparison[i--]); --j;
+        assert(*it == comparison[i--]); ++j;
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
 void test_empty_init(void) {
@@ -85,12 +86,12 @@ void test_init_fromString(void) {
     String *s = string_new_fromString(b, 0, 0);
     compareStrs(s, testStr, 0);
     string_free(s);
-    s = string_new_fromString(b, -1, 5);
+    s = string_new_fromString(b, b->size - 1, 5);
     compareStrs(s, testStr, 0);
     string_free(s);
     string_free(b);
     b = string_new_fromCStr(testStr, 26);
-    s = string_new_fromString(b, -24, -1);
+    s = string_new_fromString(b, b->size - 24, -1);
     compareStrs(s, &testStr[2], 24);
     string_free(s);
     s = string_new_fromString(b, 5, 200);
@@ -110,7 +111,7 @@ void test_push_back(void) {
 }
 
 void test_pop_back(void) {
-    int i = 2;
+    unsigned i = 2;
     String *s = string_new_fromCStr(testStr, 3);
     while (!string_empty(s)) {
         string_pop_back(s);
@@ -123,10 +124,10 @@ void test_pop_back(void) {
 
 void test_resize(void) {
     char c[] = {'a','a','a','b','b',0,0};
-    int i = 2;
+    unsigned i = 2;
     String *s = string_new_fromCStr(testStr, 3);
     while (!string_empty(s)) {
-        string_resize(s, (size_t) i);
+        string_resize(s, i);
         compareStrs(s, testStr, i--);
     }
     string_resize(s, 0);
@@ -155,7 +156,7 @@ void test_shrink(void) {
     string_insert(s, 0, testStr, 63);
     string_shrink_to_fit(s);
     assert(string_capacity(s) == 64);
-    string_insert(s, -1, &testStr[63], 1);
+    string_insert(s, s->size - 1, &testStr[63], 1);
     assert(string_capacity(s) == 128);
     string_shrink_to_fit(s);
     assert(string_capacity(s) == 65);
@@ -177,12 +178,12 @@ void test_insert_cStr(void) {
     string_insert(s, 0, NULL, 64);
     string_insert(s, 0, "", 64);
     string_insert(s, 0, testStr, 0);
-    string_insert(s, -1, testStr, 64);
+    string_insert(s, s->size - 1, testStr, 64);
     string_insert(s, 10, testStr, 64);
     compareStrs(s, testStr, 0);
     string_insert(s, 0, "c", -1);
     string_insert(s, 0, "aaa", 2);
-    string_insert(s, -1, "bc", -1);
+    string_insert(s, s->size - 1, "bc", -1);
     string_insert(s, string_len(s), "d", 1);
     compareStrs(s, "aabccd", 6);
     string_free(s);
@@ -191,12 +192,12 @@ void test_insert_cStr(void) {
 void test_insert_repeatedChar(void) {
     String *s = string_new();
     string_insert_repeatingChar(s, 0, 0, 'x');
-    string_insert_repeatingChar(s, -1, 5, 'x');
+    string_insert_repeatingChar(s, s->size - 1, 5, 'x');
     string_insert_repeatingChar(s, 10, 5, 'x');
     compareStrs(s, testStr, 0);
     string_insert_repeatingChar(s, 0, 1, 'c');
     string_insert_repeatingChar(s, 0, 2, 'a');
-    string_insert_repeatingChar(s, -1, 2, 'b');
+    string_insert_repeatingChar(s, s->size - 1, 2, 'b');
     string_insert_repeatingChar(s, string_len(s), 2, 'd');
     compareStrs(s, "aabbcdd", 7);
     string_free(s);
@@ -206,14 +207,14 @@ void test_insert_fromString(void) {
     String *s = string_new(), *b = string_new_fromCStr(testStr, 0), *d = string_new_fromCStr("dd", 2), *a = string_new_fromCStr("aa", 2);
     string_insert_fromString(s, 0, b, 0, 0);
     string_insert_fromString(s, 0, b, 10, 64);
-    string_insert_fromString(s, 0, b, -1, 5);
+    string_insert_fromString(s, 0, b, b->size - 1, 5);
     string_insert(b, 0, "bbc", 3);
-    string_insert_fromString(s, -1, b, 0, 1);
+    string_insert_fromString(s, s->size - 1, b, 0, 1);
     string_insert_fromString(s, 10, b, 0, 1);
     compareStrs(s, testStr, 0);
     string_insert_fromString(s, 0, b, 2, 30);
     string_insert_fromString(s, 0, a, 0, -1);
-    string_insert_fromString(s, -1, b, 0, 2);
+    string_insert_fromString(s, s->size - 1, b, 0, 2);
     string_insert_fromString(s, string_len(s), d, 0, 3);
     compareStrs(s, "aabbcdd", 7);
     string_free(s);
@@ -240,13 +241,13 @@ void test_append_fromString(void) {
     String *s = string_new(), *b = string_new_fromCStr(testStr, 0);
     string_append_fromString(s, b, 0, 0);
     string_append_fromString(s, b, 10, 64);
-    string_append_fromString(s, b, -1, 5);
+    string_append_fromString(s, b, b->size - 1, 5);
     compareStrs(s, testStr, 0);
     string_append(b, "aabbccdd", 8);
     string_append_fromString(s, b, 0, 2);
     string_append_fromString(s, b, 2, 2);
-    string_append_fromString(s, b, -4, 1);
-    string_append_fromString(s, b, -2, 50);
+    string_append_fromString(s, b, b->size - 4, 1);
+    string_append_fromString(s, b, b->size - 2, 50);
     compareStrs(s, "aabbcdd", 7);
     string_free(s);
     string_free(b);
@@ -269,14 +270,14 @@ void test_replace_cStr(void) {
     string_replace(s, 0, 0, NULL, 64);
     string_replace(s, 0, 0, "", 64);
     string_replace(s, 0, 0, testStr, 0);
-    string_replace(s, -1, 0, testStr, 64);
+    string_replace(s, s->size - 1, 0, testStr, 64);
     string_replace(s, 10, 0, testStr, 64);
     compareStrs(s, testStr, 0);
     string_replace(s, 0, 0, "xxxxx", 5);
     string_replace(s, 0, 1, "abc", 3);
     string_replace(s, string_len(s), 50, "hello", -1);
-    string_replace(s, -5, 20, "y", 1);
-    string_replace(s, -5, -1, "longString", 7);
+    string_replace(s, s->size - 5, 20, "y", 1);
+    string_replace(s, s->size - 5, -1, "longString", 7);
     compareStrs(s, "abclongStr", 10);
     string_replace(s, 0, -1, ".", 1);
     compareStrs(s, ".", 1);
@@ -287,16 +288,16 @@ void test_replace_fromString(void) {
     String *s = string_new(), *b = string_new_fromCStr(testStr, 0);
     string_replace_fromString(s, 0, 0, b, 0, 0);
     string_replace_fromString(s, 0, 0, b, 10, 64);
-    string_replace_fromString(s, 0, 0, b, -1, 5);
+    string_replace_fromString(s, 0, 0, b, b->size - 1, 5);
     string_append(b, "y.abclongStringhelloxxxxx", 25);
-    string_replace_fromString(s, -1, 0, b, 0, 1);
+    string_replace_fromString(s, s->size - 1, 0, b, 0, 1);
     string_replace_fromString(s, 10, 0, b, 0, 1);
     compareStrs(s, testStr, 0);
-    string_replace_fromString(s, 0, 0, b, -5, 50);
+    string_replace_fromString(s, 0, 0, b, b->size - 5, 50);
     string_replace_fromString(s, 0, 1, b, 2, 3);
-    string_replace_fromString(s, string_len(s), 50, b, -10, 5);
-    string_replace_fromString(s, -5, 20, b, 0, 1);
-    string_replace_fromString(s, -5, -1, b, 5, 7);
+    string_replace_fromString(s, string_len(s), 50, b, b->size - 10, 5);
+    string_replace_fromString(s, s->size - 5, 20, b, 0, 1);
+    string_replace_fromString(s, s->size - 5, -1, b, 5, 7);
     compareStrs(s, "abclongStr", 10);
     string_replace_fromString(s, 0, -1, b, 1, 1);
     compareStrs(s, ".", 1);
@@ -307,14 +308,14 @@ void test_replace_fromString(void) {
 void test_replace_repeatingChar(void) {
     String *s = string_new();
     string_replace_repeatingChar(s, 0, 0, 0, 'x');
-    string_replace_repeatingChar(s, -1, 0, 5, 'x');
+    string_replace_repeatingChar(s, s->size - 1, 0, 5, 'x');
     string_replace_repeatingChar(s, 10, 0, 5, 'x');
     compareStrs(s, testStr, 0);
     string_replace_repeatingChar(s, 0, 0, 5, 'x');
     string_replace_repeatingChar(s, 0, 1, 3, 'a');
     string_replace_repeatingChar(s, string_len(s), 50, 5, 'h');
-    string_replace_repeatingChar(s, -5, 20, 1, 'y');
-    string_replace_repeatingChar(s, -5, -1, 7, 'l');
+    string_replace_repeatingChar(s, s->size - 5, 20, 1, 'y');
+    string_replace_repeatingChar(s, s->size - 5, -1, 7, 'l');
     compareStrs(s, "aaalllllll", 10);
     string_replace_repeatingChar(s, 0, -1, 1, '.');
     compareStrs(s, ".", 1);
@@ -327,7 +328,7 @@ void test_remove_char(void) {
     string_erase(s, 4, 0);
     compareStrs(s, testStr, 5);
     string_erase(s, 0, 1);
-    string_erase(s, -1, 1);
+    string_erase(s, s->size - 1, 1);
     string_erase(s, 1, 1);
     compareStrs(s, "bd", 2);
     string_free(s);
@@ -336,7 +337,7 @@ void test_remove_char(void) {
 void test_erase_chars(void) {
     String *s = string_new_fromCStr(testStr, 10);
     string_erase(s, 0, 2);
-    string_erase(s, -2, -1);
+    string_erase(s, s->size - 2, -1);
     string_erase(s, 2, 2);
     compareStrs(s, "cdgh", 4);
     string_erase(s, 0, -1);
@@ -347,24 +348,24 @@ void test_erase_chars(void) {
 void test_substr(void) {
     String *s1 = string_new_fromCStr(testStr, 10), *s2 = string_new();
     assert(string_substr(s1, 0, 0, 1) == NULL);
-    assert(string_substr(s2, -1, -1, 1) == NULL);
+    assert(string_substr(s2, s2->size - 1, -1, 1) == NULL);
     string_free(s2);
     s2 = string_substr(s1, 0, 200, 0);
     compareStrs(s2, testStr, 10);
     string_free(s2);
-    s2 = string_substr(s1, -2, 200, -1);
+    s2 = string_substr(s1, s1->size - 2, 200, -1);
     compareStrs(s2, "ihgfedcba", 9);
     string_free(s2);
     s2 = string_substr(s1, 0, 5, 1);
     compareStrs(s2, testStr, 5);
     string_free(s2);
-    s2 = string_substr(s1, -2, 5, -1);
+    s2 = string_substr(s1, s1->size - 2, 5, -1);
     compareStrs(s2, "ihgfe", 5);
     string_free(s2);
-    s2 = string_substr(s1, -2, -1, -2);
+    s2 = string_substr(s1, s1->size - 2, -1, -2);
     compareStrs(s2, "igeca", 5);
     string_free(s2);
-    s2 = string_substr(s1, -1, 10, -9);
+    s2 = string_substr(s1, s1->size - 1, 10, -9);
     compareStrs(s2, "ja", 2);
     string_free(s2);
     s2 = string_substr(s1, 0, 10, 9);
@@ -381,7 +382,7 @@ void test_find_first_of(void) {
     assert(string_find_first_of(s, 52, "abc", 3) == STRING_ERROR);
     assert(string_find_first_of(s, 0, "abc", -1) == 0);
     assert(string_find_first_of(s, 4, "abc", 2) == STRING_NPOS);
-    assert(string_find_first_of(s, -1, "z", 1) == 51);
+    assert(string_find_first_of(s, s->size - 1, "z", 1) == 51);
     assert(string_find_first_of(s, 0, "z", 1) == 50);
     assert(string_find_first_of(s, 0, ".", -1) == STRING_NPOS);
     string_free(s);
@@ -389,16 +390,16 @@ void test_find_first_of(void) {
 
 void test_find_last_of(void) {
     String *s = string_new_fromCStr("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz", 52);
-    assert(string_find_last_of(s, -1, NULL, 5) == STRING_ERROR);
+    assert(string_find_last_of(s, s->size - 1, NULL, 5) == STRING_ERROR);
     assert(string_find_last_of(s, 50, "", 5) == 50);
     assert(string_find_last_of(s, 50, "abc", 0) == 50);
-    assert(string_find_last_of(s, -53, "abc", 3) == STRING_ERROR);
+    assert(string_find_last_of(s, s->size - 53, "abc", 3) == STRING_ERROR);
     assert(string_find_last_of(s, 0, "xyz", 3) == STRING_NPOS);
-    assert(string_find_last_of(s, -1, "xyz", -1) == 51);
-    assert(string_find_last_of(s, -5, "zyx", 2) == STRING_NPOS);
+    assert(string_find_last_of(s, s->size - 1, "xyz", -1) == 51);
+    assert(string_find_last_of(s, s->size - 5, "zyx", 2) == STRING_NPOS);
     assert(string_find_last_of(s, 0, "a", 1) == 0);
-    assert(string_find_last_of(s, -1, "a", 1) == 1);
-    assert(string_find_last_of(s, -1, ".", -1) == STRING_NPOS);
+    assert(string_find_last_of(s, s->size - 1, "a", 1) == 1);
+    assert(string_find_last_of(s, s->size - 1, ".", -1) == STRING_NPOS);
     string_free(s);
 }
 
@@ -410,24 +411,24 @@ void test_find_first_not_of(void) {
     assert(string_find_first_not_of(s, 52, "abc", 3) == STRING_ERROR);
     assert(string_find_first_not_of(s, 0, "abc", -1) == 6);
     assert(string_find_first_not_of(s, 4, "abc", 2) == 4);
-    assert(string_find_first_not_of(s, -1, "z", 1) == STRING_NPOS);
+    assert(string_find_first_not_of(s, s->size - 1, "z", 1) == STRING_NPOS);
     assert(string_find_first_not_of(s, 0, "z", -1) == 0);
-    assert(string_find_first_not_of(s, -6, "xy", -1) == 50);
+    assert(string_find_first_not_of(s, s->size - 6, "xy", -1) == 50);
     string_free(s);
 }
 
 void test_find_last_not_of(void) {
     String *s = string_new_fromCStr("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz", 52);
-    assert(string_find_last_not_of(s, -1, NULL, 5) == STRING_ERROR);
+    assert(string_find_last_not_of(s, s->size - 1, NULL, 5) == STRING_ERROR);
     assert(string_find_last_not_of(s, 50, "", 5) == 50);
     assert(string_find_last_not_of(s, 50, "abc", 0) == 50);
-    assert(string_find_last_not_of(s, -53, "abc", 3) == STRING_ERROR);
+    assert(string_find_last_not_of(s, s->size - 53, "abc", 3) == STRING_ERROR);
     assert(string_find_last_not_of(s, 0, "xyz", 3) == 0);
-    assert(string_find_last_not_of(s, -1, "xyz", -1) == 45);
-    assert(string_find_last_not_of(s, -5, "zyx", 2) == 47);
+    assert(string_find_last_not_of(s, s->size - 1, "xyz", -1) == 45);
+    assert(string_find_last_not_of(s, s->size - 5, "zyx", 2) == 47);
     assert(string_find_last_not_of(s, 0, "a", 1) == STRING_NPOS);
-    assert(string_find_last_not_of(s, -1, "a", 1) == 51);
-    assert(string_find_last_not_of(s, 5, "bc", -1) == 1);
+    assert(string_find_last_not_of(s, s->size - 1, "a", 1) == 51);
+    assert(string_find_last_not_of(s, 5, "bc", - 1) == 1);
     string_free(s);
 }
 
@@ -441,18 +442,18 @@ void test_find(void) {
     assert(string_find(s, 0, "ABCDABD", 7) == 15);
     assert(string_find(s, 15, "ABCDABD", 7) == 15);
     assert(string_find(s, 16, "ABCDABD", 7) == STRING_NPOS);
-    assert(string_find(s, -4, "ABCDABD", 2) == 19);
+    assert(string_find(s, s->size - 4, "ABCDABD", 2) == 19);
     string_free(s);
 }
 
 void test_rfind(void) {
     String *s = string_new_fromCStr("ABC ABCDAB ABCDABCDABDE", 23);
-    assert(string_rfind(s, -1, NULL, 5) == STRING_ERROR);
+    assert(string_rfind(s, s->size - 1, NULL, 5) == STRING_ERROR);
     assert(string_rfind(s, 21, "", 5) == 21);
     assert(string_rfind(s, 21, "x", 0) == 21);
-    assert(string_rfind(s, -30, "abc", 3) == STRING_ERROR);
+    assert(string_rfind(s, s->size - 30, "abc", 3) == STRING_ERROR);
     assert(string_rfind(s, 1, testStr, 3) == STRING_NPOS);
-    assert(string_rfind(s, -1, "ABCDABD", 7) == 15);
+    assert(string_rfind(s, s->size - 1, "ABCDABD", 7) == 15);
     assert(string_rfind(s, 15, "ABCDABD", 7) == STRING_NPOS);
     assert(string_rfind(s, 21, "ABCDABD", 7) == 15);
     assert(string_rfind(s, 15, "ABC ABD", 4) == 0);
@@ -461,8 +462,8 @@ void test_rfind(void) {
 
 void test_split(void) {
     int i = 0, count = 0;
-    int len1[] = {22,33};
-    int len2[] = {4,3,7,6,10,4,4,5,5};
+    unsigned len1[] = {22,33};
+    unsigned len2[] = {4,3,7,6,10,4,4,5,5};
     const char *cmp1[] = {"this has several words"," definitely more than eight words"};
     const char *cmp2[] = {"this","has","several","words,","definitely","more","than","eight","words"};
     String **split, **it, *s = string_new();
@@ -539,10 +540,10 @@ void test_format(void) {
     /* insert */
     {
         String *s = string_new();
-        string_insert_withFormat(s, -1, "%c", 'x');
+        string_insert_withFormat(s, s->size - 1, "%c", 'x');
         string_insert_withFormat(s, 0, "%c", 'c');
         string_insert_withFormat(s, 0, "%s", "aa");
-        string_insert_withFormat(s, -1, "%s", "bc");
+        string_insert_withFormat(s, s->size - 1, "%s", "bc");
         string_insert_withFormat(s, string_len(s), "%c", 'd');
         compareStrs(s, "aabccd", 6);
         string_free(s);
@@ -562,12 +563,12 @@ void test_format(void) {
     /* replace */
     {   
         String *s = string_new();
-        string_replace_withFormat(s, -1, 0, "%s", "xxxxx");
+        string_replace_withFormat(s, s->size - 1, 0, "%s", "xxxxx");
         string_replace_withFormat(s, 0, 0, "%s", "xxxxx");
         string_replace_withFormat(s, 0, 1, "%c%c%c", 0x61, 0x62, 0x63);
         string_replace_withFormat(s, string_len(s), 50, "%c%d", 'h', 3110);
-        string_replace_withFormat(s, -5, 20, "%s", "y");
-        string_replace_withFormat(s, -5, -1, "%s", "longStr\0\0\0");
+        string_replace_withFormat(s, s->size - 5, 20, "%s", "y");
+        string_replace_withFormat(s, s->size - 5, -1, "%s", "longStr\0\0\0");
         compareStrs(s, "abclongStr", 10);
         string_replace_withFormat(s, 0, -1, "%c", 46);
         compareStrs(s, ".", 1);
