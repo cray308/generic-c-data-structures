@@ -52,7 +52,7 @@
 
 
 /**
- * Appends `value` to the back of the deque.
+ * Appends @c value to the back of the deque.
  *
  * @param  value  Value to be emplaced.
  */
@@ -66,7 +66,7 @@
 
 
 /**
- * Places `value` in the front of the deque.
+ * Places @c value in the front of the deque.
  *
  * @param  value  Value to be emplaced.
  */
@@ -74,37 +74,54 @@
 
 
 /**
- * Generates `Deque` code for a specified type and ID.
+ * Generates @c Deque function declarations for the specified type and ID.
  *
- * @param   id           ID to be used for the deque (must be unique).
- * @param   t            Type to be stored in the deque.
- * @param   copyValue    Macro of the form (x, y) which copies y into x to store the element in the deque.
- *                         - If no special copying is required, pass DSDefault_shallowCopy.
- *                         - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param   deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
- *                         - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
- *                         - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
+ * @param   id  ID to be used for the deque (must be unique).
+ * @param   t   Type to be stored in the deque.
  */
-#define gen_deque(id, t, copyValue, deleteValue) __setup_deque(id, t, Deque_##id, copyValue, deleteValue)
+#define gen_deque_headers(id, t) __setup_deque_headers(id, t, Deque_##id)
 
-#define __setup_deque(id, t, TypeName, copyValue, deleteValue)                                               \
+
+/**
+ * Generates @c Deque function definitions for the specified type and ID.
+ *
+ * @param   id           ID used in @c gen_deque_headers .
+ * @param   t            Type used in @c gen_deque_headers .
+ * @param   copyValue    Macro of the form (x, y) which copies y into x to store the element in the deque.
+ *                         - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                         - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param   deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
+ *                         - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                         - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ */
+#define gen_deque_source(id, t, copyValue, deleteValue) __setup_deque_source(id, t, Deque_##id, copyValue, deleteValue)
+
+#define __setup_deque_headers(id, t, TypeName)                                                               \
                                                                                                              \
-typedef struct TypeName TypeName;                                                                            \
-struct TypeName {                                                                                            \
+typedef struct {                                                                                             \
     struct {                                                                                                 \
         t *arr;                                                                                              \
-        size_t size, cap;                                                                                    \
+        unsigned size, cap;                                                                                  \
     } front;                                                                                                 \
     struct {                                                                                                 \
         t *arr;                                                                                              \
-        size_t size, cap;                                                                                    \
+        unsigned size, cap;                                                                                  \
     } back;                                                                                                  \
     struct {                                                                                                 \
-        size_t frontStart, backStart;                                                                        \
+        unsigned frontStart, backStart;                                                                      \
     } pointers;                                                                                              \
-};                                                                                                           \
+} TypeName;                                                                                                  \
                                                                                                              \
-__DS_FUNC_PREFIX TypeName *__dq_new_##id(void) {                                                             \
+TypeName *__dq_new_##id(void);                                                                               \
+void __dq_free_##id(TypeName *this);                                                                         \
+void __dq_pop_front_##id(TypeName *this);                                                                    \
+void __dq_push_back_##id(TypeName *this, t item);                                                            \
+void __dq_pop_back_##id(TypeName *this);                                                                     \
+void __dq_push_front_##id(TypeName *this, t item);                                                           \
+
+#define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                                        \
+                                                                                                             \
+TypeName *__dq_new_##id(void) {                                                                              \
     TypeName *q;                                                                                             \
     __ds_malloc(q, sizeof(TypeName))                                                                         \
     __ds_malloc(q->front.arr, 8 * sizeof(t))                                                                 \
@@ -114,8 +131,8 @@ __DS_FUNC_PREFIX TypeName *__dq_new_##id(void) {                                
     return q;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __dq_free_##id(TypeName *this) {                                                       \
-    size_t i;                                                                                                \
+void __dq_free_##id(TypeName *this) {                                                                        \
+    unsigned i;                                                                                              \
     for (i = this->pointers.frontStart; i < this->front.size; ++i) {                                         \
         deleteValue(this->front.arr[i]);                                                                     \
     }                                                                                                        \
@@ -127,7 +144,7 @@ __DS_FUNC_PREFIX void __dq_free_##id(TypeName *this) {                          
     free(this);                                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __dq_pop_front_##id(TypeName *this) {                                                  \
+void __dq_pop_front_##id(TypeName *this) {                                                                   \
     if (__deque_frontCount(this)) {                                                                          \
         deleteValue(this->front.arr[this->front.size - 1]);                                                  \
         --this->front.size;                                                                                  \
@@ -135,7 +152,7 @@ __DS_FUNC_PREFIX void __dq_pop_front_##id(TypeName *this) {                     
         deleteValue(this->back.arr[this->pointers.backStart]);                                               \
         ++this->pointers.backStart;                                                                          \
         if (this->back.size > 32 && this->pointers.backStart > (this->back.size >> 1)) {                     \
-            size_t half = this->back.cap >> 1;                                                               \
+            unsigned half = this->back.cap >> 1;                                                             \
             memmove(this->back.arr, this->back.arr + this->pointers.backStart, (this->back.size - this->pointers.backStart) * sizeof(t)); \
             this->back.size -= this->pointers.backStart;                                                     \
             this->pointers.backStart = 0;                                                                    \
@@ -149,7 +166,7 @@ __DS_FUNC_PREFIX void __dq_pop_front_##id(TypeName *this) {                     
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __dq_push_back_##id(TypeName *this, t item) {                                          \
+void __dq_push_back_##id(TypeName *this, t item) {                                                           \
     t* loc;                                                                                                  \
     if (this->back.size == this->back.cap) {                                                                 \
         t *tmp;                                                                                              \
@@ -162,7 +179,7 @@ __DS_FUNC_PREFIX void __dq_push_back_##id(TypeName *this, t item) {             
     ++this->back.size;                                                                                       \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __dq_pop_back_##id(TypeName *this) {                                                   \
+void __dq_pop_back_##id(TypeName *this) {                                                                    \
     if (__deque_backCount(this)) {                                                                           \
         deleteValue(this->back.arr[this->back.size - 1]);                                                    \
         --this->back.size;                                                                                   \
@@ -170,7 +187,7 @@ __DS_FUNC_PREFIX void __dq_pop_back_##id(TypeName *this) {                      
         deleteValue(this->front.arr[this->pointers.frontStart]);                                             \
         ++this->pointers.frontStart;                                                                         \
         if (this->front.size > 32 && this->pointers.frontStart > (this->front.size >> 1)) {                  \
-            size_t half = this->front.cap >> 1;                                                              \
+            unsigned half = this->front.cap >> 1;                                                            \
             memmove(this->front.arr, this->front.arr + this->pointers.frontStart, (this->front.size - this->pointers.frontStart) * sizeof(t)); \
             this->front.size -= this->pointers.frontStart;                                                   \
             this->pointers.frontStart = 0;                                                                   \
@@ -184,7 +201,7 @@ __DS_FUNC_PREFIX void __dq_pop_back_##id(TypeName *this) {                      
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __dq_push_front_##id(TypeName *this, t item) {                                         \
+void __dq_push_front_##id(TypeName *this, t item) {                                                          \
     t* loc;                                                                                                  \
     if (this->front.size == this->front.cap) {                                                               \
         t *tmp;                                                                                              \

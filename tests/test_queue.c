@@ -5,8 +5,10 @@
 #define FIRST 0
 #define LAST (LEN - 1)
 
-gen_queue(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_queue(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_queue_headers(int, int)
+gen_queue_headers(str, char *)
+gen_queue_source(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_queue_source(str, char *, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","010","011","012","013","014",
 "015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",

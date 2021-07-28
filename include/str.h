@@ -402,7 +402,7 @@ int string_rfind(String *this, unsigned end_pos, const char *needle, int len_nee
 
 
 /**
- * Creates a substring from this string with @c n characters, starting at @c start and moving to
+ * Creates a substring from this string with @c n characters, starting at @c start and moving to 
  * the next character to include with a step size of @c step_size .
  *
  * @param   start      Index where the substring should start.
