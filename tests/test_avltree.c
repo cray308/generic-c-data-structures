@@ -16,8 +16,10 @@
 #define tree_remove_value(id, s, value) __avltree_remove_entry_##id(s, __avltree_find_key_##id(s, value, 0))
 #define tree_remove_entry(id, s, entry) __avltree_remove_entry_##id(s, entry)
 
-__gen_avltree(int, int, ds_cmp_num_lt, AVLTree_int, int, AVLNode_int, __tree_entry_get_key, __tree_data_get_key, DSDefault_shallowCopy, DSDefault_shallowDelete, __tree_copy_value, __tree_delete_value)
-__gen_avltree(str, char *, ds_cmp_str_lt, AVLTree_str, char *, AVLNode_str, __tree_entry_get_key, __tree_data_get_key, DSDefault_deepCopyStr, DSDefault_deepDelete, __tree_copy_value, __tree_delete_value)
+__setup_avltree_headers(int, int, AVLTree_int, int, AVLNode_int)
+__setup_avltree_headers(str, char *, AVLTree_str, char *, AVLNode_str)
+__setup_avltree_source(int, int, AVLTree_int, int, AVLNode_int, ds_cmp_num_lt, __tree_entry_get_key, __tree_data_get_key, DSDefault_shallowCopy, DSDefault_shallowDelete, __tree_copy_value, __tree_delete_value)
+__setup_avltree_source(str, char *, AVLTree_str, char *, AVLNode_str, ds_cmp_str_lt, __tree_entry_get_key, __tree_data_get_key, DSDefault_deepCopyStr, DSDefault_deepDelete, __tree_copy_value, __tree_delete_value)
 
 void test_increasing_ints(void) {
     AVLTree_int *t = tree_new(int);

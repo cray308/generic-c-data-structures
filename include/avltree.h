@@ -43,7 +43,7 @@
     (x)->parent = nParent;                                                                                   \
     return nParent;                                                                                          \
 
-#define __gen_avltree(id, kt, cmp_lt, TreeType, DataType, EntryType, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
+#define __setup_avltree_headers(id, kt, TreeType, DataType, EntryType)                                       \
                                                                                                              \
 typedef struct EntryType EntryType;                                                                          \
 struct EntryType {                                                                                           \
@@ -54,11 +54,10 @@ struct EntryType {                                                              
     DataType data;                                                                                           \
 };                                                                                                           \
                                                                                                              \
-typedef struct TreeType TreeType;                                                                            \
-struct TreeType {                                                                                            \
+typedef struct {                                                                                             \
     EntryType *root;                                                                                         \
-    size_t size;                                                                                             \
-};                                                                                                           \
+    unsigned size;                                                                                           \
+} TreeType;                                                                                                  \
                                                                                                              \
 __DS_FUNC_PREFIX_INL EntryType *__avl_successor_##id(EntryType *x) {                                         \
     __avl_nextNode_body(x, left)                                                                             \
@@ -78,15 +77,26 @@ __DS_FUNC_PREFIX_INL EntryType *__avl_inorder_predecessor_##id(EntryType *x) {  
                                                                                                              \
 create_iterator_distance_helper(AVLTREE, id, EntryType *)                                                    \
                                                                                                              \
-__DS_FUNC_PREFIX EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                            \
+EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate);                   \
+EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted);                              \
+void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n);                             \
+void __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end);                       \
+TreeType *__avltree_new_fromArray_##id(DataType *arr, unsigned n);                                           \
+TreeType *__avltree_createCopy_##id(TreeType *other);                                                        \
+void __avltree_remove_entry_##id(TreeType *this, EntryType *v);                                              \
+void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end);                                 \
+
+#define __setup_avltree_source(id, kt, TreeType, DataType, EntryType, cmp_lt, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
+                                                                                                             \
+EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                                             \
     __avl_tree_x_rotate_body(EntryType, this, x, right, left)                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {                           \
+EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {                                            \
     __avl_tree_x_rotate_body(EntryType, this, x, left, right)                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate) { \
+EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate) {                  \
     EntryType *curr = this->root;                                                                            \
     while (curr) {                                                                                           \
         if (cmp_lt(key, entry_get_key(curr))) {                                                              \
@@ -110,7 +120,7 @@ __DS_FUNC_PREFIX EntryType *__avltree_find_key_##id(TreeType *this, const kt key
     return curr;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {            \
+EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {                             \
     EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1), *new, *parent;                   \
     if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {                                \
         deleteValue(curr->data.second);                                                                      \
@@ -199,15 +209,15 @@ __DS_FUNC_PREFIX EntryType *__avltree_insert_##id(TreeType *this, DataType data,
     return new;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, size_t n) {             \
-    size_t i;                                                                                                \
+void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n) {                            \
+    unsigned i;                                                                                              \
     if (!(arr && n)) return;                                                                                 \
     for (i = 0; i < n; ++i) {                                                                                \
         __avltree_insert_##id(this, arr[i], NULL);                                                           \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end) {     \
+void __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end) {                      \
     if (!start) return;                                                                                      \
     while (start != end) {                                                                                   \
         __avltree_insert_##id(this, start->data, NULL);                                                      \
@@ -215,20 +225,20 @@ __DS_FUNC_PREFIX void __avltree_insert_fromTree_##id(TreeType *this, EntryType *
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX TreeType *__avltree_new_fromArray_##id(DataType *arr, size_t n) {                           \
+TreeType *__avltree_new_fromArray_##id(DataType *arr, unsigned n) {                                          \
     TreeType *t;                                                                                             \
     __ds_calloc(t, 1, sizeof(TreeType))                                                                      \
     __avltree_insert_fromArray_##id(t, arr, n);                                                              \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX TreeType *__avltree_createCopy_##id(TreeType *other) {                                      \
+TreeType *__avltree_createCopy_##id(TreeType *other) {                                                       \
     TreeType *t = __avltree_new_fromArray_##id(NULL, 0);                                                     \
     __avltree_insert_fromTree_##id(t, __avl_successor_##id(other->root), NULL);                              \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                            \
+void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                                             \
     char deleteData = 1;                                                                                     \
     EntryType *curr, *parent, *child;                                                                        \
     if (!v) return;                                                                                          \
@@ -330,7 +340,7 @@ __DS_FUNC_PREFIX void __avltree_remove_entry_##id(TreeType *this, EntryType *v) 
     --this->size;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {               \
+void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {                                \
     EntryType *curr;                                                                                         \
     kt* keys;                                                                                                \
     int i = 0, count = 0;                                                                                    \

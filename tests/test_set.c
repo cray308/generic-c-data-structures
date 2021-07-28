@@ -1,8 +1,10 @@
 #include "set.h"
 #include <assert.h>
 
-gen_set(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_set(str, char *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_set_headers(int, int)
+gen_set_headers(str, char *)
+gen_set_source(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_set_source(str, char *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 int ints_rand[] = {200,25,220,120,5,205,50,15,60,235,10,70,130,105,185,225,90,30,155,100,150,0,95,170,190,
 125,210,75,45,160,175,145,55,230,35,65,110,140,115,20,215,85,195,240,245,135,80,180,40,165};

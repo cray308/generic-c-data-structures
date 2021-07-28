@@ -22,14 +22,14 @@
 /**
  * Iterates through the map in-order.
  *
- * @param  it  `MapEntry` which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define map_iter(id, this, it) for (it = iter_begin(AVLTREE, id, this, 0); it != iter_end(AVLTREE, id, this, 0); iter_next(AVLTREE, id, it))
 
 /**
  * Iterates through the map in reverse order.
  *
- * @param  it  `MapEntry` which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define map_riter(id, this, it) for (it = iter_rbegin(AVLTREE, id, this, 0); it != iter_rend(AVLTREE, id, this, 0); iter_prev(AVLTREE, id, it))
 
@@ -43,9 +43,9 @@
 
 
 /**
- * Creates a new map using `n` key-value pairs in a built-in array `arr`.
+ * Creates a new map using @c n key-value pairs in a built-in array @c arr .
  *
- * @param   arr  Pointer to the first element of type `Pair` to insert.
+ * @param   arr  Pointer to the first element of type @c Pair to insert.
  * @param   n    Number of elements to include.
  *
  * @return       Pointer to the newly created map.
@@ -54,9 +54,9 @@
 
 
 /**
- * Creates a new map as a copy of `other`.
+ * Creates a new map as a copy of @c other .
  *
- * @param   other  `Map` to copy.
+ * @param   other  @c Map to copy.
  *
  * @return         Pointer to the newly created map.
  */
@@ -76,17 +76,17 @@
 
 
 /**
- * Returns the entry with a key matching `k`.
+ * Returns the entry with a key matching @c k .
  *
  * @param   k  Key to find.
  *
- * @return     `MapEntry` whose key matches `k`, or NULL if it was not found.
+ * @return     @c MapEntry whose key matches @c k , or NULL if it was not found.
  */
 #define map_find(id, this, k) __avltree_find_key_##id(this, k, 0)
 
 
 /**
- * Similar to `map_find`, but returns a pointer to the pair's value rather than to the entry iterator 
+ * Similar to @c map_find , but returns a pointer to the pair's value rather than to the entry iterator 
  * as a whole.
  *
  * @param  k  Key to find.
@@ -95,58 +95,58 @@
 
 
 /**
- * Inserts `pair` into the map. If the key already exists, the value is updated to that of `pair`.
+ * Inserts @c pair into the map. If the key already exists, the value is updated to that of @c pair .
  *
- * @param   pair  Key-value pair of type `Pair` to insert.
+ * @param   pair  Key-value pair of type @c Pair to insert.
  *
- * @return        `MapEntry` corresponding to the inserted pair.
+ * @return        @c MapEntry corresponding to the inserted pair.
  */
 #define map_insert(id, this, pair) __avltree_insert_##id(this, pair, NULL)
 
 
 /**
- * Inserts `pair` into the map, and updates `inserted` with the result of insertion. If the key already 
- * exists, the value is updated to that of `pair`.
+ * Inserts @c pair into the map, and updates @c inserted with the result of insertion. If the key already 
+ * exists, the value is updated to that of @c pair .
  *
- * @param   pair      Key-value pair of type `Pair` to insert.
+ * @param   pair      Key-value pair of type @c Pair to insert.
  * @param   inserted  Set to 1 if the pair was newly inserted, or 0 if the key already existed.
  *
- * @return            `MapEntry` corresponding to the inserted pair.
+ * @return            @c MapEntry corresponding to the inserted pair.
  */
 #define map_insert_withResult(id, this, pair, inserted) __avltree_insert_##id(this, pair, inserted)
 
 
 /**
- * Inserts `n` key-value pairs from a built-in array `arr`.
+ * Inserts @c n key-value pairs from a built-in array @c arr .
  *
- * @param  arr  Pointer to the first element of type `Pair` to insert.
+ * @param  arr  Pointer to the first element of type @c Pair to insert.
  * @param  n    Number of elements to include.
  */
 #define map_insert_fromArray(id, this, arr, n) __avltree_insert_fromArray_##id(this, arr, n)
 
 
 /**
- * Inserts elements from another map in the range [`start`, `end`).
+ * Inserts elements from another map in the range [@c start , @c end ).
  *
- * @param  start  First `MapEntry` to insert. Must not be NULL.
- * @param  end    `MapEntry` after the last entry to insert. If this is NULL, all keys from `start`
+ * @param  start  First @c MapEntry to insert. Must not be NULL.
+ * @param  end    @c MapEntry after the last entry to insert. If this is NULL, all keys from @c start
  *                  through the greatest key in the other map will be inserted.
  */
 #define map_insert_fromMap(id, this, start, end) __avltree_insert_fromTree_##id(this, start, end)
 
 
 /**
- * Removes key-value pairs in the range [`begin`, `end`).
+ * Removes key-value pairs in the range [@c begin , @c end ).
  *
- * @param  begin  First `MapEntry` to erase.
- * @param  end    `MapEntry` after the last entry to be deleted. If this is NULL, then all keys from
- *                  `start` through the greatest key in the map will be removed.
+ * @param  begin  First @c MapEntry to erase.
+ * @param  end    @c MapEntry after the last entry to be deleted. If this is NULL, then all keys from
+ *                  @c begin through the greatest key in the map will be removed.
  */
 #define map_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
 
 /**
- * Removes a single pair from the map whose key is equal to `key`.
+ * Removes a single pair from the map whose key is equal to @c key .
  *
  * @param  key  Key to be deleted.
  */
@@ -154,38 +154,53 @@
 
 
 /**
- * Removes `entry` from the map.
+ * Removes @c entry from the map.
  *
- * @param  entry  `MapEntry` to remove.
+ * @param  entry  @c MapEntry to remove.
  */
 #define map_remove_entry(id, this, entry) __avltree_remove_entry_##id(this, entry)
 
 
 /**
- * Generates `Map` code for the given key type and value type.
+ * Generates @c Map function declarations for the given key type and value type.
  *
- * @param  id           ID to be used for the `Map`, `MapEntry`, and `Pair` types (must be unique).
- * @param  kt           Key type.
- * @param  vt           Value type.
+ * @param  id  ID to be used for the @c Map , @c MapEntry , and @c Pair types (must be unique).
+ * @param  kt  Key type.
+ * @param  vt  Value type.
+ */
+#define gen_map_headers(id, kt, vt)                                                                          \
+                                                                                                             \
+gen_pair(id, kt, vt)                                                                                         \
+__setup_avltree_headers(id, kt, Map_##id, Pair_##id, MapEntry_##id)                                          \
+                                                                                                             \
+vt *map_at_##id(Map_##id *this, const kt key);                                                               \
+
+
+/**
+ * Generates @c Map function definitions for the given key type and value type.
+ *
+ * @param  id           ID used in @ gen_map_headers .
+ * @param  kt           Key type used in @ gen_map_headers .
+ * @param  vt           Value type used in @ gen_map_headers .
  * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
  * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the key is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteKey    Macro of the form (x), which is a complement to `copyKey`; if memory was dynamically allocated in `copyKey`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyKey`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr was used in `copyKey`, pass DSDefault_deepDelete here.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the key is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was dynamically allocated in @c copyKey , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass @c DSDefault_deepDelete here.
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_map(id, kt, vt, cmp_lt, copyKey, deleteKey, copyValue, deleteValue)                              \
-gen_pair(id, kt, vt)                                                                                         \
-__gen_avltree(id, kt, cmp_lt, Map_##id, Pair_##id, MapEntry_##id, __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
+#define gen_map_source(id, kt, vt, cmp_lt, copyKey, deleteKey, copyValue, deleteValue)                       \
                                                                                                              \
-__DS_FUNC_PREFIX_INL vt *map_at_##id(Map_##id *this, const kt key) {                                         \
+__setup_avltree_source(id, kt, Map_##id, Pair_##id, MapEntry_##id, cmp_lt, __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
+                                                                                                             \
+vt* map_at_##id(Map_##id *this, const kt key) {                                                              \
     MapEntry_##id *e = __avltree_find_key_##id(this, key, 0);                                                \
     return e ? &(e->data.second) : NULL;                                                                     \
 }                                                                                                            \
