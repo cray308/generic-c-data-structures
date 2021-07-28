@@ -11,8 +11,7 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Pointer to the element at index `i`. Performs bounds checking, and if the index is out of bounds, 
- * returns NULL. Negative indices may be used.
+ * Pointer to the element at index @c i . Performs bounds checking, and if the index is out of bounds, returns NULL.
  *
  * @param  i  The index in the array.
  */
@@ -20,7 +19,7 @@
 
 
 /**
- * Direct access to the element at index `i`. Does NOT perform bounds checking, but faster than `array_at` 
+ * Direct access to the element at index @c i . Does NOT perform bounds checking, but faster than @c array_at 
  * for element access.
  *
  * @param  i  The index in the array.
@@ -85,7 +84,7 @@
 
 
 /**
- * Creates a new array with size `n`, where each index is set to `value`.
+ * Creates a new array with size @c n , where each index is set to @c value .
  *
  * @param   n      Number of elements to initialize.
  * @param   value  Value to set for each of the indices.
@@ -96,10 +95,10 @@
 
 
 /**
- * Creates a new array as a copy of a built-in array `arr` which has `n` elements.
+ * Creates a new array as a copy of a built-in array @c arr which has @c n elements.
  *
- * @param   arr   Pointer to the first element to insert. The `Array` type in this file can be used
- *                  by passing `array_at(id, a, index)`.
+ * @param   arr   Pointer to the first element to insert. The @c Array type in this file can be used
+ *                  by passing @c array_at(id,a,index) .
  * @param   n     Number of elements to include.
  *
  * @return        Pointer to the newly created array.
@@ -108,7 +107,7 @@
 
 
 /**
- * Creates a new array as a copy of `Array` object `other`.
+ * Creates a new array as a copy of @c Array object @c other .
  *
  * @return  Pointer to the newly created array.
  */
@@ -118,11 +117,11 @@
 /**
  * Deletes all elements and frees the array.
  */
-#define array_free(id, this) do { array_clear(id, this); free((this)->arr); free(this); } while(0)                                                                                                           \
+#define array_free(id, this) do { array_clear(id, this); free((this)->arr); free(this); } while(0)
 
 
 /**
- * Resizes the array to a size of `n`. If this is less than the current size, all but the first `n` 
+ * Resizes the array to a size of @c n . If this is less than the current size, all but the first @c n 
  * elements are removed. If this is greater than the current size, elements are appended to the array 
  * with a value of 0.
  *
@@ -132,19 +131,19 @@
 
 
 /**
- * Resizes the array to a size of `n`. If this is less than the current size, all but the first `n` 
+ * Resizes the array to a size of @c n . If this is less than the current size, all but the first @c n 
  * elements are removed. If this is greater than the current size, elements are appended to the array 
- * with a value of `value`.
+ * with a value of @c value .
  *
  * @param  n      The new array size.
- * @param  value  Value to hold in the new indices if `n` is greater than the current size.
+ * @param  value  Value to hold in the new indices if @c n is greater than the current size.
  */
 #define array_resize_usingValue(id, this, n, value) array_resize_usingValue_##id(this, n, value)
 
 
 /**
- * Requests a change in capacity to `n`. If this is smaller than the current capacity, nothing is 
- * done. If you wish to decrease the capacity, see `array_shrink_to_fit`.
+ * Requests a change in capacity to @c n . If this is smaller than the current capacity, nothing is 
+ * done. If you wish to decrease the capacity, see @c array_shrink_to_fit .
  *
  * @param  n  The new capacity.
  */
@@ -152,7 +151,7 @@
 
 
 /**
- * Appends `value` to the array.
+ * Appends @c value to the array.
  *
  * @param  value  Value to insert.
  */
@@ -160,42 +159,42 @@
 
 
 /**
- * Inserts `value` before `index`. Any elements after this index will be shifted one position 
- * to the right. After insertion, the new element will be located at `index`.
+ * Inserts @c value before @c index . Any elements after this index will be shifted one position 
+ * to the right. After insertion, the new element will be located at @c index .
  *
  * @param   index  Index before which the element will be inserted. If this is specified as
- *                   `array_size`, the element is appended.
+ *                   @c array_size , the element is appended.
  * @param   value  Value to insert.
  *
- * @return         The index where the element was inserted, or `ARRAY_ERROR` if there was an error.
+ * @return         The index where the element was inserted, or @c ARRAY_ERROR if there was an error.
  */
 #define array_insert(id, this, index, value) array_insert_repeatingValue_##id(this, index, 1, value)
 
 
 /**
- * Inserts `n` copies of `value` before `index`.
+ * Inserts @c n copies of @c value before @c index .
  *
  * @param   index   Index before which the elements should be inserted. If this is specified as
- *                   `array_size`, the elements are appended.
- * @param   n       Number of copies of `value` to insert.
+ *                   @c array_size , the elements are appended.
+ * @param   n       Number of copies of @c value to insert.
  * @param   value   Value to insert.
  *
- * @return          The index where the first element was inserted, or `ARRAY_ERROR` if there was an error.
+ * @return          The index where the first element was inserted, or @c ARRAY_ERROR if there was an error.
  */
 #define array_insert_repeatingValue(id, this, index, n, value) array_insert_repeatingValue_##id(this, index, n, value)
 
 
 /**
- * Inserts `n` new elements from `arr` before `index`. Any elements after this index will be shifted 
- * to the right. After insertion, the first of the new elements will be located at `index`.
+ * Inserts @c n new elements from @c arr before @c index . Any elements after this index will be shifted 
+ * to the right. After insertion, the first of the new elements will be located at @c index .
  *
  * @param   index  Index before which the elements will be inserted. If this is specified as
- *                   `array_size`, the elements are appended.
- * @param   arr    Pointer to the first element to insert in a built-in array. The `Array` type in 
- *                   this file can be used by passing `array_at(id, a, index)`.
- * @param   n      Number of elements to insert from `arr`.
+ *                   @c array_size , the elements are appended.
+ * @param   arr    Pointer to the first element to insert in a built-in array. The @c Array type in 
+ *                   this file can be used by passing @c array_at(id,a,index) .
+ * @param   n      Number of elements to insert from @c arr .
  *
- * @return         The index where the first element was inserted, or `ARRAY_ERROR` if there was an error.
+ * @return         The index where the first element was inserted, or @c ARRAY_ERROR if there was an error.
  */
 #define array_insert_fromArray(id, this, index, arr, n) array_insert_fromArray_##id(this, index, arr, n)
 
@@ -213,21 +212,21 @@
 
 
 /**
- * Removes `nelem` elements from the array, starting at index `first`.
+ * Removes @c nelem elements from the array, starting at index @c first .
  *
  * @param  first  The first index to delete.
  * @param  nelem  The number of elements to delete. If this is -1, it means to erase all elements
- *                  from `first` to the end of the array.
+ *                  from @c first to the end of the array.
  *
  * @return        The index after the last element to be deleted. If the last element to be deleted
- *                was the end of the array, returns `array_size`. If an error occurred, returns
- *                `ARRAY_ERROR`.
+ *                was the end of the array, returns @c array_size . If an error occurred, returns
+ *                @c ARRAY_ERROR .
  */
 #define array_erase(id, this, first, nelem) array_erase_##id(this, first, nelem)
 
 
 /**
- * If the array's capacity is greater than its size, reallocates only enough memory to hold `array_size` 
+ * If the array's capacity is greater than its size, reallocates only enough memory to hold @c array_size 
  * number of elements. This should only be used if the array's capacity has grown to be much larger 
  * than its size.
  */
@@ -235,8 +234,8 @@
 
 
 /**
- * Creates a subarray from this array with `n` elements, starting at index `start` and moving to the 
- * next element to include with a step size of `step_size`.
+ * Creates a subarray from this array with @c n elements, starting at index @c start and moving to the 
+ * next element to include with a step size of @c step_size .
  *
  * @param   start      Index to start the subarray.
  * @param   n          Maximum number of elements to include in the new subarray. -1 implies to
@@ -543,7 +542,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Given a sorted array, finds `key`.
+ * Given a sorted array, finds @c key .
  *
  * @param  key  Value to compare to an array element's data.
  *
@@ -553,7 +552,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Merges the arrays in range [`first1`, `last1`) and [`first2`, `last2`) into a new `Array`.
+ * Merges the arrays in range [@c first1 , @c last1 ) and [@c first2 , @c last2 ) into a new @c Array .
  *
  * @param   first1  Pointer to start of first array.
  * @param   last1   Pointer to end of first array (non-inclusive).
@@ -566,7 +565,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Creates a new `Array` representing the union of the arrays in range [`first1`, `last1`) and [`first2`, `last2`) 
+ * Creates a new @c Array representing the union of the arrays in range [@c first1 , @c last1 ) and [@c first2 , @c last2 ) 
  * (i.e. elements that are in the first array, the second array, or both - all elements). Both arrays 
  * must have been sorted before this.
  *
@@ -581,8 +580,8 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Creates a new `Array` representing the intersection of the arrays in range [`first1`, `last1`) and 
- * [`first2`, `last2`) (i.e. all elements that both arrays have in common). Both arrays must have been 
+ * Creates a new @c Array representing the intersection of the arrays in range [@c first1 , @c last1 ) and 
+ * [@c first2 , @c last2 ) (i.e. all elements that both arrays have in common). Both arrays must have been 
  * sorted before this.
  *
  * @param   first1  Pointer to start of first array.
@@ -596,8 +595,8 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Creates a new `Array` representing the difference of the arrays in range [`first1`, `last1`) and 
- * [`first2`, `last2`) (i.e. all elements that are unique to the first array). Both arrays must have 
+ * Creates a new @c Array representing the difference of the arrays in range [@c first1 , @c last1 ) and 
+ * [@c first2 , @c last2 ) (i.e. all elements that are unique to the first array). Both arrays must have 
  * been sorted before this.
  *
  * @param   first1  Pointer to start of first array.
@@ -611,8 +610,8 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Creates a new `Array` representing the symmetric difference of the arrays in range [`first1`, `last1`) 
- * and [`first2`, `last2`) (i.e. all elements that neither array has in common). Both arrays must have 
+ * Creates a new @c Array representing the symmetric difference of the arrays in range [@c first1 , @c last1 ) 
+ * and [@c first2 , @c last2 ) (i.e. all elements that neither array has in common). Both arrays must have 
  * been sorted before this.
  *
  * @param   first1  Pointer to start of first array.
@@ -626,7 +625,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Determines whether the array in range [`first1`, `last1`) contains each element in the range [`first2`, `last2`). 
+ * Determines whether the array in range [@c first1 , @c last1 ) contains each element in the range [@c first2 , @c last2 ). 
  * Both arrays must have been sorted before this.
  *
  * @param   first1  Pointer to start of first array.
@@ -640,14 +639,14 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
 
 
 /**
- * Generates @c Array algorithm function declarations for the specified type and ID, including sort, 
- * find, and set functions. @c gen_array_headers(id,t) must have been called prior.
+ * Generates @c Array function declarations for the specified type and ID, including sort, find, and set functions.
  *
- * @param  id  ID used in @c gen_array_headers .
- * @param  t   Type used in @c gen_array_headers .
+ * @param  id  ID to be used for the array (must be unique).
+ * @param  t   Type to be stored in the array.
  */
-#define gen_array_alg_headers(id, t)                                                                         \
+#define gen_array_headers_withAlg(id, t)                                                                     \
                                                                                                              \
+gen_array_headers(id, t)                                                                                     \
 gen_alg_headers(id, t)                                                                                       \
 __gen_alg_set_func_headers(id, Array_##id, array_##id, t *)                                                  \
                                                                                                              \
@@ -655,11 +654,10 @@ Array_##id *merge_array_##id(t *first1, t *last1, t *first2, t *last2);         
 
 
 /**
- * Generates @c Array algorithm function definitions for the specified type and ID. @c gen_array_source(id,t,copyValue,deleteValue) 
- * must have been called prior.
+ * Generates @c Array function definitions for the specified type and ID, including sort, find, and set functions.
  *
- * @param  id           ID used in @c gen_array_alg_headers .
- * @param  t            Type used in @c gen_array_alg_headers .
+ * @param  id           ID used in @c gen_array_headers_withAlg .
+ * @param  t            Type used in @c gen_array_headers_withAlg .
  * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the array.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
@@ -668,8 +666,9 @@ Array_##id *merge_array_##id(t *first1, t *last1, t *first2, t *last2);         
  *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
  *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_array_alg_source(id, t, cmp_lt, copyValue, deleteValue)                                          \
+#define gen_array_source_withAlg(id, t, cmp_lt, copyValue, deleteValue)                                      \
                                                                                                              \
+gen_array_source(id, t, copyValue, deleteValue)                                                              \
 gen_alg_source(id, t, cmp_lt)                                                                                \
 __gen_alg_set_func_source(id, cmp_lt, Array_##id, array_##id, array_new, t *, iter_next_ARR, iter_deref_ARR, array_push_back, array_insert_fromArray_##id(d_new, array_size(d_new), first1, (unsigned)(last1 - first1)), array_insert_fromArray_##id(d_new, array_size(d_new), first2, (unsigned)(last2 - first2))) \
                                                                                                              \

@@ -8,7 +8,7 @@
 
 #define __list_swap(id, x, y) {                                                                              \
     register ListEntry_##id *ltemp_front = (x)->front, *ltemp_back = (x)->back;                              \
-    register size_t ltemp_size = (x)->size;                                                                  \
+    register unsigned ltemp_size = (x)->size;                                                                \
     (x)->front = (y)->front;                                                                                 \
     (x)->back = (y)->back;                                                                                   \
     (x)->size = (y)->size;                                                                                   \
@@ -53,7 +53,7 @@
     decls                                                                                                    \
     ListEntry_##id *prev = (pos) ? (pos)->prev : NULL;                                                       \
     ListEntry_##id *first, *last, *curr;                                                                     \
-    size_t count = 1;                                                                                        \
+    unsigned count = 1;                                                                                      \
     earlyReturn                                                                                              \
     assignment                                                                                               \
     __ds_calloc(first, 1, sizeof(ListEntry_##id))                                                            \
@@ -114,13 +114,13 @@
 /**
  * The number of elements in the list.
  */
-#define list_size(this) ((int) (this)->size)
+#define list_size(this) ((this)->size)
 
 
 /**
  * Macro for iterating over the list from front to back.
  *
- * @param  it  `ListEntry` which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c ListEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define list_iter(this, it) for (it = iter_begin(LIST, 0, this, 0); it != iter_end(LIST, 0, this, 0); iter_next(LIST, 0, it))
 
@@ -128,7 +128,7 @@
 /**
  * Macro for iterating over the list in reverse (from back to front).
  *
- * @param  it  `ListEntry` which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c ListEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define list_riter(this, it) for (it = iter_rbegin(LIST, 0, this, 0); it != iter_rend(LIST, 0, this, 0); iter_prev(LIST, 0, it))
 
@@ -142,7 +142,7 @@
 
 
 /**
- * Creates a new list with size `n`, where each element is set to `value`.
+ * Creates a new list with size @c n , where each element is set to @c value .
  *
  * @param   n      Number of elements to initialize.
  * @param   value  Value to set for each of the elements.
@@ -153,7 +153,7 @@
 
 
 /**
- * Creates a new list using `n` elements in a built-in array `arr`.
+ * Creates a new list using @c n elements in a built-in array @c arr .
  *
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
@@ -164,9 +164,9 @@
 
 
 /**
- * Creates a new list as a copy of `other`.
+ * Creates a new list as a copy of @c other .
  *
- * @param   other  `List` to copy.
+ * @param   other  @c List to copy.
  *
  * @return         Pointer to the newly allocated list.
  */
@@ -180,7 +180,7 @@
 
 
 /**
- * Resizes the list to a size of `n`. If this is less than the current size, all but the first `n` 
+ * Resizes the list to a size of @c n . If this is less than the current size, all but the first @c n 
  * elements are removed. If this is greater than the current size, elements are appended to the list 
  * with a value of 0.
  *
@@ -190,18 +190,18 @@
 
 
 /**
- * Resizes the list to a size of `n`. If this is less than the current size, all but the first `n` 
+ * Resizes the list to a size of @c n . If this is less than the current size, all but the first @c n 
  * elements are removed. If this is greater than the current size, elements are appended to the list 
- * with a value of `value`.
+ * with a value of @c value .
  *
  * @param  n      The new list size.
- * @param  value  Value to hold in the new elements if `n` is greater than the current size.
+ * @param  value  Value to hold in the new elements if @c n is greater than the current size.
  */
 #define list_resize_usingValue(id, this, n, value) list_resize_usingValue_##id(this, n, value)
 
 
 /**
- * Prepends `value` to the start of the list.
+ * Prepends @c value to the start of the list.
  *
  * @param  value  Value to insert.
  */
@@ -209,7 +209,7 @@
 
 
 /**
- * Appends `value` to the end of the list.
+ * Appends @c value to the end of the list.
  *
  * @param  value  Value to insert.
  */
@@ -229,82 +229,82 @@
 
 
 /**
- * Inserts `value` before `pos`.
+ * Inserts @c value before @c pos .
  *
- * @param   pos     `ListEntry` before which the element should be inserted. If this is NULL, the element
+ * @param   pos     @c ListEntry before which the element should be inserted. If this is NULL, the element
  *                    is appended.
  * @param   value   Value to insert.
  *
- * @return          `ListEntry` corresponding to the inserted element.
+ * @return          @c ListEntry corresponding to the inserted element.
  */
 #define list_insert(id, this, pos, value) list_insert_repeatingValue_##id(this, pos, 1, value)
 
 
 /**
- * Inserts `n` copies of `value` before `pos`.
+ * Inserts @c n copies of @c value before @c pos .
  *
- * @param   pos     `ListEntry` before which the elements should be inserted. If this is NULL, the
+ * @param   pos     @c ListEntry before which the elements should be inserted. If this is NULL, the
  *                    elements are appended.
- * @param   n       Number of copies of `value` to insert.
+ * @param   n       Number of copies of @c value to insert.
  * @param   value   Value to insert.
  *
- * @return          If successful, returns a `ListEntry` corresponding to the first inserted element.
+ * @return          If successful, returns a @c ListEntry corresponding to the first inserted element.
  *                  If an error occurred, returns NULL.
  */
 #define list_insert_repeatingValue(id, this, pos, n, value) list_insert_repeatingValue_##id(this, pos, n, value)
 
 
 /**
- * Inserts `n` elements from the built-in array `arr` before `pos`.
+ * Inserts @c n elements from the built-in array @c arr before @c pos .
  *
- * @param   pos  `ListEntry` before which the elements should be inserted. If this is NULL, the elements
+ * @param   pos  @c ListEntry before which the elements should be inserted. If this is NULL, the elements
  *                 are appended.
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
  *
- * @return       If successful, returns a `ListEntry` corresponding to the first inserted element.
+ * @return       If successful, returns a @c ListEntry corresponding to the first inserted element.
  *               If an error occurred, returns NULL.
  */
 #define list_insert_fromArray(id, this, pos, arr, n) list_insert_fromArray_##id(this, pos, arr, n)
 
 
 /**
- * Inserts new elements from another `List` in the range [`start`, `end`) before `pos`.
+ * Inserts new elements from another @c List in the range [@c start , @c end ) before @c pos .
  *
- * @param   pos    `ListEntry` before which the elements should be inserted. If this is NULL, the
+ * @param   pos    @c ListEntry before which the elements should be inserted. If this is NULL, the
  *                   elements are appended.
- * @param   start  First `ListEntry` to insert. Must not be NULL.
- * @param   end    `ListEntry` after the last entry to insert. If this is NULL, all elements from
- *                   `start` through the end of the other list will be inserted.
+ * @param   start  First @c ListEntry to insert. Must not be NULL.
+ * @param   end    @c ListEntry after the last entry to insert. If this is NULL, all elements from
+ *                   @c start through the end of the other list will be inserted.
  *
- * @return         If successful, returns a `ListEntry` corresponding to the first inserted element.
+ * @return         If successful, returns a @c ListEntry corresponding to the first inserted element.
  *                 If an error occurred, returns NULL.
  */
 #define list_insert_fromList(id, this, pos, start, end) list_insert_fromList_##id(this, pos, start, end)
 
 
 /**
- * Removes the element at `pos`.
+ * Removes the element at @c pos .
  *
- * @param   pos  `ListEntry` to be removed.
+ * @param   pos  @c ListEntry to be removed.
  *
- * @return       If successful, returns a `ListEntry` corresponding to the element that was after `pos`;
- *               if `pos` was the last element in the list, this is LIST_END. If an error occurred,
+ * @return       If successful, returns a @c ListEntry corresponding to the element that was after @c pos ;
+ *               if @c pos was the last element in the list, this is @c LIST_END. If an error occurred,
  *               returns NULL.
  */
 #define list_remove(id, this, pos) list_erase_##id(this, pos, pos ? (pos)->next : NULL)
 
 
 /**
- * Erases elements within the range [`first`, `last`).
+ * Erases elements within the range [@c first , @c last ).
  *
- * @param   first  First `ListEntry` to be removed - must be provided.
- * @param   last   `ListEntry` after the last entry to be deleted. If this is NULL, all elements
- *                   from `first` through the end of the list will be removed.
+ * @param   first  First @c ListEntry to be removed - must be provided.
+ * @param   last   @c ListEntry after the last entry to be deleted. If this is NULL, all elements
+ *                   from @c first through the end of the list will be removed.
  *
- * @return         If successful, returns a `ListEntry` corresponding to the element after the last
+ * @return         If successful, returns a @c ListEntry corresponding to the element after the last
  *                 deleted element; if the last deleted element was the last element in the list, this
- *                 is LIST_END. If an error occurred, returns NULL.
+ *                 is @c LIST_END. If an error occurred, returns NULL.
  */
 #define list_erase(id, this, first, last) list_erase_##id(this, first, last)
 
@@ -322,7 +322,7 @@
 
 
 /**
- * Removes any elements satisfying `condition`.
+ * Removes any elements satisfying @c condition .
  *
  * @param  condition  Function pointer to check if an element meets the condition.
  */
@@ -330,52 +330,46 @@
 
 
 /**
- * Moves all elements from `other` into this list before `pos`.
+ * Moves all elements from @c other into this list before @c pos .
  *
- * @param  pos    `ListEntry` in this list before which elements in `other` will be moved. If this
- *                  is NULL, elements from `other` will be appended to this list.
- * @param  other  Other `List` from which elements will be moved.
+ * @param  pos    @c ListEntry in this list before which elements in @c other will be moved. If this
+ *                  is NULL, elements from @c other will be appended to this list.
+ * @param  other  Other @c List from which elements will be moved.
  */
 #define list_splice(id, this, pos, other) list_splice_range_##id(this, pos, other, (other)->front, NULL)
 
 
 /**
- * Moves `entry` from `other` into this list before `pos`.
+ * Moves @c entry from @c other into this list before @c pos .
  *
- * @param  pos     `ListEntry` in this list before which `entry` will be moved. If this is NULL,
- *                   `entry` is appended to this list.
- * @param  other   Other `List` from which `entry` will be moved.
- * @param  entry  `ListEntry` to move.
+ * @param  pos     @c ListEntry in this list before which @c entry will be moved. If this is NULL,
+ *                   @c entry is appended to this list.
+ * @param  other   Other @c List from which @c entry will be moved.
+ * @param  entry  @c ListEntry to move.
  */
 #define list_splice_element(id, this, pos, other, entry) list_splice_range_##id(this, pos, other, entry, entry ? (entry)->next : NULL)
 
 
 /**
- * Moves elements from `other` in the range [`first`, `last`) into this list before `pos`.
+ * Moves elements from @c other in the range [@c first , @c last ) into this list before @c pos .
  *
- * @param  pos    `ListEntry` in this list before which elements in `other` will be moved. If this
- *                  is NULL, elements from `other` will be appended to this list.
- * @param  other  Other `List` from which elements will be moved.
- * @param  first  First `ListEntry` from `other` to move.
- * @param  last   `ListEntry` after the last entry in `other` to move. If this is NULL, all entries
- *                  from `first` through the end of `other` are moved.
+ * @param  pos    @c ListEntry in this list before which elements in @c other will be moved. If this
+ *                  is NULL, elements from @c other will be appended to this list.
+ * @param  other  Other @c List from which elements will be moved.
+ * @param  first  First @c ListEntry from @c other to move.
+ * @param  last   @c ListEntry after the last entry in @c other to move. If this is NULL, all entries
+ *                  from @c first through the end of @c other are moved.
  */
 #define list_splice_range(id, this, pos, other, first, last) list_splice_range_##id(this, pos, other, first, last)
 
 
 /**
- * Generates `List` code for a specified type and ID.
+ * Generates @c List function declarations for the specified type and ID.
  *
- * @param  id           ID to be used for the `List` and `ListEntry` types (must be unique).
+ * @param  id           ID to be used for the @c List and @c ListEntry types (must be unique).
  * @param  t            Type to be stored in the list.
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
  */
-#define gen_list(id, t, copyValue, deleteValue)                                                              \
+#define gen_list_headers(id, t)                                                                              \
                                                                                                              \
 typedef struct ListEntry_##id ListEntry_##id;                                                                \
 struct ListEntry_##id {                                                                                      \
@@ -384,17 +378,43 @@ struct ListEntry_##id {                                                         
     t data;                                                                                                  \
 };                                                                                                           \
                                                                                                              \
-typedef struct List_##id List_##id;                                                                          \
-struct List_##id {                                                                                           \
-    size_t size;                                                                                             \
+typedef struct {                                                                                             \
+    unsigned size;                                                                                           \
     ListEntry_##id *front;                                                                                   \
     ListEntry_##id *back;                                                                                    \
-};                                                                                                           \
+} List_##id;                                                                                                 \
                                                                                                              \
 create_iterator_distance_helper(LIST, id, ListEntry_##id *)                                                  \
                                                                                                              \
-__DS_FUNC_PREFIX ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, size_t n, t value) { \
-    size_t i;                                                                                                \
+ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, unsigned n, t value);  \
+ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos, t *arr, unsigned n);        \
+ListEntry_##id *list_insert_fromList_##id(List_##id *this, ListEntry_##id *pos, ListEntry_##id *start, ListEntry_##id *end); \
+List_##id *list_new_fromArray_##id(t *arr, unsigned size);                                                   \
+List_##id *list_new_repeatingValue_##id(unsigned n, t value);                                                \
+List_##id *list_createCopy_##id(List_##id *other);                                                           \
+ListEntry_##id *list_erase_##id(List_##id *this, ListEntry_##id *first, ListEntry_##id *last);               \
+void list_resize_usingValue_##id(List_##id *this, unsigned n, t value);                                      \
+void list_reverse_##id(List_##id *this);                                                                     \
+void list_remove_if_##id(List_##id *this, int (*cond)(t*));                                                  \
+void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last); \
+
+
+/**
+ * Generates @c List function definitions for the specified type and ID.
+ *
+ * @param  id           ID used in @c gen_list_headers .
+ * @param  t            Type used in @c gen_list_headers .
+ * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ */
+#define gen_list_source(id, t, copyValue, deleteValue)                                                       \
+                                                                                                             \
+ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, unsigned n, t value) { \
+    unsigned i;                                                                                              \
     if (!n) return NULL;                                                                                     \
     for (i = 0; i < n; ++i) {                                                                                \
         ListEntry_##id *prev, *new;                                                                          \
@@ -427,34 +447,35 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this
     }                                                                                                        \
     return pos;                                                                                              \
 }                                                                                                            \
-__DS_FUNC_PREFIX ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos, t *arr, size_t n) { \
+                                                                                                             \
+ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos, t *arr, unsigned n) {       \
     __list_iterable_insert_body(id, this, pos, arr, end, t *end;, if (!arr || !n) return NULL;, end = &arr[n];, iter_next_ARR, iter_deref_ARR, copyValue) \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX ListEntry_##id *list_insert_fromList_##id(List_##id *this, ListEntry_##id *pos, ListEntry_##id *start, ListEntry_##id *end) { \
+ListEntry_##id *list_insert_fromList_##id(List_##id *this, ListEntry_##id *pos, ListEntry_##id *start, ListEntry_##id *end) { \
     __list_iterable_insert_body(id, this, pos, start, end, ____cds_do_nothing, if (!start || start == end) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_new_fromArray_##id(t *arr, size_t size) {                                   \
+List_##id *list_new_fromArray_##id(t *arr, unsigned size) {                                                  \
     List_##id *l;                                                                                            \
     __ds_calloc(l, 1, sizeof(List_##id))                                                                     \
     list_insert_fromArray_##id(l, NULL, arr, size);                                                          \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_new_repeatingValue_##id(size_t n, t value) {                                \
+List_##id *list_new_repeatingValue_##id(unsigned n, t value) {                                               \
     List_##id *l = list_new(id);                                                                             \
     list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX List_##id *list_createCopy_##id(List_##id *other) {                                         \
+List_##id *list_createCopy_##id(List_##id *other) {                                                          \
     List_##id *l = list_new(id);                                                                             \
     list_insert_fromList_##id(l, NULL, other->front, NULL);                                                  \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX ListEntry_##id *list_erase_##id(List_##id *this, ListEntry_##id *first, ListEntry_##id *last) { \
+ListEntry_##id *list_erase_##id(List_##id *this, ListEntry_##id *first, ListEntry_##id *last) {              \
     ListEntry_##id *before, *tmp, *res;                                                                      \
     if (!first || !this->front || first == last) return NULL;                                                \
                                                                                                              \
@@ -484,7 +505,7 @@ __DS_FUNC_PREFIX ListEntry_##id *list_erase_##id(List_##id *this, ListEntry_##id
     return res;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_resize_usingValue_##id(List_##id *this, size_t n, t value) {                      \
+void list_resize_usingValue_##id(List_##id *this, unsigned n, t value) {                                     \
     if (n == this->size) return;                                                                             \
     else if (n < this->size) {                                                                               \
         ListEntry_##id *first = this->front;                                                                 \
@@ -497,7 +518,7 @@ __DS_FUNC_PREFIX void list_resize_usingValue_##id(List_##id *this, size_t n, t v
     list_insert_repeatingValue_##id(this, NULL, n - this->size, value);                                      \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL void list_reverse_##id(List_##id *this) {                                               \
+void list_reverse_##id(List_##id *this) {                                                                    \
     ListEntry_##id *newFront = this->back, *newBack = this->front, *curr = this->front, *prev = NULL, *next = NULL; \
                                                                                                              \
     while (curr) {                                                                                           \
@@ -511,13 +532,13 @@ __DS_FUNC_PREFIX_INL void list_reverse_##id(List_##id *this) {                  
     this->back = newBack;                                                                                    \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_remove_if_##id(List_##id *this, int (*cond)(t*)) {                                \
+void list_remove_if_##id(List_##id *this, int (*cond)(t*)) {                                                 \
     __list_elem_removal_body(id, this, cond(&(curr->data)), this->front, NULL, deleteValue)                  \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last) { \
+void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last) { \
     ListEntry_##id *firstprev, *curr;                                                                        \
-    size_t count = 0;                                                                                        \
+    unsigned count = 0;                                                                                      \
     if (!other->front || !first || first == last) return;                                                    \
                                                                                                              \
     /* get number of elements */                                                                             \
@@ -568,17 +589,17 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
  * -------------------------------------------------------------------------- */
 
 /**
- * Inserts `value` in sorted order.
+ * Inserts @c value in sorted order.
  *
  * @param   value  Value to insert.
  *
- * @return         `ListEntry` corresponding to the inserted element.
+ * @return         @c ListEntry corresponding to the inserted element.
  */
 #define list_insert_sorted(id, this, value) list_insert_sorted_##id(this, value)
 
 
 /**
- * Inserts `n` elements from the built-in array `arr` in sorted order.
+ * Inserts @c n elements from the built-in array @c arr in sorted order.
  *
  * @param  arr  Pointer to the first element to insert.
  * @param  n    Number of elements to include.
@@ -587,11 +608,11 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Inserts elements from another `List` in the range [`start`, `end`) into this list in sorted order.
+ * Inserts elements from another @c List in the range [@c start , @c end ) into this list in sorted order.
  *
- * @param  start  First `ListEntry` to insert. Must not be NULL.
- * @param  end    `ListEntry` after the last entry to insert. If this is NULL, all elements from
- *                  `start` through the end of the other list will be inserted.
+ * @param  start  First @c ListEntry to insert. Must not be NULL.
+ * @param  end    @c ListEntry after the last entry to insert. If this is NULL, all elements from
+ *                  @c start through the end of the other list will be inserted.
  */
 #define list_insert_fromList_sorted(id, this, start, end) list_insert_fromList_sorted_##id(this, start, end)
 
@@ -607,7 +628,7 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Removes any elements equal to `value`.
+ * Removes any elements equal to @c value .
  *
  * @param  value  Value to compare to a list element's data.
  */
@@ -615,28 +636,28 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Finds the first instance of `value`.
+ * Finds the first instance of @c value .
  *
  * @param   value  Value to search for.
  *
- * @return         If `value` was found, returns a `ListEntry` corresponding to that element. If it
+ * @return         If @c value was found, returns a @c ListEntry corresponding to that element. If it
  *                 was not found, returns NULL.
  */
 #define list_find(id, this, value) list_find_##id(this, value)
 
 
 /**
- * Merges `other` into this list, both of which must be in sorted order prior to this operation. 
- * `other` is left with a size of 0, and this list grows by as many elements as `other` previously 
+ * Merges @c other into this list, both of which must be in sorted order prior to this operation. 
+ * @c other is left with a size of 0, and this list grows by as many elements as @c other previously 
  * contained.
  *
- * @param  other  Other `List`, which will be merged with this list.
+ * @param  other  Other @c List , which will be merged with this list.
  */
 #define list_merge(id, this, other) list_merge_##id(this, other)
 
 
 /**
- * Sorts the list according to the `cmp_lt` macro provided in `gen_list`.
+ * Sorts the list according to the @c cmp_lt macro provided in @c gen_list_source .
  * 
  * Time complexity: approx. O(n * log(n))
  */
@@ -644,10 +665,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new `List` representing the union of this list and `other` (i.e. elements that are in 
- * this list, `other`, or both - all elements).
+ * Creates a new @c List representing the union of this list and @c other (i.e. elements that are in 
+ * this list, @c other , or both - all elements).
  *
- * @param   other   Second `List`.
+ * @param   other   Second @c List .
  *
  * @return          Pointer to newly allocated list.
  */
@@ -655,10 +676,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new `List` representing the intersection of this list and `other` (i.e. all elements 
+ * Creates a new @c List representing the intersection of this list and @c other (i.e. all elements 
  * that both lists have in common).
  *
- * @param   other   Second `List`.
+ * @param   other   Second @c List .
  *
  * @return          Pointer to newly allocated list.
  */
@@ -666,10 +687,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new `List` representing the difference of this list and `other` (i.e. all elements that 
+ * Creates a new @c List representing the difference of this list and @c other (i.e. all elements that 
  * are unique to this list).
  *
- * @param   other   Second `List`.
+ * @param   other   Second @c List .
  *
  * @return          Pointer to newly allocated list.
  */
@@ -677,10 +698,10 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Creates a new `List` representing the symmetric difference of this list and `other` (i.e. all 
+ * Creates a new @c List representing the symmetric difference of this list and @c other (i.e. all 
  * elements that neither list has in common).
  *
- * @param   other   Second `List`.
+ * @param   other   Second @c List .
  *
  * @return          Pointer to newly allocated list.
  */
@@ -688,33 +709,55 @@ __DS_FUNC_PREFIX void list_splice_range_##id(List_##id *this, ListEntry_##id *po
 
 
 /**
- * Determines whether this list contains each element in `other`.
+ * Determines whether this list contains each element in @c other .
  *
- * @param   other   Second `List`.
+ * @param   other   Second @c List .
  *
- * @return          True if this list contains each element in `other`, false if not.
+ * @return          True if this list contains each element in @c other , false if not.
  */
 #define includes_list(id, this, other) __includes_list_##id((this)->front, NULL, (other)->front, NULL)
 
 
 /**
- * Generates `List` code for a specified type and ID, including set, sorting, and comparison functions.
+ * Generates @c List function definitions for the specified type and ID, including set, sorting, and comparison functions.
  *
- * @param  id           ID to be used for the `List` and `ListEntry` types (must be unique).
- * @param  t            Type to be stored in the list.
+ * @param  id  ID to be used for the @c List and @c ListEntry types (must be unique).
+ * @param  t   Type to be stored in the list.
+ */
+#define gen_list_headers_withAlg(id, t)                                                                      \
+                                                                                                             \
+gen_list_headers(id, t)                                                                                      \
+__gen_alg_set_func_headers(id, List_##id, list_##id, ListEntry_##id *)                                       \
+                                                                                                             \
+ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value);                                           \
+void list_insert_fromArray_sorted_##id(List_##id *this, t *arr, unsigned n);                                 \
+void list_insert_fromList_sorted_##id(List_##id *this, ListEntry_##id *start, ListEntry_##id *end);          \
+void list_unique_##id(List_##id *this);                                                                      \
+void list_remove_value_##id(List_##id *this, t val);                                                         \
+ListEntry_##id *list_find_##id(List_##id *this, t val);                                                      \
+void list_merge_##id(List_##id *this, List_##id *other);                                                     \
+void list_sort_##id(List_##id *this);                                                                        \
+
+
+/**
+ * Generates @c List function definitions for the specified type and ID, including set, sorting, and comparison functions.
+ *
+ * @param  id           ID used in @c gen_list_headers_withAlg .
+ * @param  t            Type used in @c gen_list_headers_withAlg .
  * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the list.
- *                        - If no special copying is required, pass DSDefault_shallowCopy.
- *                        - If the value is a string which should be deep-copied, pass DSDefault_deepCopyStr.
- * @param  deleteValue  Macro of the form (x), which is a complement to `copyValue`; if memory was dynamically allocated in `copyValue`, it should be freed here.
- *                        - If DSDefault_shallowCopy was used in `copyValue`, pass DSDefault_shallowDelete here.
- *                        - If DSDefault_deepCopyStr was used in `copyValue`, pass DSDefault_deepDelete here.
+ *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_list_withalg(id, t, cmp_lt, copyValue, deleteValue)                                              \
-gen_list(id, t, copyValue, deleteValue)                                                                      \
-__gen_alg_set_funcs(id, cmp_lt, List_##id, list_##id, list_new, ListEntry_##id *, iter_next_LIST, iter_deref_LIST, list_push_back, list_insert_fromList_##id(d_new, NULL, first1, last1), list_insert_fromList_##id(d_new, NULL, first2, last2)) \
+#define gen_list_source_withAlg(id, t, cmp_lt, copyValue, deleteValue)                                       \
                                                                                                              \
-__DS_FUNC_PREFIX ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value) {                         \
+gen_list_source(id, t, copyValue, deleteValue)                                                               \
+__gen_alg_set_func_source(id, cmp_lt, List_##id, list_##id, list_new, ListEntry_##id *, iter_next_LIST, iter_deref_LIST, list_push_back, list_insert_fromList_##id(d_new, NULL, first1, last1), list_insert_fromList_##id(d_new, NULL, first2, last2)) \
+                                                                                                             \
+ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value) {                                          \
     ListEntry_##id *curr = this->front, *prev;                                                               \
                                                                                                              \
     if (!curr || ds_cmp_leq(cmp_lt, value, curr->data)) {                                                    \
@@ -733,7 +776,7 @@ __DS_FUNC_PREFIX ListEntry_##id *list_insert_sorted_##id(List_##id *this, t valu
     return this->back;                                                                                       \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_insert_fromArray_sorted_##id(List_##id *this, t *arr, size_t n) {                 \
+void list_insert_fromArray_sorted_##id(List_##id *this, t *arr, unsigned n) {                                \
     t *end;                                                                                                  \
     if (!arr || !n) return;                                                                                  \
     end = &arr[n];                                                                                           \
@@ -742,7 +785,7 @@ __DS_FUNC_PREFIX void list_insert_fromArray_sorted_##id(List_##id *this, t *arr,
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_insert_fromList_sorted_##id(List_##id *this, ListEntry_##id *start, ListEntry_##id *end) { \
+void list_insert_fromList_sorted_##id(List_##id *this, ListEntry_##id *start, ListEntry_##id *end) {         \
     if (!start) return;                                                                                      \
     while (start != end) {                                                                                   \
         list_insert_sorted_##id(this, start->data);                                                          \
@@ -750,15 +793,15 @@ __DS_FUNC_PREFIX void list_insert_fromList_sorted_##id(List_##id *this, ListEntr
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_unique_##id(List_##id *this) {                                                    \
+void list_unique_##id(List_##id *this) {                                                                     \
     __list_elem_removal_body(id, this, ds_cmp_eq(cmp_lt, prev->data, curr->data), this->front->next, this->front, deleteValue) \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_remove_value_##id(List_##id *this, t val) {                                       \
+void list_remove_value_##id(List_##id *this, t val) {                                                        \
     __list_elem_removal_body(id, this, ds_cmp_eq(cmp_lt, val, curr->data), this->front, NULL, deleteValue)   \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX_INL ListEntry_##id *list_find_##id(List_##id *this, t val) {                                \
+ListEntry_##id *list_find_##id(List_##id *this, t val) {                                                     \
     ListEntry_##id *curr = this->front;                                                                      \
     while (curr) {                                                                                           \
         if (ds_cmp_eq(cmp_lt, curr->data, val)) return curr;                                                 \
@@ -767,7 +810,7 @@ __DS_FUNC_PREFIX_INL ListEntry_##id *list_find_##id(List_##id *this, t val) {   
     return NULL;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other) {                                   \
+void list_merge_##id(List_##id *this, List_##id *other) {                                                    \
     ListEntry_##id *first1, *first2, *last1 = NULL, *last2 = NULL;                                           \
     if (!other->front) { /* nothing to merge */                                                              \
         return;                                                                                              \
@@ -808,7 +851,7 @@ __DS_FUNC_PREFIX void list_merge_##id(List_##id *this, List_##id *other) {      
     other->size = 0;                                                                                         \
 }                                                                                                            \
                                                                                                              \
-__DS_FUNC_PREFIX void list_sort_##id(List_##id *this) {                                                      \
+void list_sort_##id(List_##id *this) {                                                                       \
     List_##id *carry, *fill, *counter, tmp[64] = {0};                                                        \
     if (this->front == this->back) {                                                                         \
         return;                                                                                              \

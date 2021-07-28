@@ -5,16 +5,12 @@
 #define customStrCopy(dest, src) do { if (src) { __ds_malloc(dest, strlen(src) + 1); strcpy(dest, src); } } while(0)
 #define customStrDelete(x) do { if (x) free(x); } while(0)
 
-gen_array_headers(str, char *)
-gen_array_alg_headers(str, char *)
-gen_array_headers(int, int)
-gen_array_alg_headers(int, int)
+gen_array_headers_withAlg(str, char *)
+gen_array_headers_withAlg(int, int)
 gen_matrix_headers(str, char *)
 
-gen_array_source(str, char *, customStrCopy, customStrDelete)
-gen_array_alg_source(str, char *, ds_cmp_str_lt, customStrCopy, customStrDelete)
-gen_array_source(int, int, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_array_alg_source(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_array_source_withAlg(str, char *, ds_cmp_str_lt, customStrCopy, customStrDelete)
+gen_array_source_withAlg(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
 gen_matrix_source(str, char *)
 
 int ints[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,

@@ -1,8 +1,11 @@
 #include "list.h"
 #include <assert.h>
+#include <limits.h>
 
-gen_list_withalg(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_list_withalg(str, char *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete)
+gen_list_headers_withAlg(int, int)
+gen_list_headers_withAlg(str, char *)
+gen_list_source_withAlg(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
+gen_list_source_withAlg(str, char *, ds_cmp_str_lt, DSDefault_deepCopyStr, DSDefault_deepDelete)
 
 int testCond(int *val) { return (*val == 0); }
 int strTestCond(char **val) { return streq(*val, "000"); }
@@ -14,8 +17,8 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "150","155","160","165","170","175","180","185","190","195","200","205","210","215","220","225","230",
 "235","240","245"};
 
-void compare_ints(List_int *l, int *comparison, int size) {
-    int i = 0;
+void compare_ints(List_int *l, int *comparison, unsigned size) {
+    unsigned i = 0;
     ListEntry_int *it;
     assert(list_size(l) == size);
     if (size) {
@@ -34,11 +37,11 @@ void compare_ints(List_int *l, int *comparison, int size) {
     list_riter(l, it) {
         assert(it->data == comparison[i--]);
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
-void compare_strs(List_str *l, char **comparison, int size) {
-    int i = 0;
+void compare_strs(List_str *l, char **comparison, unsigned size) {
+    unsigned i = 0;
     ListEntry_str *it;
     assert(list_size(l) == size);
     if (size) {
@@ -57,7 +60,7 @@ void compare_strs(List_str *l, char **comparison, int size) {
     list_riter(l, it) {
         assert(streq(it->data, comparison[i--]));
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
 void test_empty_init(void) {
@@ -178,7 +181,7 @@ void test_push_back(void) {
 }
 
 void test_pop_front(void) {
-    int i = 1, j = 2;
+    unsigned i = 1, j = 2;
     List_int *li = list_new_fromArray(int, ints, 3);
     List_str *ls = list_new_fromArray(str, strs, 3);
     while (!list_empty(li)) {
@@ -199,7 +202,7 @@ void test_pop_front(void) {
 }
 
 void test_pop_back(void) {
-    int i = 2;
+    unsigned i = 2;
     List_int *li = list_new_fromArray(int, ints, 3);
     List_str *ls = list_new_fromArray(str, strs, 3);
     while (!list_empty(li)) {
@@ -222,17 +225,17 @@ void test_pop_back(void) {
 void test_resize(void) {
     int c1[] = {15,15,15,20,20};
     char *c2[] = {"015","015","015","020","020"};
-    int i = 2;
+    unsigned i = 2;
     List_int *li = list_new_fromArray(int, ints, 3);
     List_str *ls = list_new_fromArray(str, strs, 3);
     while (!list_empty(li)) {
-        list_resize(int, li, (size_t) i);
+        list_resize(int, li, i);
         compare_ints(li, ints, i--);
     }
     list_resize(int, li, 0);
     i = 2;
     while (!list_empty(ls)) {
-        list_resize(str, ls, (size_t) i);
+        list_resize(str, ls, i);
         compare_strs(ls, strs, i--);
     }
     list_resize(str, ls, 0);
