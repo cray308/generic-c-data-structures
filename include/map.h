@@ -170,7 +170,11 @@
  */
 #define gen_map_headers(id, kt, vt)                                                                          \
                                                                                                              \
-gen_pair(id, kt, vt)                                                                                         \
+typedef struct {                                                                                             \
+    kt first;                                                                                                \
+    vt second;                                                                                               \
+} Pair_##id;                                                                                                 \
+                                                                                                             \
 __setup_avltree_headers(id, kt, Map_##id, Pair_##id, MapEntry_##id)                                          \
                                                                                                              \
 vt *map_at_##id(Map_##id *this, const kt key);                                                               \

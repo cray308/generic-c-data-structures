@@ -163,7 +163,11 @@
  */
 #define gen_umap_headers(id, kt, vt)                                                                         \
                                                                                                              \
-gen_pair(id, kt, vt)                                                                                         \
+typedef struct {                                                                                             \
+    kt first;                                                                                                \
+    vt second;                                                                                               \
+} Pair_##id;                                                                                                 \
+                                                                                                             \
 __gen_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                                       \
                                                                                                              \
 vt *umap_at_##id(UMap_##id *this, const kt key);                                                             \
