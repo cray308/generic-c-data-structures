@@ -2,7 +2,6 @@
 #define DS_MAP_H
 
 #include "avltree.h"
-#include "pair.h"
 
 #define __map_entry_get_key(e) ((e)->data.first)
 #define __map_data_get_key(d)  ((d).first)

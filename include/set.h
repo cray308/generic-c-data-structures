@@ -2,7 +2,6 @@
 #define SET_H
 
 #include "avltree.h"
-#include "alg_helper.h"
 
 #define __set_entry_get_key(e) ((e)->data)
 #define __set_data_get_key(d)  (d)

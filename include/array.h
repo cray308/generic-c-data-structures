@@ -264,8 +264,7 @@ typedef struct {                                                                
 } Array_##id;                                                                                                \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *this, unsigned i) {                                        \
-    if (i >= this->size) return NULL;                                                                        \
-    return &(this->arr[i]);                                                                                  \
+    return (i < this->size) ? &(this->arr[i]) : NULL;                                                        \
 }                                                                                                            \
                                                                                                              \
 void array_reserve_##id(Array_##id *this, unsigned n);                                                       \
@@ -336,7 +335,7 @@ int array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned 
     unsigned res = this->size;                                                                               \
     if (!n) return ARRAY_ERROR;                                                                              \
     else if (!(append = (index == this->size))) {                                                            \
-        if (index >= this->size) return ARRAY_ERROR;                                                         \
+        if (index > this->size) return ARRAY_ERROR;                                                          \
     }                                                                                                        \
                                                                                                              \
     array_reserve_##id(this, this->size + n);                                                                \
@@ -369,7 +368,7 @@ int array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsign
     unsigned res = this->size;                                                                               \
     if (!(arr && n)) return ARRAY_ERROR;                                                                     \
     else if (!(append = (index == this->size))) {                                                            \
-        if (index >= this->size) return ARRAY_ERROR;                                                         \
+        if (index > this->size) return ARRAY_ERROR;                                                          \
     }                                                                                                        \
                                                                                                              \
     array_reserve_##id(this, this->size + n);                                                                \
@@ -442,101 +441,6 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start, int n, int step_
     return sub;                                                                                              \
 }                                                                                                            \
 
-/* --------------------------------------------------------------------------
- * MATRIX SECTION
- * -------------------------------------------------------------------------- */
-
-/**
- * Pointer to the element at row @c row and column @c col , similar to builtin_array[row][col]. 
- * Performs bounds checking, and if the row or column is out of bounds, returns NULL.
- *
- * @param  row  Matrix row.
- * @param  col  Matrix column.
- */
-#define matrix_at(matid, this, row, col) matrix_at_##matid(this, row, col)
-
-
-/**
- * Direct access to the element at row @c row and column @c col . Does not perform bounds checking.
- *
- * @param  row  Matrix row.
- * @param  col  Matrix column.
- */
-#define matrix_index(this, row, col) ((this)->arr[(row)]->arr[(col)])
-
-
-/**
- * Creates a new matrix of size (@c rows X @c cols ).
- *
- * @param   rows  Number of rows in matrix.
- * @param   cols  Number of columns in matrix.
- *
- * @return        Pointer to newly allocated matrix.
- */
-#define matrix_new(matid, rows, cols) matrix_new_##matid(rows, cols)
-
-
-/**
- * Frees the matrix.
- */
-#define matrix_free(matid, this) do {                                                                        \
-    unsigned _mfidx;                                                                                         \
-    for (_mfidx = 0; _mfidx < (this)->size; ++_mfidx) {                                                      \
-        array_free(matid, ((this)->arr[_mfidx]));                                                            \
-    }                                                                                                        \
-    free((this)->arr);                                                                                       \
-    free(this);                                                                                              \
-} while(0)
-
-
-/**
- * Generates matrix function declarations for the specified type and ID. @c gen_array_headers(id,t) 
- * must have been called prior, because the matrix is an array of @c Array_id .
- *
- * @param  id  ID that was used in the prior call to @c gen_array_headers .
- * @param  t   Type that was used in the prior call to @c gen_array_headers (and thus is the type stored 
- *               in the matrix).
- */
-#define gen_matrix_headers(id, t)                                                                            \
-                                                                                                             \
-gen_array_headers(2d_##id, Array_##id *)                                                                     \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL t* matrix_at_##id(Array_2d_##id *this, unsigned row, unsigned col) {                    \
-    unsigned nCols;                                                                                          \
-    if (row >= this->size) return NULL;                                                                      \
-    nCols = this->arr[row]->size;                                                                            \
-    if (col >= nCols) return NULL;                                                                           \
-    return &(this->arr[row]->arr[col]);                                                                      \
-}                                                                                                            \
-                                                                                                             \
-Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols);                                                \
-
-
-/**
- * Generates matrix function definitions for the specified type and ID. @c gen_array_source(id,t,copyValue,deleteValue) 
- * must have been called prior.
- *
- * @param  id  ID that was used in @c gen_matrix_headers .
- * @param  t   Type that was used in @c gen_matrix_headers .
- */
-#define gen_matrix_source(id, t)                                                                             \
-                                                                                                             \
-gen_array_source(2d_##id, Array_##id *, DSDefault_shallowCopy, DSDefault_shallowDelete)                      \
-                                                                                                             \
-Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                                               \
-    Array_2d_##id *m;                                                                                        \
-    unsigned i;                                                                                              \
-    if (!(rows && cols)) return NULL;                                                                        \
-    __ds_malloc(m, sizeof(Array_2d_##id))                                                                    \
-    __ds_malloc(m->arr, sizeof(Array_##id *) * rows)                                                         \
-    m->size = 0;                                                                                             \
-    m->capacity = rows;                                                                                      \
-    for (i = 0; i < rows; ++i) {                                                                             \
-        Array_##id *row = array_new_repeatingValue_##id(cols, 0);                                            \
-        array_push_back(2d_##id, m, row);                                                                    \
-    }                                                                                                        \
-    return m;                                                                                                \
-}                                                                                                            \
 
 /* --------------------------------------------------------------------------
  * ARRAY ALGORITHM SECTION

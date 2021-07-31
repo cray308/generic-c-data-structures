@@ -1,98 +1,24 @@
 #include "str.h"
 #include <limits.h>
-#include <stdarg.h>
-#include <stdio.h>
 
-#define __str_find_x_of_body(checkCharsAction, afterCheckCharsAction, mainLoop, prevChar)                    \
-    const char *c; char const *end;                                                                          \
-    __ds_adjust_index(pos, this->size, return STRING_ERROR)                                                  \
-    if (!chars) return STRING_ERROR;                                                                         \
-    else if (!(*chars && n)) return (int) pos;                                                               \
-    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];                                                       \
-                                                                                                             \
-    for (c = chars; c != end; ++c) {                                                                         \
-        if (this->s[pos] == *c) {                                                                            \
-            checkCharsAction                                                                                 \
-        }                                                                                                    \
-    }                                                                                                        \
-    afterCheckCharsAction                                                                                    \
-    mainLoop {                                                                                               \
-        if (this->s[pos] == this->s[prevChar]) continue;                                                     \
-        for (c = chars; c != end; ++c) {                                                                     \
-            if (this->s[pos] == *c) {                                                                        \
-                checkCharsAction                                                                             \
-            }                                                                                                \
-        }                                                                                                    \
-        afterCheckCharsAction                                                                                \
-    }                                                                                                        \
-    return STRING_NPOS;
+int *str_gen_prefix_table(char const *needle, int len) {
+    int *table;
+    int i = 1; /* table position */
+    int j = 0; /* needle position */
+    table = malloc(sizeof(int) * (unsigned) len);
+    if (!table) return NULL;
+    table[0] = 0;
 
-#define __str_prefix_table_body(needle, start, len, incr, decr, whileCond) {                                 \
-    const int minIndex = start;                                                                              \
-    int cnd = minIndex; /* needle position */                                                                \
-    int index = cnd incr 1; /* table position */                                                             \
-    __ds_malloc(table, sizeof(int) * (unsigned) len)                                                         \
-    table[cnd] = cnd;                                                                                        \
-                                                                                                             \
-    whileCond {                                                                                              \
-        if (needle[index] == needle[cnd]) { /* matching characters */                                        \
-            table[index] = cnd incr 1;                                                                       \
-            cnd = cnd incr 1;                                                                                \
-            index = index incr 1;                                                                            \
-        } else { /* not a match */                                                                           \
-            if (cnd != minIndex) { /* get previous table index */                                            \
-                cnd = table[cnd decr 1];                                                                     \
-            } else { /* set it to 0 (default) */                                                             \
-                table[index] = minIndex;                                                                     \
-                index = index incr 1;                                                                        \
-            }                                                                                                \
-        }                                                                                                    \
-    }                                                                                                        \
-}
-
-#define __str_find_body(pos, hsLength, hsOffset, incr, decr, iMin, iMax, jMin, jMax, singleCharAction, tableCall, whileFind, result) \
-    int res, len_haystack = hsLength;                                                                        \
-    char *haystack;                                                                                          \
-    __ds_adjust_index(pos, this->size, return STRING_ERROR)                                                  \
-    if (!needle) return STRING_ERROR;                                                                        \
-    else if (!(*needle && len_needle)) return (int) pos;                                                     \
-                                                                                                             \
-    if (len_needle < 0) len_needle = (int) strlen(needle);                                                   \
-                                                                                                             \
-    if (len_needle > len_haystack) return STRING_NPOS;                                                       \
-    if (len_needle == 1) return singleCharAction;                                                            \
-                                                                                                             \
-    haystack = this->s + hsOffset, res = STRING_NPOS;                                                        \
-    {                                                                                                        \
-        int *table;                                                                                          \
-        tableCall                                                                                            \
-        __str_find_main_loop(haystack, needle, incr, decr, iMin, iMax, jMin, jMax, whileFind,                \
-            res = result;                                                                                    \
-            break;                                                                                           \
-        )                                                                                                    \
-        free(table);                                                                                         \
-    }                                                                                                        \
-    return res;
-
-#define __str_find_main_loop(haystack, needle, incr, decr, iMin, iMax, jMin, jMax, cond, onSuccess) {        \
-    const int iEnd = iMax;                                                                                   \
-    int i = iMin, j = jMin;                                                                                  \
-    while (cond) {                                                                                           \
-        if (haystack[i] == needle[j]) {                                                                      \
-            i = i incr 1;                                                                                    \
-            j = j incr 1;                                                                                    \
-        } else {                                                                                             \
-            if (j != jMin) {                                                                                 \
-                j = table[j decr 1];                                                                         \
-            } else {                                                                                         \
-                i = i incr 1;                                                                                \
-            }                                                                                                \
-        }                                                                                                    \
-                                                                                                             \
-        if (j == jMax) {                                                                                     \
-            onSuccess                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
+    while (i < len) {
+        if (needle[i] == needle[j]) { /* matching characters */
+            table[i++] = ++j;
+        } else if (j != 0) { /* get previous table index */
+            j = table[j - 1];
+        } else { /* set it to 0 (default) */
+            table[i++] = 0;
+        }
+    }
+    return table;
 }
 
 void string_reserve(String *this, unsigned n) {
@@ -102,17 +28,15 @@ void string_reserve(String *this, unsigned n) {
 
     val = this->cap;
     while (val < n) val <<= 1;
-    __ds_realloc(tmp, this->s, val)
+    tmp = realloc(this->s, val);
+    if (!tmp) exit(1);
     this->s = tmp;
     this->cap = val;
 }
 
 void string_replace(String *this, unsigned pos, int nToReplace, const char *s, int len) {
     unsigned end, l = (unsigned) len, n = this->size - pos;
-    if (!(s && *s && len)) return;
-    else if (pos != this->size) {
-        __ds_adjust_index(pos, this->size, return)
-    }
+    if (!(s && *s && len) || pos > this->size) return;
 
     if (len < 0) l = (unsigned) strlen(s);
     if (nToReplace >= 0) n = min(n, (unsigned) nToReplace);
@@ -133,8 +57,7 @@ void string_replace(String *this, unsigned pos, int nToReplace, const char *s, i
 
 void string_replace_fromString(String *this, unsigned pos, int nToReplace, const String *other, unsigned subpos, int len) {
     unsigned l = other->size - subpos;
-    __ds_adjust_index(subpos, other->size, return)
-    if (!len) return;
+    if (subpos >= other->size || !len) return;
 
     if (len >= 0) l = min(l, (unsigned) len);
     string_replace(this, pos, nToReplace, &other->s[subpos], (int) l);
@@ -142,10 +65,7 @@ void string_replace_fromString(String *this, unsigned pos, int nToReplace, const
 
 void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, unsigned n, char c) {
     unsigned end, n2r = this->size - pos;
-    if (!n) return;
-    else if (pos != this->size) {
-        __ds_adjust_index(pos, this->size, return)
-    }
+    if (!n || pos > this->size) return;
 
     if (nToReplace >= 0) n2r = min(n2r, (unsigned) nToReplace);
 
@@ -164,9 +84,13 @@ void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, un
 }
 
 String *string_new_fromCStr(const char *s, int n) {
-    String *t;
-    __ds_malloc(t, sizeof(String))
-    __ds_malloc(t->s, 64)
+    String *t = malloc(sizeof(String));
+    if (!t) return NULL;
+    t->s = malloc(64);
+    if (!t->s) {
+        free(t);
+        return NULL;
+    }
     t->size = 0;
     t->cap = 64;
     t->s[0] = 0;
@@ -176,13 +100,13 @@ String *string_new_fromCStr(const char *s, int n) {
 
 String *string_new_fromString(const String *other, unsigned pos, int n) {
     String *s = string_new();
-    string_append_fromString(s, other, pos, n);
+    if (s) string_append_fromString(s, other, pos, n);
     return s;
 }
 
 String *string_new_repeatingChar(unsigned n, char c) {
     String *s = string_new();
-    string_append_repeatingChar(s, n, c);
+    if (s) string_append_repeatingChar(s, n, c);
     return s;
 }
 
@@ -197,12 +121,11 @@ void string_resize_usingChar(String *this, unsigned n, char c) {
 
 void string_erase(String *this, unsigned start, int n) {
     unsigned end, n2d = this->size - start;
-    __ds_adjust_index(start, this->size, return)
-    if (!n) return;
+    if (start >= this->size || !n) return;
 
     if (n >= 0) n2d = min(n2d, (unsigned) n);
 
-    if ((end = start + n2d) < this->size) { /* move any characters after end to start */
+    if ((end = start + n2d) < this->size) {
         memmove(&this->s[start], &this->s[end], this->size - end);
     }
     this->size -= n2d;
@@ -211,45 +134,183 @@ void string_erase(String *this, unsigned start, int n) {
 
 void string_shrink_to_fit(String *this) {
     char *tmp;
-    if (this->size == 0 || this->cap <= 64 || this->size + 1 == this->cap) return;
-    __ds_realloc(tmp, this->s, this->size + 1) /* realloc only enough space for string and '\0' */
+    if (!this->size || this->cap <= 64 || this->size + 1 == this->cap) return;
+    tmp = realloc(this->s, this->size + 1);
+    if (!tmp) return;
     this->cap = this->size + 1;
     this->s = tmp;
 }
 
 int string_find_first_of(String *this, unsigned pos, const char *chars, int n) {
-    __str_find_x_of_body(return (int) pos;, ____cds_do_nothing, for(++pos; pos < this->size; ++pos), pos-1)
+    char const *c, *end;
+    if (pos >= this->size || !chars) return STRING_ERROR;
+    else if (!(*chars && n)) return (int) pos;
+    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+
+    for (c = chars; c != end; ++c) {
+        if (this->s[pos] == *c) return (int) pos;
+    }
+
+    for (++pos; pos < this->size; ++pos) {
+        if (this->s[pos] == this->s[pos-1]) continue;
+        for (c = chars; c != end; ++c) {
+            if (this->s[pos] == *c) return (int) pos;
+        }
+    }
+    return STRING_NPOS;
 }
 
 int string_find_last_of(String *this, unsigned pos, const char *chars, int n) {
-    __str_find_x_of_body(return (int) pos;, ____cds_do_nothing, for(--pos; pos != UINT_MAX; --pos), pos+1)
+    char const *c, *end;
+    if (pos >= this->size || !chars) return STRING_ERROR;
+    else if (!(*chars && n)) return (int) pos;
+    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+
+    for (c = chars; c != end; ++c) {
+        if (this->s[pos] == *c) return (int) pos;
+    }
+
+    for (--pos; pos != UINT_MAX; --pos) {
+        if (this->s[pos] == this->s[pos + 1]) continue;
+        for (c = chars; c != end; ++c) {
+            if (this->s[pos] == *c) return (int) pos;
+        }
+    }
+    return STRING_NPOS;
 }
 
 int string_find_first_not_of(String *this, unsigned pos, const char *chars, int n) {
-    __str_find_x_of_body(break;, if (c == end) return (int) pos;, for(++pos; pos < this->size; ++pos), pos-1)
+    char const *c, *end;
+    if (pos >= this->size || !chars) return STRING_ERROR;
+    else if (!(*chars && n)) return (int) pos;
+    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+
+    for (c = chars; c != end; ++c) {
+        if (this->s[pos] == *c) break;
+    }
+    if (c == end) return (int) pos;
+    for (++pos; pos < this->size; ++pos) {
+        if (this->s[pos] == this->s[pos-1]) continue;
+        for (c = chars; c != end; ++c) {
+            if (this->s[pos] == *c) break;
+        }
+        if (c == end) return (int) pos;
+    }
+    return STRING_NPOS;
 }
 
 int string_find_last_not_of(String *this, unsigned pos, const char *chars, int n) {
-    __str_find_x_of_body(break;, if (c == end) return (int) pos;, for(--pos; pos != UINT_MAX; --pos), pos+1)
+    char const *c, *end;
+    if (pos >= this->size || !chars) return STRING_ERROR;
+    else if (!(*chars && n)) return (int) pos;
+    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+
+    for (c = chars; c != end; ++c) {
+        if (this->s[pos] == *c) break;
+    }
+    if (c == end) return (int) pos;
+    for (--pos; pos != UINT_MAX; --pos) {
+        if (this->s[pos] == this->s[pos+1]) continue;
+        for (c = chars; c != end; ++c) {
+            if (this->s[pos] == *c) break;
+        }
+        if (c == end) return (int) pos;
+    }
+    return STRING_NPOS;
 }
 
 int string_find(String *this, unsigned start_pos, const char *needle, int len_needle) {
-    __str_find_body(start_pos, (int)(this->size - start_pos), start_pos, +, -, 0, len_haystack, 0, len_needle, string_find_first_of(this, start_pos, needle, 1), __str_prefix_table_body(needle, 0, len_needle, +, -, while(index < len_needle)), i < iEnd, (int)start_pos + (i - j))
+    const int len_haystack = (int) (this->size - start_pos);
+    int res = STRING_NPOS, i = 0, j = 0;
+    int *table;
+    char *haystack;
+    if (start_pos >= this->size || !needle) return STRING_ERROR;
+    else if (!(*needle && len_needle)) return (int) start_pos;
+
+    if (len_needle < 0) len_needle = (int) strlen(needle);
+
+    if (len_needle > len_haystack) return STRING_NPOS;
+    else if (len_needle == 1) return string_find_first_of(this, start_pos, needle, 1);
+
+    haystack = this->s + start_pos;
+    table = str_gen_prefix_table(needle, len_needle);
+    if (!table) return STRING_ERROR;
+
+    while (i < len_haystack) {
+        if (haystack[i] == needle[j]) {
+            ++i;
+            ++j;
+        } else if (j != 0) {
+            j = table[j - 1];
+        } else {
+            ++i;
+        }
+
+        if (j == len_needle) {
+            res = (int) start_pos + (i - j);
+            break;
+        }
+    }
+    free(table);
+    return res;
 }
 
 int string_rfind(String *this, unsigned end_pos, const char *needle, int len_needle) {
-    __str_find_body(end_pos, (int)(end_pos + 1), 0, -, +, (int)end_pos, -1, len_needle - 1, -1, string_find_last_of(this, end_pos, needle, 1), __str_prefix_table_body(needle, (len_needle-1), len_needle, -, +, while(index > -1)), i > iEnd, i + 1)
+    int res = STRING_NPOS, i, j, minIndex;
+    int *table;
+    char *haystack = this->s;
+    if (end_pos >= this->size || !needle) return STRING_ERROR;
+    else if (!(*needle && len_needle)) return (int) end_pos;
+
+    if (len_needle < 0) len_needle = (int) strlen(needle);
+
+    if (len_needle > (int) end_pos + 1) return STRING_NPOS;
+    else if (len_needle == 1) return string_find_last_of(this, end_pos, needle, 1);
+
+    minIndex = len_needle - 1, j = minIndex, i = j - 1;
+    table = malloc(sizeof(int) * (unsigned) len_needle);
+    if (!table) return STRING_ERROR;
+    table[minIndex] = minIndex;
+
+    while (i > -1) {
+        if (needle[i] == needle[j]) {
+            table[i--] = --j;
+        } else if (j != minIndex) {
+            j = table[j + 1];
+        } else {
+            table[i--] = minIndex;
+        }
+    }
+    
+    i = (int) end_pos, j = len_needle - 1;
+    while (i > -1) {
+        if (haystack[i] == needle[j]) {
+            --i;
+            --j;
+        } else if (j != minIndex) {
+            j = table[j + 1];
+        } else {
+            --i;
+        }
+
+        if (j == -1) {
+            res = i + 1;
+            break;
+        }
+    }
+    free(table);
+    return res;
 }
 
 String *string_substr(String *this, unsigned start, int n, int step_size) {
     String *sub;
     int i = (int) start;
-    __ds_adjust_index(start, this->size, return NULL)
-    if (!n) return NULL;
+    if (start >= this->size || !n) return NULL;
 
     if (!step_size) step_size = 1;
 
     sub = string_new();
+    if (!sub) return NULL;
 
     if (step_size < 0) {
         int end = (n < 0) ? -1 : max(-1, i + (n * step_size));
@@ -257,8 +318,7 @@ String *string_substr(String *this, unsigned start, int n, int step_size) {
             string_push_back(sub, this->s[i]);
         }
     } else {
-        int size = (int) this->size;
-        int end = (n < 0) ? size : min(size, i + (n * step_size));
+        int end = (n < 0) ? (int) this->size : min((int) this->size, i + (n * step_size));
         for (; i < end; i += step_size) {
             string_push_back(sub, this->s[i]);
         }
@@ -267,83 +327,134 @@ String *string_substr(String *this, unsigned start, int n, int step_size) {
 }
 
 String **string_split(String *this, const char *delim) {
-    int len_delim, end, *positions, start = 0;
-    unsigned arrIdx = 0, arrLen = 0;
-    String **arr, *substring = NULL;
+    const int iEnd = (int) this->size;
+    int len_delim, i = 0, j = 0;
+    unsigned arrIdx = 0, arrLen = 8;
+    int *positions, *table;
+    char *haystack = this->s;
+    String **arr;
+    String *substring = NULL;
     if (!(delim && *delim && this->size)) return NULL;
 
     len_delim = (int) strlen(delim);
-    __ds_calloc(positions, 8, sizeof(int))
+    positions = calloc(8, sizeof(int));
+    if (!positions) return NULL;
 
-    {
-        unsigned pos_size = 8;
-        int *table;
-        __str_prefix_table_body(delim, 0, len_delim, +, -, while(index < len_delim))
-
-        __str_find_main_loop(this->s, delim, +, -, 0, (int) this->size, 0, len_delim, i < iEnd,              \
-            if (arrIdx == pos_size) {                                                                         \
-                int *temp;                                                                                   \
-                pos_size <<= 1;                                                                              \
-                __ds_realloc(temp, positions, pos_size * sizeof(int))                               \
-                positions = temp;                                                                            \
-                memset(&positions[arrIdx + 1], 0, (pos_size - arrIdx + 1) * sizeof(int));              \
-            }                                                                                                \
-            positions[arrIdx++] = (i - j);                                                                    \
-            j = table[j - 1];                                                                                \
-        )
-        if (arrIdx == pos_size) {
-            int *temp;
-            __ds_realloc(temp, positions, (pos_size + 1) * sizeof(int))
-            positions = temp;
-        }
-        positions[arrIdx++] = -1;
-        arrLen = arrIdx;
-        free(table);
+    table = str_gen_prefix_table(delim, len_delim);
+    if (!table) {
+        free(positions);
+        return NULL;
     }
 
-    __ds_malloc(arr, (arrLen + 1) * sizeof(String *))
-    arrIdx = 0, end = positions[0];
+    while (i < iEnd) {
+        if (haystack[i] == delim[j]) {
+            ++i;
+            ++j;
+        } else if (j != 0) {
+            j = table[j - 1];
+        } else {
+            ++i;
+        }
 
-    while (end != -1) {
+        if (j == len_delim) {
+            if (arrIdx == arrLen) {
+                int *temp;
+                arrLen <<= 1;
+                temp = realloc(positions, arrLen * sizeof(int));
+                if (!temp) {
+                    free(positions);
+                    free(table);
+                    return NULL;
+                }
+                positions = temp;
+                memset(&positions[arrIdx + 1], 0, (arrLen - arrIdx + 1) * sizeof(int));
+            }
+            positions[arrIdx++] = i - j;
+            j = table[j - 1];
+        }
+    }
+
+    if (arrIdx == arrLen) {
+        int *temp;
+        temp = realloc(positions, (arrLen + 1) * sizeof(int));
+        if (!temp) {
+            free(positions);
+            free(table);
+            return NULL;
+        }
+        positions = temp;
+    }
+    positions[arrIdx++] = -1;
+    arrLen = arrIdx;
+
+    arr = malloc((arrLen + 1) * sizeof(String *));
+    if (!arr) {
+        free(positions);
+        free(table);
+        return NULL;
+    }
+
+    arrIdx = 0, i = 0, j = positions[0];
+
+    while (j != -1) {
         substring = string_new();
-        string_insert(substring, 0, &this->s[start], end - start);
+        if (!substring) {
+            free(positions);
+            free(table);
+            return NULL;
+        }
+        string_insert(substring, 0, &haystack[i], j - i);
         arr[arrIdx++] = substring;
-        start = end + len_delim;
-        end = positions[arrIdx];
+        i = j + len_delim;
+        j = positions[arrIdx];
     }
 
     substring = string_new();
-    string_insert(substring, 0, &this->s[start], (int) this->size - start);
+    if (!substring) {
+        free(positions);
+        free(table);
+        return NULL;
+    }
+    string_insert(substring, 0, &haystack[i], iEnd - i);
     arr[arrIdx++] = substring;
     arr[arrLen] = NULL;
     free(positions);
+    free(table);
     return arr;
 }
 
 #if __STDC_VERSION__ >= 199901L
-char *__string_read_format(int *n, const char *format, va_list args) {
+#include <stdarg.h>
+#include <stdio.h>
+
+char *str_read_format(int *n, const char *format, va_list args) {
     va_list localArgs;
-    int _n = 0;
-    unsigned buf_size = 256;
-    char *buf, *temp;
-    __ds_malloc(buf, buf_size)
+    int _n = 0, buf_size = 256;
+    char *temp;
+    char *buf = malloc(256);
+    if (!buf) return NULL;
+
     va_copy(localArgs, args);
 
-    _n = vsnprintf(buf, buf_size, format, args);
+    _n = vsnprintf(buf, 256, format, args);
     if (_n < 0) {
         free(buf);
         return NULL;
-    }
-    else if ((unsigned) _n < buf_size) {
+    } else if (_n < buf_size) {
         *n = _n;
         return buf;
     }
-    buf_size = (unsigned) _n + 1; /* buffer was too small */
-    __ds_realloc(temp, buf, buf_size)
+
+    buf_size = _n + 1;
+    temp = realloc(buf, (size_t) buf_size);
+    if (!temp) {
+        free(buf);
+        return NULL;
+    }
     buf = temp;
 
-    _n = vsnprintf(buf, buf_size, format, localArgs);
-    if (_n < 0 || (unsigned) _n >= buf_size) {
+    _n = vsnprintf(buf, (size_t) buf_size, format, localArgs);
+    if (_n < 0 || _n >= buf_size) {
         free(buf);
         return NULL;
     }
@@ -356,7 +467,7 @@ void string_replace_withFormat(String *this, unsigned pos, int nToReplace, const
     int n = 0;
     char *result;
     va_start(args, format);
-    result = __string_read_format(&n, format, args);
+    result = str_read_format(&n, format, args);
     va_end(args);
     if (!result) return;
     string_replace(this, pos, nToReplace, result, n);
@@ -364,12 +475,13 @@ void string_replace_withFormat(String *this, unsigned pos, int nToReplace, const
 }
 
 String *string_new_withFormat(const char *format, ...) {
-    String *s = string_new();
     va_list args;
     int n = 0;
     char *result;
+    String *s = string_new();
+    if (!s) return NULL;
     va_start(args, format);
-    result = __string_read_format(&n, format, args);
+    result = str_read_format(&n, format, args);
     va_end(args);
     if (!result) return s;
     string_append(s, result, n);

@@ -14,10 +14,6 @@ typedef struct {
 #define STRING_NPOS (-1)
 #define STRING_ERROR (-2)
 
-#define __str_test_chars_body(f) const char *c; if (!*s) return 0; for(c = s; *c; ++c) { if (!f(*c)) return 0; } return 1;
-
-#define __str_convert_case_body(f) char *c; for(c = s; *c; ++c) { *c = (char) f(*c); }
-
 
 /**
  * The c-string representation of the provided String.
@@ -57,8 +53,7 @@ typedef struct {
  * @param  i  Index in string.
  */
 __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
-    __ds_adjust_index(i, this->size, return NULL)
-    return &(this->s[i]);
+    return (i < this->size) ? &(this->s[i]) : NULL;
 }
 
 
@@ -447,7 +442,12 @@ String **string_split(String *this, const char *delim);
  * @return     Whether or not all characters in @c s are alphanumeric.
  */
 __DS_FUNC_PREFIX_INL unsigned char isAlphaNum(const char *s) {
-    __str_test_chars_body(isalnum)
+    const char *c;
+    if (!*s) return 0;
+    for (c = s; *c; ++c) {
+        if (!isalnum(*c)) return 0;
+    }
+    return 1;
 }
 
 
@@ -457,7 +457,12 @@ __DS_FUNC_PREFIX_INL unsigned char isAlphaNum(const char *s) {
  * @return     Whether or not all characters in @c s are letters.
  */
 __DS_FUNC_PREFIX_INL unsigned char isAlpha(const char *s) {
-    __str_test_chars_body(isalpha)
+    const char *c;
+    if (!*s) return 0;
+    for (c = s; *c; ++c) {
+        if (!isalpha(*c)) return 0;
+    }
+    return 1;
 }
 
 
@@ -467,7 +472,12 @@ __DS_FUNC_PREFIX_INL unsigned char isAlpha(const char *s) {
  * @return     Whether or not all characters in @c s are digits.
  */
 __DS_FUNC_PREFIX_INL unsigned char isDigit(const char *s) {
-    __str_test_chars_body(isdigit)
+    const char *c;
+    if (!*s) return 0;
+    for (c = s; *c; ++c) {
+        if (!isdigit(*c)) return 0;
+    }
+    return 1;
 }
 
 
@@ -477,7 +487,8 @@ __DS_FUNC_PREFIX_INL unsigned char isDigit(const char *s) {
  * @param  s  C-string.
  */
 __DS_FUNC_PREFIX_INL void toLowercase(char *s) {
-    __str_convert_case_body(tolower)
+    char *c;
+    for (c = s; *c; ++c) *c = (char) tolower(*c);
 }
 
 
@@ -487,7 +498,8 @@ __DS_FUNC_PREFIX_INL void toLowercase(char *s) {
  * @param  s  C-string.
  */
 __DS_FUNC_PREFIX_INL void toUppercase(char *s) {
-    __str_convert_case_body(toupper)
+    char *c;
+    for (c = s; *c; ++c) *c = (char) toupper(*c);
 }
 
 

@@ -2,16 +2,13 @@
 #include <assert.h>
 #include <limits.h>
 
-#define customStrCopy(dest, src) do { if (src) { __ds_malloc(dest, strlen(src) + 1); strcpy(dest, src); } } while(0)
+#define customStrCopy(dest, src) do { if (src) { dest = malloc(strlen(src) + 1); strcpy(dest, src); } } while(0)
 #define customStrDelete(x) do { if (x) free(x); } while(0)
 
 gen_array_headers_withAlg(str, char *)
 gen_array_headers_withAlg(int, int)
-gen_matrix_headers(str, char *)
-
 gen_array_source_withAlg(str, char *, ds_cmp_str_lt, customStrCopy, customStrDelete)
 gen_array_source_withAlg(int, int, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)
-gen_matrix_source(str, char *)
 
 int ints[] = {0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,
 130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,205,210,215,220,225,230,235,240,245};
@@ -378,30 +375,6 @@ void test_subarr(void) {
     array_free(str, as1);
 }
 
-void test_2d(void) {
-    Array_str **arrptr;
-    unsigned i;
-    Array_2d_str *arr2d = matrix_new(str, 5, 10);
-    for (i = 0; i < 5; ++i) {
-        unsigned j;
-        for (j = 0; j < 10; ++j) {
-            char **ptr = matrix_at(str, arr2d, i, j);
-            DSDefault_deepCopyStr(*ptr, strs[(i * 10) + j]);
-        }
-    }
-    i = 0;
-    array_iter(arr2d, arrptr) {
-        compare_strs(*arrptr, &strs[i * 10], 10); ++i;
-    }
-    assert(i == 5);
-    i = 4;
-    array_riter(arr2d, arrptr) {
-        compare_strs(*arrptr, &strs[i * 10], 10); --i;
-    }
-    assert(i == UINT_MAX);
-    matrix_free(str, arr2d);
-}
-
 void test_find(void) {
     Array_int *ai = array_new_fromArray(int, ints, 10);
     Array_str *as = array_new_fromArray(str, strs, 10);
@@ -601,7 +574,6 @@ int main(void) {
     test_remove_element();
     test_erase_elements();
     test_subarr();
-    test_2d();
     test_find();
     test_merge();
     test_sort();
