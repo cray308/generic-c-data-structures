@@ -352,62 +352,6 @@ void test_insert_fromList(void) {
     list_free(str, from2);
 }
 
-void test_insert_sorted_element(void) {
-    List_int *li = list_new(int);
-    List_str *ls = list_new(str);
-
-    assert(list_insert_sorted(int, li, 10)->data == 10);
-    assert(streq(list_insert_sorted(str, ls, "010")->data, "010"));
-    assert(list_insert_sorted(int, li, 0)->data == 0);
-    assert(streq(list_insert_sorted(str, ls, "000")->data, "000"));
-    assert(list_insert_sorted(int, li, 5)->data == 5);
-    assert(streq(list_insert_sorted(str, ls, "005")->data, "005"));
-    assert(list_insert_sorted(int, li, 15)->data == 15);
-    assert(streq(list_insert_sorted(str, ls, "015")->data, "015"));
-    compare_ints(li, ints, 4);
-    compare_strs(ls, strs, 4);
-    list_free(str, ls);
-    list_free(int, li);
-}
-
-void test_insert_sorted_fromArray(void) {
-    int randInts[] = {10, 0, 5, 15};
-    char *randStrs[] = {"010", "000", "005", "015"};
-    List_int *li = list_new(int);
-    List_str *ls = list_new(str);
-
-    list_insert_fromArray_sorted(int, li, NULL, 4);
-    compare_ints(li, ints, 0);
-    list_insert_fromArray_sorted(int, li, randInts, 0);
-    compare_ints(li, ints, 0);
-    list_insert_fromArray_sorted(int, li, randInts, 4);
-    list_insert_fromArray_sorted(str, ls, randStrs, 4);
-    compare_ints(li, ints, 4);
-    compare_strs(ls, strs, 4);
-    list_free(str, ls);
-    list_free(int, li);
-}
-
-void test_insert_sorted_fromList(void) {
-    int randInts[] = {10, 0, 5, 15};
-    char *randStrs[] = {"010", "000", "005", "015"};
-    List_int *li = list_new(int), *from1 = list_new_fromArray(int, randInts, 4);
-    List_str *ls = list_new(str), *from2 = list_new_fromArray(str, randStrs, 4);
-
-    list_insert_fromList_sorted(int, li, NULL, NULL);
-    compare_ints(li, ints, 0);
-    list_insert_fromList_sorted(int, li, from1->front, from1->front);
-    compare_ints(li, ints, 0);
-    list_insert_fromList_sorted(int, li, from1->front, NULL);
-    list_insert_fromList_sorted(str, ls, from2->front, NULL);
-    compare_ints(li, ints, 4);
-    compare_strs(ls, strs, 4);
-    list_free(str, from2);
-    list_free(int, from1);
-    list_free(str, ls);
-    list_free(int, li);
-}
-
 void test_remove_element(void) {
     int c1[] = {5,15};
     char *c2[] = {"005","015"};
@@ -811,9 +755,6 @@ int main(void) {
     test_insert_repeatedValue();
     test_insert_fromArray();
     test_insert_fromList();
-    test_insert_sorted_element();
-    test_insert_sorted_fromArray();
-    test_insert_sorted_fromList();
     test_remove_element();
     test_erase_elements();
     test_splice_all();

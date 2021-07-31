@@ -1,93 +1,10 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include "ds.h"
 #include "iterator.h"
-#include "alg_helper.h"
 
 #define LIST_END ((void*)-1)
-
-#define __list_swap(id, x, y) {                                                                              \
-    register ListEntry_##id *ltemp_front = (x)->front, *ltemp_back = (x)->back;                              \
-    register unsigned ltemp_size = (x)->size;                                                                \
-    (x)->front = (y)->front;                                                                                 \
-    (x)->back = (y)->back;                                                                                   \
-    (x)->size = (y)->size;                                                                                   \
-    (y)->front = ltemp_front;                                                                                \
-    (y)->back = ltemp_back;                                                                                  \
-    (y)->size = ltemp_size;                                                                                  \
-}
-
-#define __list_elem_removal_body(id, this, condition, currStart, prevStart, deleteValue)                     \
-    ListEntry_##id *curr, *prev, *next;                                                                      \
-    if (!(this)->front) return;                                                                              \
-                                                                                                             \
-    curr = currStart, prev = prevStart;                                                                      \
-                                                                                                             \
-    while (curr) {                                                                                           \
-        next = curr->next;                                                                                   \
-        if (condition) {                                                                                     \
-            if (prev) {                                                                                      \
-                prev->next = next;                                                                           \
-            } else {                                                                                         \
-                (this)->front = next;                                                                        \
-            }                                                                                                \
-                                                                                                             \
-            if (next) {                                                                                      \
-                next->prev = prev;                                                                           \
-            } else {                                                                                         \
-                (this)->back = prev;                                                                         \
-            }                                                                                                \
-                                                                                                             \
-            deleteValue((curr->data));                                                                       \
-            free(curr);                                                                                      \
-            (this)->size--;                                                                                  \
-            curr = next;                                                                                     \
-        } else {                                                                                             \
-            prev = curr;                                                                                     \
-            curr = curr->next;                                                                               \
-        }                                                                                                    \
-    }                                                                                                        \
-    (this)->back = prev;                                                                                     \
-
-#define __list_iterable_insert_body(id, this, pos, start, end, decls, earlyReturn, assignment, iter_next, getData, copyValue) \
-    decls                                                                                                    \
-    ListEntry_##id *prev = (pos) ? (pos)->prev : NULL;                                                       \
-    ListEntry_##id *first, *last, *curr;                                                                     \
-    unsigned count = 1;                                                                                      \
-    earlyReturn                                                                                              \
-    assignment                                                                                               \
-    __ds_calloc(first, 1, sizeof(ListEntry_##id))                                                            \
-    last = first;                                                                                            \
-    copyValue((first->data), (getData(start)));                                                              \
-    iter_next(id, start);                                                                                    \
-    while ((start) != (end)) {                                                                               \
-        __ds_calloc(curr, 1, sizeof(ListEntry_##id))                                                         \
-        copyValue((curr->data), (getData(start)));                                                           \
-        curr->prev = last;                                                                                   \
-        last->next = curr;                                                                                   \
-        last = curr;                                                                                         \
-        iter_next(id, start);                                                                                \
-        ++count;                                                                                             \
-    }                                                                                                        \
-                                                                                                             \
-    first->prev = prev;                                                                                      \
-    last->next = pos;                                                                                        \
-    if (prev) {                                                                                              \
-        prev->next = first;                                                                                  \
-    } else if ((pos) == (this)->front) {                                                                     \
-        (this)->front = first;                                                                               \
-    }                                                                                                        \
-    if (pos) {                                                                                               \
-        (pos)->prev = last;                                                                                  \
-    } else {                                                                                                 \
-        if ((this)->back) {                                                                                  \
-            (this)->back->next = first;                                                                      \
-            first->prev = (this)->back;                                                                      \
-        }                                                                                                    \
-        (this)->back = last;                                                                                 \
-    }                                                                                                        \
-    (this)->size += count;                                                                                   \
-    return first;                                                                                            \
 
 /* --------------------------------------------------------------------------
  * PRIMARY LIST SECTION
@@ -417,8 +334,9 @@ ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id 
     unsigned i;                                                                                              \
     if (!n) return NULL;                                                                                     \
     for (i = 0; i < n; ++i) {                                                                                \
-        ListEntry_##id *prev, *new;                                                                          \
-        __ds_calloc(new, 1, sizeof(ListEntry_##id))                                                          \
+        ListEntry_##id *prev;                                                                                \
+        ListEntry_##id *new = calloc(1, sizeof(ListEntry_##id));                                             \
+        if (!new) return NULL;                                                                               \
         copyValue((new->data), (value));                                                                     \
         if (!pos) {                                                                                          \
             if (!(this->front)) {                                                                            \
@@ -449,29 +367,118 @@ ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id 
 }                                                                                                            \
                                                                                                              \
 ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos, t *arr, unsigned n) {       \
-    __list_iterable_insert_body(id, this, pos, arr, end, t *end;, if (!arr || !n) return NULL;, end = &arr[n];, iter_next_ARR, iter_deref_ARR, copyValue) \
+    t* end;                                                                                                  \
+    ListEntry_##id *prev = pos ? pos->prev : NULL;                                                           \
+    ListEntry_##id *first, *last, *curr;                                                                     \
+    unsigned count = 1;                                                                                      \
+    if (!(arr && n)) return NULL;                                                                            \
+    end = &arr[n];                                                                                           \
+    first = calloc(1, sizeof(ListEntry_##id));                                                               \
+    if (!first) return NULL;                                                                                 \
+    last = first;                                                                                            \
+    copyValue((first->data), (*arr));                                                                        \
+    for (++arr; arr != end; ++arr) {                                                                         \
+        curr = calloc(1, sizeof(ListEntry_##id));                                                            \
+        if (!curr) {                                                                                         \
+            ListEntry_##id *n = first->next;                                                                 \
+            while (first) {                                                                                  \
+                n = first->next;                                                                             \
+                deleteValue((first->data));                                                                  \
+                free(first);                                                                                 \
+                first = n;                                                                                   \
+            }                                                                                                \
+            return NULL;                                                                                     \
+        }                                                                                                    \
+        copyValue((curr->data), (*arr));                                                                     \
+        curr->prev = last;                                                                                   \
+        last->next = curr;                                                                                   \
+        last = curr;                                                                                         \
+        ++count;                                                                                             \
+    }                                                                                                        \
+                                                                                                             \
+    first->prev = prev;                                                                                      \
+    last->next = pos;                                                                                        \
+    if (prev) {                                                                                              \
+        prev->next = first;                                                                                  \
+    } else if (pos == this->front) {                                                                         \
+        this->front = first;                                                                                 \
+    }                                                                                                        \
+    if (pos) {                                                                                               \
+        pos->prev = last;                                                                                    \
+    } else {                                                                                                 \
+        if (this->back) {                                                                                    \
+            this->back->next = first;                                                                        \
+            first->prev = this->back;                                                                        \
+        }                                                                                                    \
+        this->back = last;                                                                                   \
+    }                                                                                                        \
+    this->size += count;                                                                                     \
+    return first;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 ListEntry_##id *list_insert_fromList_##id(List_##id *this, ListEntry_##id *pos, ListEntry_##id *start, ListEntry_##id *end) { \
-    __list_iterable_insert_body(id, this, pos, start, end, ____cds_do_nothing, if (!start || start == end) return NULL;, ____cds_do_nothing, iter_next_LIST, iter_deref_LIST, copyValue) \
+    ListEntry_##id *prev = pos ? pos->prev : NULL;                                                           \
+    ListEntry_##id *first, *last, *curr;                                                                     \
+    unsigned count = 1;                                                                                      \
+    if (!start || start == end) return NULL;                                                                 \
+    first = calloc(1, sizeof(ListEntry_##id));                                                               \
+    if (!first) return NULL;                                                                                 \
+    last = first;                                                                                            \
+    copyValue((first->data), (start->data));                                                                 \
+    for (start = start->next; start != end; start = start->next) {                                           \
+        curr = calloc(1, sizeof(ListEntry_##id));                                                            \
+        if (!curr) {                                                                                         \
+            ListEntry_##id *n = first->next;                                                                 \
+            while (first) {                                                                                  \
+                n = first->next;                                                                             \
+                deleteValue((first->data));                                                                  \
+                free(first);                                                                                 \
+                first = n;                                                                                   \
+            }                                                                                                \
+            return NULL;                                                                                     \
+        }                                                                                                    \
+        copyValue((curr->data), (start->data));                                                              \
+        curr->prev = last;                                                                                   \
+        last->next = curr;                                                                                   \
+        last = curr;                                                                                         \
+        ++count;                                                                                             \
+    }                                                                                                        \
+                                                                                                             \
+    first->prev = prev;                                                                                      \
+    last->next = pos;                                                                                        \
+    if (prev) {                                                                                              \
+        prev->next = first;                                                                                  \
+    } else if (pos == this->front) {                                                                         \
+        this->front = first;                                                                                 \
+    }                                                                                                        \
+    if (pos) {                                                                                               \
+        pos->prev = last;                                                                                    \
+    } else {                                                                                                 \
+        if (this->back) {                                                                                    \
+            this->back->next = first;                                                                        \
+            first->prev = this->back;                                                                        \
+        }                                                                                                    \
+        this->back = last;                                                                                   \
+    }                                                                                                        \
+    this->size += count;                                                                                     \
+    return first;                                                                                            \
 }                                                                                                            \
                                                                                                              \
 List_##id *list_new_fromArray_##id(t *arr, unsigned size) {                                                  \
-    List_##id *l;                                                                                            \
-    __ds_calloc(l, 1, sizeof(List_##id))                                                                     \
-    list_insert_fromArray_##id(l, NULL, arr, size);                                                          \
+    List_##id *l = calloc(1, sizeof(List_##id));                                                             \
+    if (l) list_insert_fromArray_##id(l, NULL, arr, size);                                                   \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 List_##id *list_new_repeatingValue_##id(unsigned n, t value) {                                               \
     List_##id *l = list_new(id);                                                                             \
-    list_insert_repeatingValue_##id(l, NULL, n, value);                                                      \
+    if (l) list_insert_repeatingValue_##id(l, NULL, n, value);                                               \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 List_##id *list_createCopy_##id(List_##id *other) {                                                          \
     List_##id *l = list_new(id);                                                                             \
-    list_insert_fromList_##id(l, NULL, other->front, NULL);                                                  \
+    if (l) list_insert_fromList_##id(l, NULL, other->front, NULL);                                           \
     return l;                                                                                                \
 }                                                                                                            \
                                                                                                              \
@@ -509,8 +516,10 @@ void list_resize_usingValue_##id(List_##id *this, unsigned n, t value) {        
     if (n == this->size) return;                                                                             \
     else if (n < this->size) {                                                                               \
         ListEntry_##id *first = this->front;                                                                 \
-        const int toAdvance = (int) n;                                                                       \
-        iter_advance_LIST(id, first, toAdvance);                                                             \
+        unsigned i;                                                                                          \
+        for (i = 0; i < n; ++i) {                                                                            \
+            first = first->next;                                                                             \
+        }                                                                                                    \
         list_erase_##id(this, first, NULL);                                                                  \
         return;                                                                                              \
     }                                                                                                        \
@@ -533,7 +542,35 @@ void list_reverse_##id(List_##id *this) {                                       
 }                                                                                                            \
                                                                                                              \
 void list_remove_if_##id(List_##id *this, int (*cond)(t*)) {                                                 \
-    __list_elem_removal_body(id, this, cond(&(curr->data)), this->front, NULL, deleteValue)                  \
+    ListEntry_##id *curr, *prev = NULL, *next;                                                               \
+    if (!this->front) return;                                                                                \
+    curr = this->front;                                                                                      \
+                                                                                                             \
+    while (curr) {                                                                                           \
+        next = curr->next;                                                                                   \
+        if (cond(&(curr->data))) {                                                                           \
+            if (prev) {                                                                                      \
+                prev->next = next;                                                                           \
+            } else {                                                                                         \
+                this->front = next;                                                                          \
+            }                                                                                                \
+                                                                                                             \
+            if (next) {                                                                                      \
+                next->prev = prev;                                                                           \
+            } else {                                                                                         \
+                this->back = prev;                                                                           \
+            }                                                                                                \
+                                                                                                             \
+            deleteValue((curr->data));                                                                       \
+            free(curr);                                                                                      \
+            this->size--;                                                                                    \
+            curr = next;                                                                                     \
+        } else {                                                                                             \
+            prev = curr;                                                                                     \
+            curr = curr->next;                                                                               \
+        }                                                                                                    \
+    }                                                                                                        \
+    this->back = prev;                                                                                       \
 }                                                                                                            \
                                                                                                              \
 void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last) { \
@@ -587,34 +624,6 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
 /* --------------------------------------------------------------------------
  * LIST ALGORITHM/COMPARISONS SECTION
  * -------------------------------------------------------------------------- */
-
-/**
- * Inserts @c value in sorted order.
- *
- * @param   value  Value to insert.
- *
- * @return         @c ListEntry corresponding to the inserted element.
- */
-#define list_insert_sorted(id, this, value) list_insert_sorted_##id(this, value)
-
-
-/**
- * Inserts @c n elements from the built-in array @c arr in sorted order.
- *
- * @param  arr  Pointer to the first element to insert.
- * @param  n    Number of elements to include.
- */
-#define list_insert_fromArray_sorted(id, this, arr, n) list_insert_fromArray_sorted_##id(this, arr, n)
-
-
-/**
- * Inserts elements from another @c List in the range [@c start , @c end ) into this list in sorted order.
- *
- * @param  start  First @c ListEntry to insert. Must not be NULL.
- * @param  end    @c ListEntry after the last entry to insert. If this is NULL, all elements from
- *                  @c start through the end of the other list will be inserted.
- */
-#define list_insert_fromList_sorted(id, this, start, end) list_insert_fromList_sorted_##id(this, start, end)
 
 
 /**
@@ -733,9 +742,6 @@ List_##id *list_intersection_##id(ListEntry_##id *first1, ListEntry_##id *last1,
 List_##id *list_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
 List_##id *list_symmetric_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
 unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
-ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value);                                           \
-void list_insert_fromArray_sorted_##id(List_##id *this, t *arr, unsigned n);                                 \
-void list_insert_fromList_sorted_##id(List_##id *this, ListEntry_##id *start, ListEntry_##id *end);          \
 void list_unique_##id(List_##id *this);                                                                      \
 void list_remove_value_##id(List_##id *this, t val);                                                         \
 ListEntry_##id *list_find_##id(List_##id *this, t val);                                                      \
@@ -890,48 +896,63 @@ unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, 
     return first2 == last2;                                                                                  \
 }                                                                                                            \
                                                                                                              \
-ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value) {                                          \
-    ListEntry_##id *curr = this->front, *prev;                                                               \
-                                                                                                             \
-    if (!curr || ds_cmp_leq(cmp_lt, value, curr->data)) {                                                    \
-        list_push_front(id, this, value);                                                                    \
-        return this->front;                                                                                  \
-    }                                                                                                        \
-    prev = this->front, curr = curr->next;                                                                   \
-    while (curr != NULL) {                                                                                   \
-        if (ds_cmp_eq(cmp_lt, value, curr->data) ||                                                          \
-            (cmp_lt(value, curr->data) && cmp_lt(prev->data, value))) {                                      \
-            return list_insert(id, this, curr, value);                                                       \
-        }                                                                                                    \
-        prev = prev->next, curr = curr->next;                                                                \
-    }                                                                                                        \
-    list_push_back(id, this, value);                                                                         \
-    return this->back;                                                                                       \
-}                                                                                                            \
-                                                                                                             \
-void list_insert_fromArray_sorted_##id(List_##id *this, t *arr, unsigned n) {                                \
-    t *end;                                                                                                  \
-    if (!arr || !n) return;                                                                                  \
-    end = &arr[n];                                                                                           \
-    for (; arr != end; ++arr) {                                                                              \
-        list_insert_sorted_##id(this, *arr);                                                                 \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-void list_insert_fromList_sorted_##id(List_##id *this, ListEntry_##id *start, ListEntry_##id *end) {         \
-    if (!start) return;                                                                                      \
-    while (start != end) {                                                                                   \
-        list_insert_sorted_##id(this, start->data);                                                          \
-        start = start->next;                                                                                 \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
 void list_unique_##id(List_##id *this) {                                                                     \
-    __list_elem_removal_body(id, this, ds_cmp_eq(cmp_lt, prev->data, curr->data), this->front->next, this->front, deleteValue) \
+    ListEntry_##id *curr, *prev, *next;                                                                      \
+    if (!this->front) return;                                                                                \
+    curr = this->front->next, prev = this->front;                                                            \
+                                                                                                             \
+    while (curr) {                                                                                           \
+        next = curr->next;                                                                                   \
+        if (ds_cmp_eq(cmp_lt, prev->data, curr->data)) {                                                     \
+            prev->next = next;                                                                               \
+            if (next) {                                                                                      \
+                next->prev = prev;                                                                           \
+            } else {                                                                                         \
+                this->back = prev;                                                                           \
+            }                                                                                                \
+                                                                                                             \
+            deleteValue((curr->data));                                                                       \
+            free(curr);                                                                                      \
+            this->size--;                                                                                    \
+            curr = next;                                                                                     \
+        } else {                                                                                             \
+            prev = curr;                                                                                     \
+            curr = curr->next;                                                                               \
+        }                                                                                                    \
+    }                                                                                                        \
+    this->back = prev;                                                                                       \
 }                                                                                                            \
                                                                                                              \
 void list_remove_value_##id(List_##id *this, t val) {                                                        \
-    __list_elem_removal_body(id, this, ds_cmp_eq(cmp_lt, val, curr->data), this->front, NULL, deleteValue)   \
+    ListEntry_##id *curr, *prev = NULL, *next;                                                               \
+    if (!this->front) return;                                                                                \
+    curr = this->front;                                                                                      \
+                                                                                                             \
+    while (curr) {                                                                                           \
+        next = curr->next;                                                                                   \
+        if (ds_cmp_eq(cmp_lt, val, curr->data)) {                                                            \
+            if (prev) {                                                                                      \
+                prev->next = next;                                                                           \
+            } else {                                                                                         \
+                this->front = next;                                                                          \
+            }                                                                                                \
+                                                                                                             \
+            if (next) {                                                                                      \
+                next->prev = prev;                                                                           \
+            } else {                                                                                         \
+                this->back = prev;                                                                           \
+            }                                                                                                \
+                                                                                                             \
+            deleteValue((curr->data));                                                                       \
+            free(curr);                                                                                      \
+            this->size--;                                                                                    \
+            curr = next;                                                                                     \
+        } else {                                                                                             \
+            prev = curr;                                                                                     \
+            curr = curr->next;                                                                               \
+        }                                                                                                    \
+    }                                                                                                        \
+    this->back = prev;                                                                                       \
 }                                                                                                            \
                                                                                                              \
 ListEntry_##id *list_find_##id(List_##id *this, t val) {                                                     \
@@ -986,6 +1007,8 @@ void list_merge_##id(List_##id *this, List_##id *other) {                       
                                                                                                              \
 void list_sort_##id(List_##id *this) {                                                                       \
     List_##id *carry, *fill, *counter, tmp[64] = {0};                                                        \
+    register ListEntry_##id *ltemp_front, *ltemp_back;                                                       \
+    register unsigned ltemp_size;                                                                            \
     if (this->front == this->back) {                                                                         \
         return;                                                                                              \
     } else if (this->size == 2 && cmp_lt(this->back->data, this->front->data)) {                             \
@@ -999,6 +1022,7 @@ void list_sort_##id(List_##id *this) {                                          
     }                                                                                                        \
                                                                                                              \
     carry = list_new(id);                                                                                    \
+    if (!carry) return;                                                                                      \
     fill = &tmp[0];                                                                                          \
                                                                                                              \
     do {                                                                                                     \
@@ -1006,20 +1030,39 @@ void list_sort_##id(List_##id *this) {                                          
                                                                                                              \
         for (counter = &tmp[0]; counter != fill && !(list_empty(counter)); ++counter) {                      \
             list_merge_##id(counter, carry);                                                                 \
-            __list_swap(id, carry, counter)                                                                  \
+            ltemp_front = carry->front, ltemp_back = carry->back;                                            \
+            ltemp_size = carry->size;                                                                        \
+            carry->front = counter->front;                                                                   \
+            carry->back = counter->back;                                                                     \
+            carry->size = counter->size;                                                                     \
+            counter->front = ltemp_front;                                                                    \
+            counter->back = ltemp_back;                                                                      \
+            counter->size = ltemp_size;                                                                      \
         }                                                                                                    \
                                                                                                              \
-        __list_swap(id, carry, counter)                                                                      \
-        if (counter == fill) {                                                                               \
-            ++fill;                                                                                          \
-        }                                                                                                    \
+        ltemp_front = carry->front, ltemp_back = carry->back;                                                \
+        ltemp_size = carry->size;                                                                            \
+        carry->front = counter->front;                                                                       \
+        carry->back = counter->back;                                                                         \
+        carry->size = counter->size;                                                                         \
+        counter->front = ltemp_front;                                                                        \
+        counter->back = ltemp_back;                                                                          \
+        counter->size = ltemp_size;                                                                          \
+        if (counter == fill) ++fill;                                                                         \
     } while (!(list_empty(this)));                                                                           \
                                                                                                              \
     for (counter = &tmp[1]; counter != fill; ++counter) {                                                    \
         list_merge_##id(counter, (counter - 1));                                                             \
     }                                                                                                        \
                                                                                                              \
-    __list_swap(id, this, (fill - 1))                                                                        \
+    ltemp_front = this->front, ltemp_back = this->back;                                                      \
+    ltemp_size = this->size;                                                                                 \
+    this->front = (fill - 1)->front;                                                                         \
+    this->back = (fill - 1)->back;                                                                           \
+    this->size = (fill - 1)->size;                                                                           \
+    (fill - 1)->front = ltemp_front;                                                                         \
+    (fill - 1)->back = ltemp_back;                                                                           \
+    (fill - 1)->size = ltemp_size;                                                                           \
     list_free(id, carry);                                                                                    \
 }                                                                                                            \
 
