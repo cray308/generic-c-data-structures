@@ -1,47 +1,8 @@
 #ifndef DS_AVL_TREE_H
 #define DS_AVL_TREE_H
 
+#include "ds.h"
 #include "iterator.h"
-
-#define __avl_nextNode_body(x, dir)                                                                          \
-    if (!(x)) return NULL;                                                                                   \
-    while ((x)->dir) {                                                                                       \
-        (x) = (x)->dir;                                                                                      \
-    }                                                                                                        \
-    return x;                                                                                                \
-
-#define __avl_nextNode_inorder_body(EntryType, x, dir, nextNode)                                             \
-    EntryType *parent;                                                                                       \
-    if (!(x)) return NULL;                                                                                   \
-    else if ((x)->dir) return nextNode((x)->dir);                                                            \
-                                                                                                             \
-    parent = (x)->parent;                                                                                    \
-    while (parent && (x) == parent->dir) {                                                                   \
-        (x) = parent;                                                                                        \
-        parent = parent->parent;                                                                             \
-    }                                                                                                        \
-    return parent;                                                                                           \
-
-#define __avl_tree_x_rotate_body(EntryType, t, x, dir, rev)                                                  \
-    EntryType *nParent = (x)->dir;                                                                           \
-    if ((x) == (t)->root) {                                                                                  \
-        (t)->root = nParent;                                                                                 \
-    }                                                                                                        \
-    (x)->dir = nParent->rev;                                                                                 \
-    if ((x)->dir) {                                                                                          \
-        (x)->dir->parent = x;                                                                                \
-    }                                                                                                        \
-    nParent->parent = (x)->parent;                                                                           \
-    if ((x)->parent) {                                                                                       \
-        if ((x) == (x)->parent->left) {                                                                      \
-            (x)->parent->left = nParent;                                                                     \
-        } else {                                                                                             \
-            (x)->parent->right = nParent;                                                                    \
-        }                                                                                                    \
-    }                                                                                                        \
-    nParent->rev = x;                                                                                        \
-    (x)->parent = nParent;                                                                                   \
-    return nParent;                                                                                          \
 
 #define __setup_avltree_headers(id, kt, TreeType, DataType, EntryType)                                       \
                                                                                                              \
@@ -60,19 +21,33 @@ typedef struct {                                                                
 } TreeType;                                                                                                  \
                                                                                                              \
 __DS_FUNC_PREFIX_INL EntryType *__avl_successor_##id(EntryType *x) {                                         \
-    __avl_nextNode_body(x, left)                                                                             \
+    if (!x) return NULL;                                                                                     \
+    while (x->left) x = x->left;                                                                             \
+    return x;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL EntryType *__avl_predecessor_##id(EntryType *x) {                                       \
-    __avl_nextNode_body(x, right)                                                                            \
+    if (!x) return NULL;                                                                                     \
+    while (x->right) x = x->right;                                                                           \
+    return x;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL EntryType *__avl_inorder_successor_##id(EntryType *x) {                                 \
-    __avl_nextNode_inorder_body(EntryType, x, right, __avl_successor_##id)                                   \
+    EntryType *parent;                                                                                       \
+    if (!x) return NULL;                                                                                     \
+    else if (x->right) return __avl_successor_##id(x->right);                                                \
+                                                                                                             \
+    for (parent = x->parent; parent && x == parent->right; x = parent, parent = parent->parent);             \
+    return parent;                                                                                           \
 }                                                                                                            \
                                                                                                              \
 __DS_FUNC_PREFIX_INL EntryType *__avl_inorder_predecessor_##id(EntryType *x) {                               \
-    __avl_nextNode_inorder_body(EntryType, x, left, __avl_predecessor_##id)                                  \
+    EntryType *parent;                                                                                       \
+    if (!x) return NULL;                                                                                     \
+    else if (x->left) return __avl_predecessor_##id(x->left);                                                \
+                                                                                                             \
+    for (parent = x->parent; parent && x == parent->left; x = parent, parent = parent->parent);              \
+    return parent;                                                                                           \
 }                                                                                                            \
                                                                                                              \
 create_iterator_distance_helper(AVLTREE, id, EntryType *)                                                    \
@@ -89,11 +64,47 @@ void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end);    
 #define __setup_avltree_source(id, kt, TreeType, DataType, EntryType, cmp_lt, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
 EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                                             \
-    __avl_tree_x_rotate_body(EntryType, this, x, right, left)                                                \
+    EntryType *nParent = x->right;                                                                           \
+    if (x == this->root) {                                                                                   \
+        this->root = nParent;                                                                                \
+    }                                                                                                        \
+    x->right = nParent->left;                                                                                \
+    if (x->right) {                                                                                          \
+        x->right->parent = x;                                                                                \
+    }                                                                                                        \
+    nParent->parent = x->parent;                                                                             \
+    if (x->parent) {                                                                                         \
+        if (x == x->parent->left) {                                                                          \
+            x->parent->left = nParent;                                                                       \
+        } else {                                                                                             \
+            x->parent->right = nParent;                                                                      \
+        }                                                                                                    \
+    }                                                                                                        \
+    nParent->left = x;                                                                                       \
+    x->parent = nParent;                                                                                     \
+    return nParent;                                                                                          \
 }                                                                                                            \
                                                                                                              \
 EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {                                            \
-    __avl_tree_x_rotate_body(EntryType, this, x, left, right)                                                \
+    EntryType *nParent = x->left;                                                                            \
+    if (x == this->root) {                                                                                   \
+        this->root = nParent;                                                                                \
+    }                                                                                                        \
+    x->left = nParent->right;                                                                                \
+    if (x->left) {                                                                                           \
+        x->left->parent = x;                                                                                 \
+    }                                                                                                        \
+    nParent->parent = x->parent;                                                                             \
+    if (x->parent) {                                                                                         \
+        if (x == x->parent->left) {                                                                          \
+            x->parent->left = nParent;                                                                       \
+        } else {                                                                                             \
+            x->parent->right = nParent;                                                                      \
+        }                                                                                                    \
+    }                                                                                                        \
+    nParent->right = x;                                                                                      \
+    x->parent = nParent;                                                                                     \
+    return nParent;                                                                                          \
 }                                                                                                            \
                                                                                                              \
 EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate) {                  \
@@ -121,14 +132,16 @@ EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char c
 }                                                                                                            \
                                                                                                              \
 EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {                             \
-    EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1), *new, *parent;                   \
+    EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1);                                  \
+    EntryType *new, *parent;                                                                                 \
     if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {                                \
         deleteValue(curr->data.second);                                                                      \
         copyValue(curr->data.second, data.second);                                                           \
         if (inserted) *inserted = 0;                                                                         \
         return curr;                                                                                         \
     }                                                                                                        \
-    __ds_calloc(new, 1, sizeof(EntryType))                                                                   \
+    new = calloc(1, sizeof(EntryType));                                                                      \
+    if (!new) return NULL;                                                                                   \
     copyKey(entry_get_key(new), data_get_key(data));                                                         \
     copyValue(new->data.second, data.second);                                                                \
     new->parent = curr;                                                                                      \
@@ -147,7 +160,7 @@ EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {
     }                                                                                                        \
     curr = new, parent = curr->parent;                                                                       \
                                                                                                              \
-    while (curr && parent) {                                                                                 \
+    for (; curr && parent; curr = parent, parent = curr->parent) {                                           \
         if (curr == parent->left) {                                                                          \
             if (parent->bf == 1) {                                                                           \
                 parent->bf = 0; break;                                                                       \
@@ -201,8 +214,6 @@ EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {
                 break;                                                                                       \
             }                                                                                                \
         }                                                                                                    \
-        curr = parent;                                                                                       \
-        parent = curr->parent;                                                                               \
     }                                                                                                        \
     ++this->size;                                                                                            \
     if (inserted) *inserted = 1;                                                                             \
@@ -219,22 +230,20 @@ void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n) 
                                                                                                              \
 void __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end) {                      \
     if (!start) return;                                                                                      \
-    while (start != end) {                                                                                   \
+    for (; start != end; start = __avl_inorder_successor_##id(start)) {                                      \
         __avltree_insert_##id(this, start->data, NULL);                                                      \
-        start = __avl_inorder_successor_##id(start);                                                         \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
 TreeType *__avltree_new_fromArray_##id(DataType *arr, unsigned n) {                                          \
-    TreeType *t;                                                                                             \
-    __ds_calloc(t, 1, sizeof(TreeType))                                                                      \
-    __avltree_insert_fromArray_##id(t, arr, n);                                                              \
+    TreeType *t = calloc(1, sizeof(TreeType));                                                               \
+    if (t) __avltree_insert_fromArray_##id(t, arr, n);                                                       \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 TreeType *__avltree_createCopy_##id(TreeType *other) {                                                       \
     TreeType *t = __avltree_new_fromArray_##id(NULL, 0);                                                     \
-    __avltree_insert_fromTree_##id(t, __avl_successor_##id(other->root), NULL);                              \
+    if (t) __avltree_insert_fromTree_##id(t, __avl_successor_##id(other->root), NULL);                       \
     return t;                                                                                                \
 }                                                                                                            \
                                                                                                              \
@@ -348,7 +357,8 @@ void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {   
                                                                                                              \
     /* store keys in an array since tree deletions involve swapping values
      * and thus it's not reliable to use node pointers in a bulk delete operation */                         \
-    __ds_malloc(keys, this->size * sizeof(kt))                                                               \
+    keys = malloc(this->size * sizeof(kt));                                                                  \
+    if (!keys) return;                                                                                       \
     for (curr = begin; curr != end; curr = __avl_inorder_successor_##id(curr)) {                             \
         keys[count++] = entry_get_key(curr);                                                                 \
     }                                                                                                        \
