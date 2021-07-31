@@ -264,7 +264,7 @@ typedef struct {                                                                
 } Array_##id;                                                                                                \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *this, unsigned i) {                                        \
-    __ds_adjust_index(i, this->size, return NULL)                                                            \
+    if (i >= this->size) return NULL;                                                                        \
     return &(this->arr[i]);                                                                                  \
 }                                                                                                            \
                                                                                                              \
@@ -303,15 +303,15 @@ void array_reserve_##id(Array_##id *this, unsigned n) {                         
         ncap <<= 1; /* use multiple of 2 */                                                                  \
     }                                                                                                        \
                                                                                                              \
-    __ds_realloc(tmp, this->arr, ncap * sizeof(t))                                                           \
+    tmp = realloc(this->arr, ncap * sizeof(t));                                                              \
+    if (!tmp) exit(1);                                                                                       \
     this->capacity = ncap;                                                                                   \
     this->arr = tmp;                                                                                         \
 }                                                                                                            \
                                                                                                              \
 int array_erase_##id(Array_##id *this, unsigned first, int nelem) {                                          \
     unsigned endIdx, i, n = this->size - first, res;                                                         \
-    __ds_adjust_index(first, this->size, return ARRAY_ERROR)                                                 \
-    if (!nelem) return ARRAY_ERROR;                                                                          \
+    if (first >= this->size || !nelem) return ARRAY_ERROR;                                                   \
                                                                                                              \
     if (nelem >= 0) n = min(n, (unsigned) nelem);                                                            \
                                                                                                              \
@@ -336,7 +336,7 @@ int array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned 
     unsigned res = this->size;                                                                               \
     if (!n) return ARRAY_ERROR;                                                                              \
     else if (!(append = (index == this->size))) {                                                            \
-        __ds_adjust_index(index, this->size, return ARRAY_ERROR)                                             \
+        if (index >= this->size) return ARRAY_ERROR;                                                         \
     }                                                                                                        \
                                                                                                              \
     array_reserve_##id(this, this->size + n);                                                                \
@@ -369,7 +369,7 @@ int array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsign
     unsigned res = this->size;                                                                               \
     if (!(arr && n)) return ARRAY_ERROR;                                                                     \
     else if (!(append = (index == this->size))) {                                                            \
-        __ds_adjust_index(index, this->size, return ARRAY_ERROR)                                             \
+        if (index >= this->size) return ARRAY_ERROR;                                                         \
     }                                                                                                        \
                                                                                                              \
     array_reserve_##id(this, this->size + n);                                                                \
@@ -388,8 +388,13 @@ int array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsign
                                                                                                              \
 Array_##id *array_new_fromArray_##id(t *arr, unsigned size) {                                                \
     Array_##id *a;                                                                                           \
-    __ds_malloc(a, sizeof(Array_##id))                                                                       \
-    __ds_malloc(a->arr, 8 * sizeof(t))                                                                       \
+    a = malloc(sizeof(Array_##id));                                                                          \
+    if (!a) return NULL;                                                                                     \
+    a->arr = malloc(8 * sizeof(t));                                                                          \
+    if (!a->arr) {                                                                                           \
+        free(a);                                                                                             \
+        return NULL;                                                                                         \
+    }                                                                                                        \
     a->size = 0;                                                                                             \
     a->capacity = 8;                                                                                         \
     array_insert_fromArray_##id(a, 0, arr, size);                                                            \
@@ -398,6 +403,7 @@ Array_##id *array_new_fromArray_##id(t *arr, unsigned size) {                   
                                                                                                              \
 Array_##id *array_new_repeatingValue_##id(unsigned n, t value) {                                             \
     Array_##id *a = array_new(id);                                                                           \
+    if (!a) return NULL;                                                                                     \
     array_insert_repeatingValue_##id(a, 0, n, value);                                                        \
     return a;                                                                                                \
 }                                                                                                            \
@@ -406,7 +412,8 @@ void array_shrink_to_fit_##id(Array_##id *this) {                               
     t *tmp;                                                                                                  \
     if (this->capacity == 8 || this->size == this->capacity || this->size == 0) return;                      \
                                                                                                              \
-    __ds_realloc(tmp, this->arr, this->size * sizeof(t))                                                     \
+    tmp = realloc(this->arr, this->size * sizeof(t));                                                        \
+    if (!tmp) return;                                                                                        \
     this->capacity = this->size;                                                                             \
     this->arr = tmp;                                                                                         \
 }                                                                                                            \
@@ -414,11 +421,11 @@ void array_shrink_to_fit_##id(Array_##id *this) {                               
 Array_##id *array_subarr_##id(Array_##id *this, unsigned start, int n, int step_size) {                      \
     Array_##id *sub;                                                                                         \
     int end, i = (int) start;                                                                                \
-    __ds_adjust_index(start, this->size, return NULL)                                                        \
-    if (!n) return NULL;                                                                                     \
+    if (start >= this->size || !n) return NULL;                                                              \
                                                                                                              \
     if (step_size == 0) step_size = 1;                                                                       \
     sub = array_new(id);                                                                                     \
+    if (!sub) return NULL;                                                                                   \
                                                                                                              \
     if (step_size < 0) {                                                                                     \
         end = (n < 0) ? -1 : max(-1, i + (n * step_size));                                                   \
@@ -496,9 +503,9 @@ gen_array_headers(2d_##id, Array_##id *)                                        
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* matrix_at_##id(Array_2d_##id *this, unsigned row, unsigned col) {                    \
     unsigned nCols;                                                                                          \
-    __ds_adjust_index(row, this->size, return NULL)                                                          \
+    if (row >= this->size) return NULL;                                                                      \
     nCols = this->arr[row]->size;                                                                            \
-    __ds_adjust_index(col, nCols, return NULL)                                                               \
+    if (col >= nCols) return NULL;                                                                           \
     return &(this->arr[row]->arr[col]);                                                                      \
 }                                                                                                            \
                                                                                                              \

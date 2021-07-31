@@ -30,8 +30,8 @@ int main(void) {
     for (i = 0; i < LEN; ++i) {
         queue_push(int, qi, i);
         queue_push(str, qs, strs[i]);
-        assert(queue_size(qi) == i + 1);
-        assert(queue_size(qs) == i + 1);
+        assert(queue_size(qi) == (unsigned)(i + 1));
+        assert(queue_size(qs) == (unsigned)(i + 1));
         assert(*queue_front(qi) == FIRST);
         assert(streq(*queue_front(qs), strs[FIRST]));
         assert(*queue_back(qi) == i);
@@ -47,7 +47,7 @@ int main(void) {
     i = 0;
     while (!queue_empty(qi)) {
         assert(*queue_front(qi) == i++);
-        assert(queue_size(qi) == (LEN - i) + 1);
+        assert(queue_size(qi) == (unsigned)(LEN - i) + 1);
         assert(*queue_back(qi) == LAST);
         queue_pop(int, qi);
     }
@@ -56,7 +56,7 @@ int main(void) {
     i = 0;
     while (!queue_empty(qs)) {
         assert(streq(*queue_front(qs), strs[i++]));
-        assert(queue_size(qs) == (LEN - i) + 1);
+        assert(queue_size(qs) == (unsigned)(LEN - i) + 1);
         assert(streq(*queue_back(qs), strs[LAST]));
         queue_pop(str, qs);
     }

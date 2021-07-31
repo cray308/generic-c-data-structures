@@ -28,8 +28,8 @@ int main(void) {
         stack_push(str, ss, strs[i]);
         assert(*stack_top(si) == i);
         assert(streq(*stack_top(ss), strs[i]));
-        assert(stack_size(si) == i + 1);
-        assert(stack_size(ss) == i + 1);
+        assert(stack_size(si) == (unsigned) i + 1);
+        assert(stack_size(ss) == (unsigned) i + 1);
     }
     assert(!stack_empty(si));
     assert(!stack_empty(ss));
@@ -37,7 +37,7 @@ int main(void) {
     i = LEN - 1;
     while (!stack_empty(si)) {
         assert(*stack_top(si) == i);
-        assert(stack_size(si) == i-- + 1);
+        assert(stack_size(si) == (unsigned)(i-- + 1));
         stack_pop(int, si);
     }
     assert(i == -1);
@@ -45,7 +45,7 @@ int main(void) {
     i = LEN - 1;
     while (!stack_empty(ss)) {
         assert(streq(*stack_top(ss), strs[i]));
-        assert(stack_size(ss) == i-- + 1);
+        assert(stack_size(ss) == (unsigned)(i-- + 1));
         stack_pop(str, ss);
     }
     assert(i == -1);

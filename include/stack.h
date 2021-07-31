@@ -1,7 +1,6 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include "ds.h"
 #include "deque.h"
 
 /**
