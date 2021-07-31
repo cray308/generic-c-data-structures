@@ -39,7 +39,7 @@ int search_str(const void *a, const void *b) {
 }
 
 #define __compare_str_int_body(id)                                                                           \
-    int i = 0;                                                                                               \
+    unsigned i = 0;                                                                                          \
     int *at;                                                                                                 \
     Pair_##id *it;                                                                                           \
     DictData data, *found;                                                                                   \
@@ -69,8 +69,8 @@ int search_str(const void *a, const void *b) {
         assert(comparison[i].found);                                                                         \
     }
 
-void compare_int_str(UMap_int_str *m, DictData *comparison, int size) {
-    int i = 0;
+void compare_int_str(UMap_int_str *m, DictData *comparison, unsigned size) {
+    unsigned i = 0;
     char **at;
     Pair_int_str *it;
     DictData data, *found;
@@ -101,11 +101,11 @@ void compare_int_str(UMap_int_str *m, DictData *comparison, int size) {
     }
 }
 
-void compare_strv_int(UMap_strv_int *m, DictData *comparison, int size) {
+void compare_strv_int(UMap_strv_int *m, DictData *comparison, unsigned size) {
     __compare_str_int_body(strv_int)
 }
 
-void compare_strp_int(UMap_strp_int *m, DictData *comparison, int size) {
+void compare_strp_int(UMap_strp_int *m, DictData *comparison, unsigned size) {
     __compare_str_int_body(strp_int)
 }
 
@@ -506,7 +506,7 @@ void test_nested_dicts(void) {
         p.first = arrStr[10 * i].first, p.second = inner;
         umap_insert_withResult(nested, m, p, &success);
         assert(success);
-        assert(umap_size(m) == i + 1);
+        assert(umap_size(m) == (unsigned) i + 1);
         results[i].s = arrStr[10 * i].first, results[i].data = &data[10 * i];
     }
 

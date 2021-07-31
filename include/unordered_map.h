@@ -10,7 +10,7 @@
 /**
  * The number of entries in the map.
  */
-#define umap_size(this) ((int) (this)->size)
+#define umap_size(this) ((this)->size)
 
 
 /**

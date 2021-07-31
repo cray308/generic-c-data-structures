@@ -31,8 +31,8 @@ int search_str(const void *a, const void *b) {
     return strcmp(((StrData *) a)->s, ((StrData *) b)->s);
 }
 
-void compare_ints(USet_int *s, IntData *comparison, int size) {
-    int i = 0;
+void compare_ints(USet_int *s, IntData *comparison, unsigned size) {
+    unsigned i = 0;
     int *it;
     IntData data, *found;
     assert(uset_size(s) == size);
@@ -59,8 +59,8 @@ void compare_ints(USet_int *s, IntData *comparison, int size) {
     }
 }
 
-void compare_strs(USet_str *s, StrData *comparison, int size) {
-    int i = 0;
+void compare_strs(USet_str *s, StrData *comparison, unsigned size) {
+    unsigned i = 0;
     char **it;
     StrData data, *found;
     assert(uset_size(s) == size);

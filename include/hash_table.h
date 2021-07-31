@@ -6,16 +6,6 @@
 #include <time.h>
 #include <limits.h>
 
-#define __htable_find_index(EntryType, ht, entry_get_key, cmp_eq, result, index, key) {                      \
-    EntryType *ptr = (ht)->buckets[(index)];                                                                 \
-    while (ptr) {                                                                                            \
-        if (cmp_eq(entry_get_key(ptr), key)) {                                                               \
-            (result) = ptr; break;                                                                           \
-        }                                                                                                    \
-        ptr = ptr->next;                                                                                     \
-    }                                                                                                        \
-}
-
 /* --------------------------------------------------------------------------
  * Hash table iterators
  * -------------------------------------------------------------------------- */
@@ -89,7 +79,8 @@ void __htable_rehash_##id(TableType *this, unsigned nbuckets) {                 
         n <<= 1;                                                                                             \
     }                                                                                                        \
                                                                                                              \
-    __ds_calloc(new, n, sizeof(struct EntryType *))                                                          \
+    new = calloc(n, sizeof(struct EntryType *));                                                             \
+    if (!new) return;                                                                                        \
     for (i = 0; i < this->cap; ++i) {                                                                        \
         struct EntryType *e = this->buckets[i];                                                              \
         while (e) {                                                                                          \
@@ -107,7 +98,8 @@ void __htable_rehash_##id(TableType *this, unsigned nbuckets) {                 
 }                                                                                                            \
                                                                                                              \
 DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted) {                              \
-    unsigned index; struct EntryType *e = NULL;                                                              \
+    unsigned index;                                                                                          \
+    struct EntryType *e;                                                                                     \
     double lf = (double) this->size / (double) this->cap;                                                    \
     if (lf > this->lf) {                                                                                     \
         __htable_rehash_##id(this, this->cap << 1);                                                          \
@@ -115,7 +107,9 @@ DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted) { 
                                                                                                              \
     /* get index and entry at that index */                                                                  \
     index = murmurhash(addrOfKey(data_get_key(data)), (int) sizeOfKey(data_get_key(data)), this->seed) % this->cap; \
-    __htable_find_index(struct EntryType, this, entry_get_key, cmp_eq, e, index, data_get_key(data))         \
+    for (e = this->buckets[index]; e; e = e->next) {                                                         \
+        if (cmp_eq(entry_get_key(e), data_get_key(data))) break;                                             \
+    }                                                                                                        \
                                                                                                              \
     if (e) {                                                                                                 \
         if (inserted) *inserted = 0;                                                                         \
@@ -123,7 +117,8 @@ DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted) { 
         copyValue(e->data.second, data.second);                                                              \
     } else {                                                                                                 \
         if (inserted) *inserted = 1;                                                                         \
-        __ds_calloc(e, 1, sizeof(struct EntryType))                                                          \
+        e = calloc(1, sizeof(struct EntryType));                                                             \
+        if (!e) return NULL;                                                                                 \
         copyKey(entry_get_key(e), data_get_key(data));                                                       \
         e->next = this->buckets[index];                                                                      \
         this->buckets[index] = e;                                                                            \
@@ -142,31 +137,43 @@ void __htable_insert_fromArray_##id(TableType *this, DataType* arr, unsigned n) 
 }                                                                                                            \
                                                                                                              \
 TableType *__htable_new_fromArray_##id(DataType *arr, unsigned n) {                                          \
-    TableType *ht;                                                                                           \
-    __ds_calloc(ht, 1, sizeof(TableType))                                                                    \
+    TableType *ht = calloc(1, sizeof(TableType));                                                            \
+    if (!ht) return NULL;                                                                                    \
     srand((unsigned) time(NULL));                                                                            \
     ht->cap = 32;                                                                                            \
     ht->lf = 0.75;                                                                                           \
     ht->seed = ((uint32_t) rand()) % UINT32_MAX;                                                             \
-    __ds_calloc(ht->buckets, ht->cap, sizeof(struct EntryType *))                                            \
+    ht->buckets = calloc(32, sizeof(struct EntryType *));                                                    \
+    if (!ht->buckets) {                                                                                      \
+        free(ht);                                                                                            \
+        return NULL;                                                                                         \
+    }                                                                                                        \
     __htable_insert_fromArray_##id(ht, arr, n);                                                              \
     return ht;                                                                                               \
 }                                                                                                            \
                                                                                                              \
 TableType *__htable_createCopy_##id(TableType *other) {                                                      \
-    TableType *ht;                                                                                           \
     unsigned i;                                                                                              \
-    __ds_malloc(ht, sizeof(TableType))                                                                       \
+    TableType *ht = malloc(sizeof(TableType));                                                               \
+    if (!ht) return NULL;                                                                                    \
     ht->size = other->size;                                                                                  \
     ht->cap = other->cap;                                                                                    \
     ht->seed = other->seed;                                                                                  \
     ht->lf = other->lf;                                                                                      \
-    __ds_calloc(ht->buckets, ht->cap, sizeof(struct EntryType *))                                            \
+    ht->buckets = calloc(ht->cap, sizeof(struct EntryType *));                                               \
+    if (!ht->buckets) {                                                                                      \
+        free(ht);                                                                                            \
+        return NULL;                                                                                         \
+    }                                                                                                        \
     for (i = 0; i < other->cap; ++i) {                                                                       \
         struct EntryType *e = other->buckets[i];                                                             \
         while (e) {                                                                                          \
-            struct EntryType *new;                                                                           \
-            __ds_calloc(new, 1, sizeof(struct EntryType))                                                    \
+            struct EntryType *new = calloc(1, sizeof(struct EntryType));                                     \
+            if (!new) {                                                                                      \
+                __htable_clear_##id(ht);                                                                     \
+                free(ht->buckets);                                                                           \
+                free(ht);                                                                                    \
+            }                                                                                                \
             copyKey(entry_get_key(new), entry_get_key(e));                                                   \
             new->next = ht->buckets[i];                                                                      \
             ht->buckets[i] = new;                                                                            \
@@ -226,9 +233,11 @@ void __htable_clear_##id(TableType *this) {                                     
                                                                                                              \
 DataType *__htable_find_##id(TableType *this, const kt key) {                                                \
     unsigned index = murmurhash(addrOfKey(key), (int) sizeOfKey(key), this->seed) % this->cap;               \
-    struct EntryType *e = NULL;                                                                              \
-    __htable_find_index(struct EntryType, this, entry_get_key, cmp_eq, e, index, key)                        \
-    return e ? &(e->data) : NULL;                                                                            \
+    struct EntryType *e;                                                                                     \
+    for (e = this->buckets[index]; e; e = e->next) {                                                         \
+        if (cmp_eq(entry_get_key(e), key)) return &(e->data);                                                \
+    }                                                                                                        \
+    return NULL;                                                                                             \
 }                                                                                                            \
                                                                                                              \
 void __htable_set_load_factor_##id(TableType *this, double lf) {                                             \

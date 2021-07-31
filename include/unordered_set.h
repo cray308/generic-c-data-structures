@@ -12,7 +12,7 @@
 /**
  * The number of entries in the set.
  */
-#define uset_size(this) ((int) (this)->size)
+#define uset_size(this) ((this)->size)
 
 
 /**
