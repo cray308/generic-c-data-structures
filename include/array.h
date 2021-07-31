@@ -576,7 +576,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
  *
  * @return          Pointer to newly allocated array.
  */
-#define set_union_array(id, first1, last1, first2, last2) __set_union_array_##id(first1, last1, first2, last2)
+#define array_union(id, first1, last1, first2, last2) array_union_##id(first1, last1, first2, last2)
 
 
 /**
@@ -591,7 +591,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
  *
  * @return          Pointer to newly allocated array.
  */
-#define set_intersection_array(id, first1, last1, first2, last2) __set_intersection_array_##id(first1, last1, first2, last2)
+#define array_intersection(id, first1, last1, first2, last2) array_intersection_##id(first1, last1, first2, last2)
 
 
 /**
@@ -606,7 +606,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
  *
  * @return          Pointer to newly allocated array.
  */
-#define set_difference_array(id, first1, last1, first2, last2) __set_difference_array_##id(first1, last1, first2, last2)
+#define array_difference(id, first1, last1, first2, last2) array_difference_##id(first1, last1, first2, last2)
 
 
 /**
@@ -621,7 +621,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
  *
  * @return          Pointer to newly allocated array.
  */
-#define set_symmetric_difference_array(id, first1, last1, first2, last2) __set_symmetric_difference_array_##id(first1, last1, first2, last2)
+#define array_symmetric_difference(id, first1, last1, first2, last2) array_symmetric_difference_##id(first1, last1, first2, last2)
 
 
 /**
@@ -635,7 +635,7 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
  *
  * @return          True if the first array contains each element in the second array, false if not.
  */
-#define includes_array(id, first1, last1, first2, last2) __includes_array_##id(first1, last1, first2, last2)
+#define array_includes(id, first1, last1, first2, last2) array_includes_##id(first1, last1, first2, last2)
 
 
 /**
@@ -648,8 +648,12 @@ Array_2d_##id *matrix_new_##id(unsigned rows, unsigned cols) {                  
                                                                                                              \
 gen_array_headers(id, t)                                                                                     \
 gen_alg_headers(id, t)                                                                                       \
-__gen_alg_set_func_headers(id, Array_##id, array_##id, t *)                                                  \
                                                                                                              \
+Array_##id *array_union_##id(t* first1, t* last1, t* first2, t* last2);                                      \
+Array_##id *array_intersection_##id(t* first1, t* last1, t* first2, t* last2);                               \
+Array_##id *array_difference_##id(t* first1, t* last1, t* first2, t* last2);                                 \
+Array_##id *array_symmetric_difference_##id(t* first1, t* last1, t* first2, t* last2);                       \
+unsigned char array_includes_##id(t* first1, t* last1, t* first2, t* last2);                                 \
 Array_##id *merge_array_##id(t *first1, t *last1, t *first2, t *last2);                                      \
 
 
@@ -670,10 +674,136 @@ Array_##id *merge_array_##id(t *first1, t *last1, t *first2, t *last2);         
                                                                                                              \
 gen_array_source(id, t, copyValue, deleteValue)                                                              \
 gen_alg_source(id, t, cmp_lt)                                                                                \
-__gen_alg_set_func_source(id, cmp_lt, Array_##id, array_##id, array_new, t *, iter_next_ARR, iter_deref_ARR, array_push_back, array_insert_fromArray_##id(d_new, array_size(d_new), first1, (unsigned)(last1 - first1)), array_insert_fromArray_##id(d_new, array_size(d_new), first2, (unsigned)(last2 - first2))) \
+                                                                                                             \
+Array_##id *array_union_##id(t* first1, t* last1, t* first2, t* last2) {                                     \
+    Array_##id *d_new = array_new(id);                                                                       \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            array_insert_fromArray_##id(d_new, d_new->size, first1, (unsigned) (last1 - first1));            \
+        } else if (first2) {                                                                                 \
+            array_insert_fromArray_##id(d_new, d_new->size, first2, (unsigned) (last2 - first2));            \
+        }                                                                                                    \
+        return d_new;                                                                                        \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(*first1, *first2)) {                                                                      \
+            array_push_back(id, d_new, *first1);                                                             \
+            ++first1;                                                                                        \
+        } else if (cmp_lt(*first2, *first1)) {                                                               \
+            array_push_back(id, d_new, *first2);                                                             \
+            ++first2;                                                                                        \
+        } else {                                                                                             \
+            array_push_back(id, d_new, *first1);                                                             \
+            ++first1;                                                                                        \
+            ++first2;                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    if (first1 != last1) {                                                                                   \
+        array_insert_fromArray_##id(d_new, d_new->size, first1, (unsigned) (last1 - first1));                \
+    } else if (first2 != last2) {                                                                            \
+        array_insert_fromArray_##id(d_new, d_new->size, first2, (unsigned) (last2 - first2));                \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+Array_##id *array_intersection_##id(t* first1, t* last1, t* first2, t* last2) {                              \
+    Array_##id *d_new = array_new(id);                                                                       \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) return d_new;                                                                   \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(*first1, *first2)) {                                                                      \
+            ++first1;                                                                                        \
+        } else if (cmp_lt(*first2, *first1)) {                                                               \
+            ++first2;                                                                                        \
+        } else {                                                                                             \
+            array_push_back(id, d_new, *first1);                                                             \
+            ++first1;                                                                                        \
+            ++first2;                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+Array_##id *array_difference_##id(t* first1, t* last1, t* first2, t* last2) {                                \
+    Array_##id *d_new = array_new(id);                                                                       \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            array_insert_fromArray_##id(d_new, d_new->size, first1, (unsigned) (last1 - first1));            \
+        }                                                                                                    \
+        return d_new;                                                                                        \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(*first1, *first2)) {                                                                      \
+            array_push_back(id, d_new, *first1);                                                             \
+            ++first1;                                                                                        \
+        } else if (cmp_lt(*first2, *first1)) {                                                               \
+            ++first2;                                                                                        \
+        } else {                                                                                             \
+            ++first1;                                                                                        \
+            ++first2;                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    if (first1 != last1) {                                                                                   \
+        array_insert_fromArray_##id(d_new, d_new->size, first1, (unsigned) (last1 - first1));                \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+Array_##id *array_symmetric_difference_##id(t* first1, t* last1, t* first2, t* last2) {                      \
+    Array_##id *d_new = array_new(id);                                                                       \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            array_insert_fromArray_##id(d_new, d_new->size, first1, (unsigned) (last1 - first1));            \
+        } else if (first2) {                                                                                 \
+            array_insert_fromArray_##id(d_new, d_new->size, first2, (unsigned) (last2 - first2));            \
+        }                                                                                                    \
+        return d_new;                                                                                        \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(*first1, *first2)) {                                                                      \
+            array_push_back(id, d_new, *first1);                                                             \
+            ++first1;                                                                                        \
+        } else if (cmp_lt(*first2, *first1)) {                                                               \
+            array_push_back(id, d_new, *first2);                                                             \
+            ++first2;                                                                                        \
+        } else {                                                                                             \
+            ++first1;                                                                                        \
+            ++first2;                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    if (first1 != last1) {                                                                                   \
+        array_insert_fromArray_##id(d_new, d_new->size, first1, (unsigned) (last1 - first1));                \
+    } else if (first2 != last2) {                                                                            \
+        array_insert_fromArray_##id(d_new, d_new->size, first2, (unsigned) (last2 - first2));                \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+unsigned char array_includes_##id(t* first1, t* last1, t* first2, t* last2) {                                \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) return 1;                                                                                \
+        else if (first2) return 0;                                                                           \
+        else return 1;                                                                                       \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(*first1, *first2)) {                                                                      \
+            ++first1;                                                                                        \
+        } else if (cmp_lt(*first2, *first1)) {                                                               \
+            return 0;                                                                                        \
+        } else {                                                                                             \
+            ++first1;                                                                                        \
+            ++first2;                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    return first2 == last2;                                                                                  \
+}                                                                                                            \
                                                                                                              \
 Array_##id *merge_array_##id(t *first1, t *last1, t *first2, t *last2) {                                     \
     Array_##id *a = array_new(id);                                                                           \
+    if (!a) return NULL;                                                                                     \
     if (!(first1 && first2)) {                                                                               \
         if (first1) {                                                                                        \
             array_insert_fromArray_##id(a, a->size, first1, (unsigned)(last1 - first1));                     \

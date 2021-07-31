@@ -672,7 +672,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define set_union_list(id, this, other) __set_union_list_##id((this)->front, NULL, (other)->front, NULL)
+#define list_union(id, this, other) list_union_##id((this)->front, NULL, (other)->front, NULL)
 
 
 /**
@@ -683,7 +683,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define set_intersection_list(id, this, other) __set_intersection_list_##id((this)->front, NULL, (other)->front, NULL)
+#define list_intersection(id, this, other) list_intersection_##id((this)->front, NULL, (other)->front, NULL)
 
 
 /**
@@ -694,7 +694,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define set_difference_list(id, this, other) __set_difference_list_##id((this)->front, NULL, (other)->front, NULL)
+#define list_difference(id, this, other) list_difference_##id((this)->front, NULL, (other)->front, NULL)
 
 
 /**
@@ -705,7 +705,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define set_symmetric_difference_list(id, this, other) __set_symmetric_difference_list_##id((this)->front, NULL, (other)->front, NULL)
+#define list_symmetric_difference(id, this, other) list_symmetric_difference_##id((this)->front, NULL, (other)->front, NULL)
 
 
 /**
@@ -715,7 +715,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          True if this list contains each element in @c other , false if not.
  */
-#define includes_list(id, this, other) __includes_list_##id((this)->front, NULL, (other)->front, NULL)
+#define list_includes(id, this, other) list_includes_##id((this)->front, NULL, (other)->front, NULL)
 
 
 /**
@@ -727,8 +727,12 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
 #define gen_list_headers_withAlg(id, t)                                                                      \
                                                                                                              \
 gen_list_headers(id, t)                                                                                      \
-__gen_alg_set_func_headers(id, List_##id, list_##id, ListEntry_##id *)                                       \
                                                                                                              \
+List_##id *list_union_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
+List_##id *list_intersection_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
+List_##id *list_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
+List_##id *list_symmetric_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
+unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
 ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value);                                           \
 void list_insert_fromArray_sorted_##id(List_##id *this, t *arr, unsigned n);                                 \
 void list_insert_fromList_sorted_##id(List_##id *this, ListEntry_##id *start, ListEntry_##id *end);          \
@@ -755,7 +759,136 @@ void list_sort_##id(List_##id *this);                                           
 #define gen_list_source_withAlg(id, t, cmp_lt, copyValue, deleteValue)                                       \
                                                                                                              \
 gen_list_source(id, t, copyValue, deleteValue)                                                               \
-__gen_alg_set_func_source(id, cmp_lt, List_##id, list_##id, list_new, ListEntry_##id *, iter_next_LIST, iter_deref_LIST, list_push_back, list_insert_fromList_##id(d_new, NULL, first1, last1), list_insert_fromList_##id(d_new, NULL, first2, last2)) \
+                                                                                                             \
+List_##id *list_union_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+    List_##id *d_new = list_new(id);                                                                         \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            list_insert_fromList_##id(d_new, NULL, first1, last1);                                           \
+        } else if (first2) {                                                                                 \
+            list_insert_fromList_##id(d_new, NULL, first2, last2);                                           \
+        }                                                                                                    \
+        return d_new;                                                                                        \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(first1->data, first2->data)) {                                                            \
+            list_push_back(id, d_new, first1->data);                                                         \
+            first1 = first1->next;                                                                           \
+        } else if (cmp_lt(first2->data, first1->data)) {                                                     \
+            list_push_back(id, d_new, first2->data);                                                         \
+            first2 = first2->next;                                                                           \
+        } else {                                                                                             \
+            list_push_back(id, d_new, first1->data);                                                         \
+            first1 = first1->next;                                                                           \
+            first2 = first2->next;                                                                           \
+        }                                                                                                    \
+    }                                                                                                        \
+    if (first1 != last1) {                                                                                   \
+        list_insert_fromList_##id(d_new, NULL, first1, last1);                                               \
+    } else if (first2 != last2) {                                                                            \
+        list_insert_fromList_##id(d_new, NULL, first2, last2);                                               \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+List_##id *list_intersection_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+    List_##id *d_new = list_new(id);                                                                         \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) return d_new;                                                                   \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(first1->data, first2->data)) {                                                            \
+            first1 = first1->next;                                                                           \
+        } else if (cmp_lt(first2->data, first1->data)) {                                                     \
+            first2 = first2->next;                                                                           \
+        } else {                                                                                             \
+            list_push_back(id, d_new, first1->data);                                                         \
+            first1 = first1->next;                                                                           \
+            first2 = first2->next;                                                                           \
+        }                                                                                                    \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+List_##id *list_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+    List_##id *d_new = list_new(id);                                                                         \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            list_insert_fromList_##id(d_new, NULL, first1, last1);                                           \
+        }                                                                                                    \
+        return d_new;                                                                                        \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(first1->data, first2->data)) {                                                            \
+            list_push_back(id, d_new, first1->data);                                                         \
+            first1 = first1->next;                                                                           \
+        } else if (cmp_lt(first2->data, first1->data)) {                                                     \
+            first2 = first2->next;                                                                           \
+        } else {                                                                                             \
+            first1 = first1->next;                                                                           \
+            first2 = first2->next;                                                                           \
+        }                                                                                                    \
+    }                                                                                                        \
+    if (first1 != last1) {                                                                                   \
+        list_insert_fromList_##id(d_new, NULL, first1, last1);                                               \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+List_##id *list_symmetric_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+    List_##id *d_new = list_new(id);                                                                         \
+    if (!d_new) return NULL;                                                                                 \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            list_insert_fromList_##id(d_new, NULL, first1, last1);                                           \
+        } else if (first2) {                                                                                 \
+            list_insert_fromList_##id(d_new, NULL, first2, last2);                                           \
+        }                                                                                                    \
+        return d_new;                                                                                        \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(first1->data, first2->data)) {                                                            \
+            list_push_back(id, d_new, first1->data);                                                         \
+            first1 = first1->next;                                                                           \
+        } else if (cmp_lt(first2->data, first1->data)) {                                                     \
+            list_push_back(id, d_new, first2->data);                                                         \
+            first2 = first2->next;                                                                           \
+        } else {                                                                                             \
+            first1 = first1->next;                                                                           \
+            first2 = first2->next;                                                                           \
+        }                                                                                                    \
+    }                                                                                                        \
+    if (first1 != last1) {                                                                                   \
+        list_insert_fromList_##id(d_new, NULL, first1, last1);                                               \
+    } else if (first2 != last2) {                                                                            \
+        list_insert_fromList_##id(d_new, NULL, first2, last2);                                               \
+    }                                                                                                        \
+    return d_new;                                                                                            \
+}                                                                                                            \
+                                                                                                             \
+unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+    if (!(first1 && first2)) {                                                                               \
+        if (first1) {                                                                                        \
+            return 1;                                                                                        \
+        } else if (first2) {                                                                                 \
+            return 0;                                                                                        \
+        } else {                                                                                             \
+            return 1;                                                                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    while (first1 != last1 && first2 != last2) {                                                             \
+        if (cmp_lt(first1->data, first2->data)) {                                                            \
+            first1 = first1->next;                                                                           \
+        } else if (cmp_lt(first2->data, first1->data)) {                                                     \
+            return 0;                                                                                        \
+        } else {                                                                                             \
+            first1 = first1->next;                                                                           \
+            first2 = first2->next;                                                                           \
+        }                                                                                                    \
+    }                                                                                                        \
+    return first2 == last2;                                                                                  \
+}                                                                                                            \
                                                                                                              \
 ListEntry_##id *list_insert_sorted_##id(List_##id *this, t value) {                                          \
     ListEntry_##id *curr = this->front, *prev;                                                               \

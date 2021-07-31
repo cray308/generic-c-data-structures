@@ -652,19 +652,19 @@ void test_union(void) {
     List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
     List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
 
-    ri = set_union_list(int, li1, li2);
+    ri = list_union(int, li1, li2);
     compare_ints(ri, ints, 10);
     list_free(int, ri);
-    ri = set_union_list(int, li2, li1);
+    ri = list_union(int, li2, li1);
     compare_ints(ri, ints, 10);
     list_free(int, ri);
-    ri = set_union_list(int, li2, li2);
+    ri = list_union(int, li2, li2);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
 
     list_insert_fromArray(int, li2, NULL, &ints[5], 10);
-    ri = set_union_list(int, li1, li2);
-    rs = set_union_list(str, ls1, ls2);
+    ri = list_union(int, li1, li2);
+    rs = list_union(str, ls1, ls2);
     compare_ints(ri, c1, 15);
     compare_strs(rs, c2, 15);
     list_free(int, ri);
@@ -681,19 +681,19 @@ void test_intersection(void) {
     List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
     List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
 
-    ri = set_intersection_list(int, li1, li2);
+    ri = list_intersection(int, li1, li2);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
-    ri = set_intersection_list(int, li2, li1);
+    ri = list_intersection(int, li2, li1);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
-    ri = set_intersection_list(int, li2, li2);
+    ri = list_intersection(int, li2, li2);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
 
     list_insert_fromArray(int, li2, NULL, &ints[5], 10);
-    ri = set_intersection_list(int, li1, li2);
-    rs = set_intersection_list(str, ls1, ls2);
+    ri = list_intersection(int, li1, li2);
+    rs = list_intersection(str, ls1, ls2);
     compare_ints(ri, c1, 5);
     compare_strs(rs, c2, 5);
     list_free(int, ri);
@@ -710,19 +710,19 @@ void test_difference(void) {
     List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
     List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
 
-    ri = set_difference_list(int, li1, li2);
+    ri = list_difference(int, li1, li2);
     compare_ints(ri, ints, 10);
     list_free(int, ri);
-    ri = set_difference_list(int, li2, li1);
+    ri = list_difference(int, li2, li1);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
-    ri = set_difference_list(int, li2, li2);
+    ri = list_difference(int, li2, li2);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
 
     list_insert_fromArray(int, li2, NULL, &ints[5], 10);
-    ri = set_difference_list(int, li1, li2);
-    rs = set_difference_list(str, ls1, ls2);
+    ri = list_difference(int, li1, li2);
+    rs = list_difference(str, ls1, ls2);
     compare_ints(ri, c1, 5);
     compare_strs(rs, c2, 5);
     list_free(int, ri);
@@ -739,19 +739,19 @@ void test_symmetric_difference(void) {
     List_str *ls1 = list_new_fromArray(str, strs, 10), *ls2 = list_new_fromArray(str, &strs[5], 10), *rs;
     List_int *li1 = list_new_fromArray(int, ints, 10), *li2 = list_new(int), *ri;
 
-    ri = set_symmetric_difference_list(int, li1, li2);
+    ri = list_symmetric_difference(int, li1, li2);
     compare_ints(ri, ints, 10);
     list_free(int, ri);
-    ri = set_symmetric_difference_list(int, li2, li1);
+    ri = list_symmetric_difference(int, li2, li1);
     compare_ints(ri, ints, 10);
     list_free(int, ri);
-    ri = set_symmetric_difference_list(int, li2, li2);
+    ri = list_symmetric_difference(int, li2, li2);
     compare_ints(ri, ints, 0);
     list_free(int, ri);
 
     list_insert_fromArray(int, li2, NULL, &ints[5], 10);
-    ri = set_symmetric_difference_list(int, li1, li2);
-    rs = set_symmetric_difference_list(str, ls1, ls2);
+    ri = list_symmetric_difference(int, li1, li2);
+    rs = list_symmetric_difference(str, ls1, ls2);
     compare_ints(ri, c1, 10);
     compare_strs(rs, c2, 10);
     list_free(int, ri);
@@ -769,27 +769,27 @@ void test_includes(void) {
     a[0] = list_new(int), a[1] = list_new_fromArray(int, &ints[5], 6), a[2] = list_new_fromArray(int, ints, 11);
     b[0] = list_new_fromArray(str, strs, 6), b[1] = list_new_fromArray(str, &strs[5], 6), b[2] = list_new_fromArray(str, strs, 11);
 
-    assert(includes_list(int, a[0], a[0]));
-    assert(!includes_list(int, a[0], a[1]));
-    assert(includes_list(int, a[1], a[0]));
+    assert(list_includes(int, a[0], a[0]));
+    assert(!list_includes(int, a[0], a[1]));
+    assert(list_includes(int, a[1], a[0]));
     list_insert_fromArray(int, a[0], NULL, ints, 6);
 
     for (i = 0; i < 3; ++i) {
-        assert(includes_list(int, a[i], a[i]));
-        assert(includes_list(str, b[i], b[i]));
+        assert(list_includes(int, a[i], a[i]));
+        assert(list_includes(str, b[i], b[i]));
     }
 
     for (i = 0; i < 2; ++i) {
-        assert(!includes_list(int, a[i], a[2]));
-        assert(includes_list(int, a[2], a[i]));
-        assert(!includes_list(str, b[i], b[2]));
-        assert(includes_list(str, b[2], b[i]));
+        assert(!list_includes(int, a[i], a[2]));
+        assert(list_includes(int, a[2], a[i]));
+        assert(!list_includes(str, b[i], b[2]));
+        assert(list_includes(str, b[2], b[i]));
     }
 
-    assert(!includes_list(int, a[0], a[1]));
-    assert(!includes_list(int, a[1], a[0]));
-    assert(!includes_list(str, b[0], b[1]));
-    assert(!includes_list(str, b[1], b[0]));
+    assert(!list_includes(int, a[0], a[1]));
+    assert(!list_includes(int, a[1], a[0]));
+    assert(!list_includes(str, b[0], b[1]));
+    assert(!list_includes(str, b[1], b[0]));
 
     for (i = 0; i < 3; ++i) {
         list_free(int, a[i]);

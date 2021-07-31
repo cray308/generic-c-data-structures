@@ -468,18 +468,18 @@ void test_union(void) {
     Array_int *ri;
     Array_str *rs;
 
-    ri = set_union_array(int, NULL, &ints[15], ints, &ints[10]);
+    ri = array_union(int, NULL, &ints[15], ints, &ints[10]);
     compare_ints(ri, ints, 10);
     array_free(int, ri);
-    ri = set_union_array(int, ints, &ints[10], NULL, &ints[15]);
+    ri = array_union(int, ints, &ints[10], NULL, &ints[15]);
     compare_ints(ri, ints, 10);
     array_free(int, ri);
-    ri = set_union_array(int, NULL, &ints[15], NULL, &ints[15]);
+    ri = array_union(int, NULL, &ints[15], NULL, &ints[15]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
 
-    ri = set_union_array(int, ints, &ints[10], &ints[5], &ints[15]);
-    rs = set_union_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    ri = array_union(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = array_union(str, strs, &strs[10], &strs[5], &strs[15]);
     compare_ints(ri, c1, 15);
     compare_strs(rs, c2, 15);
     array_free(int, ri);
@@ -492,18 +492,18 @@ void test_intersection(void) {
     Array_int *ri;
     Array_str *rs;
 
-    ri = set_intersection_array(int, NULL, &ints[15], ints, &ints[10]);
+    ri = array_intersection(int, NULL, &ints[15], ints, &ints[10]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
-    ri = set_intersection_array(int, ints, &ints[10], NULL, &ints[15]);
+    ri = array_intersection(int, ints, &ints[10], NULL, &ints[15]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
-    ri = set_intersection_array(int, NULL, &ints[15], NULL, &ints[15]);
+    ri = array_intersection(int, NULL, &ints[15], NULL, &ints[15]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
 
-    ri = set_intersection_array(int, ints, &ints[10], &ints[5], &ints[15]);
-    rs = set_intersection_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    ri = array_intersection(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = array_intersection(str, strs, &strs[10], &strs[5], &strs[15]);
     compare_ints(ri, c1, 5);
     compare_strs(rs, c2, 5);
     array_free(int, ri);
@@ -516,18 +516,18 @@ void test_difference(void) {
     Array_int *ri;
     Array_str *rs;
 
-    ri = set_difference_array(int, NULL, &ints[15], ints, &ints[10]);
+    ri = array_difference(int, NULL, &ints[15], ints, &ints[10]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
-    ri = set_difference_array(int, ints, &ints[10], NULL, &ints[15]);
+    ri = array_difference(int, ints, &ints[10], NULL, &ints[15]);
     compare_ints(ri, ints, 10);
     array_free(int, ri);
-    ri = set_difference_array(int, NULL, &ints[15], NULL, &ints[15]);
+    ri = array_difference(int, NULL, &ints[15], NULL, &ints[15]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
 
-    ri = set_difference_array(int, ints, &ints[10], &ints[5], &ints[15]);
-    rs = set_difference_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    ri = array_difference(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = array_difference(str, strs, &strs[10], &strs[5], &strs[15]);
     compare_ints(ri, c1, 5);
     compare_strs(rs, c2, 5);
     array_free(int, ri);
@@ -540,18 +540,18 @@ void test_symmetric_difference(void) {
     Array_int *ri;
     Array_str *rs;
 
-    ri = set_symmetric_difference_array(int, NULL, &ints[15], ints, &ints[10]);
+    ri = array_symmetric_difference(int, NULL, &ints[15], ints, &ints[10]);
     compare_ints(ri, ints, 10);
     array_free(int, ri);
-    ri = set_symmetric_difference_array(int, ints, &ints[10], NULL, &ints[15]);
+    ri = array_symmetric_difference(int, ints, &ints[10], NULL, &ints[15]);
     compare_ints(ri, ints, 10);
     array_free(int, ri);
-    ri = set_symmetric_difference_array(int, NULL, &ints[15], NULL, &ints[15]);
+    ri = array_symmetric_difference(int, NULL, &ints[15], NULL, &ints[15]);
     compare_ints(ri, ints, 0);
     array_free(int, ri);
 
-    ri = set_symmetric_difference_array(int, ints, &ints[10], &ints[5], &ints[15]);
-    rs = set_symmetric_difference_array(str, strs, &strs[10], &strs[5], &strs[15]);
+    ri = array_symmetric_difference(int, ints, &ints[10], &ints[5], &ints[15]);
+    rs = array_symmetric_difference(str, strs, &strs[10], &strs[5], &strs[15]);
     compare_ints(ri, c1, 10);
     compare_strs(rs, c2, 10);
     array_free(int, ri);
@@ -559,30 +559,30 @@ void test_symmetric_difference(void) {
 }
 
 void test_includes(void) {
-    assert(includes_array(int, NULL, &ints[6], NULL, &ints[6]));
-    assert(!includes_array(int, NULL, &ints[6], &ints[5], &ints[11]));
-    assert(includes_array(int, &ints[5], &ints[11], NULL, &ints[6]));
+    assert(array_includes(int, NULL, &ints[6], NULL, &ints[6]));
+    assert(!array_includes(int, NULL, &ints[6], &ints[5], &ints[11]));
+    assert(array_includes(int, &ints[5], &ints[11], NULL, &ints[6]));
 
-    assert(includes_array(int, ints, &ints[6], ints, &ints[6]));
-    assert(includes_array(str, strs, &strs[6], strs, &strs[6]));
-    assert(includes_array(int, &ints[5], &ints[11], &ints[5], &ints[11]));
-    assert(includes_array(str, &strs[5], &strs[11], &strs[5], &strs[11]));
-    assert(includes_array(int, ints, &ints[11], ints, &ints[11]));
-    assert(includes_array(str, strs, &strs[11], strs, &strs[11]));
+    assert(array_includes(int, ints, &ints[6], ints, &ints[6]));
+    assert(array_includes(str, strs, &strs[6], strs, &strs[6]));
+    assert(array_includes(int, &ints[5], &ints[11], &ints[5], &ints[11]));
+    assert(array_includes(str, &strs[5], &strs[11], &strs[5], &strs[11]));
+    assert(array_includes(int, ints, &ints[11], ints, &ints[11]));
+    assert(array_includes(str, strs, &strs[11], strs, &strs[11]));
 
-    assert(!includes_array(int, ints, &ints[6], ints, &ints[11]));
-    assert(includes_array(int, ints, &ints[11], ints, &ints[6]));
-    assert(!includes_array(str, strs, &strs[6], strs, &strs[11]));
-    assert(includes_array(str, strs, &strs[11], strs, &strs[6]));
-    assert(!includes_array(int, &ints[5], &ints[11], ints, &ints[11]));
-    assert(includes_array(int, ints, &ints[11], &ints[5], &ints[11]));
-    assert(!includes_array(str, &strs[5], &strs[11], strs, &strs[11]));
-    assert(includes_array(str, strs, &strs[11], &strs[5], &strs[11]));
+    assert(!array_includes(int, ints, &ints[6], ints, &ints[11]));
+    assert(array_includes(int, ints, &ints[11], ints, &ints[6]));
+    assert(!array_includes(str, strs, &strs[6], strs, &strs[11]));
+    assert(array_includes(str, strs, &strs[11], strs, &strs[6]));
+    assert(!array_includes(int, &ints[5], &ints[11], ints, &ints[11]));
+    assert(array_includes(int, ints, &ints[11], &ints[5], &ints[11]));
+    assert(!array_includes(str, &strs[5], &strs[11], strs, &strs[11]));
+    assert(array_includes(str, strs, &strs[11], &strs[5], &strs[11]));
 
-    assert(!includes_array(int, ints, &ints[6], &ints[5], &ints[11]));
-    assert(!includes_array(int, &ints[5], &ints[11], ints, &ints[6]));
-    assert(!includes_array(str, strs, &strs[6], &strs[5], &strs[11]));
-    assert(!includes_array(str, &strs[5], &strs[11], strs, &strs[6]));
+    assert(!array_includes(int, ints, &ints[6], &ints[5], &ints[11]));
+    assert(!array_includes(int, &ints[5], &ints[11], ints, &ints[6]));
+    assert(!array_includes(str, strs, &strs[6], &strs[5], &strs[11]));
+    assert(!array_includes(str, &strs[5], &strs[11], strs, &strs[6]));
 }
 
 int main(void) {    
