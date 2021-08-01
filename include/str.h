@@ -60,13 +60,13 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
 /**
  * Char pointer to the front of the string.
  */
-#define string_front(this) iter_begin(STR, 0, (this)->s, (this)->size)
+#define string_front(this) ((this)->size ? &((this)->s[0]) : NULL)
 
 
 /**
  * Char pointer to the back of the string.
  */
-#define string_back(this) iter_rbegin(STR, 0, (this)->s, (this)->size)
+#define string_back(this) ((this)->size ? &((this)->s[(this)->size - 1]) : NULL)
 
 
 /**
@@ -74,7 +74,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  it  Char pointer to use during iteration.
  */
-#define string_iter(this, it) for (it = string_front(this); it != iter_end(STR, 0, (this)->s, (this)->size); iter_next(STR, 0, it))
+#define string_iter(this, it) for (it = string_front(this); it != ((this)->size ? &((this)->s[(this)->size]) : NULL); iter_next(STR, 0, it))
 
 
 /**
@@ -82,7 +82,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  it  Char pointer to use during iteration.
  */
-#define string_riter(this, it) for (it = string_back(this); it != iter_rend(STR, 0, (this)->s, (this)->size); iter_prev(STR, 0, it))
+#define string_riter(this, it) for (it = string_back(this); it != ((this)->size ? &((this)->s[-1]) : NULL); iter_prev(STR, 0, it))
 
 
 /**

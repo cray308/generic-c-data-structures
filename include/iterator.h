@@ -19,39 +19,9 @@
 
 #define iter_prev(type, id, p) iter_prev_##type(id, p)
 
-#define iter_deref(type, p) iter_deref_##type(p)
-
 #define iter_advance(type, id, p, n) iter_advance_##type(id, p, n)
 
 #define iter_dist(type, id, p1, p2) iter_dist_##type(id, p1, p2)
-
-/* --------------------------------------------------------------------------
- * Array (random access) iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_ARR(id, a, n)    ((n) ? &((a)[0]) : NULL)
-#define iter_end_ARR(id, a, n)      ((n) ? &((a)[n]) : NULL)
-#define iter_rbegin_ARR(id, a, n)   (n ? &((a)[(n) - 1]) : NULL)
-#define iter_rend_ARR(id, a, n)     (n ? &((a)[-1]) : NULL)
-#define iter_next_ARR(id, p)        (++(p))
-#define iter_prev_ARR(id, p)        (--(p))
-#define iter_deref_ARR(p)           (*(p))
-#define iter_advance_ARR(id, p, n)  ((p) += n)
-#define iter_dist_ARR(id, p1, p2)   ((p2) - (p1))
-
-/* --------------------------------------------------------------------------
- * List iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_LIST(id, l, n)    ((l)->front)
-#define iter_end_LIST(id, l, n)      NULL
-#define iter_rbegin_LIST(id, l, n)   ((l)->back)
-#define iter_rend_LIST(id, l, n)     NULL
-#define iter_next_LIST(id, p)        ((p) = (p)->next)
-#define iter_prev_LIST(id, p)        ((p) = (p)->prev)
-#define iter_deref_LIST(p)           ((p)->data)
-#define iter_advance_LIST(id, p, n)  iterator_advance_helper(LIST, id, p, n)
-#define iter_dist_LIST(id, p1, p2)   __iter_dist_helper_LIST_##id(p1, p2)
 
 /* --------------------------------------------------------------------------
  * AVL Tree iterator macros
@@ -63,23 +33,8 @@
 #define iter_rend_AVLTREE(id, t, n)     NULL
 #define iter_next_AVLTREE(id, p)        ((p) = __avl_inorder_successor_##id((p)))
 #define iter_prev_AVLTREE(id, p)        ((p) = __avl_inorder_predecessor_##id((p)))
-#define iter_deref_AVLTREE(p)           ((p)->data)
 #define iter_advance_AVLTREE(id, p, n)  iterator_advance_helper(AVLTREE, id, p, n)
 #define iter_dist_AVLTREE(id, p1, p2)   __iter_dist_helper_AVLTREE_##id(p1, p2)
-
-/* --------------------------------------------------------------------------
- * String iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_STR(id, s, n)    ((n) ? &((s)[0]) : NULL)
-#define iter_end_STR(id, s, n)      ((n) ? &((s)[n]) : NULL)
-#define iter_rbegin_STR(id, s, n)   (n ? &((s)[(n) - 1]) : NULL)
-#define iter_rend_STR(id, s, n)     (n ? &((s)[-1]) : NULL)
-#define iter_next_STR(id, p)        (++(p))
-#define iter_prev_STR(id, p)        (--(p))
-#define iter_deref_STR(p)           (*(p))
-#define iter_advance_STR(id, p, n)  ((p) += n)
-#define iter_dist_STR(id, p1, p2)   ((p2) - (p1))
 
 /* --------------------------------------------------------------------------
  * Generic helpers

@@ -30,13 +30,13 @@
 /**
  * Pointer to the first element in the array, if it is is not empty.
  */
-#define array_front(this) iter_begin(ARR, 0, (this)->arr, (this)->size)
+#define array_front(this) ((this)->size ? &((this)->arr[0]) : NULL)
 
 
 /**
  * Pointer to the last element in the array, if it is is not empty.
  */
-#define array_back(this) iter_rbegin(ARR, 0, (this)->arr, (this)->size)
+#define array_back(this) ((this)->size ? &((this)->arr[(this)->size - 1]) : NULL)
 
 
 /**
@@ -45,7 +45,7 @@
  * @param  it  Pointer to the array's datatype (t *) which is assigned to the current element.
  *               May be dereferenced with (*it).
  */
-#define array_iter(this, it) for (it = array_front(this); it != iter_end(ARR, 0, (this)->arr, (this)->size); iter_next(ARR, 0, it))
+#define array_iter(this, it) for (it = array_front(this); it != ((this)->size ? &((this)->arr[(this)->size]) : NULL); ++(it))
 
 
 /**
@@ -54,7 +54,7 @@
  * @param  it  Pointer to the array's datatype (t *) which is assigned to the current element.
  *               May be dereferenced with (*it).
  */
-#define array_riter(this, it) for (it = array_back(this); it != iter_rend(ARR, 0, (this)->arr, (this)->size); iter_prev(ARR, 0, it))
+#define array_riter(this, it) for (it = array_back(this); it != ((this)->size ? &((this)->arr[-1]) : NULL); --(it))
 
 
 /**

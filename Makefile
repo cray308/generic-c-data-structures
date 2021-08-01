@@ -1,12 +1,8 @@
-CFLAGS = -std=c89 -Iinclude -O2
+OPTIMIZE = 2
+
+CFLAGS = -std=c89 -Iinclude -O$(OPTIMIZE)
 CFLAGS += -Wall -Wextra -Werror -Wpedantic -Wconversion -Wstrict-prototypes
 CFLAGS += -funsigned-char -finline-functions
-
-CPPFLAGS = -std=c++11 -O2
-CPPFLAGS += -Wall -Wextra -Werror -Wpedantic
-CPPFLAGS += -funsigned-char -finline-functions
-
-HEADERS = $(wildcard include/*.h)
 
 TEST_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue
 TEST_BINARIES += bin/c/test_array bin/c/test_str bin/c/test_list
@@ -15,11 +11,12 @@ TEST_BINARIES += bin/c/test_unordered_set bin/c/test_unordered_map
 
 BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds
 
-.SECONDARY: $(OBJS)
+#.SECONDARY: $(OBJS)
 
 all: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 debug: CFLAGS += -g
+debug: OPTIMIZE = 0
 debug: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 test: $(TEST_BINARIES)
@@ -37,11 +34,11 @@ bin/c/test_str: tests/test_str.c include/str.h src/str.c
 bin/c/test_%: tests/test_%.c include/%.h
 	gcc $(CFLAGS) -o $@ $<
 
-bin/c/benchmark_%: tests/benchmark_%.c $(HEADERS)
+bin/c/benchmark_%: tests/benchmark_%.c include/array.h include/list.h
 	gcc $(CFLAGS) -o $@ $<
 
 bin/cpp/%: tests/%.cpp
-	g++ $(CPPFLAGS) -o $@ $<
+	g++ -std=c++11 -O2 -Wall -Wextra -Werror -Wpedantic -o $@ $<
 
 
 clean:
