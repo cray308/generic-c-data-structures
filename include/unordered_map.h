@@ -35,7 +35,7 @@
  *
  * @param  it  Pointer to `Pair` which is assigned to the current element.
  */
-#define umap_iter(id, this, it) for (it = iter_begin_HTABLE(id, this); it != iter_end_HTABLE(id, this); iter_next_HTABLE(id, this, it))
+#define umap_iter(id, this, it) for (it = __htable_iter_begin_##id(this); it; it = __htable_iter_next_##id(this))
 
 
 /**
@@ -167,7 +167,7 @@ typedef struct {                                                                
     vt second;                                                                                               \
 } Pair_##id;                                                                                                 \
                                                                                                              \
-__gen_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                                       \
+__setup_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                                     \
                                                                                                              \
 vt *umap_at_##id(UMap_##id *this, const kt key);                                                             \
 
@@ -201,7 +201,7 @@ vt *umap_at_##id(UMap_##id *this, const kt key);                                
  */
 #define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
-__gen_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+__setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
 vt *umap_at_##id(UMap_##id *this, const kt key) {                                                            \
     Pair_##id *p = __htable_find_##id(this, key);                                                            \

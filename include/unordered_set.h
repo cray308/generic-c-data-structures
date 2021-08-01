@@ -38,7 +38,7 @@
  *
  * @param  it  Pointer to element, which is assigned to the current element.
  */
-#define uset_iter(id, this, it) for (it = iter_begin_HTABLE(id, this); it != iter_end_HTABLE(id, this); iter_next_HTABLE(id, this, it))
+#define uset_iter(id, this, it) for (it = __htable_iter_begin_##id(this); it; it = __htable_iter_next_##id(this))
 
 
 /**
@@ -149,8 +149,7 @@
  * @param  id  ID to be used for the @c USet type (must be unique).
  * @param  t   Type to be stored in the set.
  */
-#define gen_uset_headers(id, t)                                                                              \
-__gen_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)                                                \
+#define gen_uset_headers(id, t) __setup_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)
 
 
 /**
@@ -174,6 +173,6 @@ __gen_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)                   
  *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_uset_source(id, t, cmp_eq, addrOfValue, sizeOfValue, copyValue, deleteValue)                     \
-__gen_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id, __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue, copyValue, deleteValue, __uset_copy_value, __uset_delete_value)
+__setup_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id, __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue, copyValue, deleteValue, __uset_copy_value, __uset_delete_value)
 
 #endif /* DS_UNORDERED_SET_H */

@@ -2,19 +2,10 @@
 #define DS_HASH_TABLE_H
 
 #include "hash.h"
-#include "iterator.h"
 #include <time.h>
 #include <limits.h>
 
-/* --------------------------------------------------------------------------
- * Hash table iterators
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_HTABLE(id, ht)  __htable_iter_begin_##id(ht)
-#define iter_end_HTABLE(id, ht)    NULL
-#define iter_next_HTABLE(id, ht, p)   ((p) = __htable_iter_next_##id(ht))
-
-#define __gen_hash_table_headers(id, kt, TableType, DataType, EntryType)                                     \
+#define __setup_hash_table_headers(id, kt, TableType, DataType, EntryType)                                     \
                                                                                                              \
 struct EntryType {                                                                                           \
     struct EntryType *next;                                                                                  \
@@ -33,29 +24,8 @@ typedef struct {                                                                
     struct EntryType **buckets;                                                                              \
 } TableType;                                                                                                 \
                                                                                                              \
-__DS_FUNC_PREFIX_INL DataType* __htable_iter_begin_##id(TableType *this) {                                   \
-    if (!(this->size)) {                                                                                     \
-        this->it.curr = NULL;                                                                                \
-        this->it.idx = this->cap;                                                                            \
-    } else {                                                                                                 \
-        unsigned idx = 0;                                                                                    \
-        for (; (idx < this->cap) && (this->buckets[idx] == NULL); ++idx);                                    \
-        this->it.idx = idx;                                                                                  \
-        this->it.curr = this->buckets[this->it.idx];                                                         \
-    }                                                                                                        \
-    return this->it.curr ? &(this->it.curr->data) : NULL;                                                    \
-}                                                                                                            \
-__DS_FUNC_PREFIX_INL DataType* __htable_iter_next_##id(TableType *this) {                                    \
-    if (this->it.curr->next) {                                                                               \
-        this->it.curr = this->it.curr->next;                                                                 \
-    } else {                                                                                                 \
-        unsigned idx = this->it.idx + 1;                                                                     \
-        for (; (idx < this->cap) && (this->buckets[idx] == NULL); ++idx);                                    \
-        this->it.idx = idx;                                                                                  \
-        this->it.curr = (this->it.idx >= this->cap) ? NULL : this->buckets[this->it.idx];                    \
-    }                                                                                                        \
-    return this->it.curr ? &(this->it.curr->data) : NULL;                                                    \
-}                                                                                                            \
+DataType* __htable_iter_begin_##id(TableType *this);                                                         \
+DataType* __htable_iter_next_##id(TableType *this);                                                          \
                                                                                                              \
 void __htable_rehash_##id(TableType *this, unsigned nbuckets);                                               \
 DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted);                               \
@@ -67,7 +37,32 @@ void __htable_clear_##id(TableType *this);                                      
 DataType *__htable_find_##id(TableType *this, const kt key);                                                 \
 void __htable_set_load_factor_##id(TableType *this, double lf);
 
-#define __gen_hash_table_source(id, kt, cmp_eq, TableType, DataType, EntryType, entry_get_key, data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+#define __setup_hash_table_source(id, kt, cmp_eq, TableType, DataType, EntryType, entry_get_key, data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+                                                                                                             \
+DataType* __htable_iter_begin_##id(TableType *this) {                                                        \
+    if (!(this->size)) {                                                                                     \
+        this->it.curr = NULL;                                                                                \
+        this->it.idx = this->cap;                                                                            \
+    } else {                                                                                                 \
+        unsigned idx = 0;                                                                                    \
+        for (; (idx < this->cap) && (this->buckets[idx] == NULL); ++idx);                                    \
+        this->it.idx = idx;                                                                                  \
+        this->it.curr = this->buckets[this->it.idx];                                                         \
+    }                                                                                                        \
+    return this->it.curr ? &(this->it.curr->data) : NULL;                                                    \
+}                                                                                                            \
+                                                                                                             \
+DataType* __htable_iter_next_##id(TableType *this) {                                                         \
+    if (this->it.curr->next) {                                                                               \
+        this->it.curr = this->it.curr->next;                                                                 \
+    } else {                                                                                                 \
+        unsigned idx = this->it.idx + 1;                                                                     \
+        for (; (idx < this->cap) && (this->buckets[idx] == NULL); ++idx);                                    \
+        this->it.idx = idx;                                                                                  \
+        this->it.curr = (this->it.idx >= this->cap) ? NULL : this->buckets[this->it.idx];                    \
+    }                                                                                                        \
+    return this->it.curr ? &(this->it.curr->data) : NULL;                                                    \
+}                                                                                                            \
                                                                                                              \
 void __htable_rehash_##id(TableType *this, unsigned nbuckets) {                                              \
     unsigned n, i;                                                                                           \
