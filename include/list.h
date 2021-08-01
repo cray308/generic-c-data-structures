@@ -2,18 +2,13 @@
 #define LIST_H
 
 #include "ds.h"
-#include "iterator.h"
-#include <limits.h>
 
 #define LIST_END ((void*)-1)
-#define LIST_NOT_APPLICABLE UINT_MAX
+#define LIST_NOT_APPLICABLE 4294967295
 
 /* --------------------------------------------------------------------------
  * PRIMARY LIST SECTION
  * -------------------------------------------------------------------------- */
-
-
-
 
 
 /**
@@ -39,17 +34,6 @@
  */
 #define list_size(this) ((this)->size)
 
-/*
-#define iter_begin_LIST(id, l, n)    ((this)->front)
-#define iter_end_LIST(id, l, n)      NULL
-#define iter_rbegin_LIST(id, l, n)   ((this)->back)
-#define iter_rend_LIST(id, l, n)     NULL
-#define iter_next_LIST(id, p)        ((p) = (p)->next)
-#define iter_prev_LIST(id, p)        ((p) = (p)->prev)
-#define iter_advance_LIST(id, p, n)  iterator_advance_helper(LIST, id, p, n)
-#define iter_dist_LIST(id, p1, p2)   __iter_dist_helper_LIST_##id(p1, p2)
- */
-
 
 /**
  * Macro for iterating over the list from front to back.
@@ -68,32 +52,22 @@
 
 
 /**
- * Macro for advancing a @c ListEntry by @c n positions. A negative number means to move backwards.
+ * Advances the entry by @c n positions. A negative number means to move backwards.
  *
- * @param  n  @c Number of positions to advance.
+ * @param  e  Address of @c ListEntry (i.e. ListEntry **).
+ * @param  n  Number of positions to advance.
  */
-#define listEntry_advance(e, n) do {                                                                         \
-    long _count = 0;                                                                                         \
-    if ((n) >= 0) {                                                                                          \
-        for (; _count != (n) && (e) != NULL; ++_count) {                                                     \
-            e = (e)->next;                                                                                   \
-        }                                                                                                    \
-    } else {                                                                                                 \
-        for (; _count != (n) && (e) != NULL; --_count) {                                                     \
-            e = (e)->prev;                                                                                   \
-        }                                                                                                    \
-    }                                                                                                        \
-} while (0)
+#define listEntry_advance(id, e, n) listEntry_advance_##id(e, n)
 
 
 /**
- * Returns the number of elements between @c first and @c last.
+ * Returns the number of elements between @c first and @c last .
  *
  * @param   first  @c ListEntry to start at.
- * @param   last   @c ListEntry to end at. This must be reachable in the forward direction by @c first.
+ * @param   last   @c ListEntry to end at. This must be reachable in the forward direction by @c first .
  *
- * @return         Number of elements between @c first and @c last, or if @c last is not reachable,
- *                 returns @c LIST_NOT_APPLICABLE.
+ * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
+ *                 returns @c LIST_NOT_APPLICABLE .
  */
 #define listEntry_distance(id, first, last) listEntry_distance_##id(first, last)
 
@@ -349,13 +323,8 @@ typedef struct {                                                                
     ListEntry_##id *back;                                                                                    \
 } List_##id;                                                                                                 \
                                                                                                              \
-__DS_FUNC_PREFIX_INL unsigned listEntry_distance_##id(ListEntry_##id *p1, ListEntry_##id *p2) {              \
-    unsigned dist = 0;                                                                                       \
-    ListEntry_##id *curr;                                                                                    \
-    for (curr = p1; curr && curr != p2; curr = curr->next) ++dist;                                           \
-    if (!curr || curr != p2) return LIST_NOT_APPLICABLE;                                                     \
-    return dist;                                                                                             \
-}                                                                                                            \
+void listEntry_advance_##id(ListEntry_##id **p1, long n);                                                    \
+unsigned listEntry_distance_##id(ListEntry_##id *p1, ListEntry_##id *p2);                                    \
                                                                                                              \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, unsigned n, t value);  \
 ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos, t *arr, unsigned n);        \
@@ -383,6 +352,28 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_list_source(id, t, copyValue, deleteValue)                                                       \
+                                                                                                             \
+void listEntry_advance_##id(ListEntry_##id **p1, long n) {                                                   \
+    long count = 0;                                                                                          \
+    ListEntry_##id *curr = *p1;                                                                              \
+    if (n >= 0) {                                                                                            \
+        for (; count != n && curr != NULL; ++count) {                                                        \
+            curr = curr->next;                                                                               \
+        }                                                                                                    \
+    } else {                                                                                                 \
+        for (; count != n && curr != NULL; --count) {                                                        \
+            curr = curr->prev;                                                                               \
+        }                                                                                                    \
+    }                                                                                                        \
+    *p1 = curr;                                                                                              \
+}                                                                                                            \
+                                                                                                             \
+unsigned listEntry_distance_##id(ListEntry_##id *p1, ListEntry_##id *p2) {                                   \
+    unsigned dist = 0;                                                                                       \
+    for (; p1 && p1 != p2; p1 = p1->next) ++dist;                                                            \
+    if (!p1 || p1 != p2) return LIST_NOT_APPLICABLE;                                                         \
+    return dist;                                                                                             \
+}                                                                                                            \
                                                                                                              \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, unsigned n, t value) { \
     unsigned i;                                                                                              \

@@ -1,10 +1,13 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include "iterator.h"
 #include "alg_helper.h"
 
+/*
+#define ARRAY_ERROR 4294967294
+ */
 #define ARRAY_ERROR (-1)
+#define ARRAY_NOT_APPLICABLE 4294967295
 
 /* --------------------------------------------------------------------------
  * PRIMARY ARRAY SECTION

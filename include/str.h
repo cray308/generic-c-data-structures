@@ -2,7 +2,6 @@
 #define STR_H
 
 #include "ds.h"
-#include "iterator.h"
 #include <ctype.h>
 
 typedef struct {
@@ -11,8 +10,13 @@ typedef struct {
     char *s;
 } String;
 
+/*
+#define STRING_NPOS 4294967294
+#define STRING_ERROR 4294967293
+ */
 #define STRING_NPOS (-1)
 #define STRING_ERROR (-2)
+#define STRING_NOT_APPLICABLE 4294967295
 
 
 /**
@@ -74,7 +78,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  it  Char pointer to use during iteration.
  */
-#define string_iter(this, it) for (it = string_front(this); it != ((this)->size ? &((this)->s[(this)->size]) : NULL); iter_next(STR, 0, it))
+#define string_iter(this, it) for (it = string_front(this); it != ((this)->size ? &((this)->s[(this)->size]) : NULL); ++it)
 
 
 /**
@@ -82,7 +86,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  it  Char pointer to use during iteration.
  */
-#define string_riter(this, it) for (it = string_back(this); it != ((this)->size ? &((this)->s[-1]) : NULL); iter_prev(STR, 0, it))
+#define string_riter(this, it) for (it = string_back(this); it != ((this)->size ? &((this)->s[-1]) : NULL); --it)
 
 
 /**

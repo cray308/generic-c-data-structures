@@ -24,19 +24,6 @@
 #define iter_dist(type, id, p1, p2) iter_dist_##type(id, p1, p2)
 
 /* --------------------------------------------------------------------------
- * AVL Tree iterator macros
- * -------------------------------------------------------------------------- */
-
-#define iter_begin_AVLTREE(id, t, n)    __avl_successor_##id((t)->root)
-#define iter_end_AVLTREE(id, t, n)      NULL
-#define iter_rbegin_AVLTREE(id, t, n)   __avl_predecessor_##id((t)->root)
-#define iter_rend_AVLTREE(id, t, n)     NULL
-#define iter_next_AVLTREE(id, p)        ((p) = __avl_inorder_successor_##id((p)))
-#define iter_prev_AVLTREE(id, p)        ((p) = __avl_inorder_predecessor_##id((p)))
-#define iter_advance_AVLTREE(id, p, n)  iterator_advance_helper(AVLTREE, id, p, n)
-#define iter_dist_AVLTREE(id, p1, p2)   __iter_dist_helper_AVLTREE_##id(p1, p2)
-
-/* --------------------------------------------------------------------------
  * Generic helpers
  * -------------------------------------------------------------------------- */
 

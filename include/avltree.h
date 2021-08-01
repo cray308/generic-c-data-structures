@@ -2,7 +2,6 @@
 #define DS_AVL_TREE_H
 
 #include "ds.h"
-#include "iterator.h"
 
 #define __setup_avltree_headers(id, kt, TreeType, DataType, EntryType)                                       \
                                                                                                              \
@@ -20,37 +19,12 @@ typedef struct {                                                                
     unsigned size;                                                                                           \
 } TreeType;                                                                                                  \
                                                                                                              \
-__DS_FUNC_PREFIX_INL EntryType *__avl_successor_##id(EntryType *x) {                                         \
-    if (!x) return NULL;                                                                                     \
-    while (x->left) x = x->left;                                                                             \
-    return x;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL EntryType *__avl_predecessor_##id(EntryType *x) {                                       \
-    if (!x) return NULL;                                                                                     \
-    while (x->right) x = x->right;                                                                           \
-    return x;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL EntryType *__avl_inorder_successor_##id(EntryType *x) {                                 \
-    EntryType *parent;                                                                                       \
-    if (!x) return NULL;                                                                                     \
-    else if (x->right) return __avl_successor_##id(x->right);                                                \
-                                                                                                             \
-    for (parent = x->parent; parent && x == parent->right; x = parent, parent = parent->parent);             \
-    return parent;                                                                                           \
-}                                                                                                            \
-                                                                                                             \
-__DS_FUNC_PREFIX_INL EntryType *__avl_inorder_predecessor_##id(EntryType *x) {                               \
-    EntryType *parent;                                                                                       \
-    if (!x) return NULL;                                                                                     \
-    else if (x->left) return __avl_predecessor_##id(x->left);                                                \
-                                                                                                             \
-    for (parent = x->parent; parent && x == parent->left; x = parent, parent = parent->parent);              \
-    return parent;                                                                                           \
-}                                                                                                            \
-                                                                                                             \
-create_iterator_distance_helper(AVLTREE, id, EntryType *)                                                    \
+EntryType *__avl_successor_##id(EntryType *x);                                                               \
+EntryType *__avl_predecessor_##id(EntryType *x);                                                             \
+EntryType *__avl_inorder_successor_##id(EntryType *x);                                                       \
+EntryType *__avl_inorder_predecessor_##id(EntryType *x);                                                     \
+void __avlEntry_advance_##id(EntryType **p1, long n);                                                        \
+unsigned __avlEntry_distance_##id(EntryType *p1, EntryType *p2);                                             \
                                                                                                              \
 EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate);                   \
 EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted);                              \
@@ -62,6 +36,58 @@ void __avltree_remove_entry_##id(TreeType *this, EntryType *v);                 
 void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end);                                 \
 
 #define __setup_avltree_source(id, kt, TreeType, DataType, EntryType, cmp_lt, entry_get_key, data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
+                                                                                                             \
+EntryType *__avl_successor_##id(EntryType *x) {                                                              \
+    if (!x) return NULL;                                                                                     \
+    while (x->left) x = x->left;                                                                             \
+    return x;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
+EntryType *__avl_predecessor_##id(EntryType *x) {                                                            \
+    if (!x) return NULL;                                                                                     \
+    while (x->right) x = x->right;                                                                           \
+    return x;                                                                                                \
+}                                                                                                            \
+                                                                                                             \
+EntryType *__avl_inorder_successor_##id(EntryType *x) {                                                      \
+    EntryType *parent;                                                                                       \
+    if (!x) return NULL;                                                                                     \
+    else if (x->right) return __avl_successor_##id(x->right);                                                \
+                                                                                                             \
+    for (parent = x->parent; parent && x == parent->right; x = parent, parent = parent->parent);             \
+    return parent;                                                                                           \
+}                                                                                                            \
+                                                                                                             \
+EntryType *__avl_inorder_predecessor_##id(EntryType *x) {                                                    \
+    EntryType *parent;                                                                                       \
+    if (!x) return NULL;                                                                                     \
+    else if (x->left) return __avl_predecessor_##id(x->left);                                                \
+                                                                                                             \
+    for (parent = x->parent; parent && x == parent->left; x = parent, parent = parent->parent);              \
+    return parent;                                                                                           \
+}                                                                                                            \
+                                                                                                             \
+void __avlEntry_advance_##id(EntryType **p1, long n) {                                                       \
+    long count = 0;                                                                                          \
+    EntryType *curr = *p1;                                                                                   \
+    if (n >= 0) {                                                                                            \
+        for (; count != n && curr != NULL; ++count) {                                                        \
+            curr = __avl_inorder_successor_##id(curr);                                                       \
+        }                                                                                                    \
+    } else {                                                                                                 \
+        for (; count != n && curr != NULL; --count) {                                                        \
+            curr = __avl_inorder_predecessor_##id(curr);                                                     \
+        }                                                                                                    \
+    }                                                                                                        \
+    *p1 = curr;                                                                                              \
+}                                                                                                            \
+                                                                                                             \
+unsigned __avlEntry_distance_##id(EntryType *p1, EntryType *p2) {                                            \
+    unsigned dist = 0;                                                                                       \
+    for (; p1 && p1 != p2; p1 = __avl_inorder_successor_##id(p1)) ++dist;                                    \
+    if (!p1 || p1 != p2) return 4294967295;                                                                  \
+    return dist;                                                                                             \
+}                                                                                                            \
                                                                                                              \
 EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                                             \
     EntryType *nParent = x->right;                                                                           \

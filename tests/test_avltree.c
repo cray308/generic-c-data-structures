@@ -6,8 +6,8 @@
 #define __tree_copy_value(x, y)
 #define __tree_delete_value(x)
 
-#define tree_iter(id, s, it) for (it = iter_begin(AVLTREE, id, s, 0); it != iter_end(AVLTREE, id, s, 0); iter_next(AVLTREE, id, it))
-#define tree_riter(id, s, it) for (it = iter_rbegin(AVLTREE, id, s, 0); it != iter_rend(AVLTREE, id, s, 0); iter_prev(AVLTREE, id, it))
+#define tree_iter(id, s, it) for (it = __avl_successor_##id((s)->root); it; it = __avl_inorder_successor_##id(it))
+#define tree_riter(id, s, it) for (it = __avl_predecessor_##id((s)->root); it; it = __avl_inorder_predecessor_##id(it))
 #define tree_new(id) __avltree_new_fromArray_##id(NULL, 0)
 #define tree_clear(id, s) __avltree_erase_##id(s, __avl_successor_##id((s)->root), NULL)
 #define tree_free(id, s) do { tree_clear(id, s); free(s); } while(0)

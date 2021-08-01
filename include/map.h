@@ -6,16 +6,30 @@
 #define __map_entry_get_key(e) ((e)->data.first)
 #define __map_data_get_key(d)  ((d).first)
 
+#define MAP_NOT_APPLICABLE 4294967295
+
 /**
  * The number of elements in the map.
  */
-#define map_size(this) ((int) (this)->size)
+#define map_size(this) (this)->size
 
 
 /**
  * Tests whether the map is empty.
  */
-#define map_empty(this) (!((this)->root))
+#define map_empty(this) !((this)->root)
+
+
+/**
+ * Returns a @c MapEntry corresponding to the smallest key.
+ */
+#define map_begin(id, this) __avl_successor_##id((this)->root)
+
+
+/**
+ * Returns a @c MapEntry corresponding to the largest key.
+ */
+#define map_rbegin(id, this) __avl_predecessor_##id((this)->root)
 
 
 /**
@@ -23,14 +37,35 @@
  *
  * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
-#define map_iter(id, this, it) for (it = iter_begin(AVLTREE, id, this, 0); it != iter_end(AVLTREE, id, this, 0); iter_next(AVLTREE, id, it))
+#define map_iter(id, this, it) for (it = __avl_successor_##id((this)->root); it; it = __avl_inorder_successor_##id(it))
 
 /**
  * Iterates through the map in reverse order.
  *
  * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
-#define map_riter(id, this, it) for (it = iter_rbegin(AVLTREE, id, this, 0); it != iter_rend(AVLTREE, id, this, 0); iter_prev(AVLTREE, id, it))
+#define map_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
+
+
+/**
+ * Advances the entry by @c n positions. A negative number means to move backwards.
+ *
+ * @param  e  Address of @c MapEntry (i.e. MapEntry **).
+ * @param  n  Number of positions to advance.
+ */
+#define mapEntry_advance(id, e, n) __avlEntry_advance_##id(e, n)
+
+
+/**
+ * Returns the number of elements between @c first and @c last .
+ *
+ * @param   first  @c MapEntry to start at.
+ * @param   last   @c MapEntry to end at. This must be reachable in the forward direction by @c first .
+ *
+ * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
+ *                 returns @c MAP_NOT_APPLICABLE .
+ */
+#define mapEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 
 
 /**

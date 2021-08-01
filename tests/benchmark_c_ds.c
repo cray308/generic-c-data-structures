@@ -2,6 +2,7 @@
 #include "list.h"
 #include <stdio.h>
 #include <time.h>
+#include <limits.h>
 
 gen_array_headers_withAlg(unsigned, unsigned)
 gen_array_source_withAlg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy, DSDefault_shallowDelete)

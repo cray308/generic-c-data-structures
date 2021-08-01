@@ -1,5 +1,6 @@
 #include "set.h"
 #include <assert.h>
+#include <limits.h>
 
 gen_set_headers(int, int)
 gen_set_headers(str, char *)
@@ -19,8 +20,8 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "150","155","160","165","170","175","180","185","190","195","200","205","210","215","220","225","230",
 "235","240","245"};
 
-void compare_ints(Set_int *s, int *comparison, int size) {
-    int i = 0;
+void compare_ints(Set_int *s, int *comparison, unsigned size) {
+    unsigned i = 0;
     SetEntry_int *it;
     assert(set_size(s) == size);
     if (size) {
@@ -36,11 +37,11 @@ void compare_ints(Set_int *s, int *comparison, int size) {
     set_riter(int, s, it) {
         assert(it->data == comparison[i--]);
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
-void compare_strs(Set_str *s, char **comparison, int size) {
-    int i = 0;
+void compare_strs(Set_str *s, char **comparison, unsigned size) {
+    unsigned i = 0;
     SetEntry_str *it;
     assert(set_size(s) == size);
     if (size) {
@@ -56,7 +57,7 @@ void compare_strs(Set_str *s, char **comparison, int size) {
     set_riter(str, s, it) {
         assert(streq(it->data, comparison[i--]));
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
 void test_empty_init(void) {
@@ -221,10 +222,10 @@ void test_remove_entry(void) {
     set_remove_entry(int, si, NULL);
     set_remove_entry(int, si, si->root);
     set_remove_entry(str, ss, ss->root);
-    set_remove_entry(int, si, iter_begin_AVLTREE(int, si, 0));
-    set_remove_entry(str, ss, iter_begin_AVLTREE(str, ss, 0));
-    set_remove_entry(int, si, iter_rbegin_AVLTREE(int, si, 0));
-    set_remove_entry(str, ss, iter_rbegin_AVLTREE(str, ss, 0));
+    set_remove_entry(int, si, set_begin(int, si));
+    set_remove_entry(str, ss, set_begin(str, ss));
+    set_remove_entry(int, si, set_rbegin(int, si));
+    set_remove_entry(str, ss, set_rbegin(str, ss));
     compare_ints(si, c1, 2);
     compare_strs(ss, c2, 2);
     set_free(int, si);
@@ -239,20 +240,24 @@ void test_erase_entries(void) {
     SetEntry_int *p1 = si->root, *p2 = si->root;
     SetEntry_str *p3 = ss->root, *p4 = ss->root;
 
-    iter_prev_AVLTREE(int, p1), iter_next_AVLTREE(int, p2);
-    iter_prev_AVLTREE(str, p3), iter_next_AVLTREE(str, p4);
+    setEntry_advance(int, &p1, -1);
+    setEntry_advance(int, &p2, 1);
+    setEntry_advance(str, &p3, -1);
+    setEntry_advance(str, &p4, 1);
     set_erase(int, si, NULL, p2);
     set_erase(int, si, p1, p1);
     set_erase(int, si, p1, p2);
     set_erase(str, ss, p3, p4);
-    p1 = iter_rbegin_AVLTREE(int, si, 0), iter_prev_AVLTREE(int, p1);
-    p3 = iter_rbegin_AVLTREE(str, ss, 0), iter_prev_AVLTREE(str, p3);
+    p1 = set_rbegin(int, si);
+    setEntry_advance(int, &p1, -1);
+    p3 = set_rbegin(str, ss);
+    setEntry_advance(str, &p3, -1);
     set_erase(int, si, p1, NULL);
     set_erase(str, ss, p3, NULL);
-    p1 = iter_begin_AVLTREE(int, si, 0), p2 = p1;
-    iter_advance_AVLTREE(int, p2, 2);
-    p3 = iter_begin_AVLTREE(str, ss, 0), p4 = p3;
-    iter_advance_AVLTREE(str, p4, 2);
+    p1 = set_begin(int, si), p2 = p1;
+    setEntry_advance(int, &p2, 2);
+    p3 = set_begin(str, ss), p4 = p3;
+    setEntry_advance(str, &p4, 2);
     set_erase(int, si, p1, p2);
     set_erase(str, ss, p3, p4);
     compare_ints(si, c1, 4);

@@ -8,16 +8,30 @@
 #define __set_copy_value(x, y)
 #define __set_delete_value(x)
 
+#define SET_NOT_APPLICABLE 4294967295
+
 /**
  * The number of elements in the set.
  */
-#define set_size(this) ((int) (this)->size)
+#define set_size(this) (this)->size
 
 
 /**
  * Tests whether the set is empty.
  */
-#define set_empty(this) (!((this)->root))
+#define set_empty(this) !((this)->root)
+
+
+/**
+ * Returns a @c SetEntry corresponding to the smallest value.
+ */
+#define set_begin(id, this) __avl_successor_##id((this)->root)
+
+
+/**
+ * Returns a @c SetEntry corresponding to the largest value.
+ */
+#define set_rbegin(id, this) __avl_predecessor_##id((this)->root)
 
 
 /**
@@ -25,14 +39,35 @@
  *
  * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with it->data.
  */
-#define set_iter(id, this, it) for (it = iter_begin(AVLTREE, id, this, 0); it != iter_end(AVLTREE, id, this, 0); iter_next(AVLTREE, id, it))
+#define set_iter(id, this, it) for (it = __avl_successor_##id((this)->root); it; it = __avl_inorder_successor_##id(it))
 
 /**
  * Iterates through the set in reverse order.
  *
  * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with it->data.
  */
-#define set_riter(id, this, it) for (it = iter_rbegin(AVLTREE, id, this, 0); it != iter_rend(AVLTREE, id, this, 0); iter_prev(AVLTREE, id, it))
+#define set_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
+
+
+/**
+ * Advances the entry by @c n positions. A negative number means to move backwards.
+ *
+ * @param  e  Address of @c SetEntry (i.e. SetEntry **).
+ * @param  n  Number of positions to advance.
+ */
+#define setEntry_advance(id, e, n) __avlEntry_advance_##id(e, n)
+
+
+/**
+ * Returns the number of elements between @c first and @c last .
+ *
+ * @param   first  @c SetEntry to start at.
+ * @param   last   @c SetEntry to end at. This must be reachable in the forward direction by @c first .
+ *
+ * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
+ *                 returns @c SET_NOT_APPLICABLE .
+ */
+#define setEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 
 
 /**
@@ -169,7 +204,7 @@
  *
  * @return         Newly created set.
  */
-#define set_union(id, this, other) set_union_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_union(id, this, other) set_union_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
 
 
 /**
@@ -179,7 +214,7 @@
  *
  * @return         Newly created set.
  */
-#define set_intersection(id, this, other) set_intersection_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_intersection(id, this, other) set_intersection_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
 
 
 /**
@@ -189,7 +224,7 @@
  *
  * @return         Newly created set.
  */
-#define set_difference(id, this, other) set_difference_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_difference(id, this, other) set_difference_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
 
 
 /**
@@ -199,7 +234,7 @@
  *
  * @return         Newly created set.
  */
-#define set_symmetric_difference(id, this, other) set_symmetric_difference_##id(iter_begin_AVLTREE(id, this, 0), NULL, iter_begin_AVLTREE(id, other, 0), NULL)
+#define set_symmetric_difference(id, this, other) set_symmetric_difference_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
 
 
 /**
@@ -209,7 +244,7 @@
  *
  * @return         True if each element in this set is in @c other , false if not.
  */
-#define set_issubset(id, this, other) set_includes_##id(iter_begin_AVLTREE(id, other, 0), NULL, iter_begin_AVLTREE(id, this, 0), NULL)
+#define set_issubset(id, this, other) set_includes_##id(__avl_successor_##id((other)->root), NULL, __avl_successor_##id((this)->root), NULL)
 
 
 /**

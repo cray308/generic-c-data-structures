@@ -464,8 +464,8 @@ void test_splice_range(void) {
     list_splice_range(int, li, li->front, from1, from1->back, from1->back);
     compare_ints(li, ints, 0);
     p1 = from1->front, p2 = from2->front;
-    listEntry_advance(p1, 4);
-    listEntry_advance(p2, 4);
+    listEntry_advance(int, &p1, 4);
+    listEntry_advance(str, &p2, 4);
     list_splice_range(int, li, li->front, from1, p1, p1->next->next);
     list_splice_range(str, ls, ls->front, from2, p2, p2->next->next);
     list_splice_range(int, li, li->front, from1, from1->front, from1->front->next->next);

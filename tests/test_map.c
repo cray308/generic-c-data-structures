@@ -1,5 +1,6 @@
 #include "map.h"
 #include <assert.h>
+#include <limits.h>
 
 #define freeNestedMap(x) map_free(strv_int, x)
 
@@ -27,7 +28,7 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "235","240","245"};
 
 #define __compare_str_int_body(id)                                                                           \
-    int i = 0;                                                                                               \
+    unsigned i = 0;                                                                                          \
     int *at;                                                                                                 \
     MapEntry_##id *it;                                                                                       \
     assert(map_size(m) == size);                                                                             \
@@ -50,10 +51,10 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
         assert(at && *at == values[i]);                                                                      \
         assert(it->data.second == values[i--]);                                                              \
     }                                                                                                        \
-    assert(i == -1);
+    assert(i == UINT_MAX);
 
-void compare_int_str(Map_int_str *m, int *keys, char **values, int size) {
-    int i = 0;
+void compare_int_str(Map_int_str *m, int *keys, char **values, unsigned size) {
+    unsigned i = 0;
     char **at;
     MapEntry_int_str *it;
     assert(map_size(m) == size);
@@ -76,14 +77,14 @@ void compare_int_str(Map_int_str *m, int *keys, char **values, int size) {
         assert(at && streq(*at, values[i]));
         assert(streq(it->data.second, values[i--]));
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
 }
 
-void compare_strv_int(Map_strv_int *m, char **keys, int *values, int size) {
+void compare_strv_int(Map_strv_int *m, char **keys, int *values, unsigned size) {
     __compare_str_int_body(strv_int)
 }
 
-void compare_strp_int(Map_strp_int *m, char **keys, int *values, int size) {
+void compare_strp_int(Map_strp_int *m, char **keys, int *values, unsigned size) {
     __compare_str_int_body(strp_int)
 }
 
@@ -333,12 +334,12 @@ void test_remove_entry(void) {
     map_remove_entry(int_str, m1, m1->root);
     map_remove_entry(strv_int, m2, m2->root);
     map_remove_entry(strp_int, m3, m3->root);
-    map_remove_entry(int_str, m1, iter_begin_AVLTREE(int_str, m1, 0));
-    map_remove_entry(strv_int, m2, iter_begin_AVLTREE(strv_int, m2, 0));
-    map_remove_entry(strp_int, m3, iter_begin_AVLTREE(strp_int, m3, 0));
-    map_remove_entry(int_str, m1, iter_rbegin_AVLTREE(int_str, m1, 0));
-    map_remove_entry(strv_int, m2, iter_rbegin_AVLTREE(strv_int, m2, 0));
-    map_remove_entry(strp_int, m3, iter_rbegin_AVLTREE(strp_int, m3, 0));
+    map_remove_entry(int_str, m1, map_begin(int_str, m1));
+    map_remove_entry(strv_int, m2, map_begin(strv_int, m2));
+    map_remove_entry(strp_int, m3, map_begin(strp_int, m3));
+    map_remove_entry(int_str, m1, map_rbegin(int_str, m1));
+    map_remove_entry(strv_int, m2, map_rbegin(strv_int, m2));
+    map_remove_entry(strp_int, m3, map_rbegin(strp_int, m3));
     compare_int_str(m1, c1, c2, 2);
     compare_strv_int(m2, c2, c1, 2);
     compare_strp_int(m3, c2, c1, 2);
@@ -360,32 +361,32 @@ void test_erase_entries(void) {
     MapEntry_strv_int *p3 = m2->root, *p4 = m2->root;
     MapEntry_strp_int *p5 = m3->root, *p6 = m3->root;
 
-    iter_prev_AVLTREE(int_str, p1);
-    iter_next_AVLTREE(int_str, p2);
-    iter_prev_AVLTREE(strv_int, p3);
-    iter_next_AVLTREE(strv_int, p4);
-    iter_prev_AVLTREE(strp_int, p5);
-    iter_next_AVLTREE(strp_int, p6);
+    mapEntry_advance(int_str, &p1, -1);
+    mapEntry_advance(int_str, &p2, 1);
+    mapEntry_advance(strv_int, &p3, -1);
+    mapEntry_advance(strv_int, &p4, 1);
+    mapEntry_advance(strp_int, &p5, -1);
+    mapEntry_advance(strp_int, &p6, 1);
     map_erase(int_str, m1, NULL, p2);
     map_erase(int_str, m1, p1, p1);
     map_erase(int_str, m1, p1, p2);
     map_erase(strv_int, m2, p3, p4);
     map_erase(strp_int, m3, p5, p6);
-    p1 = iter_rbegin_AVLTREE(int_str, m1, 0);
-    iter_prev_AVLTREE(int_str, p1);
-    p3 = iter_rbegin_AVLTREE(strv_int, m2, 0);
-    iter_prev_AVLTREE(strv_int, p3);
-    p5 = iter_rbegin_AVLTREE(strp_int, m3, 0);
-    iter_prev_AVLTREE(strp_int, p5);
+    p1 = map_rbegin(int_str, m1);
+    mapEntry_advance(int_str, &p1, -1);
+    p3 = map_rbegin(strv_int, m2);
+    mapEntry_advance(strv_int, &p3, -1);
+    p5 = map_rbegin(strp_int, m3);
+    mapEntry_advance(strp_int, &p5, -1);
     map_erase(int_str, m1, p1, NULL);
     map_erase(strv_int, m2, p3, NULL);
     map_erase(strp_int, m3, p5, NULL);
-    p1 = iter_begin_AVLTREE(int_str, m1, 0), p2 = p1;
-    iter_advance_AVLTREE(int_str, p2, 2);
-    p3 = iter_begin_AVLTREE(strv_int, m2, 0), p4 = p3;
-    iter_advance_AVLTREE(strv_int, p4, 2);
-    p5 = iter_begin_AVLTREE(strp_int, m3, 0), p6 = p5;
-    iter_advance_AVLTREE(strp_int, p6, 2);
+    p1 = map_begin(int_str, m1), p2 = p1;
+    mapEntry_advance(int_str, &p2, 2);
+    p3 = map_begin(strv_int, m2), p4 = p3;
+    mapEntry_advance(strv_int, &p4, 2);
+    p5 = map_begin(strp_int, m3), p6 = p5;
+    mapEntry_advance(strp_int, &p6, 2);
     map_erase(int_str, m1, p1, p2);
     map_erase(strv_int, m2, p3, p4);
     map_erase(strp_int, m3, p5, p6);
@@ -462,7 +463,7 @@ void test_nested_dicts(void) {
     Pair_strv_int arrStr[50];
     Map_nested *m = map_new(nested);
     MapEntry_nested *it;
-    int i;
+    unsigned i;
     for (i = 0; i < 50; ++i) {
         arrStr[i].first = strs[i], arrStr[i].second = ints[i];
     }
@@ -479,11 +480,11 @@ void test_nested_dicts(void) {
 
     for (i = 0; i < 5; ++i) {
         Map_strv_int *inner;
-        int j = 0;
+        unsigned j = 0;
         assert((it = map_find(nested, m, arrStr[10 * i].first)));
         inner = it->data.second;
         for (; j < 10; ++j) {
-            int value = (i * 10) + j;
+            unsigned value = (i * 10) + j;
             MapEntry_strv_int *ptr = map_find(strv_int, inner, arrStr[value].first);
             assert(ptr && ptr->data.second == arrStr[value].second);
         }
@@ -500,7 +501,7 @@ void test_nested_dicts(void) {
     map_riter(nested, m, it) {
         --i;
     }
-    assert(i == -1);
+    assert(i == UINT_MAX);
     map_free(nested, m);
 }
 
