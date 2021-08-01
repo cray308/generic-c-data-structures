@@ -7,7 +7,7 @@
 #define ____cds_do_nothing
 
 #if __STDC_VERSION__ >= 199901L
-#define __DS_FUNC_PREFIX_INL __attribute__((__unused__)) inline
+#define __DS_FUNC_PREFIX_INL __attribute__((__unused__)) static inline
 #else
 #define __DS_FUNC_PREFIX_INL __attribute__((__unused__)) static
 #endif

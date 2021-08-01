@@ -10,12 +10,9 @@ typedef struct {
     char *s;
 } String;
 
-/*
-#define STRING_NPOS 4294967294
-#define STRING_ERROR 4294967293
- */
-#define STRING_NPOS (-1)
-#define STRING_ERROR (-2)
+#define STRING_MAX_SIZE 2147483648
+#define STRING_NPOS 4294967293
+#define STRING_ERROR 4294967294
 #define STRING_NOT_APPLICABLE 4294967295
 
 
@@ -94,7 +91,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  n  New capacity.
  */
-void string_reserve(String *this, unsigned n);
+unsigned char string_reserve(String *this, unsigned n);
 
 
 /**
@@ -106,7 +103,7 @@ void string_reserve(String *this, unsigned n);
  * @param  len         Number of characters from @c s that will be used. If this is -1, all characters
  *                       from @c s will be used.
  */
-void string_replace(String *this, unsigned pos, int nToReplace, const char *s, int len);
+unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, const char *s, unsigned len);
 
 
 /**
@@ -120,7 +117,7 @@ void string_replace(String *this, unsigned pos, int nToReplace, const char *s, i
  * @param  len         Number of characters from @c other to insert. If this is -1, all characters from
  *                       @c subpos through the end of @c other will be used.
  */
-void string_replace_fromString(String *this, unsigned pos, int nToReplace, const String *other, unsigned subpos, int len);
+unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nToReplace, const String *other, unsigned subpos, unsigned len);
 
 
 /**
@@ -131,7 +128,7 @@ void string_replace_fromString(String *this, unsigned pos, int nToReplace, const
  * @param  n           Number of copies of @c c to insert.
  * @param  c           Character to insert.
  */
-void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, unsigned n, char c);
+unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned nToReplace, unsigned n, char c);
 
 
 /**
@@ -209,7 +206,7 @@ void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, un
  *
  * @return     Pointer to newly created string.
  */
-String *string_new_fromCStr(const char *s, int n);
+String *string_new_fromCStr(const char *s, unsigned n);
 
 
 /**
@@ -227,7 +224,7 @@ String *string_new_fromCStr(const char *s, int n);
  *
  * @return         Pointer to newly created string.
  */
-#define string_createCopy(other) string_new_fromCStr((other)->s, (int) (other)->size)
+#define string_createCopy(other) string_new_fromCStr((other)->s, (other)->size)
 
 
 /**
@@ -240,7 +237,7 @@ String *string_new_fromCStr(const char *s, int n);
  *
  * @return         Pointer to newly created string.
  */
-String *string_new_fromString(const String *other, unsigned pos, int n);
+String *string_new_fromString(const String *other, unsigned pos, unsigned n);
 
 
 /**
@@ -262,7 +259,7 @@ String *string_new_repeatingChar(unsigned n, char c);
  * @param  n  The new size.
  * @param  c  Character to append.
  */
-void string_resize_usingChar(String *this, unsigned n, char c);
+unsigned char string_resize_usingChar(String *this, unsigned n, char c);
 
 
 /**
@@ -282,7 +279,7 @@ void string_resize_usingChar(String *this, unsigned n, char c);
  * @param  n      The number of characters to delete. If this is -1, all characters from @c start
  *                  until the end will be removed.
  */
-void string_erase(String *this, unsigned start, int n);
+unsigned char string_erase(String *this, unsigned start, unsigned n);
 
 
 /**
@@ -328,7 +325,7 @@ void string_shrink_to_fit(String *this);
  * @return         The first index at or after @c pos where one of the supplied characters was
  *                   found, @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-int string_find_first_of(String *this, unsigned pos, const char *chars, int n);
+unsigned string_find_first_of(String *this, unsigned pos, const char *chars, unsigned n);
 
 
 /**
@@ -341,7 +338,7 @@ int string_find_first_of(String *this, unsigned pos, const char *chars, int n);
  * @return         The last index at or before @c pos where one of the supplied characters was
  *                   found, @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-int string_find_last_of(String *this, unsigned pos, const char *chars, int n);
+unsigned string_find_last_of(String *this, unsigned pos, const char *chars, unsigned n);
 
 
 /**
@@ -354,7 +351,7 @@ int string_find_last_of(String *this, unsigned pos, const char *chars, int n);
  * @return         The first index at or after @c pos where a different character was found,
  *                   @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-int string_find_first_not_of(String *this, unsigned pos, const char *chars, int n);
+unsigned string_find_first_not_of(String *this, unsigned pos, const char *chars, unsigned n);
 
 
 /**
@@ -367,7 +364,7 @@ int string_find_first_not_of(String *this, unsigned pos, const char *chars, int 
  * @return         The last index at or before @c pos where a different character was found,
  *                   @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-int string_find_last_not_of(String *this, unsigned pos, const char *chars, int n);
+unsigned string_find_last_not_of(String *this, unsigned pos, const char *chars, unsigned n);
 
 
 /**
@@ -376,13 +373,13 @@ int string_find_last_not_of(String *this, unsigned pos, const char *chars, int n
  *
  * @param   start_pos   First index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len_needle  Number of characters to match from needle. If this is -1, all characters from
+ * @param   len         Number of characters to match from needle. If this is -1, all characters from
  *                        @c needle will be used.
  *
  * @return              The index in this string, corresponding to needle[0], where @c needle was found,
  *                      @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-int string_find(String *this, unsigned start_pos, const char *needle, int len_needle);
+unsigned string_find(String *this, unsigned start_pos, const char *needle, unsigned len);
 
 
 /**
@@ -391,13 +388,13 @@ int string_find(String *this, unsigned start_pos, const char *needle, int len_ne
  *
  * @param   end_pos     Last index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len_needle  Number of characters to match from needle. If this is -1, all characters from
+ * @param   len         Number of characters to match from needle. If this is -1, all characters from
  *                        @c needle will be used.
  *
  * @return              The index in this string, corresponding to needle[0], where @c needle was found,
  *                        @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-int string_rfind(String *this, unsigned end_pos, const char *needle, int len_needle);
+unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsigned len);
 
 
 /**
@@ -413,7 +410,7 @@ int string_rfind(String *this, unsigned end_pos, const char *needle, int len_nee
  *
  * @return             Newly allocated @c String , or NULL if an error occurred.
  */
-String *string_substr(String *this, unsigned start, int n, int step_size);
+String *string_substr(String *this, unsigned start, unsigned n, int step_size);
 
 
 /**
@@ -516,7 +513,7 @@ __DS_FUNC_PREFIX_INL void toUppercase(char *s) {
  * @param  nToReplace  Number of characters to overwrite in this string.
  * @param  format      Format string.
  */
-void string_replace_withFormat(String *this, unsigned pos, int nToReplace, const char *format, ...);
+unsigned char string_replace_withFormat(String *this, unsigned pos, unsigned nToReplace, const char *format, ...);
 
 /**
  * Inserts a format string @c format into this string before @c pos .

@@ -1,11 +1,11 @@
 #include "str.h"
 #include <limits.h>
 
-int *str_gen_prefix_table(char const *needle, int len) {
-    int *table;
-    int i = 1; /* table position */
-    int j = 0; /* needle position */
-    table = malloc(sizeof(int) * (unsigned) len);
+unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
+    unsigned *table;
+    unsigned i = 1; /* table position */
+    unsigned j = 0; /* needle position */
+    table = malloc(sizeof(unsigned) * len);
     if (!table) return NULL;
     table[0] = 0;
 
@@ -21,55 +21,61 @@ int *str_gen_prefix_table(char const *needle, int len) {
     return table;
 }
 
-void string_reserve(String *this, unsigned n) {
-    unsigned val;
+unsigned char string_reserve(String *this, unsigned n) {
+    unsigned ncap = this->cap;
     char *tmp;
-    if (n <= this->cap) return;
+    if (n <= ncap) return 1;
+    else if (ncap == STRING_MAX_SIZE) return 0;
+    else if (n < 1073741824) {
+        while (ncap < n) ncap <<= 1;
+    } else {
+        ncap = STRING_MAX_SIZE;
+    }
 
-    val = this->cap;
-    while (val < n) val <<= 1;
-    tmp = realloc(this->s, val);
-    if (!tmp) exit(1);
+    tmp = realloc(this->s, ncap);
+    if (!tmp) return 0;
+    this->cap = ncap;
     this->s = tmp;
-    this->cap = val;
+    return 1;
 }
 
-void string_replace(String *this, unsigned pos, int nToReplace, const char *s, int len) {
-    unsigned end, l = (unsigned) len, n = this->size - pos;
-    if (!(s && *s && len) || pos > this->size) return;
+unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, const char *s, unsigned len) {
+    unsigned end, n = this->size - pos;
+    if (!(s && *s && len) || pos > this->size) return 0;
 
-    if (len < 0) l = (unsigned) strlen(s);
-    if (nToReplace >= 0) n = min(n, (unsigned) nToReplace);
+    if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(s);
+    if (nToReplace != STRING_NOT_APPLICABLE) n = min(n, nToReplace);
 
-    string_reserve(this, this->size + l + 1);
+    if (!string_reserve(this, this->size + len + 1)) return 0;
     if ((end = pos + n) < this->size) {
-        memmove(&this->s[pos + l], &this->s[end], this->size - end);
+        memmove(&this->s[pos + len], &this->s[end], this->size - end);
     }
-    memcpy(&this->s[pos], s, l);
+    memcpy(&this->s[pos], s, len);
 
-    if (l < n) {
-        this->size -= (n - l);
+    if (len < n) {
+        this->size -= (n - len);
     } else {
-        this->size += (l - n);
+        this->size += (len - n);
     }
     this->s[this->size] = 0;
+    return 1;
 }
 
-void string_replace_fromString(String *this, unsigned pos, int nToReplace, const String *other, unsigned subpos, int len) {
+unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nToReplace, const String *other, unsigned subpos, unsigned len) {
     unsigned l = other->size - subpos;
-    if (subpos >= other->size || !len) return;
+    if (subpos >= other->size || !len) return 0;
 
-    if (len >= 0) l = min(l, (unsigned) len);
-    string_replace(this, pos, nToReplace, &other->s[subpos], (int) l);
+    if (len != STRING_NOT_APPLICABLE) l = min(l, len);
+    return string_replace(this, pos, nToReplace, &other->s[subpos], l);
 }
 
-void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, unsigned n, char c) {
+unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned nToReplace, unsigned n, char c) {
     unsigned end, n2r = this->size - pos;
-    if (!n || pos > this->size) return;
+    if (!n || pos > this->size) return 0;
 
-    if (nToReplace >= 0) n2r = min(n2r, (unsigned) nToReplace);
+    if (nToReplace != STRING_NOT_APPLICABLE) n2r = min(n2r, nToReplace);
 
-    string_reserve(this, this->size + n + 1);
+    if (!string_reserve(this, this->size + n + 1)) return 0;
     if ((end = pos + n2r) < this->size) {
         memmove(&this->s[pos + n], &this->s[end], this->size - end);
     }
@@ -81,9 +87,10 @@ void string_replace_repeatingChar(String *this, unsigned pos, int nToReplace, un
         this->size += (n - n2r);
     }
     this->s[this->size] = 0;
+    return 1;
 }
 
-String *string_new_fromCStr(const char *s, int n) {
+String *string_new_fromCStr(const char *s, unsigned n) {
     String *t = malloc(sizeof(String));
     if (!t) return NULL;
     t->s = malloc(64);
@@ -98,7 +105,7 @@ String *string_new_fromCStr(const char *s, int n) {
     return t;
 }
 
-String *string_new_fromString(const String *other, unsigned pos, int n) {
+String *string_new_fromString(const String *other, unsigned pos, unsigned n) {
     String *s = string_new();
     if (s) string_append_fromString(s, other, pos, n);
     return s;
@@ -110,26 +117,28 @@ String *string_new_repeatingChar(unsigned n, char c) {
     return s;
 }
 
-void string_resize_usingChar(String *this, unsigned n, char c) {
+unsigned char string_resize_usingChar(String *this, unsigned n, char c) {
     if (n > this->size) {
-        string_reserve(this, n + 1);
+        if (!string_reserve(this, n + 1)) return 0;
         memset(&this->s[this->size], c, n - this->size);
     }
     this->s[n] = 0;
     this->size = n;
+    return 1;
 }
 
-void string_erase(String *this, unsigned start, int n) {
+unsigned char string_erase(String *this, unsigned start, unsigned n) {
     unsigned end, n2d = this->size - start;
-    if (start >= this->size || !n) return;
+    if (start >= this->size || !n) return 0;
 
-    if (n >= 0) n2d = min(n2d, (unsigned) n);
+    if (n != STRING_NOT_APPLICABLE) n2d = min(n2d, n);
 
     if ((end = start + n2d) < this->size) {
         memmove(&this->s[start], &this->s[end], this->size - end);
     }
     this->size -= n2d;
     this->s[this->size] = 0;
+    return 1;
 }
 
 void string_shrink_to_fit(String *this) {
@@ -141,99 +150,99 @@ void string_shrink_to_fit(String *this) {
     this->s = tmp;
 }
 
-int string_find_first_of(String *this, unsigned pos, const char *chars, int n) {
+unsigned string_find_first_of(String *this, unsigned pos, const char *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
-    else if (!(*chars && n)) return (int) pos;
-    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+    else if (!(*chars && n)) return pos;
+    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
-        if (this->s[pos] == *c) return (int) pos;
+        if (this->s[pos] == *c) return pos;
     }
 
     for (++pos; pos < this->size; ++pos) {
         if (this->s[pos] == this->s[pos-1]) continue;
         for (c = chars; c != end; ++c) {
-            if (this->s[pos] == *c) return (int) pos;
+            if (this->s[pos] == *c) return pos;
         }
     }
     return STRING_NPOS;
 }
 
-int string_find_last_of(String *this, unsigned pos, const char *chars, int n) {
+unsigned string_find_last_of(String *this, unsigned pos, const char *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
-    else if (!(*chars && n)) return (int) pos;
-    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+    else if (!(*chars && n)) return pos;
+    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
-        if (this->s[pos] == *c) return (int) pos;
+        if (this->s[pos] == *c) return pos;
     }
 
     for (--pos; pos != UINT_MAX; --pos) {
         if (this->s[pos] == this->s[pos + 1]) continue;
         for (c = chars; c != end; ++c) {
-            if (this->s[pos] == *c) return (int) pos;
+            if (this->s[pos] == *c) return pos;
         }
     }
     return STRING_NPOS;
 }
 
-int string_find_first_not_of(String *this, unsigned pos, const char *chars, int n) {
+unsigned string_find_first_not_of(String *this, unsigned pos, const char *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
-    else if (!(*chars && n)) return (int) pos;
-    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+    else if (!(*chars && n)) return pos;
+    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
         if (this->s[pos] == *c) break;
     }
-    if (c == end) return (int) pos;
+    if (c == end) return pos;
     for (++pos; pos < this->size; ++pos) {
         if (this->s[pos] == this->s[pos-1]) continue;
         for (c = chars; c != end; ++c) {
             if (this->s[pos] == *c) break;
         }
-        if (c == end) return (int) pos;
+        if (c == end) return pos;
     }
     return STRING_NPOS;
 }
 
-int string_find_last_not_of(String *this, unsigned pos, const char *chars, int n) {
+unsigned string_find_last_not_of(String *this, unsigned pos, const char *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
-    else if (!(*chars && n)) return (int) pos;
-    end = (n < 0) ? &chars[strlen(chars)] : &chars[n];
+    else if (!(*chars && n)) return pos;
+    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
         if (this->s[pos] == *c) break;
     }
-    if (c == end) return (int) pos;
+    if (c == end) return pos;
     for (--pos; pos != UINT_MAX; --pos) {
         if (this->s[pos] == this->s[pos+1]) continue;
         for (c = chars; c != end; ++c) {
             if (this->s[pos] == *c) break;
         }
-        if (c == end) return (int) pos;
+        if (c == end) return pos;
     }
     return STRING_NPOS;
 }
 
-int string_find(String *this, unsigned start_pos, const char *needle, int len_needle) {
-    const int len_haystack = (int) (this->size - start_pos);
-    int res = STRING_NPOS, i = 0, j = 0;
-    int *table;
+unsigned string_find(String *this, unsigned start_pos, const char *needle, unsigned len) {
+    const unsigned len_haystack = this->size - start_pos;
+    unsigned res = STRING_NPOS, i = 0, j = 0;
+    unsigned *table;
     char *haystack;
     if (start_pos >= this->size || !needle) return STRING_ERROR;
-    else if (!(*needle && len_needle)) return (int) start_pos;
+    else if (!(*needle && len)) return start_pos;
 
-    if (len_needle < 0) len_needle = (int) strlen(needle);
+    if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(needle);
 
-    if (len_needle > len_haystack) return STRING_NPOS;
-    else if (len_needle == 1) return string_find_first_of(this, start_pos, needle, 1);
+    if (len > len_haystack) return STRING_NPOS;
+    else if (len == 1) return string_find_first_of(this, start_pos, needle, 1);
 
     haystack = this->s + start_pos;
-    table = str_gen_prefix_table(needle, len_needle);
+    table = str_gen_prefix_table(needle, len);
     if (!table) return STRING_ERROR;
 
     while (i < len_haystack) {
@@ -246,8 +255,8 @@ int string_find(String *this, unsigned start_pos, const char *needle, int len_ne
             ++i;
         }
 
-        if (j == len_needle) {
-            res = (int) start_pos + (i - j);
+        if (j == len) {
+            res = start_pos + (i - j);
             break;
         }
     }
@@ -255,24 +264,24 @@ int string_find(String *this, unsigned start_pos, const char *needle, int len_ne
     return res;
 }
 
-int string_rfind(String *this, unsigned end_pos, const char *needle, int len_needle) {
-    int res = STRING_NPOS, i, j, minIndex;
-    int *table;
+unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsigned len) {
+    unsigned res = STRING_NPOS, i, j, minIndex;
+    unsigned *table;
     char *haystack = this->s;
     if (end_pos >= this->size || !needle) return STRING_ERROR;
-    else if (!(*needle && len_needle)) return (int) end_pos;
+    else if (!(*needle && len)) return end_pos;
 
-    if (len_needle < 0) len_needle = (int) strlen(needle);
+    if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(needle);
 
-    if (len_needle > (int) end_pos + 1) return STRING_NPOS;
-    else if (len_needle == 1) return string_find_last_of(this, end_pos, needle, 1);
+    if (len > end_pos + 1) return STRING_NPOS;
+    else if (len == 1) return string_find_last_of(this, end_pos, needle, 1);
 
-    minIndex = len_needle - 1, j = minIndex, i = j - 1;
-    table = malloc(sizeof(int) * (unsigned) len_needle);
+    minIndex = len - 1, j = minIndex, i = j - 1;
+    table = malloc(sizeof(unsigned) * len);
     if (!table) return STRING_ERROR;
     table[minIndex] = minIndex;
 
-    while (i > -1) {
+    while (i != UINT_MAX) {
         if (needle[i] == needle[j]) {
             table[i--] = --j;
         } else if (j != minIndex) {
@@ -282,8 +291,8 @@ int string_rfind(String *this, unsigned end_pos, const char *needle, int len_nee
         }
     }
     
-    i = (int) end_pos, j = len_needle - 1;
-    while (i > -1) {
+    i = end_pos, j = len - 1;
+    while (i != UINT_MAX) {
         if (haystack[i] == needle[j]) {
             --i;
             --j;
@@ -293,7 +302,7 @@ int string_rfind(String *this, unsigned end_pos, const char *needle, int len_nee
             --i;
         }
 
-        if (j == -1) {
+        if (j == UINT_MAX) {
             res = i + 1;
             break;
         }
@@ -302,45 +311,52 @@ int string_rfind(String *this, unsigned end_pos, const char *needle, int len_nee
     return res;
 }
 
-String *string_substr(String *this, unsigned start, int n, int step_size) {
+String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
     String *sub;
-    int i = (int) start;
+    char *const s = this->s;
     if (start >= this->size || !n) return NULL;
 
-    if (!step_size) step_size = 1;
-
+    if (step_size == 0) step_size = 1;
     sub = string_new();
     if (!sub) return NULL;
 
     if (step_size < 0) {
-        int end = (n < 0) ? -1 : max(-1, i + (n * step_size));
+        long i = start, end = -1;
+        if (n != STRING_NOT_APPLICABLE) {
+            const long limit = i + ((long) n * step_size);
+            end = max(end, limit);
+        }
         for (; i > end; i += step_size) {
-            string_push_back(sub, this->s[i]);
+            string_push_back(sub, s[i]);
         }
     } else {
-        int end = (n < 0) ? (int) this->size : min((int) this->size, i + (n * step_size));
-        for (; i < end; i += step_size) {
-            string_push_back(sub, this->s[i]);
+        const unsigned ss = (unsigned) step_size;
+        unsigned long i = start, end = this->size;
+        if (n != STRING_NOT_APPLICABLE) {
+            const unsigned long limit = i + (n * ss);
+            end = min(end, limit);
+        }
+        for (; i < end; i += ss) {
+            string_push_back(sub, s[i]);
         }
     }
     return sub;
 }
 
 String **string_split(String *this, const char *delim) {
-    const int iEnd = (int) this->size;
-    int len_delim, i = 0, j = 0;
-    unsigned arrIdx = 0, arrLen = 8;
-    int *positions, *table;
+    const unsigned iEnd = this->size;
+    unsigned len, i = 0, j = 0, arrIdx = 0, arrLen = 8;
+    unsigned *positions, *table;
     char *haystack = this->s;
     String **arr;
     String *substring = NULL;
     if (!(delim && *delim && this->size)) return NULL;
 
-    len_delim = (int) strlen(delim);
-    positions = calloc(8, sizeof(int));
+    len = (unsigned) strlen(delim);
+    positions = calloc(8, sizeof(unsigned));
     if (!positions) return NULL;
 
-    table = str_gen_prefix_table(delim, len_delim);
+    table = str_gen_prefix_table(delim, len);
     if (!table) {
         free(positions);
         return NULL;
@@ -356,18 +372,18 @@ String **string_split(String *this, const char *delim) {
             ++i;
         }
 
-        if (j == len_delim) {
+        if (j == len) {
             if (arrIdx == arrLen) {
-                int *temp;
+                unsigned *temp;
                 arrLen <<= 1;
-                temp = realloc(positions, arrLen * sizeof(int));
+                temp = realloc(positions, arrLen * sizeof(unsigned));
                 if (!temp) {
                     free(positions);
                     free(table);
                     return NULL;
                 }
                 positions = temp;
-                memset(&positions[arrIdx + 1], 0, (arrLen - arrIdx + 1) * sizeof(int));
+                memset(&positions[arrIdx + 1], 0, (arrLen - arrIdx + 1) * sizeof(unsigned));
             }
             positions[arrIdx++] = i - j;
             j = table[j - 1];
@@ -375,8 +391,7 @@ String **string_split(String *this, const char *delim) {
     }
 
     if (arrIdx == arrLen) {
-        int *temp;
-        temp = realloc(positions, (arrLen + 1) * sizeof(int));
+        unsigned *temp = realloc(positions, (arrLen + 1) * sizeof(unsigned));
         if (!temp) {
             free(positions);
             free(table);
@@ -384,7 +399,7 @@ String **string_split(String *this, const char *delim) {
         }
         positions = temp;
     }
-    positions[arrIdx++] = -1;
+    positions[arrIdx++] = UINT_MAX;
     arrLen = arrIdx;
 
     arr = malloc((arrLen + 1) * sizeof(String *));
@@ -396,7 +411,7 @@ String **string_split(String *this, const char *delim) {
 
     arrIdx = 0, i = 0, j = positions[0];
 
-    while (j != -1) {
+    while (j != UINT_MAX) {
         substring = string_new();
         if (!substring) {
             free(positions);
@@ -405,7 +420,7 @@ String **string_split(String *this, const char *delim) {
         }
         string_insert(substring, 0, &haystack[i], j - i);
         arr[arrIdx++] = substring;
-        i = j + len_delim;
+        i = j + len;
         j = positions[arrIdx];
     }
 
@@ -427,7 +442,7 @@ String **string_split(String *this, const char *delim) {
 #include <stdarg.h>
 #include <stdio.h>
 
-char *str_read_format(int *n, const char *format, va_list args) {
+char *str_read_format(unsigned *n, const char *format, va_list args) {
     va_list localArgs;
     int _n = 0, buf_size = 256;
     char *temp;
@@ -441,7 +456,7 @@ char *str_read_format(int *n, const char *format, va_list args) {
         free(buf);
         return NULL;
     } else if (_n < buf_size) {
-        *n = _n;
+        *n = (unsigned) _n;
         return buf;
     }
 
@@ -458,25 +473,27 @@ char *str_read_format(int *n, const char *format, va_list args) {
         free(buf);
         return NULL;
     }
-    *n = _n;
+    *n = (unsigned) _n;
     return buf;
 }
 
-void string_replace_withFormat(String *this, unsigned pos, int nToReplace, const char *format, ...) {
+unsigned char string_replace_withFormat(String *this, unsigned pos, unsigned nToReplace, const char *format, ...) {
     va_list args;
-    int n = 0;
+    unsigned char res;
+    unsigned n = 0;
     char *result;
     va_start(args, format);
     result = str_read_format(&n, format, args);
     va_end(args);
-    if (!result) return;
-    string_replace(this, pos, nToReplace, result, n);
+    if (!result) return 0;
+    res = string_replace(this, pos, nToReplace, result, n);
     free(result);
+    return res;
 }
 
 String *string_new_withFormat(const char *format, ...) {
     va_list args;
-    int n = 0;
+    unsigned n = 0;
     char *result;
     String *s = string_new();
     if (!s) return NULL;

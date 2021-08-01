@@ -3,10 +3,8 @@
 
 #include "alg_helper.h"
 
-/*
+#define ARRAY_MAX_SIZE 2147483648
 #define ARRAY_ERROR 4294967294
- */
-#define ARRAY_ERROR (-1)
 #define ARRAY_NOT_APPLICABLE 4294967295
 
 /* --------------------------------------------------------------------------
@@ -211,7 +209,7 @@
 /**
  * Removes all elements, leaving the array with a size of 0.
  */
-#define array_clear(id, this) array_erase_##id(this, 0, (int)(this)->size)
+#define array_clear(id, this) array_erase_##id(this, 0, (this)->size)
 
 
 /**
@@ -270,15 +268,15 @@ __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *this, unsigned i) {           
     return (i < this->size) ? &(this->arr[i]) : NULL;                                                        \
 }                                                                                                            \
                                                                                                              \
-void array_reserve_##id(Array_##id *this, unsigned n);                                                       \
-int array_erase_##id(Array_##id *this, unsigned first, int nelem);                                           \
-int array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned n, t value);                 \
-void array_resize_usingValue_##id(Array_##id *this, unsigned n, t value);                                    \
-int array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsigned n);                       \
+unsigned char array_reserve_##id(Array_##id *this, unsigned n);                                              \
+unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem);                                 \
+unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned n, t value);            \
+unsigned char array_resize_usingValue_##id(Array_##id *this, unsigned n, t value);                           \
+unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsigned n);                  \
 Array_##id *array_new_fromArray_##id(t *arr, unsigned size);                                                 \
 Array_##id *array_new_repeatingValue_##id(unsigned n, t value);                                              \
 void array_shrink_to_fit_##id(Array_##id *this);                                                             \
-Array_##id *array_subarr_##id(Array_##id *this, unsigned start, int n, int step_size);                       \
+Array_##id *array_subarr_##id(Array_##id *this, unsigned start, unsigned n, int step_size);                  \
 
 
 /**
@@ -295,27 +293,29 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start, int n, int step_
  */
 #define gen_array_source(id, t, copyValue, deleteValue)                                                      \
                                                                                                              \
-void array_reserve_##id(Array_##id *this, unsigned n) {                                                      \
-    unsigned ncap;                                                                                           \
+unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                                             \
+    unsigned ncap = this->capacity;                                                                          \
     t *tmp;                                                                                                  \
-    if (n <= this->capacity) return;                                                                         \
-                                                                                                             \
-    ncap = this->capacity;                                                                                   \
-    while (ncap < n) {                                                                                       \
-        ncap <<= 1; /* use multiple of 2 */                                                                  \
+    if (n <= ncap) return 1;                                                                                 \
+    else if (ncap == ARRAY_MAX_SIZE) return 0;                                                               \
+    else if (n < 1073741824) {                                                                               \
+        while (ncap < n) ncap <<= 1;                                                                         \
+    } else {                                                                                                 \
+        ncap = ARRAY_MAX_SIZE;                                                                               \
     }                                                                                                        \
                                                                                                              \
     tmp = realloc(this->arr, ncap * sizeof(t));                                                              \
-    if (!tmp) exit(1);                                                                                       \
+    if (!tmp) return 0;                                                                                      \
     this->capacity = ncap;                                                                                   \
     this->arr = tmp;                                                                                         \
+    return 1;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-int array_erase_##id(Array_##id *this, unsigned first, int nelem) {                                          \
+unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem) {                                \
     unsigned endIdx, i, n = this->size - first, res;                                                         \
     if (first >= this->size || !nelem) return ARRAY_ERROR;                                                   \
                                                                                                              \
-    if (nelem >= 0) n = min(n, (unsigned) nelem);                                                            \
+    if (nelem != ARRAY_NOT_APPLICABLE) n = min(n, nelem);                                                    \
                                                                                                              \
     endIdx = first + n;                                                                                      \
     for (i = first; i < endIdx; ++i) {                                                                       \
@@ -329,22 +329,17 @@ int array_erase_##id(Array_##id *this, unsigned first, int nelem) {             
         res = this->size - n;                                                                                \
     }                                                                                                        \
     this->size -= n;                                                                                         \
-    return (int) res;                                                                                        \
+    return res;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-int array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned n, t value) {                \
-    char append;                                                                                             \
+unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned n, t value) {           \
     t* i; t* end;                                                                                            \
     unsigned res = this->size;                                                                               \
-    if (!n) return ARRAY_ERROR;                                                                              \
-    else if (!(append = (index == this->size))) {                                                            \
-        if (index > this->size) return ARRAY_ERROR;                                                          \
-    }                                                                                                        \
+    if (!n || index > res) return ARRAY_ERROR;                                                               \
+    else if (!array_reserve_##id(this, res + n)) return ARRAY_ERROR;                                         \
                                                                                                              \
-    array_reserve_##id(this, this->size + n);                                                                \
-                                                                                                             \
-    if (!append) { /* insert in the middle of a */                                                           \
-        memmove(&this->arr[index + n], &this->arr[index], (this->size - index) * sizeof(t));                 \
+    if (index != res) { /* insert in the middle of a */                                                      \
+        memmove(&this->arr[index + n], &this->arr[index], (res - index) * sizeof(t));                        \
         res = index;                                                                                         \
     }                                                                                                        \
     end = &this->arr[res + n];                                                                               \
@@ -352,32 +347,26 @@ int array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsigned 
         copyValue((*i), value);                                                                              \
     }                                                                                                        \
     this->size += n;                                                                                         \
-    return (int) res;                                                                                        \
+    return res;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-void array_resize_usingValue_##id(Array_##id *this, unsigned n, t value) {                                   \
-    if (n == this->size) return;                                                                             \
+unsigned char array_resize_usingValue_##id(Array_##id *this, unsigned n, t value) {                          \
+    if (n == this->size) return 1;                                                                           \
     else if (n < this->size) {                                                                               \
-        array_erase_##id(this, n, (int)(this->size - n));                                                    \
-        return;                                                                                              \
+        return array_erase_##id(this, n, this->size - n) != ARRAY_ERROR;                                     \
     }                                                                                                        \
                                                                                                              \
-    array_insert_repeatingValue_##id(this, this->size, n - this->size, value);                               \
+    return array_insert_repeatingValue_##id(this, this->size, n - this->size, value) != ARRAY_ERROR;         \
 }                                                                                                            \
                                                                                                              \
-int array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsigned n) {                      \
-    char append;                                                                                             \
+unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsigned n) {                 \
     t* i; t* end;                                                                                            \
     unsigned res = this->size;                                                                               \
-    if (!(arr && n)) return ARRAY_ERROR;                                                                     \
-    else if (!(append = (index == this->size))) {                                                            \
-        if (index > this->size) return ARRAY_ERROR;                                                          \
-    }                                                                                                        \
+    if (!(arr && n) || index > res) return ARRAY_ERROR;                                                      \
+    else if (!array_reserve_##id(this, res + n)) return ARRAY_ERROR;                                         \
                                                                                                              \
-    array_reserve_##id(this, this->size + n);                                                                \
-                                                                                                             \
-    if (!append) { /* insert in the middle of a */                                                           \
-        memmove(&this->arr[index + n], &this->arr[index], (this->size - index) * sizeof(t));                 \
+    if (index != res) { /* insert in the middle of a */                                                      \
+        memmove(&this->arr[index + n], &this->arr[index], (res - index) * sizeof(t));                        \
         res = index;                                                                                         \
     }                                                                                                        \
     end = &this->arr[res + n];                                                                               \
@@ -385,7 +374,7 @@ int array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, unsign
         copyValue((*i), (*arr));                                                                             \
     }                                                                                                        \
     this->size += n;                                                                                         \
-    return (int) res;                                                                                        \
+    return res;                                                                                              \
 }                                                                                                            \
                                                                                                              \
 Array_##id *array_new_fromArray_##id(t *arr, unsigned size) {                                                \
@@ -420,9 +409,8 @@ void array_shrink_to_fit_##id(Array_##id *this) {                               
     this->arr = tmp;                                                                                         \
 }                                                                                                            \
                                                                                                              \
-Array_##id *array_subarr_##id(Array_##id *this, unsigned start, int n, int step_size) {                      \
+Array_##id *array_subarr_##id(Array_##id *this, unsigned start, unsigned n, int step_size) {                 \
     Array_##id *sub;                                                                                         \
-    int end, i = (int) start;                                                                                \
     if (start >= this->size || !n) return NULL;                                                              \
                                                                                                              \
     if (step_size == 0) step_size = 1;                                                                       \
@@ -430,14 +418,22 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start, int n, int step_
     if (!sub) return NULL;                                                                                   \
                                                                                                              \
     if (step_size < 0) {                                                                                     \
-        end = (n < 0) ? -1 : max(-1, i + (n * step_size));                                                   \
+        long i = start, end = -1;                                                                            \
+        if (n != ARRAY_NOT_APPLICABLE) {                                                                     \
+            const long limit = i + ((long) n * step_size);                                                   \
+            end = max(end, limit);                                                                           \
+        }                                                                                                    \
         for (; i > end; i += step_size) {                                                                    \
             array_push_back(id, sub, this->arr[i]);                                                          \
         }                                                                                                    \
     } else {                                                                                                 \
-        int size = (int) this->size;                                                                         \
-        end = (n < 0) ? size : min(size, i + (n * step_size));                                               \
-        for (; i < end; i += step_size) {                                                                    \
+        const unsigned ss = (unsigned) step_size;                                                            \
+        unsigned long i = start, end = this->size;                                                           \
+        if (n != ARRAY_NOT_APPLICABLE) {                                                                     \
+            const unsigned long limit = i + (n * ss);                                                        \
+            end = min(end, limit);                                                                           \
+        }                                                                                                    \
+        for (; i < end; i += ss) {                                                                           \
             array_push_back(id, sub, this->arr[i]);                                                          \
         }                                                                                                    \
     }                                                                                                        \

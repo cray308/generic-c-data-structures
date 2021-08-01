@@ -327,8 +327,8 @@ void test_erase_elements(void) {
 
     assert(array_erase(int, ai, 0, 2) == 0);
     assert(array_erase(str, as, 0, 2) == 0);
-    assert(array_erase(int, ai, ai->size - 2, -1) == 6);
-    assert(array_erase(str, as, as->size - 2, -1) == 6);
+    assert(array_erase(int, ai, ai->size - 2, ARRAY_NOT_APPLICABLE) == 6);
+    assert(array_erase(str, as, as->size - 2, ARRAY_NOT_APPLICABLE) == 6);
     assert(array_erase(int, ai, 2, 2) == 2);
     assert(array_erase(str, as, 2, 2) == 2);
     compare_ints(ai, c1, 4);
@@ -344,14 +344,15 @@ void test_subarr(void) {
     Array_str *as1 = array_new_fromArray(str, strs, 10), *as2;
 
     assert(array_subarr(int, ai1, 0, 0, 1) == NULL);
-    assert(array_subarr(int, ai2, ai2->size - 1, -1, 0) == NULL);
+    assert(array_subarr(int, ai2, ai2->size - 1, ARRAY_NOT_APPLICABLE, 0) == NULL);
     array_free(int, ai2);
     ai2 = array_subarr(int, ai1, 0, 200, 1), as2 = array_subarr(str, as1, 0, 200, 1);
     compare_ints(ai2, ints, 10);
     compare_strs(as2, strs, 10);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, ai1->size - 2, 200, -1), as2 = array_subarr(str, as1, as1->size - 2, 200, -1);
+    ai2 = array_subarr(int, ai1, ai1->size - 2, 200, -1);
+    as2 = array_subarr(str, as1, as1->size - 2, 200, -1);
     compare_ints(ai2, c1[0], 9);
     compare_strs(as2, c2[0], 9);
     array_free(int, ai2);
@@ -361,12 +362,14 @@ void test_subarr(void) {
     compare_strs(as2, strs, 5);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, ai1->size -2, 5, -1), as2 = array_subarr(str, as1, as1->size - 2, 5, -1);
+    ai2 = array_subarr(int, ai1, ai1->size -2, 5, -1);
+    as2 = array_subarr(str, as1, as1->size - 2, 5, -1);
     compare_ints(ai2, c1[0], 5);
     compare_strs(as2, c2[0], 5);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, ai1->size - 2, -1, -2), as2 = array_subarr(str, as1, as1->size - 2, -1, -2);
+    ai2 = array_subarr(int, ai1, ai1->size - 2, ARRAY_NOT_APPLICABLE, -2);
+    as2 = array_subarr(str, as1, as1->size - 2, ARRAY_NOT_APPLICABLE, -2);
     compare_ints(ai2, c1[1], 5);
     compare_strs(as2, c2[1], 5);
     array_free(int, ai2);
