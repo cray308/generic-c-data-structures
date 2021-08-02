@@ -3,7 +3,6 @@
 
 #include "alg_helper.h"
 
-#define ARRAY_MAX_SIZE 2147483648
 #define ARRAY_ERROR 4294967294
 #define ARRAY_NOT_APPLICABLE 4294967295
 
@@ -297,11 +296,11 @@ unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                
     unsigned ncap = this->capacity;                                                                          \
     t *tmp;                                                                                                  \
     if (n <= ncap) return 1;                                                                                 \
-    else if (ncap == ARRAY_MAX_SIZE) return 0;                                                               \
+    else if (ncap == 2147483648) return 0;                                                                   \
     else if (n < 1073741824) {                                                                               \
         while (ncap < n) ncap <<= 1;                                                                         \
     } else {                                                                                                 \
-        ncap = ARRAY_MAX_SIZE;                                                                               \
+        ncap = 2147483648;                                                                                   \
     }                                                                                                        \
                                                                                                              \
     tmp = realloc(this->arr, ncap * sizeof(t));                                                              \
@@ -353,7 +352,8 @@ unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsi
 unsigned char array_resize_usingValue_##id(Array_##id *this, unsigned n, t value) {                          \
     if (n == this->size) return 1;                                                                           \
     else if (n < this->size) {                                                                               \
-        return array_erase_##id(this, n, this->size - n) != ARRAY_ERROR;                                     \
+        array_erase_##id(this, n, this->size - n);                                                           \
+        return 1;                                                                                            \
     }                                                                                                        \
                                                                                                              \
     return array_insert_repeatingValue_##id(this, this->size, n - this->size, value) != ARRAY_ERROR;         \
@@ -394,8 +394,7 @@ Array_##id *array_new_fromArray_##id(t *arr, unsigned size) {                   
                                                                                                              \
 Array_##id *array_new_repeatingValue_##id(unsigned n, t value) {                                             \
     Array_##id *a = array_new(id);                                                                           \
-    if (!a) return NULL;                                                                                     \
-    array_insert_repeatingValue_##id(a, 0, n, value);                                                        \
+    if (a) array_insert_repeatingValue_##id(a, 0, n, value);                                                 \
     return a;                                                                                                \
 }                                                                                                            \
                                                                                                              \

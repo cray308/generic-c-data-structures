@@ -10,11 +10,9 @@ typedef struct {
     char *s;
 } String;
 
-#define STRING_MAX_SIZE 2147483648
 #define STRING_NPOS 4294967293
 #define STRING_ERROR 4294967294
 #define STRING_NOT_APPLICABLE 4294967295
-
 
 /**
  * The c-string representation of the provided String.
@@ -279,7 +277,7 @@ unsigned char string_resize_usingChar(String *this, unsigned n, char c);
  * @param  n      The number of characters to delete. If this is -1, all characters from @c start
  *                  until the end will be removed.
  */
-unsigned char string_erase(String *this, unsigned start, unsigned n);
+void string_erase(String *this, unsigned start, unsigned n);
 
 
 /**

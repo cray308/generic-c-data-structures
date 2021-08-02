@@ -8,7 +8,7 @@
 #define __set_copy_value(x, y)
 #define __set_delete_value(x)
 
-#define SET_NOT_APPLICABLE 4294967295
+#define SET_ERROR 4294967295
 
 /**
  * The number of elements in the set.
@@ -65,7 +65,7 @@
  * @param   last   @c SetEntry to end at. This must be reachable in the forward direction by @c first .
  *
  * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c SET_NOT_APPLICABLE .
+ *                 returns @c SET_ERROR .
  */
 #define setEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 

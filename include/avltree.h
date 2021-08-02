@@ -28,8 +28,8 @@ unsigned __avlEntry_distance_##id(EntryType *p1, EntryType *p2);                
                                                                                                              \
 EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate);                   \
 EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted);                              \
-void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n);                             \
-void __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end);                       \
+unsigned char __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n);                    \
+unsigned char __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end);              \
 TreeType *__avltree_new_fromArray_##id(DataType *arr, unsigned n);                                           \
 TreeType *__avltree_createCopy_##id(TreeType *other);                                                        \
 void __avltree_remove_entry_##id(TreeType *this, EntryType *v);                                              \
@@ -160,6 +160,7 @@ EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char c
 EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {                             \
     EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1);                                  \
     EntryType *new, *parent;                                                                                 \
+    if (this->size == 2147483648) return NULL;                                                               \
     if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {                                \
         deleteValue(curr->data.second);                                                                      \
         copyValue(curr->data.second, data.second);                                                           \
@@ -246,19 +247,21 @@ EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {
     return new;                                                                                              \
 }                                                                                                            \
                                                                                                              \
-void __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n) {                            \
+unsigned char __avltree_insert_fromArray_##id(TreeType *this, DataType *arr, unsigned n) {                   \
     unsigned i;                                                                                              \
-    if (!(arr && n)) return;                                                                                 \
+    if (!(arr && n)) return 1;                                                                               \
     for (i = 0; i < n; ++i) {                                                                                \
-        __avltree_insert_##id(this, arr[i], NULL);                                                           \
+        if (!__avltree_insert_##id(this, arr[i], NULL)) return 0;                                            \
     }                                                                                                        \
+    return 1;                                                                                                \
 }                                                                                                            \
                                                                                                              \
-void __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end) {                      \
-    if (!start) return;                                                                                      \
+unsigned char __avltree_insert_fromTree_##id(TreeType *this, EntryType *start, EntryType *end) {             \
+    if (!start) return 1;                                                                                    \
     for (; start != end; start = __avl_inorder_successor_##id(start)) {                                      \
-        __avltree_insert_##id(this, start->data, NULL);                                                      \
+        if (!__avltree_insert_##id(this, start->data, NULL)) return 0;                                       \
     }                                                                                                        \
+    return 1;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 TreeType *__avltree_new_fromArray_##id(DataType *arr, unsigned n) {                                          \
@@ -376,22 +379,25 @@ void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                
 }                                                                                                            \
                                                                                                              \
 void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {                                \
-    EntryType *curr;                                                                                         \
-    kt* keys;                                                                                                \
-    int i = 0, count = 0;                                                                                    \
+    char getNext = 1;                                                                                        \
+    kt nextKey;                                                                                              \
+    kt keys[256];                                                                                            \
     if (!begin) return;                                                                                      \
                                                                                                              \
-    /* store keys in an array since tree deletions involve swapping values
-     * and thus it's not reliable to use node pointers in a bulk delete operation */                         \
-    keys = malloc(this->size * sizeof(kt));                                                                  \
-    if (!keys) return;                                                                                       \
-    for (curr = begin; curr != end; curr = __avl_inorder_successor_##id(curr)) {                             \
-        keys[count++] = entry_get_key(curr);                                                                 \
+    nextKey = entry_get_key(begin);                                                                          \
+    while (getNext) {                                                                                        \
+        int i, count = 0;                                                                                    \
+        for (begin = __avltree_find_key_##id(this, nextKey, 0); begin != end && count < 256; begin = __avl_inorder_successor_##id(begin)) { \
+            keys[count++] = entry_get_key(begin);                                                            \
+        }                                                                                                    \
+                                                                                                             \
+        if (begin == end) getNext = 0;                                                                       \
+        else nextKey = entry_get_key(begin);                                                                 \
+                                                                                                             \
+        for (i = 0; i < count; ++i) {                                                                        \
+            __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, keys[i], 0));                    \
+        }                                                                                                    \
     }                                                                                                        \
-    for (; i < count; ++i) {                                                                                 \
-        __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, keys[i], 0));                        \
-    }                                                                                                        \
-    free(keys);                                                                                              \
 }                                                                                                            \
 
 #endif /* DS_AVL_TREE_H */

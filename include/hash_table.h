@@ -5,7 +5,7 @@
 #include <time.h>
 #include <limits.h>
 
-#define __setup_hash_table_headers(id, kt, TableType, DataType, EntryType)                                     \
+#define __setup_hash_table_headers(id, kt, TableType, DataType, EntryType)                                   \
                                                                                                              \
 struct EntryType {                                                                                           \
     struct EntryType *next;                                                                                  \
@@ -27,15 +27,15 @@ typedef struct {                                                                
 DataType* __htable_iter_begin_##id(TableType *this);                                                         \
 DataType* __htable_iter_next_##id(TableType *this);                                                          \
                                                                                                              \
-void __htable_rehash_##id(TableType *this, unsigned nbuckets);                                               \
+unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets);                                      \
 DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted);                               \
-void __htable_insert_fromArray_##id(TableType *this, DataType* arr, unsigned n);                             \
+unsigned char __htable_insert_fromArray_##id(TableType *this, DataType* arr, unsigned n);                    \
 TableType *__htable_new_fromArray_##id(DataType *arr, unsigned n);                                           \
 TableType *__htable_createCopy_##id(TableType *other);                                                       \
 unsigned char __htable_erase_##id(TableType *this, const kt key);                                            \
 void __htable_clear_##id(TableType *this);                                                                   \
 DataType *__htable_find_##id(TableType *this, const kt key);                                                 \
-void __htable_set_load_factor_##id(TableType *this, double lf);
+unsigned char __htable_set_load_factor_##id(TableType *this, double lf);                                     \
 
 #define __setup_hash_table_source(id, kt, cmp_eq, TableType, DataType, EntryType, entry_get_key, data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
                                                                                                              \
@@ -64,23 +64,24 @@ DataType* __htable_iter_next_##id(TableType *this) {                            
     return this->it.curr ? &(this->it.curr->data) : NULL;                                                    \
 }                                                                                                            \
                                                                                                              \
-void __htable_rehash_##id(TableType *this, unsigned nbuckets) {                                              \
-    unsigned n, i;                                                                                           \
+unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {                                     \
+    unsigned ncap = this->cap, i;                                                                            \
     struct EntryType **new;                                                                                  \
-    if (nbuckets <= this->cap) return;                                                                       \
-                                                                                                             \
-    n = this->cap; /* for consistency, use a multiple of 2 of the capacity */                                \
-    while (n < nbuckets) {                                                                                   \
-        n <<= 1;                                                                                             \
+    if (nbuckets <= ncap) return 1;                                                                          \
+    else if (ncap == 1073741824) return 0;                                                                   \
+    else if (nbuckets < 536870912) {                                                                         \
+        while (ncap < nbuckets) ncap <<= 1;                                                                  \
+    } else {                                                                                                 \
+        ncap = 1073741824;                                                                                   \
     }                                                                                                        \
                                                                                                              \
-    new = calloc(n, sizeof(struct EntryType *));                                                             \
-    if (!new) return;                                                                                        \
+    new = calloc(ncap, sizeof(struct EntryType *));                                                          \
+    if (!new) return 0;                                                                                      \
     for (i = 0; i < this->cap; ++i) {                                                                        \
         struct EntryType *e = this->buckets[i];                                                              \
         while (e) {                                                                                          \
             struct EntryType *temp = e->next;                                                                \
-            unsigned index = murmurhash(addrOfKey(entry_get_key(e)), (int) sizeOfKey(entry_get_key(e)), this->seed) % n; \
+            unsigned index = murmurhash(addrOfKey(entry_get_key(e)), (int) sizeOfKey(entry_get_key(e)), this->seed) % ncap; \
             e->next = new[index];                                                                            \
             new[index] = e;                                                                                  \
             e = temp;                                                                                        \
@@ -89,7 +90,8 @@ void __htable_rehash_##id(TableType *this, unsigned nbuckets) {                 
                                                                                                              \
     free(this->buckets);                                                                                     \
     this->buckets = new;                                                                                     \
-    this->cap = n;                                                                                           \
+    this->cap = ncap;                                                                                        \
+    return 1;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted) {                              \
@@ -99,6 +101,7 @@ DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted) { 
     if (lf > this->lf) {                                                                                     \
         __htable_rehash_##id(this, this->cap << 1);                                                          \
     }                                                                                                        \
+    if (this->size == 1073741824) return NULL;                                                               \
                                                                                                              \
     /* get index and entry at that index */                                                                  \
     index = murmurhash(addrOfKey(data_get_key(data)), (int) sizeOfKey(data_get_key(data)), this->seed) % this->cap; \
@@ -123,12 +126,13 @@ DataType *__htable_insert_##id(TableType *this, DataType data, int *inserted) { 
     return &(e->data);                                                                                       \
 }                                                                                                            \
                                                                                                              \
-void __htable_insert_fromArray_##id(TableType *this, DataType* arr, unsigned n) {                            \
+unsigned char __htable_insert_fromArray_##id(TableType *this, DataType* arr, unsigned n) {                   \
     unsigned i;                                                                                              \
-    if (!(arr && n)) return;                                                                                 \
+    if (!(arr && n)) return 1;                                                                               \
     for (i = 0; i < n; ++i) {                                                                                \
-        __htable_insert_##id(this, arr[i], NULL);                                                            \
+        if (!__htable_insert_##id(this, arr[i], NULL)) return 0;                                             \
     }                                                                                                        \
+    return 1;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 TableType *__htable_new_fromArray_##id(DataType *arr, unsigned n) {                                          \
@@ -235,14 +239,15 @@ DataType *__htable_find_##id(TableType *this, const kt key) {                   
     return NULL;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-void __htable_set_load_factor_##id(TableType *this, double lf) {                                             \
+unsigned char __htable_set_load_factor_##id(TableType *this, double lf) {                                    \
     double curr_lf;                                                                                          \
-    if (lf < 0.500 || lf > 1.000) return;                                                                    \
+    if (lf < 0.500 || lf > 1.000) return 1;                                                                  \
     this->lf = lf;                                                                                           \
     curr_lf = (double) this->size / (double) this->cap;                                                      \
     if (curr_lf > this->lf) {                                                                                \
-        __htable_rehash_##id(this, this->cap << 1);                                                          \
+        if (!__htable_rehash_##id(this, this->cap << 1)) return 0;                                           \
     }                                                                                                        \
+    return 1;                                                                                                \
 }                                                                                                            \
 
 #endif

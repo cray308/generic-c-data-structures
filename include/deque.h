@@ -112,9 +112,9 @@ typedef struct {                                                                
 TypeName *__dq_new_##id(void);                                                                               \
 void __dq_free_##id(TypeName *this);                                                                         \
 void __dq_pop_front_##id(TypeName *this);                                                                    \
-void __dq_push_back_##id(TypeName *this, t item);                                                            \
+unsigned char __dq_push_back_##id(TypeName *this, t item);                                                   \
 void __dq_pop_back_##id(TypeName *this);                                                                     \
-void __dq_push_front_##id(TypeName *this, t item);                                                           \
+unsigned char __dq_push_front_##id(TypeName *this, t item);                                                  \
 
 #define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                                        \
                                                                                                              \
@@ -172,18 +172,21 @@ void __dq_pop_front_##id(TypeName *this) {                                      
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-void __dq_push_back_##id(TypeName *this, t item) {                                                           \
-    t* loc;                                                                                                  \
-    if (this->back.size == this->back.cap) {                                                                 \
+unsigned char __dq_push_back_##id(TypeName *this, t item) {                                                  \
+    unsigned cap = this->back.cap;                                                                           \
+    if (this->back.size == cap) {                                                                            \
         t *tmp;                                                                                              \
-        this->back.cap <<= 1;                                                                                \
-        tmp = realloc(this->back.arr, this->back.cap * sizeof(t));                                           \
-        if (!tmp) exit(1);                                                                                   \
+        if (cap == 1073741824) return 0;                                                                     \
+        else if (cap < 536870912) cap <<= 1;                                                                 \
+        else cap = 1073741824;                                                                               \
+        tmp = realloc(this->back.arr, cap * sizeof(t));                                                      \
+        if (!tmp) return 0;                                                                                  \
         this->back.arr = tmp;                                                                                \
+        this->back.cap = cap;                                                                                \
     }                                                                                                        \
-    loc = &this->back.arr[this->back.size];                                                                  \
-    copyValue((*loc), item);                                                                                 \
+    copyValue(this->back.arr[this->back.size], item);                                                        \
     ++this->back.size;                                                                                       \
+    return 1;                                                                                                \
 }                                                                                                            \
                                                                                                              \
 void __dq_pop_back_##id(TypeName *this) {                                                                    \
@@ -208,18 +211,21 @@ void __dq_pop_back_##id(TypeName *this) {                                       
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-void __dq_push_front_##id(TypeName *this, t item) {                                                          \
-    t* loc;                                                                                                  \
-    if (this->front.size == this->front.cap) {                                                               \
+unsigned char __dq_push_front_##id(TypeName *this, t item) {                                                 \
+    unsigned cap = this->front.cap;                                                                          \
+    if (this->front.size == cap) {                                                                           \
         t *tmp;                                                                                              \
-        this->front.cap <<= 1;                                                                               \
-        tmp = realloc(this->front.arr, this->front.cap * sizeof(t));                                         \
-        if (!tmp) exit(1);                                                                                   \
+        if (cap == 1073741824) return 0;                                                                     \
+        else if (cap < 536870912) cap <<= 1;                                                                 \
+        else cap = 1073741824;                                                                               \
+        tmp = realloc(this->front.arr, cap * sizeof(t));                                                     \
+        if (!tmp) return 0;                                                                                  \
         this->front.arr = tmp;                                                                               \
+        this->front.cap = cap;                                                                               \
     }                                                                                                        \
-    loc = &this->front.arr[this->front.size];                                                                \
-    copyValue((*loc), item);                                                                                 \
+    copyValue(this->front.arr[this->front.size], item);                                                      \
     ++this->front.size;                                                                                      \
+    return 1;                                                                                                \
 }                                                                                                            \
 
 #endif

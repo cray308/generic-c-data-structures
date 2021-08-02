@@ -2,10 +2,9 @@
 #include <limits.h>
 
 unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
-    unsigned *table;
+    unsigned *table = malloc(sizeof(unsigned) * len);
     unsigned i = 1; /* table position */
     unsigned j = 0; /* needle position */
-    table = malloc(sizeof(unsigned) * len);
     if (!table) return NULL;
     table[0] = 0;
 
@@ -25,11 +24,11 @@ unsigned char string_reserve(String *this, unsigned n) {
     unsigned ncap = this->cap;
     char *tmp;
     if (n <= ncap) return 1;
-    else if (ncap == STRING_MAX_SIZE) return 0;
+    else if (ncap == 2147483648) return 0;
     else if (n < 1073741824) {
         while (ncap < n) ncap <<= 1;
     } else {
-        ncap = STRING_MAX_SIZE;
+        ncap = 2147483648;
     }
 
     tmp = realloc(this->s, ncap);
@@ -41,7 +40,7 @@ unsigned char string_reserve(String *this, unsigned n) {
 
 unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, const char *s, unsigned len) {
     unsigned end, n = this->size - pos;
-    if (!(s && *s && len) || pos > this->size) return 0;
+    if (!(s && *s && len) || pos > this->size) return 1;
 
     if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(s);
     if (nToReplace != STRING_NOT_APPLICABLE) n = min(n, nToReplace);
@@ -63,7 +62,7 @@ unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, co
 
 unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nToReplace, const String *other, unsigned subpos, unsigned len) {
     unsigned l = other->size - subpos;
-    if (subpos >= other->size || !len) return 0;
+    if (subpos >= other->size || !len) return 1;
 
     if (len != STRING_NOT_APPLICABLE) l = min(l, len);
     return string_replace(this, pos, nToReplace, &other->s[subpos], l);
@@ -71,7 +70,7 @@ unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nTo
 
 unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned nToReplace, unsigned n, char c) {
     unsigned end, n2r = this->size - pos;
-    if (!n || pos > this->size) return 0;
+    if (!n || pos > this->size) return 1;
 
     if (nToReplace != STRING_NOT_APPLICABLE) n2r = min(n2r, nToReplace);
 
@@ -127,9 +126,9 @@ unsigned char string_resize_usingChar(String *this, unsigned n, char c) {
     return 1;
 }
 
-unsigned char string_erase(String *this, unsigned start, unsigned n) {
+void string_erase(String *this, unsigned start, unsigned n) {
     unsigned end, n2d = this->size - start;
-    if (start >= this->size || !n) return 0;
+    if (start >= this->size || !n) return;
 
     if (n != STRING_NOT_APPLICABLE) n2d = min(n2d, n);
 
@@ -138,7 +137,6 @@ unsigned char string_erase(String *this, unsigned start, unsigned n) {
     }
     this->size -= n2d;
     this->s[this->size] = 0;
-    return 1;
 }
 
 void string_shrink_to_fit(String *this) {

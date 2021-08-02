@@ -8,7 +8,6 @@
 #define __uset_copy_value(x, y)
 #define __uset_delete_value(x)
 
-
 /**
  * The number of entries in the set.
  */

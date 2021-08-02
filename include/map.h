@@ -6,7 +6,7 @@
 #define __map_entry_get_key(e) ((e)->data.first)
 #define __map_data_get_key(d)  ((d).first)
 
-#define MAP_NOT_APPLICABLE 4294967295
+#define MAP_ERROR 4294967295
 
 /**
  * The number of elements in the map.
@@ -63,7 +63,7 @@
  * @param   last   @c MapEntry to end at. This must be reachable in the forward direction by @c first .
  *
  * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c MAP_NOT_APPLICABLE .
+ *                 returns @c MAP_ERROR .
  */
 #define mapEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 
