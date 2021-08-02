@@ -12,7 +12,6 @@ typedef struct {
 
 #define STRING_NPOS 4294967293
 #define STRING_ERROR 4294967294
-#define STRING_NOT_APPLICABLE 4294967295
 
 /**
  * The c-string representation of the provided String.
@@ -87,7 +86,9 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
 /**
  * Request a change in capacity (maximum size) to @c n .
  *
- * @param  n  New capacity.
+ * @param   n  New capacity.
+ *
+ * @return     Whether the operation succeeded.
  */
 unsigned char string_reserve(String *this, unsigned n);
 
@@ -95,11 +96,13 @@ unsigned char string_reserve(String *this, unsigned n);
 /**
  * Replaces @c nToReplace characters in this string, starting at @c pos , with @c len characters from @c s .
  *
- * @param  pos         Index in the string where the replacement will occur.
- * @param  nToReplace  Number of characters to overwrite in this string.
- * @param  s           C-string used as the replacement.
- * @param  len         Number of characters from @c s that will be used. If this is -1, all characters
- *                       from @c s will be used.
+ * @param   pos         Index in the string where the replacement will occur.
+ * @param   nToReplace  Number of characters to overwrite in this string.
+ * @param   s            C-string used as the replacement.
+ * @param   len         Number of characters from @c s that will be used. If this is DS_ARG_NOT_APPLICABLE ,
+ *                       all characters from @c s will be used.
+ *
+ * @return              Whether the operation succeeded.
  */
 unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, const char *s, unsigned len);
 
@@ -108,12 +111,14 @@ unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, co
  * Replaces @c nToReplace characters in this string, starting at @c pos , with @c len characters from @c other 
  * starting at @c subpos .
  *
- * @param  pos         Index in the string where the replacement will occur.
- * @param  nToReplace  Number of characters to overwrite in this string.
- * @param  other       Existing @c String from which characters will be inserted.
- * @param  subpos      Index in @c other denoting the position of the first character to be inserted.
- * @param  len         Number of characters from @c other to insert. If this is -1, all characters from
- *                       @c subpos through the end of @c other will be used.
+ * @param   pos         Index in the string where the replacement will occur.
+ * @param   nToReplace  Number of characters to overwrite in this string.
+ * @param   other       Existing @c String from which characters will be inserted.
+ * @param   subpos      Index in @c other denoting the position of the first character to be inserted.
+ * @param   len         Number of characters from @c other to insert. If this is DS_ARG_NOT_APPLICABLE ,
+ *                       all characters from @c subpos through the end of @c other will be used.
+ *
+ * @return              Whether the operation succeeded.
  */
 unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nToReplace, const String *other, unsigned subpos, unsigned len);
 
@@ -121,10 +126,12 @@ unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nTo
 /**
  * Replaces @c nToReplace characters in this string, starting at @c pos , with @c n copies of @c c .
  *
- * @param  pos         Index in the string where the replacement will occur.
- * @param  nToReplace  Number of characters to overwrite in this string.
- * @param  n           Number of copies of @c c to insert.
- * @param  c           Character to insert.
+ * @param   pos         Index in the string where the replacement will occur.
+ * @param   nToReplace  Number of characters to overwrite in this string.
+ * @param   n           Number of copies of @c c to insert.
+ * @param   c           Character to insert.
+ *
+ * @return              Whether the operation succeeded.
  */
 unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned nToReplace, unsigned n, char c);
 
@@ -132,11 +139,13 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 /**
  * Inserts @c len characters from @c s into this string before @c pos .
  *
- * @param  pos  Index in this string before which characters will be inserted. If this is @c string_len ,
+ * @param   pos  Index in this string before which characters will be inserted. If this is @c string_len ,
  *                characters from @c s will be appended.
- * @param  s    C-string from which characters will be inserted.
- * @param  len  Number of characters from @c s to insert. If this is -1, all characters from @c s will
- *                be used.
+ * @param   s    C-string from which characters will be inserted.
+ * @param   len  Number of characters from @c s to insert. If this is DS_ARG_NOT_APPLICABLE ,
+ *                all characters from @c s will be used.
+ *
+ * @return       Whether the operation succeeded.
  */
 #define string_insert(this, pos, s, len) string_replace(this, pos, 0, s, len)
 
@@ -144,12 +153,14 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 /**
  * Inserts a substring of @c other , starting at @c subpos , into this string before @c pos .
  *
- * @param  pos     Index in this string before which characters will be inserted. If this is @c string_len ,
+ * @param   pos     Index in this string before which characters will be inserted. If this is @c string_len ,
  *                   characters from @c other will be appended to this string.
- * @param  other   Existing @c String from which characters will be inserted.
- * @param  subpos  Index in @c other denoting the position of the first character to be inserted.
- * @param  len     Number of characters from @c other to insert. If this is -1, all characters from @c subpos
- *                   through the end of @c other will be inserted.
+ * @param   other   Existing @c String from which characters will be inserted.
+ * @param   subpos  Index in @c other denoting the position of the first character to be inserted.
+ * @param   len     Number of characters from @c other to insert. If this is DS_ARG_NOT_APPLICABLE ,
+ *                   all characters from @c subpos through the end of @c other will be inserted.
+ *
+ * @return          Whether the operation succeeded.
  */
 #define string_insert_fromString(this, pos, other, subpos, len) string_replace_fromString(this, pos, 0, other, subpos, len)
 
@@ -157,10 +168,12 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 /**
  * Inserts @c n instances of the character @c c into this string before @c pos .
  *
- * @param  pos  Index in this string before which characters will be inserted. If this is @c string_len ,
+ * @param   pos  Index in this string before which characters will be inserted. If this is @c string_len ,
  *                characters from @c other will be appended to this string.
- * @param  n    Number of copies of @c c to insert.
- * @param  c    Character to insert.
+ * @param   n    Number of copies of @c c to insert.
+ * @param   c    Character to insert.
+ *
+ * @return       Whether the operation succeeded.
  */
 #define string_insert_repeatingChar(this, pos, n, c) string_replace_repeatingChar(this, pos, 0, n, c)
 
@@ -168,9 +181,11 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 /**
  * Appends @c len characters from @c s to the end of this string.
  *
- * @param  s    C-string from which characters will be inserted.
- * @param  len  Number of characters from @c s to insert. If this is -1, all characters from @c s will
- *                be used.
+ * @param   s    C-string from which characters will be inserted.
+ * @param   len  Number of characters from @c s to insert. If this is DS_ARG_NOT_APPLICABLE , all characters
+ *                from @c s will be used.
+ *
+ * @return       Whether the operation succeeded.
  */
 #define string_append(this, s, len) string_insert(this, string_len(this), s, len)
 
@@ -178,10 +193,12 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 /**
  * Appends a substring of @c other , starting at @c subpos , to this string.
  *
- * @param  other   Existing @c String from which characters will be inserted.
- * @param  subpos  Index in @c other denoting the position of the first character to be inserted.
- * @param  len     Number of characters from @c other to insert. If this is -1, all characters from @c subpos
- *                   through the end of @c other will be inserted.
+ * @param   other   Existing @c String from which characters will be inserted.
+ * @param   subpos  Index in @c other denoting the position of the first character to be inserted.
+ * @param   len     Number of characters from @c other to insert. If this is DS_ARG_NOT_APPLICABLE ,
+ *                   all characters from @c subpos through the end of @c other will be inserted.
+ *
+ * @return          Whether the operation succeeded.
  */
 #define string_append_fromString(this, other, subpos, len) string_insert_fromString(this, string_len(this), other, subpos, len)
 
@@ -189,8 +206,10 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 /**
  * Appends @c n instances of the character @c c to this string.
  *
- * @param  n  Number of copies of @c c to insert.
- * @param  c  Character to insert.
+ * @param   n  Number of copies of @c c to insert.
+ * @param   c  Character to insert.
+ *
+ * @return     Whether the operation succeeded.
  */
 #define string_append_repeatingChar(this, n, c) string_insert_repeatingChar(this, string_len(this), n, c)
 
@@ -199,8 +218,8 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
  * Creates a new string from a c-string @c s .
  * 
  * @param   s  C-string.
- * @param   n  Number of characters from @c s to include. If this is -1, @c strlen(s) characters
- *               will be used.
+ * @param   n  Number of characters from @c s to include. If this is DS_ARG_NOT_APPLICABLE , @c strlen(s)
+ *              characters will be used.
  *
  * @return     Pointer to newly created string.
  */
@@ -230,8 +249,8 @@ String *string_new_fromCStr(const char *s, unsigned n);
  *
  * @param   other  Pointer to existing @c String .
  * @param   pos    Index of the first character in @c other to be copied.
- * @param   n      Maximum number of characters to be used. If this is -1, all characters from @c pos
- *                   to the end of @c other will be used.
+ * @param   n      Maximum number of characters to be used. If this is DS_ARG_NOT_APPLICABLE , all characters
+ *                  from @c pos to the end of @c other will be used.
  *
  * @return         Pointer to newly created string.
  */
@@ -254,8 +273,10 @@ String *string_new_repeatingChar(unsigned n, char c);
  * first @c n characters are removed. If this is greater than or equal to the current size, the provided 
  * character @c c is appended.
  *
- * @param  n  The new size.
- * @param  c  Character to append.
+ * @param   n  The new size.
+ * @param   c  Character to append.
+ *
+ * @return     Whether the operation succeeded.
  */
 unsigned char string_resize_usingChar(String *this, unsigned n, char c);
 
@@ -265,7 +286,9 @@ unsigned char string_resize_usingChar(String *this, unsigned n, char c);
  * first @c n characters are removed. If this is greater than or equal to the current size, the null 
  * character is appended.
  *
- * @param  n  The new size.
+ * @param   n  The new size.
+ *
+ * @return     Whether the operation succeeded.
  */
 #define string_resize(this, n) string_resize_usingChar(this, n, 0)
 
@@ -274,8 +297,8 @@ unsigned char string_resize_usingChar(String *this, unsigned n, char c);
  * Removes @c n characters from the string, starting at index @c start .
  *
  * @param  start  The first index to delete.
- * @param  n      The number of characters to delete. If this is -1, all characters from @c start
- *                  until the end will be removed.
+ * @param  n      The number of characters to delete. If this is DS_ARG_NOT_APPLICABLE , all characters
+ *                 from @c start until the end will be removed.
  */
 void string_erase(String *this, unsigned start, unsigned n);
 
@@ -302,7 +325,9 @@ void string_shrink_to_fit(String *this);
 /**
  * Appends @c c to the end of the string.
  *
- * @param  c  Character to append.
+ * @param   c  Character to append.
+ *
+ * @return     Whether the operation succeeded.
  */
 #define string_push_back(this, c) string_resize_usingChar(this, (this)->size + 1, c)
 
@@ -318,7 +343,8 @@ void string_shrink_to_fit(String *this);
  *
  * @param   pos    First index in the string to consider.
  * @param   chars  C-string of characters to look for.
- * @param   n      Number of characters to consider in @c chars . If this is -1, all will be considered.
+ * @param   n      Number of characters to consider in @c chars . If this is DS_ARG_NOT_APPLICABLE ,
+ *                  all will be considered.
  *
  * @return         The first index at or after @c pos where one of the supplied characters was
  *                   found, @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
@@ -331,7 +357,8 @@ unsigned string_find_first_of(String *this, unsigned pos, const char *chars, uns
  *
  * @param   pos    Last index in the string to consider.
  * @param   chars  C-string of characters to look for.
- * @param   n      Number of characters to consider in @c chars . If this is -1, all will be considered.
+ * @param   n      Number of characters to consider in @c chars . If this is DS_ARG_NOT_APPLICABLE ,
+ *                  all will be considered.
  *
  * @return         The last index at or before @c pos where one of the supplied characters was
  *                   found, @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
@@ -344,7 +371,8 @@ unsigned string_find_last_of(String *this, unsigned pos, const char *chars, unsi
  *
  * @param   pos    First index in the string to consider.
  * @param   chars  C-string of characters to look for.
- * @param   n      Number of characters to consider in @c chars . If this is -1, all will be considered.
+ * @param   n      Number of characters to consider in @c chars . If this is DS_ARG_NOT_APPLICABLE ,
+ *                  all will be considered.
  *
  * @return         The first index at or after @c pos where a different character was found,
  *                   @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
@@ -357,7 +385,8 @@ unsigned string_find_first_not_of(String *this, unsigned pos, const char *chars,
  *
  * @param   pos    Last index in the string to consider.
  * @param   chars  C-string of characters to look for.
- * @param   n      Number of characters to consider in @c chars . If this is -1, all will be considered.
+ * @param   n      Number of characters to consider in @c chars . If this is DS_ARG_NOT_APPLICABLE ,
+ *                  all will be considered.
  *
  * @return         The last index at or before @c pos where a different character was found,
  *                   @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
@@ -371,8 +400,8 @@ unsigned string_find_last_not_of(String *this, unsigned pos, const char *chars, 
  *
  * @param   start_pos   First index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len         Number of characters to match from needle. If this is -1, all characters from
- *                        @c needle will be used.
+ * @param   len         Number of characters to match from needle. If this is DS_ARG_NOT_APPLICABLE ,
+ *                       all characters from @c needle will be used.
  *
  * @return              The index in this string, corresponding to needle[0], where @c needle was found,
  *                      @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
@@ -386,8 +415,8 @@ unsigned string_find(String *this, unsigned start_pos, const char *needle, unsig
  *
  * @param   end_pos     Last index in the string to consider for the search.
  * @param   needle      Substring to find.
- * @param   len         Number of characters to match from needle. If this is -1, all characters from
- *                        @c needle will be used.
+ * @param   len         Number of characters to match from needle. If this is DS_ARG_NOT_APPLICABLE ,
+ *                       all characters from @c needle will be used.
  *
  * @return              The index in this string, corresponding to needle[0], where @c needle was found,
  *                        @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
@@ -400,8 +429,8 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
  * the next character to include with a step size of @c step_size .
  *
  * @param   start      Index where the substring should start.
- * @param   n          Maximum number of characters in the substring. -1 implies to include as many
- *                       elements as @c start and @c step_size allow.
+ * @param   n          Maximum number of characters in the substring. DS_ARG_NOT_APPLICABLE implies
+ *                      to include as many elements as @c start and @c step_size allow.
  * @param   step_size  How to adjust the index when copying characters. 1 means move forward 1 index
  *                       at a time, -1 means move backwards one index at a time, 2 would mean every
  *                       other index, etc.
@@ -507,25 +536,31 @@ __DS_FUNC_PREFIX_INL void toUppercase(char *s) {
 /**
  * Replaces @c nToReplace characters in this string, starting at @c pos , with the format string @c format .
  *
- * @param  pos         Index in the string where the replacement will occur.
- * @param  nToReplace  Number of characters to overwrite in this string.
- * @param  format      Format string.
+ * @param   pos         Index in the string where the replacement will occur.
+ * @param   nToReplace  Number of characters to overwrite in this string.
+ * @param   format      Format string.
+ *
+ * @return              Whether the operation succeeded.
  */
 unsigned char string_replace_withFormat(String *this, unsigned pos, unsigned nToReplace, const char *format, ...);
 
 /**
  * Inserts a format string @c format into this string before @c pos .
  *
- * @param  pos     Index in this string before which characters will be inserted. If this is @c string_len ,
+ * @param   pos     Index in this string before which characters will be inserted. If this is @c string_len ,
  *                   characters from @c format will be appended to this string.
- * @param  format  Format string.
+ * @param   format  Format string.
+ *
+ * @return          Whether the operation succeeded.
  */
 #define string_insert_withFormat(this, pos, format, ...) string_replace_withFormat(this, pos, 0, format, __VA_ARGS__)
 
 /**
  * Appends a format string @c format to this string.
  *
- * @param  format  Format string.
+ * @param   format  Format string.
+ *
+ * @return          Whether the operation succeeded.
  */
 #define string_append_withFormat(this, format, ...) string_insert_withFormat(this, string_len(this), format, __VA_ARGS__)
 

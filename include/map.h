@@ -6,8 +6,6 @@
 #define __map_entry_get_key(e) ((e)->data.first)
 #define __map_data_get_key(d)  ((d).first)
 
-#define MAP_ERROR 4294967295
-
 /**
  * The number of elements in the map.
  */
@@ -63,7 +61,7 @@
  * @param   last   @c MapEntry to end at. This must be reachable in the forward direction by @c first .
  *
  * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c MAP_ERROR .
+ *                 returns @c DS_DISTANCE_UNDEFINED .
  */
 #define mapEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 
@@ -153,8 +151,10 @@
 /**
  * Inserts @c n key-value pairs from a built-in array @c arr .
  *
- * @param  arr  Pointer to the first element of type @c Pair to insert.
- * @param  n    Number of elements to include.
+ * @param   arr  Pointer to the first element of type @c Pair to insert.
+ * @param   n    Number of elements to include.
+ *
+ * @return       Whether the operation succeeded.
  */
 #define map_insert_fromArray(id, this, arr, n) __avltree_insert_fromArray_##id(this, arr, n)
 
@@ -162,9 +162,11 @@
 /**
  * Inserts elements from another map in the range [@c start , @c end ).
  *
- * @param  start  First @c MapEntry to insert. Must not be NULL.
- * @param  end    @c MapEntry after the last entry to insert. If this is NULL, all keys from @c start
+ * @param   start  First @c MapEntry to insert. Must not be NULL.
+ * @param   end    @c MapEntry after the last entry to insert. If this is NULL, all keys from @c start
  *                  through the greatest key in the other map will be inserted.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define map_insert_fromMap(id, this, start, end) __avltree_insert_fromTree_##id(this, start, end)
 

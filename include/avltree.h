@@ -85,7 +85,7 @@ void __avlEntry_advance_##id(EntryType **p1, long n) {                          
 unsigned __avlEntry_distance_##id(EntryType *p1, EntryType *p2) {                                            \
     unsigned dist = 0;                                                                                       \
     for (; p1 && p1 != p2; p1 = __avl_inorder_successor_##id(p1)) ++dist;                                    \
-    if (!p1 || p1 != p2) return 4294967295;                                                                  \
+    if (!p1 || p1 != p2) return DS_DISTANCE_UNDEFINED;                                                       \
     return dist;                                                                                             \
 }                                                                                                            \
                                                                                                              \

@@ -8,8 +8,6 @@
 #define __set_copy_value(x, y)
 #define __set_delete_value(x)
 
-#define SET_ERROR 4294967295
-
 /**
  * The number of elements in the set.
  */
@@ -65,7 +63,7 @@
  * @param   last   @c SetEntry to end at. This must be reachable in the forward direction by @c first .
  *
  * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c SET_ERROR .
+ *                 returns @c DS_DISTANCE_UNDEFINED .
  */
 #define setEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 
@@ -155,8 +153,10 @@
 /**
  * Inserts @c n elements from a built-in array @c arr .
  *
- * @param  arr  Pointer to the first element to insert.
- * @param  n    Number of elements to include.
+ * @param   arr  Pointer to the first element to insert.
+ * @param   n    Number of elements to include.
+ *
+ * @return       Whether the operation succeeded.
  */
 #define set_insert_fromArray(id, this, arr, n) __avltree_insert_fromArray_##id(this, arr, n)
 
@@ -164,9 +164,11 @@
 /**
  * Inserts elements from another set in the range [@c start , @c end ).
  *
- * @param  start  First @c SetEntry to insert. Must not be NULL.
- * @param  end    @c SetEntry after the last entry to insert. If this is NULL, all elements from
+ * @param   start  First @c SetEntry to insert. Must not be NULL.
+ * @param   end    @c SetEntry after the last entry to insert. If this is NULL, all elements from
  *                  @c start through the end (greatest element) of the other set will be inserted.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define set_insert_fromSet(id, this, start, end) __avltree_insert_fromTree_##id(this, start, end)
 

@@ -42,8 +42,8 @@ unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace, co
     unsigned end, n = this->size - pos;
     if (!(s && *s && len) || pos > this->size) return 1;
 
-    if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(s);
-    if (nToReplace != STRING_NOT_APPLICABLE) n = min(n, nToReplace);
+    if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(s);
+    if (nToReplace != DS_ARG_NOT_APPLICABLE) n = min(n, nToReplace);
 
     if (!string_reserve(this, this->size + len + 1)) return 0;
     if ((end = pos + n) < this->size) {
@@ -64,7 +64,7 @@ unsigned char string_replace_fromString(String *this, unsigned pos, unsigned nTo
     unsigned l = other->size - subpos;
     if (subpos >= other->size || !len) return 1;
 
-    if (len != STRING_NOT_APPLICABLE) l = min(l, len);
+    if (len != DS_ARG_NOT_APPLICABLE) l = min(l, len);
     return string_replace(this, pos, nToReplace, &other->s[subpos], l);
 }
 
@@ -72,7 +72,7 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
     unsigned end, n2r = this->size - pos;
     if (!n || pos > this->size) return 1;
 
-    if (nToReplace != STRING_NOT_APPLICABLE) n2r = min(n2r, nToReplace);
+    if (nToReplace != DS_ARG_NOT_APPLICABLE) n2r = min(n2r, nToReplace);
 
     if (!string_reserve(this, this->size + n + 1)) return 0;
     if ((end = pos + n2r) < this->size) {
@@ -130,7 +130,7 @@ void string_erase(String *this, unsigned start, unsigned n) {
     unsigned end, n2d = this->size - start;
     if (start >= this->size || !n) return;
 
-    if (n != STRING_NOT_APPLICABLE) n2d = min(n2d, n);
+    if (n != DS_ARG_NOT_APPLICABLE) n2d = min(n2d, n);
 
     if ((end = start + n2d) < this->size) {
         memmove(&this->s[start], &this->s[end], this->size - end);
@@ -152,7 +152,7 @@ unsigned string_find_first_of(String *this, unsigned pos, const char *chars, uns
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
-    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
+    end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
         if (this->s[pos] == *c) return pos;
@@ -171,7 +171,7 @@ unsigned string_find_last_of(String *this, unsigned pos, const char *chars, unsi
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
-    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
+    end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
         if (this->s[pos] == *c) return pos;
@@ -190,7 +190,7 @@ unsigned string_find_first_not_of(String *this, unsigned pos, const char *chars,
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
-    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
+    end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
         if (this->s[pos] == *c) break;
@@ -210,7 +210,7 @@ unsigned string_find_last_not_of(String *this, unsigned pos, const char *chars, 
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
-    end = (n == STRING_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
+    end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
 
     for (c = chars; c != end; ++c) {
         if (this->s[pos] == *c) break;
@@ -234,7 +234,7 @@ unsigned string_find(String *this, unsigned start_pos, const char *needle, unsig
     if (start_pos >= this->size || !needle) return STRING_ERROR;
     else if (!(*needle && len)) return start_pos;
 
-    if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(needle);
+    if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(needle);
 
     if (len > len_haystack) return STRING_NPOS;
     else if (len == 1) return string_find_first_of(this, start_pos, needle, 1);
@@ -269,7 +269,7 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
     if (end_pos >= this->size || !needle) return STRING_ERROR;
     else if (!(*needle && len)) return end_pos;
 
-    if (len == STRING_NOT_APPLICABLE) len = (unsigned) strlen(needle);
+    if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(needle);
 
     if (len > end_pos + 1) return STRING_NPOS;
     else if (len == 1) return string_find_last_of(this, end_pos, needle, 1);
@@ -320,7 +320,7 @@ String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
 
     if (step_size < 0) {
         long i = start, end = -1;
-        if (n != STRING_NOT_APPLICABLE) {
+        if (n != DS_ARG_NOT_APPLICABLE) {
             const long limit = i + ((long) n * step_size);
             end = max(end, limit);
         }
@@ -330,7 +330,7 @@ String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
     } else {
         const unsigned ss = (unsigned) step_size;
         unsigned long i = start, end = this->size;
-        if (n != STRING_NOT_APPLICABLE) {
+        if (n != DS_ARG_NOT_APPLICABLE) {
             const unsigned long limit = i + (n * ss);
             end = min(end, limit);
         }

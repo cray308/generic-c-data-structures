@@ -8,7 +8,7 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Sorts the array `a` with `n` elements.
+ * Sorts the array @c a with @c n elements.
  *
  * @param  a  Start of array.
  * @param  n  Number of elements in the array.
@@ -17,7 +17,7 @@
 
 
 /**
- * Searches for `val` in an array `a`. The array must have been sorted prior to calling this function.
+ * Searches for @c val in an array @c a . The array must have been sorted prior to calling this function.
  *
  * @param   a    Start of array.
  * @param   n    Number of elements in the array.
@@ -29,7 +29,7 @@
 
 
 /**
- * Creates a max-heap in the range [`first`, `last`).
+ * Creates a max-heap in the range [@c first , @c last ).
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.
@@ -38,7 +38,7 @@
 
 
 /**
- * Sorts a heap in the range [`first`, `last`), so that elements are ordered from smallest to largest.
+ * Sorts a heap in the range [@c first , @c last ), so that elements are ordered from smallest to largest.
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.
@@ -47,8 +47,8 @@
 
 
 /**
- * Extends a heap in the range [`first`, `last - 1`) to [`first`, `last`) (the element in position 
- * `last - 1` is pushed).
+ * Extends a heap in the range [@c first , @c last-1 ) to [@c first , @c last ) (the element in position 
+ * @c last-1 is pushed).
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.
@@ -57,8 +57,8 @@
 
 
 /**
- * Shrinks a heap in the range [`first`, `last`) to [`first`, `last - 1`) (the element in position 
- * `first` is popped).
+ * Shrinks a heap in the range [@c first , @c last ) to [@c first , @c last-1 ) (the element in position 
+ * @c first is popped).
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.

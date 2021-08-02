@@ -4,7 +4,6 @@
 #include "ds.h"
 
 #define LIST_END ((void*)-1)
-#define LIST_ERROR 4294967295
 
 /* --------------------------------------------------------------------------
  * PRIMARY LIST SECTION
@@ -67,7 +66,7 @@
  * @param   last   @c ListEntry to end at. This must be reachable in the forward direction by @c first .
  *
  * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c LIST_ERROR .
+ *                 returns @c DS_DISTANCE_UNDEFINED .
  */
 #define listEntry_distance(id, first, last) listEntry_distance_##id(first, last)
 
@@ -123,7 +122,9 @@
  * elements are removed. If this is greater than the current size, elements are appended to the list 
  * with a value of 0.
  *
- * @param  n  The new list size.
+ * @param   n  The new list size.
+ *
+ * @return     Whether the operation succeeded.
  */
 #define list_resize(id, this, n) list_resize_usingValue_##id(this, n, 0)
 
@@ -367,7 +368,7 @@ void listEntry_advance_##id(ListEntry_##id **p1, long n) {                      
 unsigned listEntry_distance_##id(ListEntry_##id *p1, ListEntry_##id *p2) {                                   \
     unsigned dist = 0;                                                                                       \
     for (; p1 && p1 != p2; p1 = p1->next) ++dist;                                                            \
-    if (!p1 || p1 != p2) return LIST_ERROR;                                                                  \
+    if (!p1 || p1 != p2) return DS_DISTANCE_UNDEFINED;                                                       \
     return dist;                                                                                             \
 }                                                                                                            \
                                                                                                              \

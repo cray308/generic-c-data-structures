@@ -63,7 +63,7 @@ void test_init_fromCStr(void) {
     s = string_new_fromCStr(testStr, 2);
     compareStrs(s, testStr, 2);
     string_free(s);
-    s = string_new_fromCStr(testStr, STRING_NOT_APPLICABLE);
+    s = string_new_fromCStr(testStr, DS_ARG_NOT_APPLICABLE);
     compareStrs(s, testStr, 78);
     string_free(s);
 }
@@ -91,7 +91,7 @@ void test_init_fromString(void) {
     string_free(s);
     string_free(b);
     b = string_new_fromCStr(testStr, 26);
-    s = string_new_fromString(b, b->size - 24, STRING_NOT_APPLICABLE);
+    s = string_new_fromString(b, b->size - 24, DS_ARG_NOT_APPLICABLE);
     compareStrs(s, &testStr[2], 24);
     string_free(s);
     s = string_new_fromString(b, 5, 200);
@@ -181,9 +181,9 @@ void test_insert_cStr(void) {
     string_insert(s, s->size - 1, testStr, 64);
     string_insert(s, 10, testStr, 64);
     compareStrs(s, testStr, 0);
-    string_insert(s, 0, "c", STRING_NOT_APPLICABLE);
+    string_insert(s, 0, "c", DS_ARG_NOT_APPLICABLE);
     string_insert(s, 0, "aaa", 2);
-    string_insert(s, s->size - 1, "bc", STRING_NOT_APPLICABLE);
+    string_insert(s, s->size - 1, "bc", DS_ARG_NOT_APPLICABLE);
     string_insert(s, string_len(s), "d", 1);
     compareStrs(s, "aabccd", 6);
     string_free(s);
@@ -213,7 +213,7 @@ void test_insert_fromString(void) {
     string_insert_fromString(s, 10, b, 0, 1);
     compareStrs(s, testStr, 0);
     string_insert_fromString(s, 0, b, 2, 30);
-    string_insert_fromString(s, 0, a, 0, STRING_NOT_APPLICABLE);
+    string_insert_fromString(s, 0, a, 0, DS_ARG_NOT_APPLICABLE);
     string_insert_fromString(s, s->size - 1, b, 0, 2);
     string_insert_fromString(s, string_len(s), d, 0, 3);
     compareStrs(s, "aabbcdd", 7);
@@ -230,8 +230,8 @@ void test_append_cStr(void) {
     string_append(s, testStr, 0);
     compareStrs(s, testStr, 0);
     string_append(s, "aaa", 2);
-    string_append(s, "bc", STRING_NOT_APPLICABLE);
-    string_append(s, "c", STRING_NOT_APPLICABLE);
+    string_append(s, "bc", DS_ARG_NOT_APPLICABLE);
+    string_append(s, "c", DS_ARG_NOT_APPLICABLE);
     string_append(s, "d", 1);
     compareStrs(s, "aabccd", 6);
     string_free(s);
@@ -275,11 +275,11 @@ void test_replace_cStr(void) {
     compareStrs(s, testStr, 0);
     string_replace(s, 0, 0, "xxxxx", 5);
     string_replace(s, 0, 1, "abc", 3);
-    string_replace(s, string_len(s), 50, "hello", STRING_NOT_APPLICABLE);
+    string_replace(s, string_len(s), 50, "hello", DS_ARG_NOT_APPLICABLE);
     string_replace(s, s->size - 5, 20, "y", 1);
-    string_replace(s, s->size - 5, STRING_NOT_APPLICABLE, "longString", 7);
+    string_replace(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "longString", 7);
     compareStrs(s, "abclongStr", 10);
-    string_replace(s, 0, STRING_NOT_APPLICABLE, ".", 1);
+    string_replace(s, 0, DS_ARG_NOT_APPLICABLE, ".", 1);
     compareStrs(s, ".", 1);
     string_free(s);
 }
@@ -297,9 +297,9 @@ void test_replace_fromString(void) {
     string_replace_fromString(s, 0, 1, b, 2, 3);
     string_replace_fromString(s, string_len(s), 50, b, b->size - 10, 5);
     string_replace_fromString(s, s->size - 5, 20, b, 0, 1);
-    string_replace_fromString(s, s->size - 5, STRING_NOT_APPLICABLE, b, 5, 7);
+    string_replace_fromString(s, s->size - 5, DS_ARG_NOT_APPLICABLE, b, 5, 7);
     compareStrs(s, "abclongStr", 10);
-    string_replace_fromString(s, 0, STRING_NOT_APPLICABLE, b, 1, 1);
+    string_replace_fromString(s, 0, DS_ARG_NOT_APPLICABLE, b, 1, 1);
     compareStrs(s, ".", 1);
     string_free(s);
     string_free(b);
@@ -315,16 +315,16 @@ void test_replace_repeatingChar(void) {
     string_replace_repeatingChar(s, 0, 1, 3, 'a');
     string_replace_repeatingChar(s, string_len(s), 50, 5, 'h');
     string_replace_repeatingChar(s, s->size - 5, 20, 1, 'y');
-    string_replace_repeatingChar(s, s->size - 5, STRING_NOT_APPLICABLE, 7, 'l');
+    string_replace_repeatingChar(s, s->size - 5, DS_ARG_NOT_APPLICABLE, 7, 'l');
     compareStrs(s, "aaalllllll", 10);
-    string_replace_repeatingChar(s, 0, STRING_NOT_APPLICABLE, 1, '.');
+    string_replace_repeatingChar(s, 0, DS_ARG_NOT_APPLICABLE, 1, '.');
     compareStrs(s, ".", 1);
     string_free(s);
 }
 
 void test_remove_char(void) {
     String *s = string_new_fromCStr(testStr, 5);
-    string_erase(s, 5, STRING_NOT_APPLICABLE);
+    string_erase(s, 5, DS_ARG_NOT_APPLICABLE);
     string_erase(s, 4, 0);
     compareStrs(s, testStr, 5);
     string_erase(s, 0, 1);
@@ -337,10 +337,10 @@ void test_remove_char(void) {
 void test_erase_chars(void) {
     String *s = string_new_fromCStr(testStr, 10);
     string_erase(s, 0, 2);
-    string_erase(s, s->size - 2, STRING_NOT_APPLICABLE);
+    string_erase(s, s->size - 2, DS_ARG_NOT_APPLICABLE);
     string_erase(s, 2, 2);
     compareStrs(s, "cdgh", 4);
-    string_erase(s, 0, STRING_NOT_APPLICABLE);
+    string_erase(s, 0, DS_ARG_NOT_APPLICABLE);
     compareStrs(s, "", 0);
     string_free(s);
 }
@@ -348,7 +348,7 @@ void test_erase_chars(void) {
 void test_substr(void) {
     String *s1 = string_new_fromCStr(testStr, 10), *s2 = string_new();
     assert(string_substr(s1, 0, 0, 1) == NULL);
-    assert(string_substr(s2, s2->size - 1, STRING_NOT_APPLICABLE, 1) == NULL);
+    assert(string_substr(s2, s2->size - 1, DS_ARG_NOT_APPLICABLE, 1) == NULL);
     string_free(s2);
     s2 = string_substr(s1, 0, 200, 0);
     compareStrs(s2, testStr, 10);
@@ -362,7 +362,7 @@ void test_substr(void) {
     s2 = string_substr(s1, s1->size - 2, 5, -1);
     compareStrs(s2, "ihgfe", 5);
     string_free(s2);
-    s2 = string_substr(s1, s1->size - 2, STRING_NOT_APPLICABLE, -2);
+    s2 = string_substr(s1, s1->size - 2, DS_ARG_NOT_APPLICABLE, -2);
     compareStrs(s2, "igeca", 5);
     string_free(s2);
     s2 = string_substr(s1, s1->size - 1, 10, -9);
@@ -380,11 +380,11 @@ void test_find_first_of(void) {
     assert(string_find_first_of(s, 1, "", 5) == 1);
     assert(string_find_first_of(s, 1, "abc", 0) == 1);
     assert(string_find_first_of(s, 52, "abc", 3) == STRING_ERROR);
-    assert(string_find_first_of(s, 0, "abc", STRING_NOT_APPLICABLE) == 0);
+    assert(string_find_first_of(s, 0, "abc", DS_ARG_NOT_APPLICABLE) == 0);
     assert(string_find_first_of(s, 4, "abc", 2) == STRING_NPOS);
     assert(string_find_first_of(s, s->size - 1, "z", 1) == 51);
     assert(string_find_first_of(s, 0, "z", 1) == 50);
-    assert(string_find_first_of(s, 0, ".", STRING_NOT_APPLICABLE) == STRING_NPOS);
+    assert(string_find_first_of(s, 0, ".", DS_ARG_NOT_APPLICABLE) == STRING_NPOS);
     string_free(s);
 }
 
@@ -395,11 +395,11 @@ void test_find_last_of(void) {
     assert(string_find_last_of(s, 50, "abc", 0) == 50);
     assert(string_find_last_of(s, s->size - 53, "abc", 3) == STRING_ERROR);
     assert(string_find_last_of(s, 0, "xyz", 3) == STRING_NPOS);
-    assert(string_find_last_of(s, s->size - 1, "xyz", STRING_NOT_APPLICABLE) == 51);
+    assert(string_find_last_of(s, s->size - 1, "xyz", DS_ARG_NOT_APPLICABLE) == 51);
     assert(string_find_last_of(s, s->size - 5, "zyx", 2) == STRING_NPOS);
     assert(string_find_last_of(s, 0, "a", 1) == 0);
     assert(string_find_last_of(s, s->size - 1, "a", 1) == 1);
-    assert(string_find_last_of(s, s->size - 1, ".", STRING_NOT_APPLICABLE) == STRING_NPOS);
+    assert(string_find_last_of(s, s->size - 1, ".", DS_ARG_NOT_APPLICABLE) == STRING_NPOS);
     string_free(s);
 }
 
@@ -409,11 +409,11 @@ void test_find_first_not_of(void) {
     assert(string_find_first_not_of(s, 1, "", 5) == 1);
     assert(string_find_first_not_of(s, 1, "abc", 0) == 1);
     assert(string_find_first_not_of(s, 52, "abc", 3) == STRING_ERROR);
-    assert(string_find_first_not_of(s, 0, "abc", STRING_NOT_APPLICABLE) == 6);
+    assert(string_find_first_not_of(s, 0, "abc", DS_ARG_NOT_APPLICABLE) == 6);
     assert(string_find_first_not_of(s, 4, "abc", 2) == 4);
     assert(string_find_first_not_of(s, s->size - 1, "z", 1) == STRING_NPOS);
-    assert(string_find_first_not_of(s, 0, "z", STRING_NOT_APPLICABLE) == 0);
-    assert(string_find_first_not_of(s, s->size - 6, "xy", STRING_NOT_APPLICABLE) == 50);
+    assert(string_find_first_not_of(s, 0, "z", DS_ARG_NOT_APPLICABLE) == 0);
+    assert(string_find_first_not_of(s, s->size - 6, "xy", DS_ARG_NOT_APPLICABLE) == 50);
     string_free(s);
 }
 
@@ -424,11 +424,11 @@ void test_find_last_not_of(void) {
     assert(string_find_last_not_of(s, 50, "abc", 0) == 50);
     assert(string_find_last_not_of(s, s->size - 53, "abc", 3) == STRING_ERROR);
     assert(string_find_last_not_of(s, 0, "xyz", 3) == 0);
-    assert(string_find_last_not_of(s, s->size - 1, "xyz", STRING_NOT_APPLICABLE) == 45);
+    assert(string_find_last_not_of(s, s->size - 1, "xyz", DS_ARG_NOT_APPLICABLE) == 45);
     assert(string_find_last_not_of(s, s->size - 5, "zyx", 2) == 47);
     assert(string_find_last_not_of(s, 0, "a", 1) == STRING_NPOS);
     assert(string_find_last_not_of(s, s->size - 1, "a", 1) == 51);
-    assert(string_find_last_not_of(s, 5, "bc", STRING_NOT_APPLICABLE) == 1);
+    assert(string_find_last_not_of(s, 5, "bc", DS_ARG_NOT_APPLICABLE) == 1);
     string_free(s);
 }
 
@@ -568,9 +568,9 @@ void test_format(void) {
         string_replace_withFormat(s, 0, 1, "%c%c%c", 0x61, 0x62, 0x63);
         string_replace_withFormat(s, string_len(s), 50, "%c%d", 'h', 3110);
         string_replace_withFormat(s, s->size - 5, 20, "%s", "y");
-        string_replace_withFormat(s, s->size - 5, STRING_NOT_APPLICABLE, "%s", "longStr\0\0\0");
+        string_replace_withFormat(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "%s", "longStr\0\0\0");
         compareStrs(s, "abclongStr", 10);
-        string_replace_withFormat(s, 0, STRING_NOT_APPLICABLE, "%c", 46);
+        string_replace_withFormat(s, 0, DS_ARG_NOT_APPLICABLE, "%c", 46);
         compareStrs(s, ".", 1);
         string_free(s);
     }

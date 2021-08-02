@@ -50,7 +50,9 @@
 /**
  * Appends @c value to the back of the queue.
  *
- * @param  value  Value to be emplaced.
+ * @param   value  Value to be emplaced.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define queue_push(id, this, value) deque_push_back(id, this, value)
 

@@ -51,7 +51,9 @@
 /**
  * Appends @c value to the back of the deque.
  *
- * @param  value  Value to be emplaced.
+ * @param   value  Value to be emplaced.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define deque_push_back(id, this, value) __dq_push_back_##id(this, value)
 
@@ -65,7 +67,9 @@
 /**
  * Places @c value in the front of the deque.
  *
- * @param  value  Value to be emplaced.
+ * @param   value  Value to be emplaced.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define deque_push_front(id, this, value) __dq_push_front_##id(this, value)
 

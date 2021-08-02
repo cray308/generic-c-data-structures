@@ -4,7 +4,6 @@
 #include "alg_helper.h"
 
 #define ARRAY_ERROR 4294967294
-#define ARRAY_NOT_APPLICABLE 4294967295
 
 /* --------------------------------------------------------------------------
  * PRIMARY ARRAY SECTION
@@ -125,7 +124,9 @@
  * elements are removed. If this is greater than the current size, elements are appended to the array 
  * with a value of 0.
  *
- * @param  n  The new array size.
+ * @param   n  The new array size.
+ *
+ * @return     Whether the operation succeeded.
  */
 #define array_resize(id, this, n) array_resize_usingValue_##id(this, n, 0)
 
@@ -135,8 +136,10 @@
  * elements are removed. If this is greater than the current size, elements are appended to the array 
  * with a value of @c value .
  *
- * @param  n      The new array size.
- * @param  value  Value to hold in the new indices if @c n is greater than the current size.
+ * @param   n      The new array size.
+ * @param   value  Value to hold in the new indices if @c n is greater than the current size.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define array_resize_usingValue(id, this, n, value) array_resize_usingValue_##id(this, n, value)
 
@@ -145,7 +148,9 @@
  * Requests a change in capacity to @c n . If this is smaller than the current capacity, nothing is 
  * done. If you wish to decrease the capacity, see @c array_shrink_to_fit .
  *
- * @param  n  The new capacity.
+ * @param   n  The new capacity.
+ *
+ * @return    Whether the operation succeeded.
  */
 #define array_reserve(id, this, n) array_reserve_##id(this, n)
 
@@ -215,8 +220,8 @@
  * Removes @c nelem elements from the array, starting at index @c first .
  *
  * @param  first  The first index to delete.
- * @param  nelem  The number of elements to delete. If this is -1, it means to erase all elements
- *                  from @c first to the end of the array.
+ * @param  nelem  The number of elements to delete. If this is DS_ARG_NOT_APPLICABLE , it means to erase
+ *                 all elements from @c first to the end of the array.
  *
  * @return        The index after the last element to be deleted. If the last element to be deleted
  *                was the end of the array, returns @c array_size . If an error occurred, returns
@@ -238,8 +243,8 @@
  * next element to include with a step size of @c step_size .
  *
  * @param   start      Index to start the subarray.
- * @param   n          Maximum number of elements to include in the new subarray. -1 implies to
- *                       include as many elements as the start and step size allow.
+ * @param   n          Maximum number of elements to include in the new subarray. DS_ARG_NOT_APPLICABLE
+ *                      implies to include as many elements as the start and step size allow.
  * @param   step_size  How to adjust the index when copying elements. 1 means move forward 1 index
  *                       at a time, -1 means move backwards one index at a time, 2 would mean every
  *                       other index, etc.
@@ -314,7 +319,7 @@ unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem) {   
     unsigned endIdx, i, n = this->size - first, res;                                                         \
     if (first >= this->size || !nelem) return ARRAY_ERROR;                                                   \
                                                                                                              \
-    if (nelem != ARRAY_NOT_APPLICABLE) n = min(n, nelem);                                                    \
+    if (nelem != DS_ARG_NOT_APPLICABLE) n = min(n, nelem);                                                   \
                                                                                                              \
     endIdx = first + n;                                                                                      \
     for (i = first; i < endIdx; ++i) {                                                                       \
@@ -418,7 +423,7 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start, unsigned n, int 
                                                                                                              \
     if (step_size < 0) {                                                                                     \
         long i = start, end = -1;                                                                            \
-        if (n != ARRAY_NOT_APPLICABLE) {                                                                     \
+        if (n != DS_ARG_NOT_APPLICABLE) {                                                                    \
             const long limit = i + ((long) n * step_size);                                                   \
             end = max(end, limit);                                                                           \
         }                                                                                                    \
@@ -428,7 +433,7 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start, unsigned n, int 
     } else {                                                                                                 \
         const unsigned ss = (unsigned) step_size;                                                            \
         unsigned long i = start, end = this->size;                                                           \
-        if (n != ARRAY_NOT_APPLICABLE) {                                                                     \
+        if (n != DS_ARG_NOT_APPLICABLE) {                                                                    \
             const unsigned long limit = i + (n * ss);                                                        \
             end = min(end, limit);                                                                           \
         }                                                                                                    \

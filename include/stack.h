@@ -43,7 +43,9 @@
 /**
  * Pushes @c value onto the top of the stack.
  *
- * @param  value  Value to be emplaced.
+ * @param   value  Value to be emplaced.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define stack_push(id, this, value) deque_push_back(id, this, value)
 
