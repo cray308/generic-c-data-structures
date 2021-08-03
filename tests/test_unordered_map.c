@@ -134,10 +134,14 @@ void test_init_fromArray(void) {
     DictData data[50] = {0};
     int i;
     for (i = 0; i < 50; ++i) {
-        arrInt[i].first = i, arrInt[i].second = strs[i];
-        arrStr1[i].first = strs[i], arrStr1[i].second = i;
-        arrStr2[i].first = strs[i], arrStr2[i].second = i;
-        data[i].i = i, data[i].s = strs[i];
+        arrInt[i].first = i;
+        arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i];
+        arrStr1[i].second = i;
+        arrStr2[i].first = strs[i];
+        arrStr2[i].second = i;
+        data[i].i = i;
+        data[i].s = strs[i];
     }
     compare_int_str(m1, data, 0);
     umap_free(int_str, m1);
@@ -176,10 +180,14 @@ void test_createCopy(void) {
     DictData data[50] = {0};
     int i;
     for (i = 0; i < 50; ++i) {
-        arrInt[i].first = i, arrInt[i].second = strs[i];
-        arrStr1[i].first = strs[i], arrStr1[i].second = i;
-        arrStr2[i].first = strs[i], arrStr2[i].second = i;
-        data[i].i = i, data[i].s = strs[i];
+        arrInt[i].first = i;
+        arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i];
+        arrStr1[i].second = i;
+        arrStr2[i].first = strs[i];
+        arrStr2[i].second = i;
+        data[i].i = i;
+        data[i].s = strs[i];
     }
     m1 = umap_createCopy(int_str, b);
     compare_int_str(m1, data, 0);
@@ -214,7 +222,12 @@ void test_insert_element(void) {
     DictData c1[] = {{10,"010",0},{20,"020",0},{30,"030",0},{40,"040",0},{50,"050",0}}, c2[] = {{10,"100",0},{20,"020",0},{30,"030",0},{40,"400",0},{50,"500",0}}, c3[] = {{100,"010",0},{20,"020",0},{30,"030",0},{400,"040",0},{500,"050",0}};
 
     for (i = 0; i < 5; ++i) {
-        x.first = a1[i], x.second = a2[i], y.first = a2[i], y.second = a1[i], z.first = a2[i], z.second = a1[i];
+        x.first = a1[i];
+        x.second = a2[i];
+        y.first = a2[i];
+        y.second = a1[i];
+        z.first = a2[i];
+        z.second = a1[i];
         umap_insert_withResult(int_str, m1, x, &inserted);
         assert(inserted);
         inserted = -1;
@@ -229,7 +242,12 @@ void test_insert_element(void) {
     compare_strv_int(m2, c1, 5);
     compare_strp_int(m3, c1, 5);
 
-    x.first = 40, x.second = "400", y.first = "040", y.second = 400, z.first = "040", z.second = 400;
+    x.first = 40;
+    x.second = "400";
+    y.first = "040";
+    y.second = 400;
+    z.first = "040";
+    z.second = 400;
     umap_insert_withResult(int_str, m1, x, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -239,7 +257,12 @@ void test_insert_element(void) {
     umap_insert_withResult(strp_int, m3, z, &inserted);
     assert(!inserted);
     inserted = -1;
-    x.first = 10, x.second = "100", y.first = "010", y.second = 100, z.first = "010", z.second = 100;
+    x.first = 10;
+    x.second = "100";
+    y.first = "010";
+    y.second = 100;
+    z.first = "010";
+    z.second = 100;
     umap_insert_withResult(int_str, m1, x, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -249,7 +272,12 @@ void test_insert_element(void) {
     umap_insert_withResult(strp_int, m3, z, &inserted);
     assert(!inserted);
     inserted = -1;
-    x.first = 50, x.second = "500", y.first = "050", y.second = 500, z.first = "050", z.second = 500;
+    x.first = 50;
+    x.second = "500";
+    y.first = "050";
+    y.second = 500;
+    z.first = "050";
+    z.second = 500;
     umap_insert_withResult(int_str, m1, x, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -384,10 +412,14 @@ void test_set_load_factor(void) {
     DictData data[50] = {0};
     int i;
     for (i = 0; i < 50; ++i) {
-        arrInt[i].first = i, arrInt[i].second = strs[i];
-        arrStr1[i].first = strs[i], arrStr1[i].second = i;
-        arrStr2[i].first = strs[i], arrStr2[i].second = i;
-        data[i].i = i, data[i].s = strs[i];
+        arrInt[i].first = i;
+        arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i];
+        arrStr1[i].second = i;
+        arrStr2[i].first = strs[i];
+        arrStr2[i].second = i;
+        data[i].i = i;
+        data[i].s = strs[i];
     }
 
     assert(umap_max_load_factor(m1) == 0.75);
@@ -445,10 +477,14 @@ void test_rehash(void) {
     DictData data[50] = {0};
     int i;
     for (i = 0; i < 50; ++i) {
-        arrInt[i].first = i, arrInt[i].second = strs[i];
-        arrStr1[i].first = strs[i], arrStr1[i].second = i;
-        arrStr2[i].first = strs[i], arrStr2[i].second = i;
-        data[i].i = i, data[i].s = strs[i];
+        arrInt[i].first = i;
+        arrInt[i].second = strs[i];
+        arrStr1[i].first = strs[i];
+        arrStr1[i].second = i;
+        arrStr2[i].first = strs[i];
+        arrStr2[i].second = i;
+        data[i].i = i;
+        data[i].s = strs[i];
     }
 
     assert(umap_bucket_count(m1) == 32);
@@ -495,19 +531,23 @@ void test_nested_dicts(void) {
     Pair_nested *it;
     int i;
     for (i = 0; i < 50; ++i) {
-        arrStr[i].first = strs[i], arrStr[i].second = i;
-        data[i].i = i, data[i].s = strs[i];
+        arrStr[i].first = strs[i];
+        arrStr[i].second = i;
+        data[i].i = i;
+        data[i].s = strs[i];
     }
 
     for (i = 0; i < 5; ++i) {
         int success = 0;
         Pair_nested p;
         UMap_strv_int *inner = umap_new_fromArray(strv_int, &arrStr[10 * i], 10);
-        p.first = arrStr[10 * i].first, p.second = inner;
+        p.first = arrStr[10 * i].first;
+        p.second = inner;
         umap_insert_withResult(nested, m, p, &success);
         assert(success);
         assert(umap_size(m) == (unsigned) i + 1);
-        results[i].s = arrStr[10 * i].first, results[i].data = &data[10 * i];
+        results[i].s = arrStr[10 * i].first;
+        results[i].data = &data[10 * i];
     }
 
     for (i = 0; i < 5; ++i) {

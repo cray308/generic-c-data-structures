@@ -254,9 +254,11 @@ void test_erase_entries(void) {
     setEntry_advance(str, &p3, -1);
     set_erase(int, si, p1, NULL);
     set_erase(str, ss, p3, NULL);
-    p1 = set_begin(int, si), p2 = p1;
+    p1 = set_begin(int, si);
+    p2 = p1;
     setEntry_advance(int, &p2, 2);
-    p3 = set_begin(str, ss), p4 = p3;
+    p3 = set_begin(str, ss);
+    p4 = p3;
     setEntry_advance(str, &p4, 2);
     set_erase(int, si, p1, p2);
     set_erase(str, ss, p3, p4);
@@ -427,8 +429,12 @@ void test_subset_superset(void) {
     int i;
     Set_int *a[3];
     Set_str *b[3];
-    a[0] = set_new(int), a[1] = set_new_fromArray(int, &ints[5], 6), a[2] = set_new_fromArray(int, ints, 11);
-    b[0] = set_new_fromArray(str, strs, 6), b[1] = set_new_fromArray(str, &strs[5], 6), b[2] = set_new_fromArray(str, strs, 11);
+    a[0] = set_new(int);
+    a[1] = set_new_fromArray(int, &ints[5], 6);
+    a[2] = set_new_fromArray(int, ints, 11);
+    b[0] = set_new_fromArray(str, strs, 6);
+    b[1] = set_new_fromArray(str, &strs[5], 6);
+    b[2] = set_new_fromArray(str, strs, 11);
 
     assert(set_issubset(int, a[0], a[0]));
     assert(set_issuperset(int, a[0], a[0]));

@@ -111,9 +111,12 @@ void test_init_fromArray(void) {
     Pair_strp_int arrStr2[50];
     int i;
     for (i = 0; i < 50; ++i) {
-        arrInt[i].first = ints_rand[i], arrInt[i].second = strs_rand[i];
-        arrStr1[i].first = strs_rand[i], arrStr1[i].second = ints_rand[i];
-        arrStr2[i].first = strs_rand[i], arrStr2[i].second = ints_rand[i];
+        arrInt[i].first = ints_rand[i];
+        arrInt[i].second = strs_rand[i];
+        arrStr1[i].first = strs_rand[i];
+        arrStr1[i].second = ints_rand[i];
+        arrStr2[i].first = strs_rand[i];
+        arrStr2[i].second = ints_rand[i];
     }
     compare_int_str(m1, ints, strs, 0);
     map_free(int_str, m1);
@@ -151,9 +154,12 @@ void test_createCopy(void) {
     Pair_strp_int arrStr2[50];
     int i;
     for (i = 0; i < 50; ++i) {
-        arrInt[i].first = ints_rand[i], arrInt[i].second = strs_rand[i];
-        arrStr1[i].first = strs_rand[i], arrStr1[i].second = ints_rand[i];
-        arrStr2[i].first = strs_rand[i], arrStr2[i].second = ints_rand[i];
+        arrInt[i].first = ints_rand[i];
+        arrInt[i].second = strs_rand[i];
+        arrStr1[i].first = strs_rand[i];
+        arrStr1[i].second = ints_rand[i];
+        arrStr2[i].first = strs_rand[i];
+        arrStr2[i].second = ints_rand[i];
     }
     m1 = map_createCopy(int_str, b);
     compare_int_str(m1, ints, strs, 0);
@@ -187,7 +193,12 @@ void test_insert_element(void) {
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"010","020","030","040","050"}, *c4[] = {"100","020","030","400","500"};
 
     for (i = 0; i < 5; ++i) {
-        x.first = a1[i], x.second = a2[i], y.first = a2[i], y.second = a1[i], z.first = a2[i], z.second = a1[i];
+        x.first = a1[i];
+        x.second = a2[i];
+        y.first = a2[i];
+        y.second = a1[i];
+        z.first = a2[i];
+        z.second = a1[i];
         map_insert_withResult(int_str, m1, x, &inserted);
         assert(inserted);
         inserted = -1;
@@ -202,7 +213,12 @@ void test_insert_element(void) {
     compare_strv_int(m2, c2, c1, 5);
     compare_strp_int(m3, c2, c1, 5);
 
-    x.first = 40, x.second = "400", y.first = "040", y.second = 400, z.first = "040", z.second = 400;
+    x.first = 40;
+    x.second = "400";
+    y.first = "040";
+    y.second = 400;
+    z.first = "040";
+    z.second = 400;
     map_insert_withResult(int_str, m1, x, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -212,7 +228,12 @@ void test_insert_element(void) {
     map_insert_withResult(strp_int, m3, z, &inserted);
     assert(!inserted);
     inserted = -1;
-    x.first = 10, x.second = "100", y.first = "010", y.second = 100, z.first = "010", z.second = 100;
+    x.first = 10;
+    x.second = "100";
+    y.first = "010";
+    y.second = 100;
+    z.first = "010";
+    z.second = 100;
     map_insert_withResult(int_str, m1, x, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -222,7 +243,12 @@ void test_insert_element(void) {
     map_insert_withResult(strp_int, m3, z, &inserted);
     assert(!inserted);
     inserted = -1;
-    x.first = 50, x.second = "500", y.first = "050", y.second = 500, z.first = "050", z.second = 500;
+    x.first = 50;
+    x.second = "500";
+    y.first = "050";
+    y.second = 500;
+    z.first = "050";
+    z.second = 500;
     map_insert_withResult(int_str, m1, x, &inserted);
     assert(!inserted);
     inserted = -1;
@@ -381,11 +407,14 @@ void test_erase_entries(void) {
     map_erase(int_str, m1, p1, NULL);
     map_erase(strv_int, m2, p3, NULL);
     map_erase(strp_int, m3, p5, NULL);
-    p1 = map_begin(int_str, m1), p2 = p1;
+    p1 = map_begin(int_str, m1);
+    p2 = p1;
     mapEntry_advance(int_str, &p2, 2);
-    p3 = map_begin(strv_int, m2), p4 = p3;
+    p3 = map_begin(strv_int, m2);
+    p4 = p3;
     mapEntry_advance(strv_int, &p4, 2);
-    p5 = map_begin(strp_int, m3), p6 = p5;
+    p5 = map_begin(strp_int, m3);
+    p6 = p5;
     mapEntry_advance(strp_int, &p6, 2);
     map_erase(int_str, m1, p1, p2);
     map_erase(strv_int, m2, p3, p4);
@@ -465,14 +494,16 @@ void test_nested_dicts(void) {
     MapEntry_nested *it;
     unsigned i;
     for (i = 0; i < 50; ++i) {
-        arrStr[i].first = strs[i], arrStr[i].second = ints[i];
+        arrStr[i].first = strs[i];
+        arrStr[i].second = ints[i];
     }
 
     for (i = 0; i < 5; ++i) {
         int success = 0;
         Pair_nested p;
         Map_strv_int *inner = map_new_fromArray(strv_int, &arrStr[10 * i], 10);
-        p.first = arrStr[10 * i].first, p.second = inner;
+        p.first = arrStr[10 * i].first;
+        p.second = inner;
         map_insert_withResult(nested, m, p, &success);
         assert(success);
         assert(map_size(m) == i + 1);

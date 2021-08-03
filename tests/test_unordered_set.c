@@ -105,7 +105,8 @@ void test_init_fromArray(void) {
     IntData c1[50] = {0};
     StrData c2[50] = {0};
     for (i = 0; i < 50; ++i) {
-        c1[i].i = i, c2[i].s = strs[i];
+        c1[i].i = i;
+        c2[i].s = strs[i];
     }
     compare_ints(si, c1, 0);
     uset_free(int, si);
@@ -133,7 +134,8 @@ void test_createCopy(void) {
     IntData c1[50] = {0};
     StrData c2[50] = {0};
     for (i = 0; i < 50; ++i) {
-        c1[i].i = i, c2[i].s = strs[i];
+        c1[i].i = i;
+        c2[i].s = strs[i];
     }
     si = uset_createCopy(int, b);
     compare_ints(si, c1, 0);
@@ -267,7 +269,8 @@ void test_set_load_factor(void) {
     StrData c2[50] = {0};
     int i;
     for (i = 0; i < 50; ++i) {
-        c1[i].i = i, c2[i].s = strs[i];
+        c1[i].i = i;
+        c2[i].s = strs[i];
     }
     assert(uset_max_load_factor(si) == 0.75);
     assert(uset_max_load_factor(ss) == 0.75);
@@ -307,7 +310,8 @@ void test_rehash(void) {
     StrData c2[50] = {0};
     int i;
     for (i = 0; i < 50; ++i) {
-        c1[i].i = i, c2[i].s = strs[i];
+        c1[i].i = i;
+        c2[i].s = strs[i];
     }
     assert(uset_bucket_count(si) == 32);
     assert(uset_bucket_count(ss) == 32);

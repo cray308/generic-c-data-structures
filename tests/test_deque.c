@@ -275,7 +275,8 @@ void test_mixed(void) {
         deque_pop_back(str, qs);
     }
 
-    count = deque_size(qi), i = 0;
+    count = deque_size(qi);
+    i = 0;
     while (!deque_empty(qi)) {
         assert(*deque_front(qi) == i++);
         assert(deque_size(qi) == (count - (unsigned) i) + 1);
@@ -284,7 +285,8 @@ void test_mixed(void) {
     }
     assert(i == (int) count);
 
-    count = deque_size(qs), i = 0;
+    count = deque_size(qs);
+    i = 0;
     while (!deque_empty(qs)) {
         assert(streq(*deque_front(qs), strs[i++]));
         assert(deque_size(qs) == (count - (unsigned) i) + 1);

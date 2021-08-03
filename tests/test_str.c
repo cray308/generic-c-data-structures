@@ -22,7 +22,8 @@ void compareStrs(String *s, const char *comparison, unsigned size) {
         assert(*it == comparison[i++]); --j;
     }
     assert(i == size);
-    i = size - 1, j = 1;
+    i = size - 1;
+    j = 1;
     string_riter(s, it) {
         assert(*string_at(s, size - j) == comparison[i]);
         assert(string_index(s, i) == comparison[i]);

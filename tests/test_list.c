@@ -123,8 +123,12 @@ void test_init_copy(void) {
     int i;
     List_int *arr1[3] = {0}, *li;
     List_str *arr2[3] = {0}, *ls;
-    arr1[0] = list_new(int), arr1[1] = list_new_fromArray(int, ints, 1), arr1[2] = list_new_fromArray(int, ints, 2);
-    arr2[0] = list_new(str), arr2[1] = list_new_fromArray(str, strs, 1), arr2[2] = list_new_fromArray(str, strs, 2);
+    arr1[0] = list_new(int);
+    arr1[1] = list_new_fromArray(int, ints, 1);
+    arr1[2] = list_new_fromArray(int, ints, 2);
+    arr2[0] = list_new(str);
+    arr2[1] = list_new_fromArray(str, strs, 1);
+    arr2[2] = list_new_fromArray(str, strs, 2);
     
     li = list_createCopy(int, arr1[0]);
     compare_ints(li, ints, 0);
@@ -189,7 +193,8 @@ void test_pop_front(void) {
         compare_ints(li, &ints[i++], j--);
     }
     list_pop_front(int, li);
-    i = 1, j = 2;
+    i = 1;
+    j = 2;
     while (!list_empty(ls)) {
         list_pop_front(str, ls);
         compare_strs(ls, &strs[i++], j--);
@@ -327,21 +332,26 @@ void test_insert_fromList(void) {
     {
        int arr1[] = {10,0,0,5,5,15,15};
        char *arr2[] = {"010","000","000","005","005","015","015"};
-       from1 = list_new_fromArray(int, arr1, 7), from2 = list_new_fromArray(str, arr2, 7);
+       from1 = list_new_fromArray(int, arr1, 7);
+       from2 = list_new_fromArray(str, arr2, 7);
     }
 
     assert(list_insert_fromList(int, li, NULL, p1, p1) == NULL);
-    p1 = from1->front, p3 = from2->front;
+    p1 = from1->front;
+    p3 = from2->front;
     assert(list_insert_fromList(int, li, NULL, p1, p1) == NULL);
     assert(list_insert_fromList(int, li, NULL, p1, p1->next)->data == 10);
     assert(streq(list_insert_fromList(str, ls, NULL, p3, p3->next)->data, "010"));
-    p1 = p1->next; p3 = p3->next;
+    p1 = p1->next;
+    p3 = p3->next;
     assert(list_insert_fromList(int, li, li->front, p1, p1->next->next)->data == 0);
     assert(streq(list_insert_fromList(str, ls, ls->front, p3, p3->next->next)->data, "000"));
-    p1 = p1->next->next; p3 = p3->next->next;
+    p1 = p1->next->next;
+    p3 = p3->next->next;
     assert(list_insert_fromList(int, li, li->back, p1, p1->next->next)->data == 5);
     assert(streq(list_insert_fromList(str, ls, ls->back, p3, p3->next->next)->data, "005"));
-    p1 = p1->next->next; p3 = p3->next->next;
+    p1 = p1->next->next;
+    p3 = p3->next->next;
     assert(list_insert_fromList(int, li, NULL, p1, NULL)->data == 15);
     assert(streq(list_insert_fromList(str, ls, NULL, p3, NULL)->data, "015"));
     compare_ints(li, c1, 7);
@@ -395,8 +405,14 @@ void test_splice_all(void) {
     int i;
     List_int *arr1[4] = {0}, *li = list_new(int);
     List_str *arr2[4] = {0}, *ls = list_new(str);
-    arr1[0] = list_new(int), arr1[1] = list_new_fromArray(int, ints, 2), arr1[2] = list_new_fromArray(int, &ints[2], 3), arr1[3] = list_new_fromArray(int, &ints[5], 2);
-    arr2[0] = list_new(str), arr2[1] = list_new_fromArray(str, strs, 2), arr2[2] = list_new_fromArray(str, &strs[2], 3), arr2[3] = list_new_fromArray(str, &strs[5], 2);
+    arr1[0] = list_new(int);
+    arr1[1] = list_new_fromArray(int, ints, 2);
+    arr1[2] = list_new_fromArray(int, &ints[2], 3);
+    arr1[3] = list_new_fromArray(int, &ints[5], 2);
+    arr2[0] = list_new(str);
+    arr2[1] = list_new_fromArray(str, strs, 2);
+    arr2[2] = list_new_fromArray(str, &strs[2], 3);
+    arr2[3] = list_new_fromArray(str, &strs[5], 2);
 
     list_splice(int, li, li->front, arr1[0]);
     compare_ints(li, ints, 0);
@@ -463,7 +479,8 @@ void test_splice_range(void) {
     compare_ints(li, ints, 0);
     list_splice_range(int, li, li->front, from1, from1->back, from1->back);
     compare_ints(li, ints, 0);
-    p1 = from1->front, p2 = from2->front;
+    p1 = from1->front;
+    p2 = from2->front;
     listEntry_advance(int, &p1, 4);
     listEntry_advance(str, &p2, 4);
     list_splice_range(int, li, li->front, from1, p1, p1->next->next);
@@ -710,8 +727,12 @@ void test_includes(void) {
     int i;
     List_int *a[3];
     List_str *b[3];
-    a[0] = list_new(int), a[1] = list_new_fromArray(int, &ints[5], 6), a[2] = list_new_fromArray(int, ints, 11);
-    b[0] = list_new_fromArray(str, strs, 6), b[1] = list_new_fromArray(str, &strs[5], 6), b[2] = list_new_fromArray(str, strs, 11);
+    a[0] = list_new(int);
+    a[1] = list_new_fromArray(int, &ints[5], 6);
+    a[2] = list_new_fromArray(int, ints, 11);
+    b[0] = list_new_fromArray(str, strs, 6);
+    b[1] = list_new_fromArray(str, &strs[5], 6);
+    b[2] = list_new_fromArray(str, strs, 11);
 
     assert(list_includes(int, a[0], a[0]));
     assert(!list_includes(int, a[0], a[1]));

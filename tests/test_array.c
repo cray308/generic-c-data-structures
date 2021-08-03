@@ -34,7 +34,8 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
         assert(*it == comparison[i++]); --j;
     }
     assert(i == size);
-    i = size - 1, j = 1;
+    i = size - 1;
+    j = 1;
     array_riter(a, it) {
         assert(*array_at(int, a, size - j) == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
@@ -60,7 +61,8 @@ void compare_strs(Array_str *a, char **comparison, unsigned size) {
         assert(streq(*it, comparison[i++])); --j;
     }
     assert(i == size);
-    i = size - 1, j = 1;
+    i = size - 1;
+    j = 1;
     array_riter(a, it) {
         assert(streq(*array_at(str, a, size - j), comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
@@ -346,7 +348,8 @@ void test_subarr(void) {
     assert(array_subarr(int, ai1, 0, 0, 1) == NULL);
     assert(array_subarr(int, ai2, ai2->size - 1, DS_ARG_NOT_APPLICABLE, 0) == NULL);
     array_free(int, ai2);
-    ai2 = array_subarr(int, ai1, 0, 200, 1), as2 = array_subarr(str, as1, 0, 200, 1);
+    ai2 = array_subarr(int, ai1, 0, 200, 1);
+    as2 = array_subarr(str, as1, 0, 200, 1);
     compare_ints(ai2, ints, 10);
     compare_strs(as2, strs, 10);
     array_free(int, ai2);
@@ -357,7 +360,8 @@ void test_subarr(void) {
     compare_strs(as2, c2[0], 9);
     array_free(int, ai2);
     array_free(str, as2);
-    ai2 = array_subarr(int, ai1, 0, 5, 0), as2 = array_subarr(str, as1, 0, 5, 0);
+    ai2 = array_subarr(int, ai1, 0, 5, 0);
+    as2 = array_subarr(str, as1, 0, 5, 0);
     compare_ints(ai2, ints, 5);
     compare_strs(as2, strs, 5);
     array_free(int, ai2);
