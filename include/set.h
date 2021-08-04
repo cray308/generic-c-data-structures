@@ -3,8 +3,8 @@
 
 #include "avltree.h"
 
-#define __set_entry_get_key(e) ((e)->data)
-#define __set_data_get_key(d)  (d)
+#define __set_entry_get_key(e) (e)->data
+#define __set_data_get_key(d) d
 #define __set_copy_value(x, y)
 #define __set_delete_value(x)
 
@@ -45,6 +45,22 @@
  * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define set_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
+
+
+/**
+ * Returns the next @c SetEntry in terms of increasing values, if it exists.
+ *
+ * @param  e  @c SetEntry to use.
+ */
+#define setEntry_getNext(id, e) __avl_inorder_successor_##id(e)
+
+
+/**
+ * Returns the previous @c SetEntry in terms of increasing values, if it exists.
+ *
+ * @param  e  @c SetEntry to use.
+ */
+#define setEntry_getPrev(id, e) __avl_inorder_predecessor_##id(e)
 
 
 /**

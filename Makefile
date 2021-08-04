@@ -1,7 +1,7 @@
 OPTIMIZE = 2
 
 CFLAGS = -std=c89 -Iinclude -O$(OPTIMIZE)
-CFLAGS += -Wall -Wextra -Werror -Wpedantic -Wconversion -Wstrict-prototypes
+CFLAGS += -Wall -Wextra -Werror -Wpedantic -Wconversion -Wparentheses -Wstrict-prototypes
 CFLAGS += -funsigned-char -finline-functions
 
 TEST_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue
@@ -38,7 +38,7 @@ bin/c/benchmark_%: tests/benchmark_%.c include/array.h include/list.h
 	gcc $(CFLAGS) -o $@ $<
 
 bin/cpp/%: tests/%.cpp
-	g++ -std=c++11 -O2 -Wall -Wextra -Werror -Wpedantic -o $@ $<
+	g++ -std=c++11 -O2 -Wall -Wextra -Werror -o $@ $<
 
 
 clean:

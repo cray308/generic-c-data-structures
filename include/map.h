@@ -3,8 +3,8 @@
 
 #include "avltree.h"
 
-#define __map_entry_get_key(e) ((e)->data.first)
-#define __map_data_get_key(d)  ((d).first)
+#define __map_entry_get_key(e) (e)->data.first
+#define __map_data_get_key(d)  (d).first
 
 /**
  * The number of elements in the map.
@@ -43,6 +43,22 @@
  * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
  */
 #define map_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
+
+
+/**
+ * Returns the next @c MapEntry in terms of increasing keys, if it exists.
+ *
+ * @param  e  @c MapEntry to use.
+ */
+#define mapEntry_getNext(id, e) __avl_inorder_successor_##id(e)
+
+
+/**
+ * Returns the previous @c MapEntry in terms of increasing keys, if it exists.
+ *
+ * @param  e  @c MapEntry to use.
+ */
+#define mapEntry_getPrev(id, e) __avl_inorder_predecessor_##id(e)
 
 
 /**

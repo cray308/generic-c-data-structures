@@ -308,8 +308,7 @@ unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                
         ncap = 2147483648;                                                                                   \
     }                                                                                                        \
                                                                                                              \
-    tmp = realloc(this->arr, ncap * sizeof(t));                                                              \
-    if (!tmp) return 0;                                                                                      \
+    if (!(tmp = realloc(this->arr, ncap * sizeof(t)))) return 0;                                             \
     this->capacity = ncap;                                                                                   \
     this->arr = tmp;                                                                                         \
     return 1;                                                                                                \
@@ -383,11 +382,9 @@ unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, u
 }                                                                                                            \
                                                                                                              \
 Array_##id *array_new_fromArray_##id(t *arr, unsigned size) {                                                \
-    Array_##id *a;                                                                                           \
-    a = malloc(sizeof(Array_##id));                                                                          \
+    Array_##id *a = malloc(sizeof(Array_##id));                                                              \
     if (!a) return NULL;                                                                                     \
-    a->arr = malloc(8 * sizeof(t));                                                                          \
-    if (!a->arr) {                                                                                           \
+    if (!(a->arr = malloc(8 * sizeof(t)))) {                                                                 \
         free(a);                                                                                             \
         return NULL;                                                                                         \
     }                                                                                                        \
@@ -407,8 +404,7 @@ void array_shrink_to_fit_##id(Array_##id *this) {                               
     t *tmp;                                                                                                  \
     if (this->capacity == 8 || this->size == this->capacity || this->size == 0) return;                      \
                                                                                                              \
-    tmp = realloc(this->arr, this->size * sizeof(t));                                                        \
-    if (!tmp) return;                                                                                        \
+    if (!(tmp = realloc(this->arr, this->size * sizeof(t)))) return;                                         \
     this->capacity = this->size;                                                                             \
     this->arr = tmp;                                                                                         \
 }                                                                                                            \
@@ -418,8 +414,7 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start, unsigned n, int 
     if (start >= this->size || !n) return NULL;                                                              \
                                                                                                              \
     if (step_size == 0) step_size = 1;                                                                       \
-    sub = array_new(id);                                                                                     \
-    if (!sub) return NULL;                                                                                   \
+    if (!(sub = array_new(id))) return NULL;                                                                 \
                                                                                                              \
     if (step_size < 0) {                                                                                     \
         long i = start, end = -1;                                                                            \

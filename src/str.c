@@ -274,7 +274,9 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
     if (len > end_pos + 1) return STRING_NPOS;
     else if (len == 1) return string_find_last_of(this, end_pos, needle, 1);
 
-    minIndex = len - 1, j = minIndex, i = j - 1;
+    minIndex = len - 1;
+    j = minIndex;
+    i = j - 1;
     table = malloc(sizeof(unsigned) * len);
     if (!table) return STRING_ERROR;
     table[minIndex] = minIndex;
@@ -289,7 +291,8 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
         }
     }
     
-    i = end_pos, j = len - 1;
+    i = end_pos;
+    j = len - 1;
     while (i != UINT_MAX) {
         if (haystack[i] == needle[j]) {
             --i;
@@ -343,19 +346,15 @@ String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
 
 String **string_split(String *this, const char *delim) {
     const unsigned iEnd = this->size;
-    unsigned len, i = 0, j = 0, arrIdx = 0, arrLen = 8;
+    unsigned len, i = 0, j = 0, arrIdx = 0, arrLen = 64;
     unsigned *positions, *table;
     char *haystack = this->s;
     String **arr;
     String *substring = NULL;
-    if (!(delim && *delim && this->size)) return NULL;
-
-    len = (unsigned) strlen(delim);
-    positions = calloc(8, sizeof(unsigned));
-    if (!positions) return NULL;
-
-    table = str_gen_prefix_table(delim, len);
-    if (!table) {
+    if (!(delim && *delim && iEnd)) return NULL;
+    if (!(len = (unsigned) strlen(delim))) return NULL;
+    if (!(positions = calloc(arrLen, sizeof(unsigned)))) return NULL;
+    if (!(table = str_gen_prefix_table(delim, len))) {
         free(positions);
         return NULL;
     }
@@ -400,20 +399,26 @@ String **string_split(String *this, const char *delim) {
     positions[arrIdx++] = UINT_MAX;
     arrLen = arrIdx;
 
-    arr = malloc((arrLen + 1) * sizeof(String *));
+    arr = calloc(arrLen + 1, sizeof(String *));
     if (!arr) {
         free(positions);
         free(table);
         return NULL;
     }
 
-    arrIdx = 0, i = 0, j = positions[0];
+    arrIdx = 0;
+    i = 0;
+    j = positions[0];
 
     while (j != UINT_MAX) {
         substring = string_new();
         if (!substring) {
             free(positions);
             free(table);
+            for (i = 0; i < arrLen; ++i) {
+                if (arr[i]) string_free(arr[i]);
+            }
+            free(arr);
             return NULL;
         }
         string_insert(substring, 0, &haystack[i], j - i);
@@ -426,6 +431,10 @@ String **string_split(String *this, const char *delim) {
     if (!substring) {
         free(positions);
         free(table);
+        for (i = 0; i < arrLen; ++i) {
+            if (arr[i]) string_free(arr[i]);
+        }
+        free(arr);
         return NULL;
     }
     string_insert(substring, 0, &haystack[i], iEnd - i);

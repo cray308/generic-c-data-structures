@@ -3,8 +3,8 @@
 
 #include "hash_table.h"
 
-#define __uset_entry_get_key(e) ((e)->data)
-#define __uset_data_get_key(d)  (d)
+#define __uset_entry_get_key(e) (e)->data
+#define __uset_data_get_key(d)  d
 #define __uset_copy_value(x, y)
 #define __uset_delete_value(x)
 

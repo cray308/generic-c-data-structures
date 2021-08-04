@@ -173,7 +173,7 @@ EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {
     copyValue(new->data.second, data.second);                                                                \
     new->parent = curr;                                                                                      \
                                                                                                              \
-    if (!this->root) {                                                                                       \
+    if (!curr) {                                                                                             \
         this->root = new;                                                                                    \
         ++this->size;                                                                                        \
         if (inserted) *inserted = 1;                                                                         \

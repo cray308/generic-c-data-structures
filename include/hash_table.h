@@ -172,6 +172,7 @@ TableType *__htable_createCopy_##id(TableType *other) {                         
                 __htable_clear_##id(ht);                                                                     \
                 free(ht->buckets);                                                                           \
                 free(ht);                                                                                    \
+                return NULL;                                                                                 \
             }                                                                                                \
             copyKey(entry_get_key(new), entry_get_key(e));                                                   \
             new->next = ht->buckets[i];                                                                      \

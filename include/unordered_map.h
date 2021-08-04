@@ -3,8 +3,8 @@
 
 #include "hash_table.h"
 
-#define __umap_entry_get_key(e) ((e)->data.first)
-#define __umap_data_get_key(d)  ((d).first)
+#define __umap_entry_get_key(e) (e)->data.first
+#define __umap_data_get_key(d)  (d).first
 
 /**
  * The number of entries in the map.

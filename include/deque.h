@@ -132,8 +132,8 @@ TypeName *__dq_new_##id(void) {                                                 
     }                                                                                                        \
     q->back.arr = malloc(8 * sizeof(t));                                                                     \
     if (!q->back.arr) {                                                                                      \
-        free(q);                                                                                             \
         free(q->front.arr);                                                                                  \
+        free(q);                                                                                             \
         return NULL;                                                                                         \
     }                                                                                                        \
     q->front.cap = q->back.cap = 8;                                                                          \
