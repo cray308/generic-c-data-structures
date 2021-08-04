@@ -92,25 +92,22 @@ void ds_pop_heap_##id(t* first, t* last);                                       
 #define gen_alg_source(id, t, cmp_lt)                                                                        \
                                                                                                              \
 void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t *val) {                                       \
-    unsigned parent = (i - 1) >> 1;                                                                          \
-    while (i > top && (cmp_lt(*(first + parent), *val))) {                                                   \
+    unsigned parent;                                                                                         \
+    for (parent = (i - 1) >> 1; i > top && cmp_lt(*(first + parent), *val); i = parent, parent = (i - 1) >> 1) { \
         *(first + i) = *(first + parent);                                                                    \
-        i = parent;                                                                                          \
-        parent = (i - 1) >> 1;                                                                               \
     }                                                                                                        \
     *(first + i) = *val;                                                                                     \
 }                                                                                                            \
                                                                                                              \
 void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t *value) {                                   \
     const unsigned top = i;                                                                                  \
-    unsigned second = i;                                                                                     \
-    while (second < ((len - 1) >> 1)) {                                                                      \
+    unsigned second;                                                                                         \
+    for (second = i; second < ((len - 1) >> 1); i = second) {                                                \
         second = (second + 1) << 1;                                                                          \
         if (cmp_lt(*(first + second), *(first + (second - 1)))) {                                            \
             --second;                                                                                        \
         }                                                                                                    \
         *(first + i) = *(first + second);                                                                    \
-        i = second;                                                                                          \
     }                                                                                                        \
     if (((len & 1) == 0) && second == ((len - 2) >> 1)) {                                                    \
         second = (second + 1) << 1;                                                                          \
@@ -131,12 +128,10 @@ void ds_make_heap_##id(t *first, t *last) {                                     
     unsigned parent;                                                                                         \
     if (len < 2) return;                                                                                     \
                                                                                                              \
-    parent = (len - 2) >> 1;                                                                                 \
-    while (1) {                                                                                              \
+    for (parent = (len - 2) >> 1; ; --parent) {                                                              \
         t value = *(first + parent);                                                                         \
         __ds_adjust_heap_##id(first, parent, len, &value);                                                   \
         if (!parent) return;                                                                                 \
-        --parent;                                                                                            \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
@@ -183,22 +178,15 @@ void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {             
             }                                                                                                \
         }                                                                                                    \
         {                                                                                                    \
-            t* left = first + 1; t* right = last; t* pivot = first;                                          \
-            while (1) {                                                                                      \
-                while (cmp_lt(*left, *pivot))                                                                \
-                    ++left;                                                                                  \
+            t* left; t* right; t* pivot;                                                                     \
+            for (left = first + 1, right = last, pivot = first; ; _temp = *left, *left = *right, *right = _temp, ++left) { \
+                while (cmp_lt(*left, *pivot)) ++left;                                                        \
                 --right;                                                                                     \
-                while (cmp_lt(*pivot, *right))                                                               \
-                    --right;                                                                                 \
+                while (cmp_lt(*pivot, *right)) --right;                                                      \
                 if (!(left < right)) {                                                                       \
                     cut = left;                                                                              \
                     break;                                                                                   \
                 }                                                                                            \
-                                                                                                             \
-                _temp = *left;                                                                               \
-                *left = *right;                                                                              \
-                *right = _temp;                                                                              \
-                ++left;                                                                                      \
             }                                                                                                \
         }                                                                                                    \
         __ds_introsort_##id(cut, last, depth_limit);                                                         \

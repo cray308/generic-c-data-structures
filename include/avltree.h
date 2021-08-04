@@ -134,8 +134,8 @@ EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {               
 }                                                                                                            \
                                                                                                              \
 EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char candidate) {                  \
-    EntryType *curr = this->root;                                                                            \
-    while (curr) {                                                                                           \
+    EntryType *curr;                                                                                         \
+    for (curr = this->root; curr; ) {                                                                        \
         if (cmp_lt(key, entry_get_key(curr))) {                                                              \
             if (!curr->left) {                                                                               \
                 if (candidate) break;                                                                        \
@@ -289,8 +289,7 @@ void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                
         v = temp;                                                                                            \
     }                                                                                                        \
                                                                                                              \
-    curr = v, parent = curr->parent;                                                                         \
-    while (curr && parent) {                                                                                 \
+    for (curr = v, parent = curr->parent; curr && parent; curr = parent, parent = curr->parent) {            \
         if (curr == parent->left) {                                                                          \
             if (parent->bf == -1) {                                                                          \
                 parent->bf = 0;                                                                              \
@@ -353,9 +352,6 @@ void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                
                 if (parent->bf == 1) break;                                                                  \
             }                                                                                                \
         }                                                                                                    \
-                                                                                                             \
-        curr = parent;                                                                                       \
-        parent = curr->parent;                                                                               \
     }                                                                                                        \
                                                                                                              \
     if ((child = (v->left ? v->left : v->right))) {                                                          \
@@ -384,8 +380,7 @@ void __avltree_erase_##id(TreeType *this, EntryType *begin, EntryType *end) {   
     kt keys[256];                                                                                            \
     if (!begin) return;                                                                                      \
                                                                                                              \
-    nextKey = entry_get_key(begin);                                                                          \
-    while (getNext) {                                                                                        \
+    for (nextKey = entry_get_key(begin); getNext; ) {                                                        \
         int i, count = 0;                                                                                    \
         for (begin = __avltree_find_key_##id(this, nextKey, 0); begin != end && count < 256; begin = __avl_inorder_successor_##id(begin)) { \
             keys[count++] = entry_get_key(begin);                                                            \

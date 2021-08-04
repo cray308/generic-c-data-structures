@@ -78,13 +78,12 @@ unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {        
     new = calloc(ncap, sizeof(struct EntryType *));                                                          \
     if (!new) return 0;                                                                                      \
     for (i = 0; i < this->cap; ++i) {                                                                        \
-        struct EntryType *e = this->buckets[i];                                                              \
-        while (e) {                                                                                          \
-            struct EntryType *temp = e->next;                                                                \
+        struct EntryType *e, *next;                                                                          \
+        for (e = this->buckets[i]; e; e = next) {                                                            \
             unsigned index = murmurhash(addrOfKey(entry_get_key(e)), (int) sizeOfKey(entry_get_key(e)), this->seed) % ncap; \
+            next = e->next;                                                                                  \
             e->next = new[index];                                                                            \
             new[index] = e;                                                                                  \
-            e = temp;                                                                                        \
         }                                                                                                    \
     }                                                                                                        \
                                                                                                              \
@@ -165,8 +164,8 @@ TableType *__htable_createCopy_##id(TableType *other) {                         
         return NULL;                                                                                         \
     }                                                                                                        \
     for (i = 0; i < other->cap; ++i) {                                                                       \
-        struct EntryType *e = other->buckets[i];                                                             \
-        while (e) {                                                                                          \
+        struct EntryType *e;                                                                                 \
+        for (e = other->buckets[i]; e; e = e->next) {                                                        \
             struct EntryType *new = calloc(1, sizeof(struct EntryType));                                     \
             if (!new) {                                                                                      \
                 __htable_clear_##id(ht);                                                                     \
@@ -178,7 +177,6 @@ TableType *__htable_createCopy_##id(TableType *other) {                         
             new->next = ht->buckets[i];                                                                      \
             ht->buckets[i] = new;                                                                            \
             copyValue(new->data.second, e->data.second);                                                     \
-            e = e->next;                                                                                     \
         }                                                                                                    \
     }                                                                                                        \
     return ht;                                                                                               \
@@ -199,7 +197,7 @@ unsigned char __htable_erase_##id(TableType *this, const kt key) {              
         return 1;                                                                                            \
     }                                                                                                        \
                                                                                                              \
-    while (curr) {                                                                                           \
+    for (; curr; prev = curr, curr = curr->next) {                                                           \
         if (cmp_eq(entry_get_key(curr), key)) {                                                              \
             prev->next = curr->next;                                                                         \
             deleteKey(entry_get_key(curr));                                                                  \
@@ -208,8 +206,6 @@ unsigned char __htable_erase_##id(TableType *this, const kt key) {              
             this->size--;                                                                                    \
             return 1;                                                                                        \
         }                                                                                                    \
-        prev = curr;                                                                                         \
-        curr = curr->next;                                                                                   \
     }                                                                                                        \
     return 0;                                                                                                \
 }                                                                                                            \
@@ -217,14 +213,12 @@ unsigned char __htable_erase_##id(TableType *this, const kt key) {              
 void __htable_clear_##id(TableType *this) {                                                                  \
     unsigned i;                                                                                              \
     for (i = 0; i < this->cap; ++i) { /* iterate over all buckets */                                         \
-        struct EntryType *e = this->buckets[i];                                                              \
-                                                                                                             \
-        while (e) { /* iterate through linked list */                                                        \
-            struct EntryType *temp = e->next;                                                                \
+        struct EntryType *e, *next;                                                                          \
+        for (e = this->buckets[i]; e; e = next) {                                                            \
+            next = e->next;                                                                                  \
             deleteKey(entry_get_key(e));                                                                     \
             deleteValue(e->data.second);                                                                     \
             free(e);                                                                                         \
-            e = temp;                                                                                        \
         }                                                                                                    \
     }                                                                                                        \
     memset(this->buckets, 0, sizeof(struct EntryType *) * this->cap);                                        \

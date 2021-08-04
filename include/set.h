@@ -448,8 +448,8 @@ unsigned char set_includes_##id(SetEntry_##id *first1, SetEntry_##id *last1, Set
 }                                                                                                            \
                                                                                                              \
 unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other) {                                           \
-    SetEntry_##id *n1 = __avl_successor_##id(this->root), *n2 = __avl_successor_##id(other->root);           \
-    while (n1 && n2) {                                                                                       \
+    SetEntry_##id *n1, *n2;                                                                                  \
+    for (n1 = __avl_successor_##id(this->root), n2 = __avl_successor_##id(other->root); n1 && n2; ) {        \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __avl_inorder_successor_##id(n1);                                                           \
         } else if (cmp_lt(n2->data, n1->data)) {                                                             \

@@ -3,12 +3,11 @@
 
 unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
     unsigned *table = malloc(sizeof(unsigned) * len);
-    unsigned i = 1; /* table position */
-    unsigned j = 0; /* needle position */
+    unsigned i; /* table position */
+    unsigned j; /* needle position */
     if (!table) return NULL;
-    table[0] = 0;
 
-    while (i < len) {
+    for (table[0] = 0, i = 1, j = 0; i < len; ) {
         if (needle[i] == needle[j]) { /* matching characters */
             table[i++] = ++j;
         } else if (j != 0) { /* get previous table index */
@@ -228,7 +227,7 @@ unsigned string_find_last_not_of(String *this, unsigned pos, const char *chars, 
 
 unsigned string_find(String *this, unsigned start_pos, const char *needle, unsigned len) {
     const unsigned len_haystack = this->size - start_pos;
-    unsigned res = STRING_NPOS, i = 0, j = 0;
+    unsigned res = STRING_NPOS, i, j;
     unsigned *table;
     char *haystack;
     if (start_pos >= this->size || !needle) return STRING_ERROR;
@@ -243,7 +242,7 @@ unsigned string_find(String *this, unsigned start_pos, const char *needle, unsig
     table = str_gen_prefix_table(needle, len);
     if (!table) return STRING_ERROR;
 
-    while (i < len_haystack) {
+    for (i = 0, j = 0; i < len_haystack; ) {
         if (haystack[i] == needle[j]) {
             ++i;
             ++j;
@@ -274,14 +273,10 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
     if (len > end_pos + 1) return STRING_NPOS;
     else if (len == 1) return string_find_last_of(this, end_pos, needle, 1);
 
-    minIndex = len - 1;
-    j = minIndex;
-    i = j - 1;
     table = malloc(sizeof(unsigned) * len);
     if (!table) return STRING_ERROR;
-    table[minIndex] = minIndex;
 
-    while (i != UINT_MAX) {
+    for (minIndex = len - 1, j = minIndex, i = j - 1, table[minIndex] = minIndex; i != UINT_MAX; ) {
         if (needle[i] == needle[j]) {
             table[i--] = --j;
         } else if (j != minIndex) {
@@ -290,10 +285,8 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
             table[i--] = minIndex;
         }
     }
-    
-    i = end_pos;
-    j = len - 1;
-    while (i != UINT_MAX) {
+
+    for (i = end_pos, j = len - 1; i != UINT_MAX; ) {
         if (haystack[i] == needle[j]) {
             --i;
             --j;
@@ -346,7 +339,7 @@ String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
 
 String **string_split(String *this, const char *delim) {
     const unsigned iEnd = this->size;
-    unsigned len, i = 0, j = 0, arrIdx = 0, arrLen = 64;
+    unsigned len, i, j, arrIdx, arrLen = 64;
     unsigned *positions, *table;
     char *haystack = this->s;
     String **arr;
@@ -359,7 +352,7 @@ String **string_split(String *this, const char *delim) {
         return NULL;
     }
 
-    while (i < iEnd) {
+    for (i = 0, j = 0, arrIdx = 0; i < iEnd; ) {
         if (haystack[i] == delim[j]) {
             ++i;
             ++j;
@@ -406,11 +399,7 @@ String **string_split(String *this, const char *delim) {
         return NULL;
     }
 
-    arrIdx = 0;
-    i = 0;
-    j = positions[0];
-
-    while (j != UINT_MAX) {
+    for (arrIdx = 0, i = 0, j = positions[0]; j != UINT_MAX; i = j + len, j = positions[++arrIdx]) {
         substring = string_new();
         if (!substring) {
             free(positions);
@@ -422,9 +411,7 @@ String **string_split(String *this, const char *delim) {
             return NULL;
         }
         string_insert(substring, 0, &haystack[i], j - i);
-        arr[arrIdx++] = substring;
-        i = j + len;
-        j = positions[arrIdx];
+        arr[arrIdx] = substring;
     }
 
     substring = string_new();
