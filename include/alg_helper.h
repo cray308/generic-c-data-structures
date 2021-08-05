@@ -25,7 +25,7 @@
  *
  * @return       Pointer to element if it was found, NULL if it was not found.
  */
-#define binary_search(id, a, n, val) ds_binary_search_##id(a, 0, ((n) - 1), val)
+#define binary_search(id, a, n, val) ds_binary_search_##id(a, 0, n - 1, val)
 
 
 /**
@@ -102,14 +102,14 @@ void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t *val) {          
 void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t *value) {                                   \
     const unsigned top = i;                                                                                  \
     unsigned second;                                                                                         \
-    for (second = i; second < ((len - 1) >> 1); i = second) {                                                \
+    for (second = i; second < (len - 1) >> 1; i = second) {                                                  \
         second = (second + 1) << 1;                                                                          \
         if (cmp_lt(*(first + second), *(first + (second - 1)))) {                                            \
             --second;                                                                                        \
         }                                                                                                    \
         *(first + i) = *(first + second);                                                                    \
     }                                                                                                        \
-    if (((len & 1) == 0) && second == ((len - 2) >> 1)) {                                                    \
+    if ((len & 1) == 0 && second == (len - 2) >> 1) {                                                        \
         second = (second + 1) << 1;                                                                          \
         *(first + i) = *(first + (second - 1));                                                              \
         i = second - 1;                                                                                      \
@@ -143,7 +143,7 @@ void ds_sort_heap_##id(t *first, t *last) {                                     
 }                                                                                                            \
                                                                                                              \
 void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {                                          \
-    t _temp;                                                                                                 \
+    register t _temp;                                                                                        \
     while ((last - first) > 16) {                                                                            \
         t *cut;                                                                                              \
         if (depth_limit == 0) {                                                                              \
@@ -179,7 +179,7 @@ void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {             
         }                                                                                                    \
         {                                                                                                    \
             t* left; t* right; t* pivot;                                                                     \
-            for (left = first + 1, right = last, pivot = first; ; _temp = *left, *left = *right, *right = _temp, ++left) { \
+            for (left = first + 1, right = last, pivot = first; ; ++left) {                                  \
                 while (cmp_lt(*left, *pivot)) ++left;                                                        \
                 --right;                                                                                     \
                 while (cmp_lt(*pivot, *right)) --right;                                                      \
@@ -187,6 +187,9 @@ void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {             
                     cut = left;                                                                              \
                     break;                                                                                   \
                 }                                                                                            \
+                _temp = *left;                                                                               \
+                *left = *right;                                                                              \
+                *right = _temp;                                                                              \
             }                                                                                                \
         }                                                                                                    \
         __ds_introsort_##id(cut, last, depth_limit);                                                         \
@@ -227,23 +230,22 @@ void __ds_insertion_sort_##id(t *first, t *last) {                              
 }                                                                                                            \
                                                                                                              \
 void ds_sort_##id(t *arr, unsigned n) {                                                                      \
-    t *first; t *last;                                                                                       \
+    t *last = &arr[n];                                                                                       \
     unsigned depth = 0;                                                                                      \
     if (n <= 1) return;                                                                                      \
                                                                                                              \
-    first = arr, last = &arr[n];                                                                             \
     while ((n >>= 1) >= 1) ++depth;                                                                          \
     depth <<= 1;                                                                                             \
                                                                                                              \
-    __ds_introsort_##id(first, last, depth);                                                                 \
-    if ((last - first) > 16) {                                                                               \
+    __ds_introsort_##id(arr, last, depth);                                                                   \
+    if ((last - arr) > 16) {                                                                                 \
         t *i;                                                                                                \
-        __ds_insertion_sort_##id(first, first + 16);                                                         \
-        for (i = first + 16; i != last; ++i) {                                                               \
+        __ds_insertion_sort_##id(arr, arr + 16);                                                             \
+        for (i = arr + 16; i != last; ++i) {                                                                 \
             __ds_unguarded_linear_insert_##id(i);                                                            \
         }                                                                                                    \
     } else {                                                                                                 \
-        __ds_insertion_sort_##id(first, last);                                                               \
+        __ds_insertion_sort_##id(arr, last);                                                                 \
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \

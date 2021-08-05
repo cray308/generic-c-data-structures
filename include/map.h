@@ -15,7 +15,7 @@
 /**
  * Tests whether the map is empty.
  */
-#define map_empty(this) !((this)->root)
+#define map_empty(this) !(this)->root
 
 
 /**

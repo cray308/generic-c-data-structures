@@ -11,25 +11,25 @@
 /**
  * The number of entries in the set.
  */
-#define uset_size(this) ((this)->size)
+#define uset_size(this) (this)->size
 
 
 /**
  * The current value of the set's max load factor.
  */
-#define uset_max_load_factor(this) ((this)->lf)
+#define uset_max_load_factor(this) (this)->lf
 
 
 /**
  * The total number of buckets in the set.
  */
-#define uset_bucket_count(this) ((this)->cap)
+#define uset_bucket_count(this) (this)->cap
 
 
 /**
  * Whether the set is empty.
  */
-#define uset_empty(this) (!((this)->size))
+#define uset_empty(this) !(this)->size
 
 
 /**

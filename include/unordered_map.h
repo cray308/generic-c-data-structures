@@ -9,25 +9,25 @@
 /**
  * The number of entries in the map.
  */
-#define umap_size(this) ((this)->size)
+#define umap_size(this) (this)->size
 
 
 /**
  * The current value of the map's max load factor.
  */
-#define umap_max_load_factor(this) ((this)->lf)
+#define umap_max_load_factor(this) (this)->lf
 
 
 /**
  * The total number of buckets in the map.
  */
-#define umap_bucket_count(this) ((this)->cap)
+#define umap_bucket_count(this) (this)->cap
 
 
 /**
  * Whether the map is empty.
  */
-#define umap_empty(this) (!((this)->size))
+#define umap_empty(this) !(this)->size
 
 
 /**

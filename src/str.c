@@ -2,9 +2,8 @@
 #include <limits.h>
 
 unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
+    unsigned i, j;
     unsigned *table = malloc(sizeof(unsigned) * len);
-    unsigned i; /* table position */
-    unsigned j; /* needle position */
     if (!table) return NULL;
 
     for (table[0] = 0, i = 1, j = 0; i < len; ) {
@@ -30,8 +29,7 @@ unsigned char string_reserve(String *this, unsigned n) {
         ncap = 2147483648;
     }
 
-    tmp = realloc(this->s, ncap);
-    if (!tmp) return 0;
+    if (!(tmp = realloc(this->s, ncap))) return 0;
     this->cap = ncap;
     this->s = tmp;
     return 1;
@@ -91,8 +89,7 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos, unsigned 
 String *string_new_fromCStr(const char *s, unsigned n) {
     String *t = malloc(sizeof(String));
     if (!t) return NULL;
-    t->s = malloc(64);
-    if (!t->s) {
+    if (!(t->s = malloc(64))) {
         free(t);
         return NULL;
     }
@@ -141,8 +138,7 @@ void string_erase(String *this, unsigned start, unsigned n) {
 void string_shrink_to_fit(String *this) {
     char *tmp;
     if (!this->size || this->cap <= 64 || this->size + 1 == this->cap) return;
-    tmp = realloc(this->s, this->size + 1);
-    if (!tmp) return;
+    if (!(tmp = realloc(this->s, this->size + 1))) return;
     this->cap = this->size + 1;
     this->s = tmp;
 }
@@ -238,11 +234,9 @@ unsigned string_find(String *this, unsigned start_pos, const char *needle, unsig
     if (len > len_haystack) return STRING_NPOS;
     else if (len == 1) return string_find_first_of(this, start_pos, needle, 1);
 
-    haystack = this->s + start_pos;
-    table = str_gen_prefix_table(needle, len);
-    if (!table) return STRING_ERROR;
+    if (!(table = str_gen_prefix_table(needle, len))) return STRING_ERROR;
 
-    for (i = 0, j = 0; i < len_haystack; ) {
+    for (haystack = this->s + start_pos, i = 0, j = 0; i < len_haystack; ) {
         if (haystack[i] == needle[j]) {
             ++i;
             ++j;
@@ -273,8 +267,7 @@ unsigned string_rfind(String *this, unsigned end_pos, const char *needle, unsign
     if (len > end_pos + 1) return STRING_NPOS;
     else if (len == 1) return string_find_last_of(this, end_pos, needle, 1);
 
-    table = malloc(sizeof(unsigned) * len);
-    if (!table) return STRING_ERROR;
+    if (!(table = malloc(sizeof(unsigned) * len))) return STRING_ERROR;
 
     for (minIndex = len - 1, j = minIndex, i = j - 1, table[minIndex] = minIndex; i != UINT_MAX; ) {
         if (needle[i] == needle[j]) {
@@ -311,8 +304,7 @@ String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
     if (start >= this->size || !n) return NULL;
 
     if (step_size == 0) step_size = 1;
-    sub = string_new();
-    if (!sub) return NULL;
+    if (!(sub = string_new())) return NULL;
 
     if (step_size < 0) {
         long i = start, end = -1;
@@ -340,7 +332,7 @@ String *string_substr(String *this, unsigned start, unsigned n, int step_size) {
 String **string_split(String *this, const char *delim) {
     const unsigned iEnd = this->size;
     unsigned len, i, j, arrIdx, arrLen = 64;
-    unsigned *positions, *table;
+    unsigned *positions, *table, *temp;
     char *haystack = this->s;
     String **arr;
     String *substring = NULL;
@@ -364,10 +356,8 @@ String **string_split(String *this, const char *delim) {
 
         if (j == len) {
             if (arrIdx == arrLen) {
-                unsigned *temp;
                 arrLen <<= 1;
-                temp = realloc(positions, arrLen * sizeof(unsigned));
-                if (!temp) {
+                if (!(temp = realloc(positions, arrLen * sizeof(unsigned)))) {
                     free(positions);
                     free(table);
                     return NULL;
@@ -381,8 +371,7 @@ String **string_split(String *this, const char *delim) {
     }
 
     if (arrIdx == arrLen) {
-        unsigned *temp = realloc(positions, (arrLen + 1) * sizeof(unsigned));
-        if (!temp) {
+        if (!(temp = realloc(positions, (arrLen + 1) * sizeof(unsigned)))) {
             free(positions);
             free(table);
             return NULL;
@@ -392,16 +381,14 @@ String **string_split(String *this, const char *delim) {
     positions[arrIdx++] = UINT_MAX;
     arrLen = arrIdx;
 
-    arr = calloc(arrLen + 1, sizeof(String *));
-    if (!arr) {
+    if (!(arr = calloc(arrLen + 1, sizeof(String *)))) {
         free(positions);
         free(table);
         return NULL;
     }
 
     for (arrIdx = 0, i = 0, j = positions[0]; j != UINT_MAX; i = j + len, j = positions[++arrIdx]) {
-        substring = string_new();
-        if (!substring) {
+        if (!(substring = string_new())) {
             free(positions);
             free(table);
             for (i = 0; i < arrLen; ++i) {
@@ -414,8 +401,7 @@ String **string_split(String *this, const char *delim) {
         arr[arrIdx] = substring;
     }
 
-    substring = string_new();
-    if (!substring) {
+    if (!(substring = string_new())) {
         free(positions);
         free(table);
         for (i = 0; i < arrLen; ++i) {
@@ -439,9 +425,8 @@ String **string_split(String *this, const char *delim) {
 char *str_read_format(unsigned *n, const char *format, va_list args) {
     va_list localArgs;
     int _n = 0, buf_size = 256;
-    char *temp;
-    char *buf = malloc(256);
-    if (!buf) return NULL;
+    char *temp, *buf;
+    if (!(buf = malloc(256))) return NULL;
 
     va_copy(localArgs, args);
 
@@ -455,8 +440,7 @@ char *str_read_format(unsigned *n, const char *format, va_list args) {
     }
 
     buf_size = _n + 1;
-    temp = realloc(buf, (size_t) buf_size);
-    if (!temp) {
+    if (!(temp = realloc(buf, (size_t) buf_size))) {
         free(buf);
         return NULL;
     }

@@ -17,7 +17,7 @@
 /**
  * Tests whether the set is empty.
  */
-#define set_empty(this) !((this)->root)
+#define set_empty(this) !(this)->root
 
 
 /**

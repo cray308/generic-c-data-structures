@@ -16,25 +16,25 @@ typedef struct {
 /**
  * The c-string representation of the provided String.
  */
-#define string_c_str(this) ((this)->s)
+#define string_c_str(this) (this)->s
 
 
 /**
  * The number of characters in the string (analogous to strlen, but O(1) time complexity in this case).
  */
-#define string_len(this) ((this)->size)
+#define string_len(this) (this)->size
 
 
 /**
  * The capacity of the string (maximum size + 1, to account for the null character).
  */
-#define string_capacity(this) ((this)->cap)
+#define string_capacity(this) (this)->cap
 
 
 /**
  * Tests whether the size of the string is 0.
  */
-#define string_empty(this) (!((this)->size))
+#define string_empty(this) !(this)->size
 
 
 /**
@@ -42,7 +42,7 @@ typedef struct {
  *
  * @param  i  Index in string.
  */
-#define string_index(this, i) ((this)->s[(i)])
+#define string_index(this, i) (this)->s[i]
 
 
 /**
@@ -51,20 +51,20 @@ typedef struct {
  * @param  i  Index in string.
  */
 __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
-    return (i < this->size) ? &(this->s[i]) : NULL;
+    return (i < this->size) ? &this->s[i] : NULL;
 }
 
 
 /**
  * Char pointer to the front of the string.
  */
-#define string_front(this) ((this)->size ? &((this)->s[0]) : NULL)
+#define string_front(this) ((this)->size ? &(this)->s[0] : NULL)
 
 
 /**
  * Char pointer to the back of the string.
  */
-#define string_back(this) ((this)->size ? &((this)->s[(this)->size - 1]) : NULL)
+#define string_back(this) ((this)->size ? &(this)->s[(this)->size - 1] : NULL)
 
 
 /**
@@ -72,7 +72,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  it  Char pointer to use during iteration.
  */
-#define string_iter(this, it) for (it = string_front(this); it != ((this)->size ? &((this)->s[(this)->size]) : NULL); ++it)
+#define string_iter(this, it) for (it = string_front(this); it != ((this)->size ? &(this)->s[(this)->size] : NULL); ++it)
 
 
 /**
@@ -80,7 +80,7 @@ __DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
  *
  * @param  it  Char pointer to use during iteration.
  */
-#define string_riter(this, it) for (it = string_back(this); it != ((this)->size ? &((this)->s[-1]) : NULL); --it)
+#define string_riter(this, it) for (it = string_back(this); it != ((this)->size ? &(this)->s[-1] : NULL); --it)
 
 
 /**

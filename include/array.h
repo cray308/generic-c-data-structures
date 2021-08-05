@@ -23,19 +23,19 @@
  *
  * @param  i  The index in the array.
  */
-#define array_index(this, i) ((this)->arr[(i)])
+#define array_index(this, i) (this)->arr[i]
 
 
 /**
  * Pointer to the first element in the array, if it is is not empty.
  */
-#define array_front(this) ((this)->size ? &((this)->arr[0]) : NULL)
+#define array_front(this) ((this)->size ? &(this)->arr[0] : NULL)
 
 
 /**
  * Pointer to the last element in the array, if it is is not empty.
  */
-#define array_back(this) ((this)->size ? &((this)->arr[(this)->size - 1]) : NULL)
+#define array_back(this) ((this)->size ? &(this)->arr[(this)->size - 1] : NULL)
 
 
 /**
@@ -44,7 +44,7 @@
  * @param  it  Pointer to the array's datatype (t *) which is assigned to the current element.
  *               May be dereferenced with (*it).
  */
-#define array_iter(this, it) for (it = array_front(this); it != ((this)->size ? &((this)->arr[(this)->size]) : NULL); ++(it))
+#define array_iter(this, it) for (it = array_front(this); it != ((this)->size ? &(this)->arr[(this)->size] : NULL); ++it)
 
 
 /**
@@ -53,25 +53,25 @@
  * @param  it  Pointer to the array's datatype (t *) which is assigned to the current element.
  *               May be dereferenced with (*it).
  */
-#define array_riter(this, it) for (it = array_back(this); it != ((this)->size ? &((this)->arr[-1]) : NULL); --(it))
+#define array_riter(this, it) for (it = array_back(this); it != ((this)->size ? &(this)->arr[-1] : NULL); --it)
 
 
 /**
  * The number of elements in the array.
  */
-#define array_size(this) ((this)->size)
+#define array_size(this) (this)->size
 
 
 /**
  * The capacity (maximum number of elements prior to resizing) of the array.
  */
-#define array_capacity(this) ((this)->capacity)
+#define array_capacity(this) (this)->capacity
 
 
 /**
  * Tests whether there are no elements in the array.
  */
-#define array_empty(this) (!((this)->size))
+#define array_empty(this) !(this)->size
 
 
 /**
@@ -160,7 +160,7 @@
  *
  * @param  value  Value to insert.
  */
-#define array_push_back(id, this, value) array_insert_repeatingValue_##id(this, array_size(this), 1, value)
+#define array_push_back(id, this, value) array_insert_repeatingValue_##id(this, (this)->size, 1, value)
 
 
 /**
@@ -269,7 +269,7 @@ typedef struct {                                                                
 } Array_##id;                                                                                                \
                                                                                                              \
 __DS_FUNC_PREFIX_INL t* array_at_##id(Array_##id *this, unsigned i) {                                        \
-    return (i < this->size) ? &(this->arr[i]) : NULL;                                                        \
+    return i < this->size ? &this->arr[i] : NULL;                                                            \
 }                                                                                                            \
                                                                                                              \
 unsigned char array_reserve_##id(Array_##id *this, unsigned n);                                              \
@@ -347,7 +347,7 @@ unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index, unsi
     }                                                                                                        \
     end = &this->arr[res + n];                                                                               \
     for (i = &this->arr[res]; i != end; ++i) {                                                               \
-        copyValue((*i), value);                                                                              \
+        copyValue(*i, value);                                                                                \
     }                                                                                                        \
     this->size += n;                                                                                         \
     return res;                                                                                              \
@@ -375,7 +375,7 @@ unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index, t *arr, u
     }                                                                                                        \
     end = &this->arr[res + n];                                                                               \
     for (i = &this->arr[res]; i != end; ++i, ++arr) {                                                        \
-        copyValue((*i), (*arr));                                                                             \
+        copyValue(*i, *arr);                                                                                 \
     }                                                                                                        \
     this->size += n;                                                                                         \
     return res;                                                                                              \

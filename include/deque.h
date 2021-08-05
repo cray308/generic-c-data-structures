@@ -13,19 +13,19 @@
 /**
  * Tests whether there are no elements in the deque.
  */
-#define deque_empty(this) (!deque_size(this))
+#define deque_empty(this) !deque_size(this)
 
 
 /**
  * Pointer to the first element in the deque, if it is not empty.
  */
-#define deque_front(this) (((this)->front.size - (this)->pointers.frontStart) ? &((this)->front.arr[(this)->front.size - 1]) : (((this)->back.size - (this)->pointers.backStart) ? &((this)->back.arr[(this)->pointers.backStart]) : NULL))
+#define deque_front(this) (((this)->front.size - (this)->pointers.frontStart) ? &(this)->front.arr[(this)->front.size - 1] : (((this)->back.size - (this)->pointers.backStart) ? &(this)->back.arr[(this)->pointers.backStart] : NULL))
 
 
 /**
  * Pointer to the last element in the deque, if it is not empty.
  */
-#define deque_back(this) (((this)->back.size - (this)->pointers.backStart) ? &((this)->back.arr[(this)->back.size - 1]) : (((this)->front.size - (this)->pointers.frontStart) ? &((this)->front.arr[(this)->pointers.frontStart]) : NULL))
+#define deque_back(this) (((this)->back.size - (this)->pointers.backStart) ? &(this)->back.arr[(this)->back.size - 1] : (((this)->front.size - (this)->pointers.frontStart) ? &(this)->front.arr[(this)->pointers.frontStart] : NULL))
 
 
 /**
@@ -125,13 +125,11 @@ unsigned char __dq_push_front_##id(TypeName *this, t item);                     
 TypeName *__dq_new_##id(void) {                                                                              \
     TypeName *q = malloc(sizeof(TypeName));                                                                  \
     if (!q) return NULL;                                                                                     \
-    q->front.arr = malloc(8 * sizeof(t));                                                                    \
-    if (!q->front.arr) {                                                                                     \
+    if (!(q->front.arr = malloc(8 * sizeof(t)))) {                                                           \
         free(q);                                                                                             \
         return NULL;                                                                                         \
     }                                                                                                        \
-    q->back.arr = malloc(8 * sizeof(t));                                                                     \
-    if (!q->back.arr) {                                                                                      \
+    if (!(q->back.arr = malloc(8 * sizeof(t)))) {                                                            \
         free(q->front.arr);                                                                                  \
         free(q);                                                                                             \
         return NULL;                                                                                         \
@@ -183,8 +181,7 @@ unsigned char __dq_push_back_##id(TypeName *this, t item) {                     
         if (cap == 1073741824) return 0;                                                                     \
         else if (cap < 536870912) cap <<= 1;                                                                 \
         else cap = 1073741824;                                                                               \
-        tmp = realloc(this->back.arr, cap * sizeof(t));                                                      \
-        if (!tmp) return 0;                                                                                  \
+        if (!(tmp = realloc(this->back.arr, cap * sizeof(t)))) return 0;                                     \
         this->back.arr = tmp;                                                                                \
         this->back.cap = cap;                                                                                \
     }                                                                                                        \
@@ -222,8 +219,7 @@ unsigned char __dq_push_front_##id(TypeName *this, t item) {                    
         if (cap == 1073741824) return 0;                                                                     \
         else if (cap < 536870912) cap <<= 1;                                                                 \
         else cap = 1073741824;                                                                               \
-        tmp = realloc(this->front.arr, cap * sizeof(t));                                                     \
-        if (!tmp) return 0;                                                                                  \
+        if (!(tmp = realloc(this->front.arr, cap * sizeof(t)))) return 0;                                    \
         this->front.arr = tmp;                                                                               \
         this->front.cap = cap;                                                                               \
     }                                                                                                        \

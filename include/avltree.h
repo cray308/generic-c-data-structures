@@ -71,20 +71,16 @@ void __avlEntry_advance_##id(EntryType **p1, long n) {                          
     long count = 0;                                                                                          \
     EntryType *curr = *p1;                                                                                   \
     if (n >= 0) {                                                                                            \
-        for (; count != n && curr != NULL; ++count) {                                                        \
-            curr = __avl_inorder_successor_##id(curr);                                                       \
-        }                                                                                                    \
+        for (; count != n && curr != NULL; ++count, curr = __avl_inorder_successor_##id(curr));              \
     } else {                                                                                                 \
-        for (; count != n && curr != NULL; --count) {                                                        \
-            curr = __avl_inorder_predecessor_##id(curr);                                                     \
-        }                                                                                                    \
+        for (; count != n && curr != NULL; --count, curr = __avl_inorder_predecessor_##id(curr));            \
     }                                                                                                        \
     *p1 = curr;                                                                                              \
 }                                                                                                            \
                                                                                                              \
 unsigned __avlEntry_distance_##id(EntryType *p1, EntryType *p2) {                                            \
-    unsigned dist = 0;                                                                                       \
-    for (; p1 && p1 != p2; p1 = __avl_inorder_successor_##id(p1)) ++dist;                                    \
+    unsigned dist;                                                                                           \
+    for (dist = 0; p1 && p1 != p2; p1 = __avl_inorder_successor_##id(p1), ++dist);                           \
     if (!p1 || p1 != p2) return DS_DISTANCE_UNDEFINED;                                                       \
     return dist;                                                                                             \
 }                                                                                                            \
@@ -139,14 +135,14 @@ EntryType *__avltree_find_key_##id(TreeType *this, const kt key, unsigned char c
         if (cmp_lt(key, entry_get_key(curr))) {                                                              \
             if (!curr->left) {                                                                               \
                 if (candidate) break;                                                                        \
-                else return NULL;                                                                            \
+                return NULL;                                                                                 \
             } else {                                                                                         \
                 curr = curr->left;                                                                           \
             }                                                                                                \
         } else if (cmp_lt(entry_get_key(curr), key)) {                                                       \
             if (!curr->right) {                                                                              \
                 if (candidate) break;                                                                        \
-                else return NULL;                                                                            \
+                return NULL;                                                                                 \
             } else {                                                                                         \
                 curr = curr->right;                                                                          \
             }                                                                                                \
@@ -167,8 +163,7 @@ EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {
         if (inserted) *inserted = 0;                                                                         \
         return curr;                                                                                         \
     }                                                                                                        \
-    new = calloc(1, sizeof(EntryType));                                                                      \
-    if (!new) return NULL;                                                                                   \
+    if (!(new = calloc(1, sizeof(EntryType)))) return NULL;                                                  \
     copyKey(entry_get_key(new), data_get_key(data));                                                         \
     copyValue(new->data.second, data.second);                                                                \
     new->parent = curr;                                                                                      \
@@ -185,9 +180,8 @@ EntryType *__avltree_insert_##id(TreeType *this, DataType data, int *inserted) {
     } else {                                                                                                 \
         curr->right = new;                                                                                   \
     }                                                                                                        \
-    curr = new, parent = curr->parent;                                                                       \
                                                                                                              \
-    for (; curr && parent; curr = parent, parent = curr->parent) {                                           \
+    for (curr = new, parent = curr->parent; curr && parent; curr = parent, parent = curr->parent) {          \
         if (curr == parent->left) {                                                                          \
             if (parent->bf == 1) {                                                                           \
                 parent->bf = 0; break;                                                                       \
