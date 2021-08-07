@@ -229,7 +229,7 @@ void test_mixed(void) {
     const int midFirst = (LEN / 2), midSecond = ((LEN / 2) + 1), lastIdx = LEN - 82;
     Deque_int *qi = deque_new(int);
     Deque_str *qs = deque_new(str);
-    unsigned count = 1;
+    size_t count = 1;
     int i;
 
     for (i = midFirst; i >= 0; --i) {
