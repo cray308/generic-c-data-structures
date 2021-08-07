@@ -29,7 +29,7 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
         assert(!array_front(a) && !array_back(a));
     }
     array_iter(a, it) {
-        assert(*array_at(int, a, size - j) == comparison[i]);
+        assert(*array_at(a, size - j) == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
         assert(*it == comparison[i++]); --j;
     }
@@ -37,7 +37,7 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
     i = size - 1;
     j = 1;
     array_riter(a, it) {
-        assert(*array_at(int, a, size - j) == comparison[i]);
+        assert(*array_at(a, size - j) == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
         assert(*it == comparison[i--]); ++j;
     }
@@ -56,7 +56,7 @@ void compare_strs(Array_str *a, char **comparison, unsigned size) {
         assert(!array_front(a) && !array_back(a));
     }
     array_iter(a, it) {
-        assert(streq(*array_at(str, a, size - j), comparison[i]));
+        assert(streq(*array_at(a, size - j), comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
         assert(streq(*it, comparison[i++])); --j;
     }
@@ -64,7 +64,7 @@ void compare_strs(Array_str *a, char **comparison, unsigned size) {
     i = size - 1;
     j = 1;
     array_riter(a, it) {
-        assert(streq(*array_at(str, a, size - j), comparison[i]));
+        assert(streq(*array_at(a, size - j), comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
         assert(streq(*it, comparison[i--])); ++j;
     }

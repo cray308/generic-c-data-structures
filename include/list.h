@@ -358,9 +358,9 @@ void listEntry_advance_##id(ListEntry_##id **p1, long n) {                      
     long count = 0;                                                                                          \
     ListEntry_##id *curr = *p1;                                                                              \
     if (n >= 0) {                                                                                            \
-        for (; count != n && curr != NULL; curr = curr->next, ++count);                                      \
+        for (; count++ != n && curr; curr = curr->next);                                                     \
     } else {                                                                                                 \
-        for (; count != n && curr != NULL; curr = curr->prev, --count);                                      \
+        for (; count-- != n && curr; curr = curr->prev);                                                     \
     }                                                                                                        \
     *p1 = curr;                                                                                              \
 }                                                                                                            \
@@ -374,10 +374,14 @@ unsigned listEntry_distance_##id(ListEntry_##id *p1, ListEntry_##id *p2) {      
                                                                                                              \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id *pos, unsigned n, t value) { \
     unsigned i;                                                                                              \
-    ListEntry_##id *prev, *new;                                                                              \
+    ListEntry_##id *new;                                                                                     \
     if (!n || n + this->size > 2147483648) return NULL;                                                      \
+                                                                                                             \
     for (i = 0; i < n; ++i) {                                                                                \
-        if (!(new = calloc(1, sizeof(ListEntry_##id)))) return NULL;                                         \
+        if (!(new = calloc(1, sizeof(ListEntry_##id)))) {                                                    \
+            pos = NULL;                                                                                      \
+            break;                                                                                           \
+        }                                                                                                    \
         copyValue(new->data, value);                                                                         \
         if (!pos) {                                                                                          \
             if (!this->front) {                                                                              \
@@ -388,7 +392,7 @@ ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id 
                 this->back = new;                                                                            \
             }                                                                                                \
         } else {                                                                                             \
-            prev = pos->prev;                                                                                \
+            ListEntry_##id *prev = pos->prev;                                                                \
             new->next = pos;                                                                                 \
             pos->prev = new;                                                                                 \
             new->prev = prev;                                                                                \
@@ -400,19 +404,19 @@ ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this, ListEntry_##id 
         }                                                                                                    \
         pos = new;                                                                                           \
     }                                                                                                        \
-    this->size += n;                                                                                         \
+    this->size += i;                                                                                         \
     return pos;                                                                                              \
 }                                                                                                            \
                                                                                                              \
 ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos, t *arr, unsigned n) {       \
-    t* end;                                                                                                  \
+    unsigned i = 1;                                                                                          \
     ListEntry_##id *prev = pos ? pos->prev : NULL;                                                           \
     ListEntry_##id *first, *last, *curr;                                                                     \
-    if (!(arr && n) || n + this->size > 2147483648) return NULL;                                             \
-    end = &arr[n];                                                                                           \
-    if (!(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                                           \
+    if (!(arr && n) || n + this->size > 2147483648 ||                                                        \
+        !(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                                           \
+                                                                                                             \
     copyValue(first->data, *arr);                                                                            \
-    for (last = first, ++arr; arr != end; ++arr, curr->prev = last, last->next = curr, last = curr) {        \
+    for (last = first; i < n; ++i, curr->prev = last, last->next = curr, last = curr) {                      \
         if (!(curr = calloc(1, sizeof(ListEntry_##id)))) {                                                   \
             for (; first; first = last) {                                                                    \
                 last = first->next;                                                                          \
@@ -421,7 +425,7 @@ ListEntry_##id *list_insert_fromArray_##id(List_##id *this, ListEntry_##id *pos,
             }                                                                                                \
             return NULL;                                                                                     \
         }                                                                                                    \
-        copyValue(curr->data, *arr);                                                                         \
+        copyValue(curr->data, arr[i]);                                                                       \
     }                                                                                                        \
                                                                                                              \
     first->prev = prev;                                                                                      \
@@ -448,11 +452,12 @@ ListEntry_##id *list_insert_fromList_##id(List_##id *this, ListEntry_##id *pos, 
     ListEntry_##id *prev = pos ? pos->prev : NULL;                                                           \
     ListEntry_##id *first, *last, *curr;                                                                     \
     unsigned newSize = this->size + 1;                                                                       \
-    if (!start || start == end || this->size == 2147483648) return NULL;                                     \
-    if (!(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                                           \
+    if (!start || start == end || this->size == 2147483648 ||                                                \
+        !(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                                           \
+                                                                                                             \
     copyValue(first->data, start->data);                                                                     \
     for (last = first, start = start->next; start != end && newSize < 2147483648;                            \
-            start = start->next, curr->prev = last, last->next = curr, last = curr, ++newSize) {             \
+         start = start->next, curr->prev = last, last->next = curr, last = curr, ++newSize) {                \
         if (!(curr = calloc(1, sizeof(ListEntry_##id)))) {                                                   \
             for (; first; first = last) {                                                                    \
                 last = first->next;                                                                          \
@@ -504,9 +509,10 @@ List_##id *list_createCopy_##id(List_##id *other) {                             
                                                                                                              \
 ListEntry_##id *list_erase_##id(List_##id *this, ListEntry_##id *first, ListEntry_##id *last) {              \
     ListEntry_##id *before, *next, *res;                                                                     \
-    if (!first || !this->front || first == last) return NULL;                                                \
+    if (!first || first == last) return NULL;                                                                \
                                                                                                              \
-    for (before = first->prev; first != last; first = next, --this->size) {                                  \
+    before = first->prev;                                                                                    \
+    for (; first != last; first = next, --this->size) {                                                      \
         next = first->next;                                                                                  \
         deleteValue(first->data);                                                                            \
         free(first);                                                                                         \
@@ -533,32 +539,27 @@ unsigned char list_resize_usingValue_##id(List_##id *this, unsigned n, t value) 
     unsigned i;                                                                                              \
     if (n == this->size) return 1;                                                                           \
     else if (n < this->size) {                                                                               \
-        for (first = this->front, i = 0; i < n; ++i) {                                                       \
-            first = first->next;                                                                             \
-        }                                                                                                    \
+        for (first = this->front, i = 0; i < n; ++i, first = first->next);                                   \
         list_erase_##id(this, first, NULL);                                                                  \
         return 1;                                                                                            \
     }                                                                                                        \
-                                                                                                             \
     return list_insert_repeatingValue_##id(this, NULL, n - this->size, value) != NULL;                       \
 }                                                                                                            \
                                                                                                              \
 void list_reverse_##id(List_##id *this) {                                                                    \
-    ListEntry_##id *newFront = this->back, *newBack = this->front, *prev, *next, *curr;                      \
-                                                                                                             \
-    for (curr = this->front; curr; curr->next = prev, curr->prev = next, curr = next) {                      \
-        prev = curr->prev;                                                                                   \
+    ListEntry_##id *newFront = this->back, *newBack = this->front, *next, *curr;                             \
+    for (curr = this->front; curr; curr = next) {                                                            \
         next = curr->next;                                                                                   \
+        curr->next = curr->prev;                                                                             \
+        curr->prev = next;                                                                                   \
     }                                                                                                        \
     this->front = newFront;                                                                                  \
     this->back = newBack;                                                                                    \
 }                                                                                                            \
                                                                                                              \
 void list_remove_if_##id(List_##id *this, int (*cond)(t*)) {                                                 \
-    ListEntry_##id *curr, *prev, *next;                                                                      \
-    if (!this->front) return;                                                                                \
-                                                                                                             \
-    for (prev = NULL, curr = this->front; curr; curr = next) {                                               \
+    ListEntry_##id *curr, *prev = NULL, *next;                                                               \
+    for (curr = this->front; curr; curr = next) {                                                            \
         next = curr->next;                                                                                   \
         if (cond(&curr->data)) {                                                                             \
             if (prev) {                                                                                      \
@@ -584,12 +585,13 @@ void list_remove_if_##id(List_##id *this, int (*cond)(t*)) {                    
 }                                                                                                            \
                                                                                                              \
 void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id *other, ListEntry_##id *first, ListEntry_##id *last) { \
-    ListEntry_##id *firstprev, *curr, *prev;                                                                 \
-    unsigned count;                                                                                          \
-    if (!other->front || !first || first == last) return;                                                    \
+    ListEntry_##id *firstprev, *curr;                                                                        \
+    unsigned count = 0;                                                                                      \
+    if (!first || first == last) return;                                                                     \
                                                                                                              \
     /* get number of elements */                                                                             \
-    for (count = 0, firstprev = first->prev, curr = first; curr != last; ++count, curr = curr->next);        \
+    firstprev = first->prev;                                                                                 \
+    for (curr = first; curr != last; ++count, curr = curr->next);                                            \
                                                                                                              \
     if (!this->front) {                                                                                      \
         this->front = first;                                                                                 \
@@ -601,7 +603,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
         this->back = last ? last->prev : other->back;                                                        \
         this->back->next = NULL;                                                                             \
     } else {                                                                                                 \
-        prev = position->prev;                                                                              \
+        ListEntry_##id *prev = position->prev;                                                               \
         first->prev = prev;                                                                                  \
         position->prev = last ? last->prev : other->back;                                                    \
         position->prev->next = position;                                                                     \
@@ -687,7 +689,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define list_union(id, this, other) list_union_##id((this)->front, NULL, (other)->front, NULL)
+#define list_union(id, this, other) list_union_##id(this, other)
 
 
 /**
@@ -698,7 +700,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define list_intersection(id, this, other) list_intersection_##id((this)->front, NULL, (other)->front, NULL)
+#define list_intersection(id, this, other) list_intersection_##id(this, other)
 
 
 /**
@@ -709,7 +711,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define list_difference(id, this, other) list_difference_##id((this)->front, NULL, (other)->front, NULL)
+#define list_difference(id, this, other) list_difference_##id(this, other)
 
 
 /**
@@ -720,7 +722,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          Pointer to newly allocated list.
  */
-#define list_symmetric_difference(id, this, other) list_symmetric_difference_##id((this)->front, NULL, (other)->front, NULL)
+#define list_symmetric_difference(id, this, other) list_symmetric_difference_##id(this, other)
 
 
 /**
@@ -730,7 +732,7 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
  *
  * @return          True if this list contains each element in @c other , false if not.
  */
-#define list_includes(id, this, other) list_includes_##id((this)->front, NULL, (other)->front, NULL)
+#define list_includes(id, this, other) list_includes_##id(this, other)
 
 
 /**
@@ -743,11 +745,11 @@ void list_splice_range_##id(List_##id *this, ListEntry_##id *position, List_##id
                                                                                                              \
 gen_list_headers(id, t)                                                                                      \
                                                                                                              \
-List_##id *list_union_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
-List_##id *list_intersection_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
-List_##id *list_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
-List_##id *list_symmetric_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
-unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2); \
+List_##id *list_union_##id(List_##id *this, List_##id *other);                                               \
+List_##id *list_intersection_##id(List_##id *this, List_##id *other);                                        \
+List_##id *list_difference_##id(List_##id *this, List_##id *other);                                          \
+List_##id *list_symmetric_difference_##id(List_##id *this, List_##id *other);                                \
+unsigned char list_includes_##id(List_##id *this, List_##id *other);                                         \
 void list_unique_##id(List_##id *this);                                                                      \
 void list_remove_value_##id(List_##id *this, t val);                                                         \
 ListEntry_##id *list_find_##id(List_##id *this, t val);                                                      \
@@ -772,18 +774,20 @@ void list_sort_##id(List_##id *this);                                           
                                                                                                              \
 gen_list_source(id, t, copyValue, deleteValue)                                                               \
                                                                                                              \
-List_##id *list_union_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+List_##id *list_union_##id(List_##id *this, List_##id *other) {                                              \
+    ListEntry_##id *first1 = this->front, *first2 = other->front;                                            \
     List_##id *d_new = list_new(id);                                                                         \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) {                                                                               \
+    else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
-            list_insert_fromList_##id(d_new, NULL, first1, last1);                                           \
+            list_insert_fromList_##id(d_new, NULL, first1, NULL);                                            \
         } else if (first2) {                                                                                 \
-            list_insert_fromList_##id(d_new, NULL, first2, last2);                                           \
+            list_insert_fromList_##id(d_new, NULL, first2, NULL);                                            \
         }                                                                                                    \
         return d_new;                                                                                        \
     }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             list_push_back(id, d_new, first1->data);                                                         \
             first1 = first1->next;                                                                           \
@@ -796,19 +800,21 @@ List_##id *list_union_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEn
             first2 = first2->next;                                                                           \
         }                                                                                                    \
     }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        list_insert_fromList_##id(d_new, NULL, first1, last1);                                               \
-    } else if (first2 != last2) {                                                                            \
-        list_insert_fromList_##id(d_new, NULL, first2, last2);                                               \
+    if (first1) {                                                                                            \
+        list_insert_fromList_##id(d_new, NULL, first1, NULL);                                                \
+    } else if (first2) {                                                                                     \
+        list_insert_fromList_##id(d_new, NULL, first2, NULL);                                                \
     }                                                                                                        \
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-List_##id *list_intersection_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+List_##id *list_intersection_##id(List_##id *this, List_##id *other) {                                       \
+    ListEntry_##id *first1 = this->front, *first2 = other->front;                                            \
     List_##id *d_new = list_new(id);                                                                         \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) return d_new;                                                                   \
-    while (first1 != last1 && first2 != last2) {                                                             \
+    else if (!(first1 && first2)) return d_new;                                                              \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             first1 = first1->next;                                                                           \
         } else if (cmp_lt(first2->data, first1->data)) {                                                     \
@@ -822,16 +828,18 @@ List_##id *list_intersection_##id(ListEntry_##id *first1, ListEntry_##id *last1,
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-List_##id *list_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+List_##id *list_difference_##id(List_##id *this, List_##id *other) {                                         \
+    ListEntry_##id *first1 = this->front, *first2 = other->front;                                            \
     List_##id *d_new = list_new(id);                                                                         \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) {                                                                               \
+    else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
-            list_insert_fromList_##id(d_new, NULL, first1, last1);                                           \
+            list_insert_fromList_##id(d_new, NULL, first1, NULL);                                            \
         }                                                                                                    \
         return d_new;                                                                                        \
     }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             list_push_back(id, d_new, first1->data);                                                         \
             first1 = first1->next;                                                                           \
@@ -842,24 +850,26 @@ List_##id *list_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, L
             first2 = first2->next;                                                                           \
         }                                                                                                    \
     }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        list_insert_fromList_##id(d_new, NULL, first1, last1);                                               \
+    if (first1) {                                                                                            \
+        list_insert_fromList_##id(d_new, NULL, first1, NULL);                                                \
     }                                                                                                        \
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-List_##id *list_symmetric_difference_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
+List_##id *list_symmetric_difference_##id(List_##id *this, List_##id *other) {                               \
+    ListEntry_##id *first1 = this->front, *first2 = other->front;                                            \
     List_##id *d_new = list_new(id);                                                                         \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) {                                                                               \
+    else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
-            list_insert_fromList_##id(d_new, NULL, first1, last1);                                           \
+            list_insert_fromList_##id(d_new, NULL, first1, NULL);                                            \
         } else if (first2) {                                                                                 \
-            list_insert_fromList_##id(d_new, NULL, first2, last2);                                           \
+            list_insert_fromList_##id(d_new, NULL, first2, NULL);                                            \
         }                                                                                                    \
         return d_new;                                                                                        \
     }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             list_push_back(id, d_new, first1->data);                                                         \
             first1 = first1->next;                                                                           \
@@ -871,25 +881,19 @@ List_##id *list_symmetric_difference_##id(ListEntry_##id *first1, ListEntry_##id
             first2 = first2->next;                                                                           \
         }                                                                                                    \
     }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        list_insert_fromList_##id(d_new, NULL, first1, last1);                                               \
-    } else if (first2 != last2) {                                                                            \
-        list_insert_fromList_##id(d_new, NULL, first2, last2);                                               \
+    if (first1) {                                                                                            \
+        list_insert_fromList_##id(d_new, NULL, first1, NULL);                                                \
+    } else if (first2) {                                                                                     \
+        list_insert_fromList_##id(d_new, NULL, first2, NULL);                                                \
     }                                                                                                        \
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, ListEntry_##id *first2, ListEntry_##id *last2) { \
-    if (!(first1 && first2)) {                                                                               \
-        if (first1) {                                                                                        \
-            return 1;                                                                                        \
-        } else if (first2) {                                                                                 \
-            return 0;                                                                                        \
-        } else {                                                                                             \
-            return 1;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+unsigned char list_includes_##id(List_##id *this, List_##id *other) {                                        \
+    ListEntry_##id *first1 = this->front, *first2 = other->front;                                            \
+    if (!(first1 && first2)) return first2 ? 0 : 1;                                                          \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             first1 = first1->next;                                                                           \
         } else if (cmp_lt(first2->data, first1->data)) {                                                     \
@@ -899,14 +903,14 @@ unsigned char list_includes_##id(ListEntry_##id *first1, ListEntry_##id *last1, 
             first2 = first2->next;                                                                           \
         }                                                                                                    \
     }                                                                                                        \
-    return first2 == last2;                                                                                  \
+    return first2 == NULL;                                                                                   \
 }                                                                                                            \
                                                                                                              \
 void list_unique_##id(List_##id *this) {                                                                     \
-    ListEntry_##id *curr, *prev, *next;                                                                      \
-    if (!this->front) return;                                                                                \
+    ListEntry_##id *curr, *prev = this->front, *next;                                                        \
+    if (!prev) return;                                                                                       \
                                                                                                              \
-    for (prev = this->front, curr = prev->next; curr; curr = next) {                                         \
+    for (curr = prev->next; curr; curr = next) {                                                             \
         next = curr->next;                                                                                   \
         if (ds_cmp_eq(cmp_lt, prev->data, curr->data)) {                                                     \
             prev->next = next;                                                                               \
@@ -928,8 +932,6 @@ void list_unique_##id(List_##id *this) {                                        
                                                                                                              \
 void list_remove_value_##id(List_##id *this, t val) {                                                        \
     ListEntry_##id *curr, *prev = NULL, *next;                                                               \
-    if (!this->front) return;                                                                                \
-                                                                                                             \
     for (curr = this->front; curr; curr = next) {                                                            \
         next = curr->next;                                                                                   \
         if (ds_cmp_eq(cmp_lt, val, curr->data)) {                                                            \
@@ -964,11 +966,10 @@ ListEntry_##id *list_find_##id(List_##id *this, t val) {                        
 }                                                                                                            \
                                                                                                              \
 void list_merge_##id(List_##id *this, List_##id *other) {                                                    \
-    ListEntry_##id *first1, *first2, *next, *prev;                                                           \
-    if (!other->front) { /* nothing to merge */                                                              \
-        return;                                                                                              \
-    } else if (!this->front) { /* "this" is empty, set it to other and return */                             \
-        this->front = other->front;                                                                          \
+    ListEntry_##id *first1 = this->front, *first2 = other->front, *next, *prev;                              \
+    if (!first2) return;                                                                                     \
+    else if (!first1) {                                                                                      \
+        this->front = first2;                                                                                \
         this->back = other->back;                                                                            \
         this->size = other->size;                                                                            \
         other->front = other->back = NULL;                                                                   \
@@ -976,7 +977,7 @@ void list_merge_##id(List_##id *this, List_##id *other) {                       
         return;                                                                                              \
     }                                                                                                        \
                                                                                                              \
-    for (first1 = this->front, first2 = other->front; first1 && first2; ) {                                  \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first2->data, first1->data)) {                                                            \
             next = first2->next;                                                                             \
             if ((prev = first1->prev)) {                                                                     \
@@ -1009,9 +1010,8 @@ void list_sort_##id(List_##id *this) {                                          
     List_##id *fill, *counter;                                                                               \
     register ListEntry_##id *ltemp_front, *ltemp_back;                                                       \
     register unsigned ltemp_size;                                                                            \
-    if (this->front == this->back) {                                                                         \
-        return;                                                                                              \
-    } else if (this->size == 2 && cmp_lt(this->back->data, this->front->data)) {                             \
+    if (this->front == this->back) return;                                                                   \
+    else if (this->size == 2 && cmp_lt(this->back->data, this->front->data)) {                               \
         ltemp_back = this->back;                                                                             \
         this->front = this->back;                                                                            \
         this->back = ltemp_back;                                                                             \
@@ -1025,8 +1025,9 @@ void list_sort_##id(List_##id *this) {                                          
     do {                                                                                                     \
         list_splice_element(id, &carry, carry.front, this, this->front);                                     \
                                                                                                              \
-        for (counter = &tmp[0]; counter != fill && !(list_empty(counter)); ++counter) {                      \
+        for (counter = &tmp[0]; counter != fill && counter->front; ++counter) {                              \
             list_merge_##id(counter, &carry);                                                                \
+                                                                                                             \
             ltemp_front = carry.front;                                                                       \
             ltemp_back = carry.back;                                                                         \
             ltemp_size = carry.size;                                                                         \
@@ -1047,6 +1048,7 @@ void list_sort_##id(List_##id *this) {                                          
         counter->front = ltemp_front;                                                                        \
         counter->back = ltemp_back;                                                                          \
         counter->size = ltemp_size;                                                                          \
+                                                                                                             \
         if (counter == fill) ++fill;                                                                         \
     } while (this->front);                                                                                   \
                                                                                                              \

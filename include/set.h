@@ -222,7 +222,7 @@
  *
  * @return         Newly created set.
  */
-#define set_union(id, this, other) set_union_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
+#define set_union(id, this, other) set_union_##id(this, other)
 
 
 /**
@@ -232,7 +232,7 @@
  *
  * @return         Newly created set.
  */
-#define set_intersection(id, this, other) set_intersection_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
+#define set_intersection(id, this, other) set_intersection_##id(this, other)
 
 
 /**
@@ -242,7 +242,7 @@
  *
  * @return         Newly created set.
  */
-#define set_difference(id, this, other) set_difference_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
+#define set_difference(id, this, other) set_difference_##id(this, other)
 
 
 /**
@@ -252,7 +252,7 @@
  *
  * @return         Newly created set.
  */
-#define set_symmetric_difference(id, this, other) set_symmetric_difference_##id(__avl_successor_##id((this)->root), NULL, __avl_successor_##id((other)->root), NULL)
+#define set_symmetric_difference(id, this, other) set_symmetric_difference_##id(this, other)
 
 
 /**
@@ -262,7 +262,7 @@
  *
  * @return         True if each element in this set is in @c other , false if not.
  */
-#define set_issubset(id, this, other) set_includes_##id(__avl_successor_##id((other)->root), NULL, __avl_successor_##id((this)->root), NULL)
+#define set_issubset(id, this, other) set_includes_##id(other, this)
 
 
 /**
@@ -296,11 +296,11 @@
                                                                                                              \
 __setup_avltree_headers(id, t, Set_##id, t, SetEntry_##id)                                                   \
                                                                                                              \
-Set_##id *set_union_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2); \
-Set_##id *set_intersection_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2); \
-Set_##id *set_difference_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2); \
-Set_##id *set_symmetric_difference_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2); \
-unsigned char set_includes_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2); \
+Set_##id *set_union_##id(Set_##id *this, Set_##id *other);                                                   \
+Set_##id *set_intersection_##id(Set_##id *this, Set_##id *other);                                            \
+Set_##id *set_difference_##id(Set_##id *this, Set_##id *other);                                              \
+Set_##id *set_symmetric_difference_##id(Set_##id *this, Set_##id *other);                                    \
+unsigned char set_includes_##id(Set_##id *this, Set_##id *other);                                            \
 unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other);                                            \
 
 
@@ -321,18 +321,20 @@ unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other);               
                                                                                                              \
 __setup_avltree_source(id, t, Set_##id, t, SetEntry_##id, cmp_lt, __set_entry_get_key, __set_data_get_key, copyValue, deleteValue, __set_copy_value, __set_delete_value) \
                                                                                                              \
-Set_##id *set_union_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2) { \
+Set_##id *set_union_##id(Set_##id *this, Set_##id *other) {                                                  \
+    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
     Set_##id *d_new = set_new(id);                                                                           \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) {                                                                               \
+    else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
-            set_insert_fromSet(id, d_new, first1, last1);                                                    \
+            set_insert_fromSet(id, d_new, first1, NULL);                                                     \
         } else if (first2) {                                                                                 \
-            set_insert_fromSet(id, d_new, first2, last2);                                                    \
+            set_insert_fromSet(id, d_new, first2, NULL);                                                     \
         }                                                                                                    \
         return d_new;                                                                                        \
     }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             set_insert(id, d_new, first1->data);                                                             \
             first1 = __avl_inorder_successor_##id(first1);                                                   \
@@ -345,19 +347,21 @@ Set_##id *set_union_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_#
             first2 = __avl_inorder_successor_##id(first2);                                                   \
         }                                                                                                    \
     }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        set_insert_fromSet(id, d_new, first1, last1);                                                        \
-    } else if (first2 != last2) {                                                                            \
-        set_insert_fromSet(id, d_new, first2, last2);                                                        \
+    if (first1) {                                                                                            \
+        set_insert_fromSet(id, d_new, first1, NULL);                                                         \
+    } else if (first2) {                                                                                     \
+        set_insert_fromSet(id, d_new, first2, NULL);                                                         \
     }                                                                                                        \
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-Set_##id *set_intersection_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2) { \
+Set_##id *set_intersection_##id(Set_##id *this, Set_##id *other) {                                           \
+    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
     Set_##id *d_new = set_new(id);                                                                           \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) return d_new;                                                                   \
-    while (first1 != last1 && first2 != last2) {                                                             \
+    else if (!(first1 && first2)) return d_new;                                                              \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             first1 = __avl_inorder_successor_##id(first1);                                                   \
         } else if (cmp_lt(first2->data, first1->data)) {                                                     \
@@ -371,16 +375,18 @@ Set_##id *set_intersection_##id(SetEntry_##id *first1, SetEntry_##id *last1, Set
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-Set_##id *set_difference_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2) { \
+Set_##id *set_difference_##id(Set_##id *this, Set_##id *other) {                                             \
+    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
     Set_##id *d_new = set_new(id);                                                                           \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) {                                                                               \
+    else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
-            set_insert_fromSet(id, d_new, first1, last1);                                                    \
+            set_insert_fromSet(id, d_new, first1, NULL);                                                     \
         }                                                                                                    \
         return d_new;                                                                                        \
     }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             set_insert(id, d_new, first1->data);                                                             \
             first1 = __avl_inorder_successor_##id(first1);                                                   \
@@ -391,24 +397,26 @@ Set_##id *set_difference_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEn
             first2 = __avl_inorder_successor_##id(first2);                                                   \
         }                                                                                                    \
     }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        set_insert_fromSet(id, d_new, first1, last1);                                                        \
+    if (first1) {                                                                                            \
+        set_insert_fromSet(id, d_new, first1, NULL);                                                         \
     }                                                                                                        \
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-Set_##id *set_symmetric_difference_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2) { \
+Set_##id *set_symmetric_difference_##id(Set_##id *this, Set_##id *other) {                                   \
+    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
     Set_##id *d_new = set_new(id);                                                                           \
     if (!d_new) return NULL;                                                                                 \
-    if (!(first1 && first2)) {                                                                               \
+    else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
-            set_insert_fromSet(id, d_new, first1, last1);                                                    \
+            set_insert_fromSet(id, d_new, first1, NULL);                                                     \
         } else if (first2) {                                                                                 \
-            set_insert_fromSet(id, d_new, first2, last2);                                                    \
+            set_insert_fromSet(id, d_new, first2, NULL);                                                     \
         }                                                                                                    \
         return d_new;                                                                                        \
     }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             set_insert(id, d_new, first1->data);                                                             \
             first1 = __avl_inorder_successor_##id(first1);                                                   \
@@ -420,21 +428,19 @@ Set_##id *set_symmetric_difference_##id(SetEntry_##id *first1, SetEntry_##id *la
             first2 = __avl_inorder_successor_##id(first2);                                                   \
         }                                                                                                    \
     }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        set_insert_fromSet(id, d_new, first1, last1);                                                        \
-    } else if (first2 != last2) {                                                                            \
-        set_insert_fromSet(id, d_new, first2, last2);                                                        \
+    if (first1) {                                                                                            \
+        set_insert_fromSet(id, d_new, first1, NULL);                                                         \
+    } else if (first2) {                                                                                     \
+        set_insert_fromSet(id, d_new, first2, NULL);                                                         \
     }                                                                                                        \
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-unsigned char set_includes_##id(SetEntry_##id *first1, SetEntry_##id *last1, SetEntry_##id *first2, SetEntry_##id *last2) { \
-    if (!(first1 && first2)) {                                                                               \
-        if (first1) return 1;                                                                                \
-        else if (first2) return 0;                                                                           \
-        else return 1;                                                                                       \
-    }                                                                                                        \
-    while (first1 != last1 && first2 != last2) {                                                             \
+unsigned char set_includes_##id(Set_##id *this, Set_##id *other) {                                           \
+    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
+    if (!(first1 && first2)) return first2 ? 0 : 1;                                                          \
+                                                                                                             \
+    while (first1 && first2) {                                                                               \
         if (cmp_lt(first1->data, first2->data)) {                                                            \
             first1 = __avl_inorder_successor_##id(first1);                                                   \
         } else if (cmp_lt(first2->data, first1->data)) {                                                     \
@@ -444,12 +450,12 @@ unsigned char set_includes_##id(SetEntry_##id *first1, SetEntry_##id *last1, Set
             first2 = __avl_inorder_successor_##id(first2);                                                   \
         }                                                                                                    \
     }                                                                                                        \
-    return first2 == last2;                                                                                  \
+    return first2 == NULL;                                                                                   \
 }                                                                                                            \
                                                                                                              \
 unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other) {                                           \
-    SetEntry_##id *n1, *n2;                                                                                  \
-    for (n1 = __avl_successor_##id(this->root), n2 = __avl_successor_##id(other->root); n1 && n2; ) {        \
+    SetEntry_##id *n1 = __avl_successor_##id(this->root), *n2 = __avl_successor_##id(other->root);           \
+    while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __avl_inorder_successor_##id(n1);                                                           \
         } else if (cmp_lt(n2->data, n1->data)) {                                                             \

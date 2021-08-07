@@ -125,11 +125,10 @@ unsigned char __dq_push_front_##id(TypeName *this, t item);                     
 TypeName *__dq_new_##id(void) {                                                                              \
     TypeName *q = malloc(sizeof(TypeName));                                                                  \
     if (!q) return NULL;                                                                                     \
-    if (!(q->front.arr = malloc(8 * sizeof(t)))) {                                                           \
+    else if (!(q->front.arr = malloc(8 * sizeof(t)))) {                                                      \
         free(q);                                                                                             \
         return NULL;                                                                                         \
-    }                                                                                                        \
-    if (!(q->back.arr = malloc(8 * sizeof(t)))) {                                                            \
+    } else if (!(q->back.arr = malloc(8 * sizeof(t)))) {                                                     \
         free(q->front.arr);                                                                                  \
         free(q);                                                                                             \
         return NULL;                                                                                         \
@@ -175,9 +174,9 @@ void __dq_pop_front_##id(TypeName *this) {                                      
 }                                                                                                            \
                                                                                                              \
 unsigned char __dq_push_back_##id(TypeName *this, t item) {                                                  \
+    t *tmp;                                                                                                  \
     unsigned cap = this->back.cap;                                                                           \
     if (this->back.size == cap) {                                                                            \
-        t *tmp;                                                                                              \
         if (cap == 1073741824) return 0;                                                                     \
         else if (cap < 536870912) cap <<= 1;                                                                 \
         else cap = 1073741824;                                                                               \
@@ -213,9 +212,9 @@ void __dq_pop_back_##id(TypeName *this) {                                       
 }                                                                                                            \
                                                                                                              \
 unsigned char __dq_push_front_##id(TypeName *this, t item) {                                                 \
+    t *tmp;                                                                                                  \
     unsigned cap = this->front.cap;                                                                          \
     if (this->front.size == cap) {                                                                           \
-        t *tmp;                                                                                              \
         if (cap == 1073741824) return 0;                                                                     \
         else if (cap < 536870912) cap <<= 1;                                                                 \
         else cap = 1073741824;                                                                               \

@@ -50,9 +50,7 @@ typedef struct {
  *
  * @param  i  Index in string.
  */
-__DS_FUNC_PREFIX_INL char *string_at(String *this, unsigned i) {
-    return (i < this->size) ? &this->s[i] : NULL;
-}
+#define string_at(this, i) ((i) < (this)->size ? &(this)->s[i] : NULL)
 
 
 /**
@@ -469,7 +467,11 @@ String **string_split(String *this, const char *delim);
  *
  * @return     Whether or not all characters in @c s are alphanumeric.
  */
-__DS_FUNC_PREFIX_INL unsigned char isAlphaNum(const char *s) {
+__attribute__((__unused__)) static
+#if __STDC_VERSION__ >= 199901L
+inline
+#endif
+unsigned char isAlphaNum(const char *s) {
     const char *c;
     if (!*s) return 0;
     for (c = s; *c; ++c) {
@@ -484,7 +486,11 @@ __DS_FUNC_PREFIX_INL unsigned char isAlphaNum(const char *s) {
  *
  * @return     Whether or not all characters in @c s are letters.
  */
-__DS_FUNC_PREFIX_INL unsigned char isAlpha(const char *s) {
+__attribute__((__unused__)) static
+#if __STDC_VERSION__ >= 199901L
+inline
+#endif
+unsigned char isAlpha(const char *s) {
     const char *c;
     if (!*s) return 0;
     for (c = s; *c; ++c) {
@@ -499,7 +505,11 @@ __DS_FUNC_PREFIX_INL unsigned char isAlpha(const char *s) {
  *
  * @return     Whether or not all characters in @c s are digits.
  */
-__DS_FUNC_PREFIX_INL unsigned char isDigit(const char *s) {
+__attribute__((__unused__)) static
+#if __STDC_VERSION__ >= 199901L
+inline
+#endif
+unsigned char isDigit(const char *s) {
     const char *c;
     if (!*s) return 0;
     for (c = s; *c; ++c) {
@@ -514,7 +524,11 @@ __DS_FUNC_PREFIX_INL unsigned char isDigit(const char *s) {
  *
  * @param  s  C-string.
  */
-__DS_FUNC_PREFIX_INL void toLowercase(char *s) {
+__attribute__((__unused__)) static
+#if __STDC_VERSION__ >= 199901L
+inline
+#endif
+void toLowercase(char *s) {
     char *c;
     for (c = s; *c; ++c) *c = (char) tolower(*c);
 }
@@ -525,7 +539,11 @@ __DS_FUNC_PREFIX_INL void toLowercase(char *s) {
  *
  * @param  s  C-string.
  */
-__DS_FUNC_PREFIX_INL void toUppercase(char *s) {
+__attribute__((__unused__)) static
+#if __STDC_VERSION__ >= 199901L
+inline
+#endif
+void toUppercase(char *s) {
     char *c;
     for (c = s; *c; ++c) *c = (char) toupper(*c);
 }

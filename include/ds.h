@@ -4,12 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if __STDC_VERSION__ >= 199901L
-#define __DS_FUNC_PREFIX_INL __attribute__((__unused__)) static inline
-#else
-#define __DS_FUNC_PREFIX_INL __attribute__((__unused__)) static
-#endif
-
 #define DS_ARG_NOT_APPLICABLE 4294967295
 #define DS_DISTANCE_UNDEFINED 4294967295
 

@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "avltree.h"
+#include <stdio.h>
 
 #define __tree_entry_get_key(e) ((e)->data)
 #define __tree_data_get_key(d)  (d)
@@ -582,10 +583,46 @@ void test_strings(void) {
     tree_free(str, t);
 }
 
+void test_erase(void) {
+    int i = 0;
+    char strs[600][16];
+    char *comparison[] = {"000", "001", "598", "599"};
+    AVLNode_str *first, *last;
+    AVLTree_str *t = tree_new(str);
+
+    for (i = 0; i < 600; ++i) {
+        sprintf(strs[i], "%03d", i);
+        tree_insert(str, t, strs[i]);
+    }
+    assert(t->size == 600);
+
+    first = __avl_successor_str(t->root);
+    __avlEntry_advance_str(&first, 2);
+    last = __avl_predecessor_str(t->root);
+    __avlEntry_advance_str(&last, -1);
+
+    __avltree_erase_str(t, first, last);
+    assert(t->size == 4);
+
+    i = 0;
+    tree_iter(str, t, first) {
+        assert(streq(first->data, comparison[i++]));
+    }
+    assert(i == 4);
+
+    i = 3;
+    tree_riter(str, t, first) {
+        assert(streq(first->data, comparison[i--]));
+    }
+    assert(i == -1);
+    tree_free(str, t);
+}
+
 int main(void) {
     test_increasing_ints();
     test_decreasing_ints();
     test_iter();
     test_strings();
+    test_erase();
     return 0;
 }
