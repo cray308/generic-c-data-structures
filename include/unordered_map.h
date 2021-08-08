@@ -35,7 +35,9 @@
  *
  * @param  it  Pointer to @c Pair which is assigned to the current element.
  */
-#define umap_iter(id, this, it) for (it = __htable_iter_begin_##id(this); it; it = __htable_iter_next_##id(this))
+#define umap_iter(id, this, it)                                                                              \
+for (it = __htable_iter_begin_##id(this); it;                                                                \
+     it = __htable_iter_next_##id(this))
 
 
 /**
@@ -70,7 +72,9 @@
 /**
  * Deletes all elements and frees the map.
  */
-#define umap_free(id, this) do { __htable_clear_##id(this); free((this)->buckets); free(this); } while(0)
+#define umap_free(id, this) do {                                                                             \
+    __htable_clear_##id(this); free((this)->buckets); free(this);                                            \
+} while(0)
 
 
 /**
@@ -92,7 +96,8 @@
  *
  * @return            Pointer to the inserted pair.
  */
-#define umap_insert_withResult(id, this, pair, inserted) __htable_insert_##id(this, pair, inserted)
+#define umap_insert_withResult(id, this, pair, inserted)                                                     \
+__htable_insert_##id(this, pair, inserted)
 
 
 /**
@@ -103,7 +108,8 @@
  *
  * @return       Whether the operation succeeded.
  */
-#define umap_insert_fromArray(id, this, arr, n) __htable_insert_fromArray_##id(this, arr, n)
+#define umap_insert_fromArray(id, this, arr, n)                                                              \
+__htable_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -133,8 +139,8 @@
 
 
 /**
- * Changes the number of buckets in the map to @c nbuckets . If this is less than or equal to the 
- * current number of buckets, nothing is done.
+ * Changes the number of buckets in the map to @c nbuckets . If this is less than or equal to the current 
+ * number of buckets, nothing is done.
  *
  * @param   nbuckets  New number of buckets to use in the map.
  *
@@ -150,7 +156,8 @@
  *
  * @return      Whether the operation succeeded.
  */
-#define umap_set_load_factor(id, this, lf) __htable_set_load_factor_##id(this, lf) 
+#define umap_set_load_factor(id, this, lf)                                                                   \
+__htable_set_load_factor_##id(this, lf)
 
 
 /**
@@ -175,7 +182,7 @@ typedef struct {                                                                
                                                                                                              \
 __setup_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                                     \
                                                                                                              \
-vt *umap_at_##id(UMap_##id *this, const kt key);                                                             \
+vt *umap_at_##id(UMap_##id const *this, const kt key);                                                       \
 
 
 /**
@@ -188,28 +195,39 @@ vt *umap_at_##id(UMap_##id *this, const kt key);                                
  * @param  addrOfKey    Macro of the form (x) that returns a pointer to x.
  *                        - For value types (i.e. int) pass @c DSDefault_addrOfVal .
  *                        - For pointer types, pass @c DSDefault_addrOfRef .
- * @param  sizeOfKey    Macro of the form (x) that returns the number of bytes in x, where x is a key for the map.
- *                        This is necessary so that the hashing function works correctly.
+ * @param  sizeOfKey    Macro of the form (x) that returns the number of bytes in x, where x is a key for the
+ *                       map. This is necessary so that the hashing function works correctly.
  *                        - For value types (i.e. int), pass @c DSDefault_sizeOfVal .
  *                        - For a string (char *), pass @c DSDefault_sizeOfStr .
  * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the key is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
- * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was dynamically allocated in @c copyKey , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass @c DSDefault_deepDelete here.
+ *                        - If the key is a string which should be deep-copied, pass
+ *                         @c DSDefault_deepCopyStr .
+ * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was
+ *                       dynamically allocated in @c copyKey , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass
+ *                         @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass
+ *                         @c DSDefault_deepDelete here.
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr  was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ *                        - If the value is a string which should be deep-copied, pass
+ *                         @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
+ *                       dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
+ *                         @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr  was used in @c copyValue , pass
+ *                         @c DSDefault_deepDelete here.
  */
-#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey,                                                       \
+sizeOfKey, copyKey, deleteKey, copyValue, deleteValue)                                                       \
                                                                                                              \
-__setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey, deleteKey, copyValue, deleteValue) \
+__setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id,                              \
+    __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey,                                         \
+    copyKey, deleteKey, copyValue, deleteValue)                                                              \
                                                                                                              \
-vt *umap_at_##id(UMap_##id *this, const kt key) {                                                            \
+vt *umap_at_##id(UMap_##id const *this, const kt key) {                                                      \
     Pair_##id *p = __htable_find_##id(this, key);                                                            \
     return p ? &(p->second) : NULL;                                                                          \
 }                                                                                                            \

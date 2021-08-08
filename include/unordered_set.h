@@ -37,7 +37,9 @@
  *
  * @param  it  Pointer to element, which is assigned to the current element.
  */
-#define uset_iter(id, this, it) for (it = __htable_iter_begin_##id(this); it; it = __htable_iter_next_##id(this))
+#define uset_iter(id, this, it)                                                                              \
+for (it = __htable_iter_begin_##id(this); it;                                                                \
+     it = __htable_iter_next_##id(this))
 
 
 /**
@@ -72,7 +74,9 @@
 /**
  * Deletes all elements and frees the set.
  */
-#define uset_free(id, this) do { __htable_clear_##id(this); free((this)->buckets); free(this); } while(0)
+#define uset_free(id, this) do {                                                                             \
+    __htable_clear_##id(this); free((this)->buckets); free(this);                                            \
+} while(0)
 
 
 /**
@@ -89,7 +93,8 @@
  * @param  value     Value to insert.
  * @param  inserted  Set to 1 if the value was newly inserted, or 0 if the value was already a member.
  */
-#define uset_insert_withResult(id, this, value, inserted) __htable_insert_##id(this, value, inserted)
+#define uset_insert_withResult(id, this, value, inserted)                                                    \
+__htable_insert_##id(this, value, inserted)
 
 
 /**
@@ -100,7 +105,8 @@
  *
  * @return       Whether the operation succeeded.
  */
-#define uset_insert_fromArray(id, this, arr, n) __htable_insert_fromArray_##id(this, arr, n)
+#define uset_insert_fromArray(id, this, arr, n)                                                              \
+__htable_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -110,7 +116,8 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define uset_contains(id, this, value) (__htable_find_##id(this, value) != NULL)
+#define uset_contains(id, this, value)                                                                       \
+(__htable_find_##id(this, value) != NULL)
 
 
 /**
@@ -122,8 +129,8 @@
 
 
 /**
- * Changes the number of buckets in the set to @c nbuckets . If this is less than or equal to the 
- * current number of buckets, nothing is done.
+ * Changes the number of buckets in the set to @c nbuckets . If this is less than or equal to the current 
+ * number of buckets, nothing is done.
  *
  * @param   nbuckets  New number of buckets to use in the set.
  *
@@ -139,7 +146,8 @@
  *
  * @return      Whether the operation succeeded.
  */
-#define uset_set_load_factor(id, this, lf) __htable_set_load_factor_##id(this, lf) 
+#define uset_set_load_factor(id, this, lf)                                                                   \
+__htable_set_load_factor_##id(this, lf) 
 
 
 /**
@@ -154,7 +162,8 @@
  * @param  id  ID to be used for the @c USet type (must be unique).
  * @param  t   Type to be stored in the set.
  */
-#define gen_uset_headers(id, t) __setup_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)
+#define gen_uset_headers(id, t)                                                                              \
+__setup_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)
 
 
 /**
@@ -166,18 +175,25 @@
  * @param  addrOfValue  Macro of the form (x) that returns a pointer to x.
  *                        - For value types (i.e. int) pass @c DSDefault_addrOfVal .
  *                        - For pointer types, pass @c DSDefault_addrOfRef .
- * @param  sizeOfValue  Macro of the form (x) that returns the number of bytes in x, where x is an element in the set.
- *                        This is necessary so that the hashing function works correctly.
+ * @param  sizeOfValue  Macro of the form (x) that returns the number of bytes in x, where x is an element
+ *                       in the set. This is necessary so that the hashing function works correctly.
  *                        - For value types (i.e. int), pass @c DSDefault_sizeOfVal .
  *                        - For a string (char *), pass @c DSDefault_sizeOfStr .
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ *                        - If the value is a string which should be deep-copied, pass
+ *                         @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
+ *                       dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
+ *                         @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
+ *                         @c DSDefault_deepDelete here.
  */
-#define gen_uset_source(id, t, cmp_eq, addrOfValue, sizeOfValue, copyValue, deleteValue)                     \
-__setup_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id, __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue, copyValue, deleteValue, __uset_copy_value, __uset_delete_value)
+#define gen_uset_source(id, t, cmp_eq, addrOfValue, sizeOfValue,                                             \
+copyValue, deleteValue)                                                                                      \
+__setup_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id,                                       \
+    __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue,                                     \
+    copyValue, deleteValue, __uset_copy_value, __uset_delete_value)
 
 #endif /* DS_UNORDERED_SET_H */

@@ -1,11 +1,12 @@
 #include "hash.h"
+#include <stdint.h>
 
-unsigned murmurhash(const void *key, int len, uint32_t seed) {
+unsigned murmurhash(const void *key, int len, unsigned seed) {
     const uint8_t *data = (const uint8_t *) key;
     const int nblocks = len >> 2; int i;
     uint32_t h1 = seed, k = 0;
-    uint32_t const *blocks = (const uint32_t *) (data + (nblocks * 4));
-    uint8_t const *tail = (const uint8_t *) (data + (nblocks * 4));
+    uint32_t const *blocks = (const uint32_t *) (data + (nblocks << 2));
+    uint8_t const *tail = (const uint8_t *) (data + (nblocks << 2));
 
     for (i = -nblocks; i; i++) {
         uint32_t k1 = blocks[i];

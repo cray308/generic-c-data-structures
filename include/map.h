@@ -33,16 +33,20 @@
 /**
  * Iterates through the map in-order.
  *
- * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
-#define map_iter(id, this, it) for (it = __avl_successor_##id((this)->root); it; it = __avl_inorder_successor_##id(it))
+#define map_iter(id, this, it)                                                                               \
+for (it = __avl_successor_##id((this)->root); it;                                                            \
+     it = __avl_inorder_successor_##id(it))
 
 /**
  * Iterates through the map in reverse order.
  *
- * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
-#define map_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
+#define map_riter(id, this, it)                                                                              \
+for (it = __avl_predecessor_##id((this)->root); it;                                                          \
+     it = __avl_inorder_predecessor_##id(it))
 
 
 /**
@@ -76,10 +80,11 @@
  * @param   first  @c MapEntry to start at.
  * @param   last   @c MapEntry to end at. This must be reachable in the forward direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c DS_DISTANCE_UNDEFINED .
+ * @return         Number of elements between @c first and @c last , or if @c last is not reachable, returns
+ *                 -1.
  */
-#define mapEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
+#define mapEntry_distance(id, first, last)                                                                   \
+__avlEntry_distance_##id(first, last)
 
 
 /**
@@ -120,7 +125,8 @@
 /**
  * Removes all keys from the map, leaving it with a size of 0.
  */
-#define map_clear(id, this) __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
+#define map_clear(id, this)                                                                                  \
+__avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
 
 
 /**
@@ -134,8 +140,8 @@
 
 
 /**
- * Similar to @c map_find , but returns a pointer to the pair's value rather than to the entry iterator 
- * as a whole.
+ * Similar to @c map_find , but returns a pointer to the pair's value rather than to the entry iterator as a 
+ * whole.
  *
  * @param  k  Key to find.
  */
@@ -161,7 +167,8 @@
  *
  * @return            @c MapEntry corresponding to the inserted pair.
  */
-#define map_insert_withResult(id, this, pair, inserted) __avltree_insert_##id(this, pair, inserted)
+#define map_insert_withResult(id, this, pair, inserted)                                                      \
+__avltree_insert_##id(this, pair, inserted)
 
 
 /**
@@ -172,7 +179,8 @@
  *
  * @return       Whether the operation succeeded.
  */
-#define map_insert_fromArray(id, this, arr, n) __avltree_insert_fromArray_##id(this, arr, n)
+#define map_insert_fromArray(id, this, arr, n)                                                               \
+__avltree_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -184,7 +192,8 @@
  *
  * @return         Whether the operation succeeded.
  */
-#define map_insert_fromMap(id, this, start, end) __avltree_insert_fromTree_##id(this, start, end)
+#define map_insert_fromMap(id, this, start, end)                                                             \
+__avltree_insert_fromTree_##id(this, start, end)
 
 
 /**
@@ -192,7 +201,7 @@
  *
  * @param  begin  First @c MapEntry to erase.
  * @param  end    @c MapEntry after the last entry to be deleted. If this is NULL, then all keys from
- *                  @c begin through the greatest key in the map will be removed.
+ *                 @c begin through the greatest key in the map will be removed.
  */
 #define map_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -202,7 +211,8 @@
  *
  * @param  key  Key to be deleted.
  */
-#define map_remove_key(id, this, key) __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, key, 0))
+#define map_remove_key(id, this, key)                                                                        \
+__avltree_remove_entry_##id(this, __avltree_find_key_##id(this, key, 0))
 
 
 /**
@@ -210,7 +220,8 @@
  *
  * @param  entry  @c MapEntry to remove.
  */
-#define map_remove_entry(id, this, entry) __avltree_remove_entry_##id(this, entry)
+#define map_remove_entry(id, this, entry)                                                                    \
+__avltree_remove_entry_##id(this, entry)
 
 
 /**
@@ -229,7 +240,7 @@ typedef struct {                                                                
                                                                                                              \
 __setup_avltree_headers(id, kt, Map_##id, Pair_##id, MapEntry_##id)                                          \
                                                                                                              \
-vt *map_at_##id(Map_##id *this, const kt key);                                                               \
+vt *map_at_##id(Map_##id const *this, const kt key);                                                         \
 
 
 /**
@@ -241,22 +252,33 @@ vt *map_at_##id(Map_##id *this, const kt key);                                  
  * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
  * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the key is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
- * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was dynamically allocated in @c copyKey , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass @c DSDefault_deepDelete here.
+ *                        - If the key is a string which should be deep-copied, pass
+ *                         @c DSDefault_deepCopyStr .
+ * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was
+ *                       dynamically allocated in @c copyKey , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass
+ *                         @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass
+ *                         @c DSDefault_deepDelete here.
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ *                        - If the value is a string which should be deep-copied, pass
+ *                         @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
+ *                       dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
+ *                         @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
+ *                         @c DSDefault_deepDelete here.
  */
-#define gen_map_source(id, kt, vt, cmp_lt, copyKey, deleteKey, copyValue, deleteValue)                       \
+#define gen_map_source(id, kt, vt, cmp_lt, copyKey, deleteKey,                                               \
+copyValue, deleteValue)                                                                                      \
                                                                                                              \
-__setup_avltree_source(id, kt, Map_##id, Pair_##id, MapEntry_##id, cmp_lt, __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue, deleteValue) \
+__setup_avltree_source(id, kt, Map_##id, Pair_##id, MapEntry_##id, cmp_lt,                                   \
+    __map_entry_get_key, __map_data_get_key, copyKey, deleteKey,                                             \
+    copyValue, deleteValue)                                                                                  \
                                                                                                              \
-vt* map_at_##id(Map_##id *this, const kt key) {                                                              \
+vt* map_at_##id(Map_##id const *this, const kt key) {                                                        \
     MapEntry_##id *e = __avltree_find_key_##id(this, key, 0);                                                \
     return e ? &(e->data.second) : NULL;                                                                     \
 }                                                                                                            \

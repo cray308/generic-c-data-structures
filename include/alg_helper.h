@@ -67,18 +67,19 @@
 
 
 /**
- * Generates algorithm function declarations for the specified type, to be used with built-in or dynamic arrays.
+ * Generates algorithm function declarations for the specified type, to be used with built-in or dynamic 
+ * arrays.
  *
  * @param  id  ID to be used for the data type used in these functions (must be unique).
  * @param  t   Type to be stored in the array.
  */
 #define gen_alg_headers(id, t)                                                                               \
                                                                                                              \
-void ds_make_heap_##id(t* first, t* last);                                                                   \
+void ds_make_heap_##id(t* first, t const *last);                                                             \
 void ds_sort_heap_##id(t* first, t* last);                                                                   \
 void ds_sort_##id(t* arr, unsigned n);                                                                       \
-t* ds_binary_search_##id(t* arr, int l, int r, t val);                                                       \
-void ds_push_heap_##id(t* first, t* last);                                                                   \
+t* ds_binary_search_##id(t* arr, int l, int r, const t val);                                                 \
+void ds_push_heap_##id(t* first, t const *last);                                                             \
 void ds_pop_heap_##id(t* first, t* last);                                                                    \
 
 
@@ -91,15 +92,16 @@ void ds_pop_heap_##id(t* first, t* last);                                       
  */
 #define gen_alg_source(id, t, cmp_lt)                                                                        \
                                                                                                              \
-void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t *val) {                                       \
+void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val) {                                 \
     unsigned parent = (i - 1) >> 1;                                                                          \
-    for (; i > top && cmp_lt(*(first + parent), *val); i = parent, parent = (i - 1) >> 1) {                  \
+    for (; i > top && cmp_lt(*(first + parent), *val);                                                       \
+            i = parent, parent = (i - 1) >> 1) {                                                             \
         *(first + i) = *(first + parent);                                                                    \
     }                                                                                                        \
     *(first + i) = *val;                                                                                     \
 }                                                                                                            \
                                                                                                              \
-void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t *value) {                                   \
+void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t const *value) {                             \
     const unsigned top = i;                                                                                  \
     const unsigned half = (len - 1) >> 1;                                                                    \
     unsigned second = i;                                                                                     \
@@ -119,13 +121,13 @@ void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t *value) {      
     __ds_push_heap_##id(first, i, top, value);                                                               \
 }                                                                                                            \
                                                                                                              \
-void __ds_pop_heap_##id(t *first, t *last, t *result) {                                                      \
+void __ds_pop_heap_##id(t *first, t const *last, t *result) {                                                \
     t value = *result;                                                                                       \
     *result = *first;                                                                                        \
-    __ds_adjust_heap_##id(first, 0, (unsigned)(last - first), &value);                                       \
+    __ds_adjust_heap_##id(first, 0, (unsigned) (last - first), &value);                                      \
 }                                                                                                            \
                                                                                                              \
-void ds_make_heap_##id(t *first, t *last) {                                                                  \
+void ds_make_heap_##id(t *first, t const *last) {                                                            \
     const unsigned len = (unsigned)(last - first);                                                           \
     unsigned parent;                                                                                         \
     if (len < 2) return;                                                                                     \
@@ -212,7 +214,7 @@ void __ds_unguarded_linear_insert_##id(t *last) {                               
     *last = val;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-void __ds_insertion_sort_##id(t *first, t *last) {                                                           \
+void __ds_insertion_sort_##id(t *first, t const *last) {                                                     \
     t* const begin = first + 1;                                                                              \
     t *i;                                                                                                    \
     if (first == last) return;                                                                               \
@@ -246,7 +248,7 @@ void ds_sort_##id(t *arr, unsigned n) {                                         
     }                                                                                                        \
 }                                                                                                            \
                                                                                                              \
-t *ds_binary_search_##id(t *arr, int l, int r, t val) {                                                      \
+t *ds_binary_search_##id(t *arr, int l, int r, const t val) {                                                \
     while (l <= r) {                                                                                         \
         int mid = l + (r - l) / 2;                                                                           \
         if (cmp_lt(arr[mid], val)) {                                                                         \
@@ -260,7 +262,7 @@ t *ds_binary_search_##id(t *arr, int l, int r, t val) {                         
     return NULL;                                                                                             \
 }                                                                                                            \
                                                                                                              \
-void ds_push_heap_##id(t *first, t *last) {                                                                  \
+void ds_push_heap_##id(t *first, t const *last) {                                                            \
     t value = *(last - 1);                                                                                   \
     __ds_push_heap_##id(first, (unsigned)(last - first) - 1, 0, &value);                                     \
 }                                                                                                            \
@@ -272,4 +274,4 @@ void ds_pop_heap_##id(t *first, t *last) {                                      
     }                                                                                                        \
 }                                                                                                            \
 
-#endif
+#endif /* DS_ALG_HELPER_H */

@@ -1,5 +1,5 @@
-#ifndef STACK_H
-#define STACK_H
+#ifndef DS_STACK_H
+#define DS_STACK_H
 
 #include "deque.h"
 
@@ -78,4 +78,4 @@
 #define gen_stack_source(id, t, copyValue, deleteValue)                                                      \
 __setup_deque_source(id, t, Stack_##id, copyValue, deleteValue)
 
-#endif /* STACK_H */
+#endif /* DS_STACK_H */

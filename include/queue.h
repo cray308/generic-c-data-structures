@@ -1,5 +1,5 @@
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef DS_QUEUE_H
+#define DS_QUEUE_H
 
 #include "deque.h"
 
@@ -85,4 +85,4 @@
 #define gen_queue_source(id, t, copyValue, deleteValue)                                                      \
 __setup_deque_source(id, t, Queue_##id, copyValue, deleteValue)
 
-#endif /* QUEUE_H */
+#endif /* DS_QUEUE_H */

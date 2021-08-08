@@ -1,5 +1,5 @@
-#ifndef SET_H
-#define SET_H
+#ifndef DS_SET_H
+#define DS_SET_H
 
 #include "avltree.h"
 
@@ -35,14 +35,14 @@
 /**
  * Iterates through the set in-order.
  *
- * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
 #define set_iter(id, this, it) for (it = __avl_successor_##id((this)->root); it; it = __avl_inorder_successor_##id(it))
 
 /**
  * Iterates through the set in reverse order.
  *
- * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with it->data.
+ * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
 #define set_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
 
@@ -66,7 +66,7 @@
 /**
  * Advances the entry by @c n positions. A negative number means to move backwards.
  *
- * @param  e  Address of @c SetEntry (i.e. SetEntry **).
+ * @param  e  Address of @c SetEntry (i.e. @c SetEntry** ).
  * @param  n  Number of positions to advance.
  */
 #define setEntry_advance(id, e, n) __avlEntry_advance_##id(e, n)
@@ -78,8 +78,8 @@
  * @param   first  @c SetEntry to start at.
  * @param   last   @c SetEntry to end at. This must be reachable in the forward direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if @c last is not reachable,
- *                 returns @c DS_DISTANCE_UNDEFINED .
+ * @return         Number of elements between @c first and @c last , or if @c last is not reachable, returns
+ *                 -1.
  */
 #define setEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
 
@@ -181,8 +181,8 @@
  * Inserts elements from another set in the range [@c start , @c end ).
  *
  * @param   start  First @c SetEntry to insert. Must not be NULL.
- * @param   end    @c SetEntry after the last entry to insert. If this is NULL, all elements from
- *                  @c start through the end (greatest element) of the other set will be inserted.
+ * @param   end    @c SetEntry after the last entry to insert. If this is NULL, all elements from @c start
+ *                  through the end (greatest element) of the other set will be inserted.
  *
  * @return         Whether the operation succeeded.
  */
@@ -193,8 +193,8 @@
  * Erases elements in the range [@c begin , @c end ).
  *
  * @param  begin  First @c SetEntry to erase.
- * @param  end    @c SetEntry after the last entry to be deleted. If this is NULL, all elements from
- *                  @c begin through the greatest element in the set will be removed.
+ * @param  end    @c SetEntry after the last entry to be deleted. If this is NULL, all elements from @c begin
+ *                 through the greatest element in the set will be removed.
  */
 #define set_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -216,7 +216,8 @@
 
 
 /**
- * Returns a @c Set with the union of this set and @c other (i.e. elements that are in this set, @c other , or both - all elements).
+ * Returns a @c Set with the union of this set and @c other (i.e. elements that are in this set, @c other , 
+ * or both - all elements).
  *
  * @param   other  Pointer to the other set.
  *
@@ -226,7 +227,8 @@
 
 
 /**
- * Returns a @c Set with the intersection of this set and @c other (i.e. all elements that both sets have in common).
+ * Returns a @c Set with the intersection of this set and @c other (i.e. all elements that both sets have in 
+ * common).
  *
  * @param   other  Pointer to the other set.
  *
@@ -236,7 +238,8 @@
 
 
 /**
- * Returns a @c Set with the difference of this set and @c other (i.e. all elements that are unique to this set).
+ * Returns a @c Set with the difference of this set and @c other (i.e. all elements that are unique to this 
+ * set).
  *
  * @param   other  Pointer to the other set.
  *
@@ -246,7 +249,8 @@
 
 
 /**
- * Returns a @c Set with the symmetric difference of this set and @c other (i.e. all elements that neither set has in common).
+ * Returns a @c Set with the symmetric difference of this set and @c other (i.e. all elements that neither 
+ * set has in common).
  *
  * @param   other  Pointer to the other set.
  *
@@ -260,7 +264,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         True if each element in this set is in @c other , false if not.
+ * @return         Whether each element in this set is in @c other .
  */
 #define set_issubset(id, this, other) set_includes_##id(other, this)
 
@@ -271,7 +275,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         True if this set contains each element in @c other , false if not.
+ * @return         Whether this set contains each element in @c other .
  */
 #define set_issuperset(id, this, other) set_issubset(id, other, this)
 
@@ -281,7 +285,7 @@
  *
  * @param   other  Pointer to the other set.
  *
- * @return         True if this set and @c other have no common elements, false if they do.
+ * @return         Whether this set and @c other have no common elements.
  */
 #define set_isdisjoint(id, this, other) set_disjoint_##id(this, other)
 
@@ -296,12 +300,13 @@
                                                                                                              \
 __setup_avltree_headers(id, t, Set_##id, t, SetEntry_##id)                                                   \
                                                                                                              \
-Set_##id *set_union_##id(Set_##id *this, Set_##id *other);                                                   \
-Set_##id *set_intersection_##id(Set_##id *this, Set_##id *other);                                            \
-Set_##id *set_difference_##id(Set_##id *this, Set_##id *other);                                              \
-Set_##id *set_symmetric_difference_##id(Set_##id *this, Set_##id *other);                                    \
-unsigned char set_includes_##id(Set_##id *this, Set_##id *other);                                            \
-unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other);                                            \
+Set_##id *set_union_##id(Set_##id const *this, Set_##id const *other);                                       \
+Set_##id *set_intersection_##id(Set_##id const *this, Set_##id const *other);                                \
+Set_##id *set_difference_##id(Set_##id const *this, Set_##id const *other);                                  \
+Set_##id *set_symmetric_difference_##id(Set_##id const *this,                                                \
+                                        Set_##id const *other);                                              \
+unsigned char set_includes_##id(Set_##id const *this, Set_##id const *other);                                \
+unsigned char set_disjoint_##id(Set_##id const *this, Set_##id const *other);                                \
 
 
 /**
@@ -312,18 +317,26 @@ unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other);               
  * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
  * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
  *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass @c DSDefault_deepDelete here.
+ *                        - If the value is a string which should be deep-copied, pass
+ *                         @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
+ *                       dynamically allocated in @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
+ *                         @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
+ *                         @c DSDefault_deepDelete here.
  */
 #define gen_set_source(id, t, cmp_lt, copyValue, deleteValue)                                                \
                                                                                                              \
-__setup_avltree_source(id, t, Set_##id, t, SetEntry_##id, cmp_lt, __set_entry_get_key, __set_data_get_key, copyValue, deleteValue, __set_copy_value, __set_delete_value) \
+__setup_avltree_source(id, t, Set_##id, t, SetEntry_##id, cmp_lt,                                            \
+    __set_entry_get_key, __set_data_get_key, copyValue, deleteValue,                                         \
+    __set_copy_value, __set_delete_value)                                                                    \
                                                                                                              \
-Set_##id *set_union_##id(Set_##id *this, Set_##id *other) {                                                  \
-    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
+Set_##id *set_union_##id(Set_##id const *this, Set_##id const *other) {                                      \
+    SetEntry_##id *first1, *first2;                                                                          \
     Set_##id *d_new = set_new(id);                                                                           \
+    first1 = __avl_successor_##id(this->root);                                                               \
+    first2 = __avl_successor_##id(other->root);                                                              \
     if (!d_new) return NULL;                                                                                 \
     else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
@@ -355,9 +368,11 @@ Set_##id *set_union_##id(Set_##id *this, Set_##id *other) {                     
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-Set_##id *set_intersection_##id(Set_##id *this, Set_##id *other) {                                           \
-    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
+Set_##id *set_intersection_##id(Set_##id const *this, Set_##id const *other) {                               \
+    SetEntry_##id *first1, *first2;                                                                          \
     Set_##id *d_new = set_new(id);                                                                           \
+    first1 = __avl_successor_##id(this->root);                                                               \
+    first2 = __avl_successor_##id(other->root);                                                              \
     if (!d_new) return NULL;                                                                                 \
     else if (!(first1 && first2)) return d_new;                                                              \
                                                                                                              \
@@ -375,9 +390,11 @@ Set_##id *set_intersection_##id(Set_##id *this, Set_##id *other) {              
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-Set_##id *set_difference_##id(Set_##id *this, Set_##id *other) {                                             \
-    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
+Set_##id *set_difference_##id(Set_##id const *this, Set_##id const *other) {                                 \
+    SetEntry_##id *first1, *first2;                                                                          \
     Set_##id *d_new = set_new(id);                                                                           \
+    first1 = __avl_successor_##id(this->root);                                                               \
+    first2 = __avl_successor_##id(other->root);                                                              \
     if (!d_new) return NULL;                                                                                 \
     else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
@@ -403,9 +420,12 @@ Set_##id *set_difference_##id(Set_##id *this, Set_##id *other) {                
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-Set_##id *set_symmetric_difference_##id(Set_##id *this, Set_##id *other) {                                   \
-    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
+Set_##id *set_symmetric_difference_##id(Set_##id const *this,                                                \
+                                        Set_##id const *other) {                                             \
+    SetEntry_##id *first1, *first2;                                                                          \
     Set_##id *d_new = set_new(id);                                                                           \
+    first1 = __avl_successor_##id(this->root);                                                               \
+    first2 = __avl_successor_##id(other->root);                                                              \
     if (!d_new) return NULL;                                                                                 \
     else if (!(first1 && first2)) {                                                                          \
         if (first1) {                                                                                        \
@@ -436,8 +456,10 @@ Set_##id *set_symmetric_difference_##id(Set_##id *this, Set_##id *other) {      
     return d_new;                                                                                            \
 }                                                                                                            \
                                                                                                              \
-unsigned char set_includes_##id(Set_##id *this, Set_##id *other) {                                           \
-    SetEntry_##id *first1 = __avl_successor_##id(this->root), *first2 = __avl_successor_##id(other->root);   \
+unsigned char set_includes_##id(Set_##id const *this, Set_##id const *other) {                               \
+    SetEntry_##id *first1, *first2;                                                                          \
+    first1 = __avl_successor_##id(this->root);                                                               \
+    first2 = __avl_successor_##id(other->root);                                                              \
     if (!(first1 && first2)) return first2 ? 0 : 1;                                                          \
                                                                                                              \
     while (first1 && first2) {                                                                               \
@@ -453,8 +475,10 @@ unsigned char set_includes_##id(Set_##id *this, Set_##id *other) {              
     return first2 == NULL;                                                                                   \
 }                                                                                                            \
                                                                                                              \
-unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other) {                                           \
-    SetEntry_##id *n1 = __avl_successor_##id(this->root), *n2 = __avl_successor_##id(other->root);           \
+unsigned char set_disjoint_##id(Set_##id const *this, Set_##id const *other) {                               \
+    SetEntry_##id *n1, *n2;                                                                                  \
+    n1 = __avl_successor_##id(this->root);                                                                   \
+    n2 = __avl_successor_##id(other->root);                                                                  \
     while (n1 && n2) {                                                                                       \
         if (cmp_lt(n1->data, n2->data)) {                                                                    \
             n1 = __avl_inorder_successor_##id(n1);                                                           \
@@ -467,4 +491,4 @@ unsigned char set_disjoint_##id(Set_##id *this, Set_##id *other) {              
     return 1;                                                                                                \
 }                                                                                                            \
 
-#endif
+#endif /* DS_SET_H */
