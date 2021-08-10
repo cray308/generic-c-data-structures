@@ -11,16 +11,65 @@ typedef struct {
 } String;
 
 #if UINT_MAX == 0xffffffff
-#define DS_STR_MAX_SIZE 4294967293
-#define DS_STR_SHIFT_THRESHOLD 2147483646
-#define STRING_NPOS 4294967294
-#define STRING_ERROR 4294967295
+#define DS_STR_MAX_SIZE 0xfffffffd
+#define DS_STR_SHIFT_THRESHOLD 0x7ffffffe
+#define STRING_NPOS 0xfffffffe
+#define STRING_ERROR 0xffffffff
 #elif UINT_MAX == 0xffff
-#define DS_STR_MAX_SIZE 65533
-#define DS_STR_SHIFT_THRESHOLD 32766
-#define STRING_NPOS 65534
-#define STRING_ERROR 65535
+#define DS_STR_MAX_SIZE 0xfffd
+#define DS_STR_SHIFT_THRESHOLD 0x7ffe
+#define STRING_NPOS 0xfffe
+#define STRING_ERROR 0xffff
 #endif
+
+/* --------------------------------------------------------------------------
+ * ITERATORS
+ * -------------------------------------------------------------------------- */
+
+/**
+ * The starting point for iterating over characters in forward order.
+ */
+#define string_iterator_begin(this) string_front(this)
+
+
+/**
+ * The ending point for iterating over characters in forward order.
+ */
+#define string_iterator_end(this) &(this)->s[(this)->size]
+
+
+/**
+ * The starting point for iterating over characters in reverse order.
+ */
+#define string_iterator_rbegin(this) string_back(this)
+
+
+/**
+ * The ending point for iterating over characters in reverse order.
+ */
+#define string_iterator_rend(this) &(this)->s[-1]
+
+
+/**
+ * Iterates through each character in the string from beginning to end.
+ *
+ * @param  it  Char pointer to use during iteration.
+ */
+#define string_iter(this, it)                                                                                \
+        for (it = string_front(this); it != string_iterator_end(this); ++it)
+
+
+/**
+ * Iterates through each character in the string from end to the beginning.
+ *
+ * @param  it  Char pointer to use during iteration.
+ */
+#define string_riter(this, it)                                                                               \
+        for (it = string_back(this); it != string_iterator_rend(this); --it)
+
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
 
 /**
  * The c-string representation of the provided String.
@@ -47,7 +96,7 @@ typedef struct {
 
 
 /**
- * Direct access to the char located at index @c i of the string. Does NOT perform bounds checking.
+ * Direct access to the character at index @c i . Does NOT perform bounds checking.
  *
  * @param  i  Index in string.
  */
@@ -55,7 +104,7 @@ typedef struct {
 
 
 /**
- * Reference to the string starting at index @c i . Performs bounds checking.
+ * Reference to the string starting at index @c i . If the index is out of bounds, returns NULL.
  *
  * @param  i  Index in string.
  */
@@ -65,34 +114,18 @@ typedef struct {
 /**
  * Char pointer to the front of the string.
  */
-#define string_front(this) ((this)->size ? &(this)->s[0] : NULL)
+#define string_front(this) &(this)->s[0]
 
 
 /**
  * Char pointer to the back of the string.
  */
-#define string_back(this) ((this)->size ? &(this)->s[(this)->size - 1] : NULL)
+#define string_back(this)                                                                                    \
+        ((this)->size ? &(this)->s[(this)->size - 1] : &(this)->s[0])
 
-
-/**
- * Iterates through each character in the string from beginning to end.
- *
- * @param  it  Char pointer to use during iteration.
- */
-#define string_iter(this, it)                                                                                \
-for (it = string_front(this);                                                                                \
-     it != ((this)->size ? &(this)->s[(this)->size] : NULL); ++it)
-
-
-/**
- * Iterates through each character in the string from end to the beginning.
- *
- * @param  it  Char pointer to use during iteration.
- */
-#define string_riter(this, it)                                                                               \
-for (it = string_back(this);                                                                                 \
-     it != ((this)->size ? &(this)->s[-1] : NULL); --it)
-
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Request a change in capacity (maximum size) to @c n .
@@ -117,11 +150,8 @@ unsigned char string_reserve(String *this, unsigned n);
  *
  * @return              Whether the operation succeeded.
  */
-unsigned char string_replace(String *this,
-                             unsigned pos,
-                             unsigned nToReplace,
-                             char const *s,
-                             unsigned len);
+unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace,
+                             char const *s, unsigned len);
 
 
 /**
@@ -139,12 +169,10 @@ unsigned char string_replace(String *this,
  *
  * @return              Whether the operation succeeded.
  */
-unsigned char string_replace_fromString(String *this,
-                                        unsigned pos,
+unsigned char string_replace_fromString(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         String const *other,
-                                        unsigned subpos,
-                                        unsigned len);
+                                        unsigned subpos, unsigned len);
 
 
 /**
@@ -159,11 +187,9 @@ unsigned char string_replace_fromString(String *this,
  *
  * @return              Whether the operation succeeded.
  */
-unsigned char string_replace_repeatingChar(String *this,
-                                           unsigned pos,
+unsigned char string_replace_repeatingChar(String *this, unsigned pos,
                                            unsigned nToReplace,
-                                           unsigned n,
-                                           char c);
+                                           unsigned n, char c);
 
 
 /**
@@ -193,7 +219,7 @@ unsigned char string_replace_repeatingChar(String *this,
  * @return          Whether the operation succeeded.
  */
 #define string_insert_fromString(this, pos, other, subpos, len)                                              \
-string_replace_fromString(this, pos, 0, other, subpos, len)
+        string_replace_fromString(this, pos, 0, other, subpos, len)
 
 
 /**
@@ -207,7 +233,7 @@ string_replace_fromString(this, pos, 0, other, subpos, len)
  * @return       Whether the operation succeeded.
  */
 #define string_insert_repeatingChar(this, pos, n, c)                                                         \
-string_replace_repeatingChar(this, pos, 0, n, c)
+        string_replace_repeatingChar(this, pos, 0, n, c)
 
 
 /**
@@ -233,7 +259,7 @@ string_replace_repeatingChar(this, pos, 0, n, c)
  * @return          Whether the operation succeeded.
  */
 #define string_append_fromString(this, other, subpos, len)                                                   \
-string_insert_fromString(this, (this)->size, other, subpos, len)
+        string_insert_fromString(this, (this)->size, other, subpos, len)
 
 
 /**
@@ -245,7 +271,7 @@ string_insert_fromString(this, (this)->size, other, subpos, len)
  * @return     Whether the operation succeeded.
  */
 #define string_append_repeatingChar(this, n, c)                                                              \
-string_insert_repeatingChar(this, (this)->size, n, c)
+        string_insert_repeatingChar(this, (this)->size, n, c)
 
 
 /**
@@ -364,7 +390,7 @@ void string_shrink_to_fit(String *this);
  * @return     Whether the operation succeeded.
  */
 #define string_push_back(this, c)                                                                            \
-string_resize_usingChar(this, (this)->size + 1, c)
+        string_resize_usingChar(this, (this)->size + 1, c)
 
 
 /**
@@ -384,10 +410,8 @@ string_resize_usingChar(this, (this)->size + 1, c)
  * @return         The first index at or after @c pos where one of the supplied characters was found,
  *                 @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-unsigned string_find_first_of(String const *this,
-                              unsigned pos,
-                              char const *chars,
-                              unsigned n);
+unsigned string_find_first_of(String const *this, unsigned pos,
+                              char const *chars, unsigned n);
 
 
 /**
@@ -401,10 +425,8 @@ unsigned string_find_first_of(String const *this,
  * @return         The last index at or before @c pos where one of the supplied characters was found,
  *                 @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-unsigned string_find_last_of(String const *this,
-                             unsigned pos,
-                             char const *chars,
-                             unsigned n);
+unsigned string_find_last_of(String const *this, unsigned pos,
+                             char const *chars, unsigned n);
 
 
 /**
@@ -418,10 +440,8 @@ unsigned string_find_last_of(String const *this,
  * @return         The first index at or after @c pos where a different character was found, @c STRING_NPOS
  *                 if it was not found, or @c STRING_ERROR if an error occurred.
  */
-unsigned string_find_first_not_of(String const *this,
-                                  unsigned pos,
-                                  char const *chars,
-                                  unsigned n);
+unsigned string_find_first_not_of(String const *this, unsigned pos,
+                                  char const *chars, unsigned n);
 
 
 /**
@@ -435,10 +455,8 @@ unsigned string_find_first_not_of(String const *this,
  * @return         The last index at or before @c pos where a different character was found, @c STRING_NPOS
  *                 if it was not found, or @c STRING_ERROR if an error occurred.
  */
-unsigned string_find_last_not_of(String const *this,
-                                 unsigned pos,
-                                 char const *chars,
-                                 unsigned n);
+unsigned string_find_last_not_of(String const *this, unsigned pos,
+                                 char const *chars, unsigned n);
 
 
 /**
@@ -453,10 +471,8 @@ unsigned string_find_last_not_of(String const *this,
  * @return              The index in this string, corresponding to @c needle[0] , where @c needle was found,
  *                      @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-unsigned string_find(String const *this,
-                     unsigned start_pos,
-                     char const *needle,
-                     unsigned len);
+unsigned string_find(String const *this, unsigned start_pos,
+                     char const *needle, unsigned len);
 
 
 /**
@@ -471,10 +487,8 @@ unsigned string_find(String const *this,
  * @return              The index in this string, corresponding to @c needle[0] , where @c needle was found,
  *                      @c STRING_NPOS if it was not found, or @c STRING_ERROR if an error occurred.
  */
-unsigned string_rfind(String const *this,
-                      unsigned end_pos,
-                      char const *needle,
-                      unsigned len);
+unsigned string_rfind(String const *this, unsigned end_pos,
+                      char const *needle, unsigned len);
 
 
 /**
@@ -490,10 +504,8 @@ unsigned string_rfind(String const *this,
  *
  * @return             Newly allocated @c String , or NULL if an error occurred.
  */
-String *string_substr(String const *this,
-                      unsigned start,
-                      unsigned n,
-                      int step_size);
+String *string_substr(String const *this, unsigned start,
+                      unsigned n, int step_size);
 
 
 /**
@@ -613,8 +625,7 @@ void toUppercase(char *s) {
  *
  * @return              Whether the operation succeeded.
  */
-unsigned char string_replace_withFormat(String *this,
-                                        unsigned pos,
+unsigned char string_replace_withFormat(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         char const *format, ...);
 
@@ -628,7 +639,7 @@ unsigned char string_replace_withFormat(String *this,
  * @return          Whether the operation succeeded.
  */
 #define string_insert_withFormat(this, pos, format, ...)                                                     \
-string_replace_withFormat(this, pos, 0, format, __VA_ARGS__)
+        string_replace_withFormat(this, pos, 0, format, __VA_ARGS__)
 
 /**
  * Appends a format string @c format to this string.
@@ -638,7 +649,7 @@ string_replace_withFormat(this, pos, 0, format, __VA_ARGS__)
  * @return          Whether the operation succeeded.
  */
 #define string_append_withFormat(this, format, ...)                                                          \
-string_insert_withFormat(this, (this)->size, format, __VA_ARGS__)
+        string_insert_withFormat(this, (this)->size, format, __VA_ARGS__)
 
 /**
  * Creates a new string from the format string @c format .

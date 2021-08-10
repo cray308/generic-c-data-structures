@@ -36,11 +36,8 @@ unsigned char string_reserve(String *this, unsigned n) {
     return 1;
 }
 
-unsigned char string_replace(String *this,
-                             unsigned pos,
-                             unsigned nToReplace,
-                             char const *s,
-                             unsigned len) {
+unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace,
+                             char const *s, unsigned len) {
     unsigned end, n = this->size - pos;
     if (!(s && *s && len) || pos > this->size) return 1;
 
@@ -63,12 +60,10 @@ unsigned char string_replace(String *this,
     return 1;
 }
 
-unsigned char string_replace_fromString(String *this,
-                                        unsigned pos,
+unsigned char string_replace_fromString(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         String const *other,
-                                        unsigned subpos,
-                                        unsigned len) {
+                                        unsigned subpos, unsigned len) {
     unsigned l = other->size - subpos;
     if (subpos >= other->size || !len) return 1;
 
@@ -76,11 +71,9 @@ unsigned char string_replace_fromString(String *this,
     return string_replace(this, pos, nToReplace, &other->s[subpos], l);
 }
 
-unsigned char string_replace_repeatingChar(String *this,
-                                           unsigned pos,
+unsigned char string_replace_repeatingChar(String *this, unsigned pos,
                                            unsigned nToReplace,
-                                           unsigned n,
-                                           char c) {
+                                           unsigned n, char c) {
     unsigned end, n2r = this->size - pos;
     if (!n || pos > this->size) return 1;
 
@@ -160,10 +153,8 @@ void string_shrink_to_fit(String *this) {
     this->s = tmp;
 }
 
-unsigned string_find_first_of(String const *this,
-                              unsigned pos,
-                              char const *chars,
-                              unsigned n) {
+unsigned string_find_first_of(String const *this, unsigned pos,
+                              char const *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
@@ -183,10 +174,8 @@ unsigned string_find_first_of(String const *this,
     return STRING_NPOS;
 }
 
-unsigned string_find_last_of(String const *this,
-                             unsigned pos,
-                             char const *chars,
-                             unsigned n) {
+unsigned string_find_last_of(String const *this, unsigned pos,
+                             char const *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
@@ -206,10 +195,8 @@ unsigned string_find_last_of(String const *this,
     return STRING_NPOS;
 }
 
-unsigned string_find_first_not_of(String const *this,
-                                  unsigned pos,
-                                  char const *chars,
-                                  unsigned n) {
+unsigned string_find_first_not_of(String const *this, unsigned pos,
+                                  char const *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
@@ -231,10 +218,8 @@ unsigned string_find_first_not_of(String const *this,
     return STRING_NPOS;
 }
 
-unsigned string_find_last_not_of(String const *this,
-                                 unsigned pos,
-                                 char const *chars,
-                                 unsigned n) {
+unsigned string_find_last_not_of(String const *this, unsigned pos,
+                                 char const *chars, unsigned n) {
     char const *c, *end;
     if (pos >= this->size || !chars) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
@@ -256,10 +241,8 @@ unsigned string_find_last_not_of(String const *this,
     return STRING_NPOS;
 }
 
-unsigned string_find(String const *this,
-                     unsigned start_pos,
-                     char const *needle,
-                     unsigned len) {
+unsigned string_find(String const *this, unsigned start_pos,
+                     char const *needle, unsigned len) {
     const unsigned len_haystack = this->size - start_pos;
     unsigned res = STRING_NPOS, i = 0, j = 0;
     unsigned *table;
@@ -294,10 +277,8 @@ unsigned string_find(String const *this,
     return res;
 }
 
-unsigned string_rfind(String const *this,
-                      unsigned end_pos,
-                      char const *needle,
-                      unsigned len) {
+unsigned string_rfind(String const *this, unsigned end_pos,
+                      char const *needle, unsigned len) {
     unsigned res = STRING_NPOS, i, j, minIndex;
     unsigned *table;
     char *haystack = this->s;
@@ -346,10 +327,8 @@ unsigned string_rfind(String const *this,
     return res;
 }
 
-String *string_substr(String const *this,
-                      unsigned start,
-                      unsigned n,
-                      int step_size) {
+String *string_substr(String const *this, unsigned start,
+                      unsigned n, int step_size) {
     String *sub;
     char *const s = this->s;
     if ((start >= this->size || !n) || !(sub = string_new())) return NULL;
@@ -410,8 +389,7 @@ String **string_split(String const *this, char const *delim) {
                 if (!(temp = realloc(positions,
                                      arrLen * sizeof(unsigned)))) goto cleanup;
                 positions = temp;
-                memset(&positions[arrIdx + 1],
-                       0,
+                memset(&positions[arrIdx + 1], 0,
                        (arrLen - arrIdx + 1) * sizeof(unsigned));
             }
             positions[arrIdx++] = i - j;
@@ -500,8 +478,7 @@ char *str_read_format(unsigned *n, const char *format, va_list args) {
     return buf;
 }
 
-unsigned char string_replace_withFormat(String *this,
-                                        unsigned pos,
+unsigned char string_replace_withFormat(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         char const *format, ...) {
     va_list args;

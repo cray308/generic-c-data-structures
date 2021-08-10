@@ -14,7 +14,6 @@ void compareStrs(String *s, const char *comparison, unsigned size) {
         assert(*string_front(s) == comparison[0] && *string_back(s) == comparison[size-1]);
     } else {
         assert(string_empty(s));
-        assert(!string_front(s) && !string_back(s));
     }
     string_iter(s, it) {
         assert(*string_at(s, size - j) == comparison[i]);
