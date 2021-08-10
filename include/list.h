@@ -26,7 +26,8 @@
 
 
 /**
- * Advances the entry by @c n positions. A negative number means to move backwards.
+ * Advances the entry by @c n positions. A negative number means to move 
+ * backwards.
  *
  * @param  e  Address of @c ListEntry (i.e. @c ListEntry** ).
  * @param  n  Number of positions to advance.
@@ -38,10 +39,11 @@
  * Returns the number of elements between @c first and @c last .
  *
  * @param   first  @c ListEntry to start at.
- * @param   last   @c ListEntry to end at. This must be reachable in the forward direction by @c first .
+ * @param   last   @c ListEntry to end at. This must be reachable in the
+ *                  forward direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if @c last is not reachable, returns
- *                 -1.
+ * @return         Number of elements between @c first and @c last , or if
+ *                 @c last is not reachable, returns -1.
  */
 #define listEntry_distance(id, first, last)                                                                  \
         listEntry_distance_##id(first, last)
@@ -74,7 +76,8 @@
 /**
  * Macro for iterating over the list from front to back.
  *
- * @param  it  @c ListEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ * @param  it  @c ListEntry which is assigned to the current element. May be
+ *              dereferenced with @c it->data .
  */
 #define list_iter(this, it) for (it = (this)->front; it; it = (it)->next)
 
@@ -82,7 +85,8 @@
 /**
  * Macro for iterating over the list in reverse (from back to front).
  *
- * @param  it  @c ListEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ * @param  it  @c ListEntry which is assigned to the current element. May be
+ *              dereferenced with @c it->data .
  */
 #define list_riter(this, it) for (it = (this)->back; it; it = (it)->prev)
 
@@ -167,9 +171,9 @@
 
 
 /**
- * Resizes the list to a size of @c n . If this is less than the current size, all but the first @c n 
- * elements are removed. If this is greater than the current size, elements are appended to the list with a 
- * value of 0.
+ * Resizes the list to a size of @c n . If this is less than the current size, 
+ * all but the first @c n elements are removed. If this is greater than the 
+ * current size, elements are appended to the list with a value of 0.
  *
  * @param   n  The new list size.
  *
@@ -179,12 +183,15 @@
 
 
 /**
- * Resizes the list to a size of @c n . If this is less than the current size, all but the first @c n 
- * elements are removed. If this is greater than the current size, elements are appended to the list with a 
- * value of @c value .
+ * Resizes the list to a size of @c n . If this is less than the current size, 
+ * all but the first @c n elements are removed. If this is greater than the 
+ * current size, elements are appended to the list with a value of @c value .
  *
- * @param  n      The new list size.
- * @param  value  Value to hold in the new elements if @c n is greater than the current size.
+ * @param   n      The new list size.
+ * @param   value  Value to hold in the new elements if @c n is greater than
+ *                  the current size.
+ *
+ * @return         Whether the operation succeeded.
  */
 #define list_resize_usingValue(id, this, n, value)                                                           \
         list_resize_usingValue_##id(this, n, value)
@@ -224,8 +231,8 @@
 /**
  * Inserts @c value before @c pos .
  *
- * @param   pos     @c ListEntry before which the element should be inserted. If this is NULL, the element
- *                   is appended.
+ * @param   pos     @c ListEntry before which the element should be inserted.
+ *                   If this is NULL, the element is appended.
  * @param   value   Value to insert.
  *
  * @return          @c ListEntry corresponding to the inserted element.
@@ -237,13 +244,13 @@
 /**
  * Inserts @c n copies of @c value before @c pos .
  *
- * @param   pos     @c ListEntry before which the elements should be inserted. If this is NULL, the elements
- *                   are appended.
+ * @param   pos     @c ListEntry before which the elements should be inserted.
+ *                   If this is NULL, the elements are appended.
  * @param   n       Number of copies of @c value to insert.
  * @param   value   Value to insert.
  *
- * @return          If successful, returns a @c ListEntry corresponding to the first inserted element. If an
- *                  error occurred, returns NULL.
+ * @return          If successful, returns a @c ListEntry corresponding to the
+ *                  first inserted element. If an error occurred, returns NULL.
  */
 #define list_insert_repeatingValue(id, this, pos, n, value)                                                  \
         list_insert_repeatingValue_##id(this, pos, n, value)
@@ -252,29 +259,31 @@
 /**
  * Inserts @c n elements from the built-in array @c arr before @c pos .
  *
- * @param   pos  @c ListEntry before which the elements should be inserted. If this is NULL, the elements are
- *                appended.
+ * @param   pos  @c ListEntry before which the elements should be inserted. If
+ *                this is NULL, the elements are appended.
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
  *
- * @return       If successful, returns a @c ListEntry corresponding to the first inserted element. If an
- *               error occurred, returns NULL.
+ * @return       If successful, returns a @c ListEntry corresponding to the
+ *               first inserted element. If an error occurred, returns NULL.
  */
 #define list_insert_fromArray(id, this, pos, arr, n)                                                         \
         list_insert_fromArray_##id(this, pos, arr, n)
 
 
 /**
- * Inserts new elements from another @c List in the range [@c start , @c end ) before @c pos .
+ * Inserts new elements from another @c List in the range [@c start , @c end ) 
+ * before @c pos .
  *
- * @param   pos    @c ListEntry before which the elements should be inserted. If this is NULL, the elements
- *                  are appended.
+ * @param   pos    @c ListEntry before which the elements should be inserted.
+ *                  If this is NULL, the elements are appended.
  * @param   start  First @c ListEntry to insert. Must not be NULL.
- * @param   end    @c ListEntry after the last entry to insert. If this is NULL, all elements from @c start
- *                  through the end of the other list will be inserted.
+ * @param   end    @c ListEntry after the last entry to insert. If this is
+ *                  NULL, all elements from @c start through the end of the
+ *                  other list will be inserted.
  *
- * @return         If successful, returns a @c ListEntry corresponding to the first inserted element. If an
- *                 error occurred, returns NULL.
+ * @return         If successful, returns a @c ListEntry corresponding to the
+ *                 first inserted element. If an error occurred, returns NULL.
  */
 #define list_insert_fromList(id, this, pos, start, end)                                                      \
         list_insert_fromList_##id(this, pos, start, end)
@@ -285,8 +294,9 @@
  *
  * @param   pos  @c ListEntry to be removed.
  *
- * @return       If successful, returns a @c ListEntry corresponding to the element that was after @c pos ;
- *               if @c pos was the last element in the list, this is @c LIST_END . If an error occurred,
+ * @return       If successful, returns a @c ListEntry corresponding to the
+ *               element that was after @c pos ; if @c pos was the last element
+ *               in the list, this is @c LIST_END . If an error occurred,
  *               returns NULL.
  */
 #define list_remove(id, this, pos)                                                                           \
@@ -297,11 +307,13 @@
  * Erases elements within the range [@c first , @c last ).
  *
  * @param   first  First @c ListEntry to be removed - must be provided.
- * @param   last   @c ListEntry after the last entry to be deleted. If this is NULL, all elements from
- *                  @c first through the end of the list will be removed.
+ * @param   last   @c ListEntry after the last entry to be deleted. If this is
+ *                  NULL, all elements from @c first through the end of the
+ *                  list will be removed.
  *
- * @return         If successful, returns a @c ListEntry corresponding to the element after the last deleted
- *                 element; if the last deleted element was the last element in the list, this is
+ * @return         If successful, returns a @c ListEntry corresponding to the
+ *                 element after the last deleted element; if the last deleted
+ *                 element was the last element in the list, this is
  *                 @c LIST_END . If an error occurred, returns NULL.
  */
 #define list_erase(id, this, first, last) list_erase_##id(this, first, last)
@@ -322,7 +334,8 @@
 /**
  * Removes any elements satisfying @c condition .
  *
- * @param  condition  Function pointer to check if an element meets the condition.
+ * @param  condition  Function pointer to check if an element meets the
+ *                     condition.
  */
 #define list_remove_if(id, this, condition)                                                                  \
         list_remove_if_##id(this, condition)
@@ -331,8 +344,9 @@
 /**
  * Moves all elements from @c other into this list before @c pos .
  *
- * @param  pos    @c ListEntry in this list before which elements in @c other will be moved. If this is NULL,
- *                 elements from @c other will be appended to this list.
+ * @param  pos    @c ListEntry in this list before which elements in @c other
+ *                 will be moved. If this is NULL, elements from @c other will
+ *                 be appended to this list.
  * @param  other  Other @c List from which elements will be moved.
  */
 #define list_splice(id, this, pos, other)                                                                    \
@@ -342,8 +356,8 @@
 /**
  * Moves @c entry from @c other into this list before @c pos .
  *
- * @param  pos    @c ListEntry in this list before which @c entry will be moved. If this is NULL, @c entry is
- *                 appended to this list.
+ * @param  pos    @c ListEntry in this list before which @c entry will be
+ *                 moved. If this is NULL, @c entry is appended to this list.
  * @param  other  Other @c List from which @c entry will be moved.
  * @param  entry  @c ListEntry to move.
  */
@@ -353,14 +367,17 @@
 
 
 /**
- * Moves elements from @c other in the range [@c first , @c last ) into this list before @c pos .
+ * Moves elements from @c other in the range [@c first , @c last ) into this 
+ * list before @c pos .
  *
- * @param  pos    @c ListEntry in this list before which elements in @c other will be moved. If this is NULL,
- *                 elements from @c other will be appended to this list.
+ * @param  pos    @c ListEntry in this list before which elements in @c other
+ *                 will be moved. If this is NULL, elements from @c other will
+ *                 be appended to this list.
  * @param  other  Other @c List from which elements will be moved.
  * @param  first  First @c ListEntry from @c other to move.
- * @param  last   @c ListEntry after the last entry in @c other to move. If this is NULL, all entries from
- *                 @c first through the end of @c other are moved.
+ * @param  last   @c ListEntry after the last entry in @c other to move. If
+ *                 this is NULL, all entries from @c first through the end of
+ *                 @c other are moved.
  */
 #define list_splice_range(id, this, pos, other, first, last)                                                 \
         list_splice_range_##id(this, pos, other, first, last)
@@ -369,8 +386,9 @@
 /**
  * Generates @c List function declarations for the specified type and ID.
  *
- * @param  id           ID to be used for the @c List and @c ListEntry types (must be unique).
- * @param  t            Type to be stored in the list.
+ * @param  id  ID to be used for the @c List and @c ListEntry types (must be
+ *              unique).
+ * @param  t   Type to be stored in the list.
  */
 #define gen_list_headers(id, t)                                                                              \
                                                                                                              \
@@ -420,16 +438,19 @@ void list_splice_range_##id(List_##id *this,                                    
  *
  * @param  id           ID used in @c gen_list_headers .
  * @param  t            Type used in @c gen_list_headers .
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the list.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
- *                       dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
- *                         @c DSDefault_deepDelete here.
+ * @param  copyValue    Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the element in the list.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form @c (x) which is a complement to
+ *                       @c copyValue ; if memory was dynamically allocated in
+ *                       @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_list_source(id, t, copyValue, deleteValue)                                                       \
                                                                                                              \
@@ -738,7 +759,8 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Scans the list and removes any adjacent elements that compare equal to the preceding element.
+ * Scans the list and removes any adjacent elements that compare equal to the 
+ * preceding element.
  * 
  * Example:
  *     Input : [1, 2, 2, 2, 3, 3]
@@ -760,15 +782,16 @@ void list_splice_range_##id(List_##id *this,                                    
  *
  * @param   value  Value to search for.
  *
- * @return         If @c value was found, returns a @c ListEntry corresponding to that element. If it was not
- *                 found, returns NULL.
+ * @return         If @c value was found, returns a @c ListEntry corresponding
+ *                 to that element. If it was not found, returns NULL.
  */
 #define list_find(id, this, value) list_find_##id(this, value)
 
 
 /**
- * Merges @c other into this list, both of which must be in sorted order prior to this operation. @c other 
- * is left with a size of 0, and this list grows by as many elements as @c other previously contained.
+ * Merges @c other into this list, both of which must be in sorted order prior 
+ * to this operation. @c other is left with a size of 0, and this list grows 
+ * by as many elements as @c other previously contained.
  *
  * @param  other  Other @c List , which will be merged with this list.
  */
@@ -776,7 +799,8 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Sorts the list according to the @c cmp_lt macro provided in @c gen_list_source .
+ * Sorts the list according to the @c cmp_lt macro provided in 
+ * @c gen_list_source .
  * 
  * Time complexity: approx. O(n * log(n))
  */
@@ -784,8 +808,8 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Creates a new @c List representing the union of this list and @c other (i.e. elements that are in this 
- * list, @c other , or both - all elements).
+ * Creates a new @c List representing the union of this list and @c other 
+ * (i.e. elements that are in this list, @c other , or both - all elements).
  *
  * @param   other   Second @c List .
  *
@@ -795,8 +819,8 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Creates a new @c List representing the intersection of this list and @c other (i.e. all elements that 
- * both lists have in common).
+ * Creates a new @c List representing the intersection of this list and 
+ * @c other (i.e. all elements that both lists have in common).
  *
  * @param   other   Second @c List .
  *
@@ -806,8 +830,8 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Creates a new @c List representing the difference of this list and @c other (i.e. all elements that are 
- * unique to this list).
+ * Creates a new @c List representing the difference of this list and @c other 
+ * (i.e. all elements that are unique to this list).
  *
  * @param   other   Second @c List .
  *
@@ -817,8 +841,8 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Creates a new @c List representing the symmetric difference of this list and @c other (i.e. all elements 
- * that neither list has in common).
+ * Creates a new @c List representing the symmetric difference of this list 
+ * and @c other (i.e. all elements that neither list has in common).
  *
  * @param   other   Second @c List .
  *
@@ -839,10 +863,11 @@ void list_splice_range_##id(List_##id *this,                                    
 
 
 /**
- * Generates @c List function definitions for the specified type and ID, including set, sorting, and 
- * comparison functions.
+ * Generates @c List function definitions for the specified type and ID, 
+ * including set, sorting, and comparison functions.
  *
- * @param  id  ID to be used for the @c List and @c ListEntry types (must be unique).
+ * @param  id  ID to be used for the @c List and @c ListEntry types (must be
+ *              unique).
  * @param  t   Type to be stored in the list.
  */
 #define gen_list_headers_withAlg(id, t)                                                                      \
@@ -866,22 +891,26 @@ void list_sort_##id(List_##id *this);                                           
 
 
 /**
- * Generates @c List function definitions for the specified type and ID, including set, sorting, and 
- * comparison functions.
+ * Generates @c List function definitions for the specified type and ID, 
+ * including set, sorting, and comparison functions.
  *
  * @param  id           ID used in @c gen_list_headers_withAlg .
  * @param  t            Type used in @c gen_list_headers_withAlg .
- * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the list.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
- *                       dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
- *                         @c DSDefault_deepDelete here.
+ * @param  cmp_lt       Macro of the form @c (x,y) that returns whether @c x is
+ *                       strictly less than @c y .
+ * @param  copyValue    Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the element in the list.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form @c (x) which is a complement to
+ *                       @c copyValue ; if memory was dynamically allocated in
+ *                       @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_list_source_withAlg(id, t, cmp_lt, copyValue, deleteValue)                                       \
                                                                                                              \

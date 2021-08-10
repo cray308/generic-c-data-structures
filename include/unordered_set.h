@@ -98,10 +98,12 @@
 
 
 /**
- * Inserts @c value into the set, and updates @c inserted with the result of insertion.
+ * Inserts @c value into the set, and updates @c inserted with the result of 
+ * insertion.
  *
  * @param  value     Value to insert.
- * @param  inserted  Set to 1 if the value was newly inserted, or 0 if the value was already a member.
+ * @param  inserted  Set to 1 if the value was newly inserted, or 0 if the
+ *                    value was already a member.
  */
 #define uset_insert_withResult(id, this, value, inserted)                                                    \
         __htable_insert_##id(this, value, inserted)
@@ -131,7 +133,8 @@
 
 
 /**
- * Removes a single element from the set whose value is equal to @c value , if it exists.
+ * Removes a single element from the set whose value is equal to @c value , if 
+ * it exists.
  *
  * @param  value  Value to be deleted.
  */
@@ -139,8 +142,8 @@
 
 
 /**
- * Changes the number of buckets in the set to @c nbuckets . If this is less than or equal to the current 
- * number of buckets, nothing is done.
+ * Changes the number of buckets in the set to @c nbuckets . If this is less 
+ * than or equal to the current number of buckets, nothing is done.
  *
  * @param   nbuckets  New number of buckets to use in the set.
  *
@@ -150,7 +153,8 @@
 
 
 /**
- * If it is reasonable, sets the maximum load factor to @c lf , and may rehash the set if required.
+ * If it is reasonable, sets the maximum load factor to @c lf , and may rehash 
+ * the set if required.
  *
  * @param   lf  The new load factor to use.
  *
@@ -181,24 +185,33 @@
  *
  * @param  id           ID used in @c gen_uset_headers .
  * @param  t            Type used in @c gen_uset_headers .
- * @param  cmp_eq       Macro of the form (x, y) that returns whether x is equal to y.
- * @param  addrOfValue  Macro of the form (x) that returns a pointer to x.
- *                        - For value types (i.e. int) pass @c DSDefault_addrOfVal .
+ * @param  cmp_eq       Macro of the form @c (x,y) that returns whether @c x is
+ *                       equal to @c y .
+ * @param  addrOfValue  Macro of the form @c (x) that returns a pointer to
+ *                       @c x .
+ *                        - For value types (i.e. int) pass
+ *                         @c DSDefault_addrOfVal .
  *                        - For pointer types, pass @c DSDefault_addrOfRef .
- * @param  sizeOfValue  Macro of the form (x) that returns the number of bytes in x, where x is an element
- *                       in the set. This is necessary so that the hashing function works correctly.
- *                        - For value types (i.e. int), pass @c DSDefault_sizeOfVal .
- *                        - For a string (char *), pass @c DSDefault_sizeOfStr .
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
- *                       dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
- *                         @c DSDefault_deepDelete here.
+ * @param  sizeOfValue  Macro of the form @c (x) that returns the number of
+ *                       bytes in @c x , an element in the set. This is
+ *                       necessary so that the hashing function works
+ *                       correctly.
+ *                        - For value types (i.e. int), pass
+ *                         @c DSDefault_sizeOfVal .
+ *                        - For a string (char*), pass @c DSDefault_sizeOfStr .
+ * @param  copyValue    Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the element in the set.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form @c (x) which is a complement to
+ *                       @c copyValue ; if memory was dynamically allocated in
+ *                       @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_uset_source(id, t, cmp_eq, addrOfValue, sizeOfValue,                                             \
                         copyValue, deleteValue)                                                              \

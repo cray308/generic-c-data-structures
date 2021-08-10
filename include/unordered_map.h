@@ -59,7 +59,8 @@
 
 
 /**
- * Creates a new map using @c n key-value pairs in a built-in array @c arr containing type @c Pair .
+ * Creates a new map using @c n key-value pairs in a built-in array @c arr 
+ * containing type @c Pair .
  *
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
@@ -88,7 +89,8 @@
 
 
 /**
- * Inserts @c pair into the map. If the key already exists, the value is updated to that of @c pair .
+ * Inserts @c pair into the map. If the key already exists, the value is 
+ * updated to that of @c pair .
  *
  * @param  pair  Key-value pair of type @c Pair to insert.
  *
@@ -98,11 +100,13 @@
 
 
 /**
- * Inserts @c pair into the map, and updates @c inserted with the result of insertion. If the key already 
- * exists, the value is updated to that of @c pair .
+ * Inserts @c pair into the map, and updates @c inserted with the result of 
+ * insertion. If the key already exists, the value is updated to that of 
+ * @c pair .
  *
  * @param   pair      Key-value pair of type @c Pair to insert.
- * @param   inserted  Pointer to int which is set to 1 if a new pair was inserted, or 0 if not.
+ * @param   inserted  Pointer to int which is set to 1 if a new pair was
+ *                     inserted, or 0 if not.
  *
  * @return            Pointer to the inserted pair.
  */
@@ -111,7 +115,8 @@
 
 
 /**
- * Inserts @c n key-value pairs from a built-in array @c arr containing type @c Pair .
+ * Inserts @c n key-value pairs from a built-in array @c arr containing type 
+ * @c Pair .
  *
  * @param   arr  Pointer to the first element to insert.
  * @param   n    Number of elements to include.
@@ -127,13 +132,15 @@
  *
  * @param  k   Key to find.
  *
- * @return     Pointer to @c Pair whose key matches @c k , or NULL if it was not found.
+ * @return     Pointer to @c Pair whose key matches @c k , or NULL if it was
+ *             not found.
  */
 #define umap_find(id, this, k) __htable_find_##id(this, k)
 
 
 /**
- * Similar to @c umap_find , but returns a pointer to the pair's value rather than to the pair as a whole.
+ * Similar to @c umap_find , but returns a pointer to the pair's value rather 
+ * than to the pair as a whole.
  *
  * @param  k  Key to find.
  */
@@ -149,8 +156,8 @@
 
 
 /**
- * Changes the number of buckets in the map to @c nbuckets . If this is less than or equal to the current 
- * number of buckets, nothing is done.
+ * Changes the number of buckets in the map to @c nbuckets . If this is less 
+ * than or equal to the current number of buckets, nothing is done.
  *
  * @param   nbuckets  New number of buckets to use in the map.
  *
@@ -160,7 +167,8 @@
 
 
 /**
- * If it is reasonable, sets the maximum load factor to @c lf , and may rehash the map if required.
+ * If it is reasonable, sets the maximum load factor to @c lf , and may rehash 
+ * the map if required.
  *
  * @param   lf  The new load factor to use.
  *
@@ -177,9 +185,11 @@
 
 
 /**
- * Generates @c UMap function declarations for the given key type and value type.
+ * Generates @c UMap function declarations for the given key type and value 
+ * type.
  *
- * @param  id  ID to be used for the @c UMap and @c Pair types (must be unique).
+ * @param  id  ID to be used for the @c UMap and @c Pair types (must be
+ *              unique).
  * @param  kt  Key type.
  * @param  vt  Value type.
  */
@@ -201,34 +211,45 @@ vt *umap_at_##id(UMap_##id const *this, const kt key);                          
  * @param  id           ID used in @c gen_umap_headers .
  * @param  kt           Key type used in @c gen_umap_headers .
  * @param  vt           Value type used in @c gen_umap_headers .
- * @param  cmp_eq       Macro of the form (x, y) that returns whether x is equal to y.
- * @param  addrOfKey    Macro of the form (x) that returns a pointer to x.
- *                        - For value types (i.e. int) pass @c DSDefault_addrOfVal .
+ * @param  cmp_eq       Macro of the form @c (x,y) that returns whether @c x is
+ *                       equal to @c y .
+ * @param  addrOfKey    Macro of the form @c (x) that returns a pointer to
+ *                       @c x .
+ *                        - For value types (i.e. int) pass
+ *                         @c DSDefault_addrOfVal .
  *                        - For pointer types, pass @c DSDefault_addrOfRef .
- * @param  sizeOfKey    Macro of the form (x) that returns the number of bytes in x, where x is a key for the
- *                       map. This is necessary so that the hashing function works correctly.
- *                        - For value types (i.e. int), pass @c DSDefault_sizeOfVal .
- *                        - For a string (char *), pass @c DSDefault_sizeOfStr .
- * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the key is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was
- *                       dynamically allocated in @c copyKey , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass
- *                         @c DSDefault_deepDelete here.
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
- *                       dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr  was used in @c copyValue , pass
- *                         @c DSDefault_deepDelete here.
+ * @param  sizeOfKey    Macro of the form (x) that returns the number of bytes
+ *                       in @c x , a key for the map. This is necessary so that
+ *                       the hashing function works correctly.
+ *                        - For value types (i.e. int), pass
+ *                         @c DSDefault_sizeOfVal .
+ *                        - For a string (char*), pass @c DSDefault_sizeOfStr .
+ * @param  copyKey      Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the pair's key in the map.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the key is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteKey    Macro of the form @c (x) which is a complement to
+ *                       @c copyKey ; if memory was dynamically allocated in
+ *                       @c copyKey , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                        @c copyKey , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyKey , pass @c DSDefault_deepDelete here.
+ * @param  copyValue    Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the pair's value in the map.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form @c (x) which is a complement to
+ *                       @c copyValue ; if memory was dynamically allocated in
+ *                       @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr  was used in
+ *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey,                                            \
                         copyKey, deleteKey, copyValue, deleteValue)                                          \

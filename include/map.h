@@ -27,9 +27,10 @@
 
 
 /**
- * Advances the entry by @c n positions. A negative number means to move backwards.
+ * Advances the entry by @c n positions. A negative number means to move 
+ * backwards.
  *
- * @param  e  Address of @c MapEntry (i.e. MapEntry **).
+ * @param  e  Address of MapEntry (i.e. @c MapEntry** ).
  * @param  n  Number of positions to advance.
  */
 #define mapEntry_advance(id, e, n) __avlEntry_advance_##id(e, n)
@@ -39,10 +40,11 @@
  * Returns the number of elements between @c first and @c last .
  *
  * @param   first  @c MapEntry to start at.
- * @param   last   @c MapEntry to end at. This must be reachable in the forward direction by @c first .
+ * @param   last   @c MapEntry to end at. This must be reachable in the forward
+ *                  direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if @c last is not reachable, returns
- *                 -1.
+ * @return         Number of elements between @c first and @c last , or if
+ *                 @c last is not reachable, returns -1.
  */
 #define mapEntry_distance(id, first, last)                                                                   \
         __avlEntry_distance_##id(first, last)
@@ -75,7 +77,8 @@
 /**
  * Iterates through the map in-order.
  *
- * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ * @param  it  @c MapEntry which is assigned to the current element. May be
+ *              dereferenced with @c it->data .
  */
 #define map_iter(id, this, it)                                                                               \
         for (it = map_iterator_begin(id, this); it;                                                          \
@@ -84,7 +87,8 @@
 /**
  * Iterates through the map in reverse order.
  *
- * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ * @param  it  @c MapEntry which is assigned to the current element. May be
+ *              dereferenced with @c it->data .
  */
 #define map_riter(id, this, it)                                                                              \
         for (it = map_iterator_rbegin(id, this); it;                                                         \
@@ -156,14 +160,15 @@
  *
  * @param   k  Key to find.
  *
- * @return     @c MapEntry whose key matches @c k , or NULL if it was not found.
+ * @return     @c MapEntry whose key matches @c k , or NULL if it was not
+ *             found.
  */
 #define map_find(id, this, k) __avltree_find_key_##id(this, k, 0)
 
 
 /**
- * Similar to @c map_find , but returns a pointer to the pair's value rather than to the entry iterator as a 
- * whole.
+ * Similar to @c map_find , but returns a pointer to the pair's value rather 
+ * than to the entry iterator as a whole.
  *
  * @param  k  Key to find.
  */
@@ -171,7 +176,8 @@
 
 
 /**
- * Inserts @c pair into the map. If the key already exists, the value is updated to that of @c pair .
+ * Inserts @c pair into the map. If the key already exists, the value is 
+ * updated to that of @c pair .
  *
  * @param   pair  Key-value pair of type @c Pair to insert.
  *
@@ -181,11 +187,13 @@
 
 
 /**
- * Inserts @c pair into the map, and updates @c inserted with the result of insertion. If the key already 
- * exists, the value is updated to that of @c pair .
+ * Inserts @c pair into the map, and updates @c inserted with the result of 
+ * insertion. If the key already exists, the value is updated to that of 
+ * @c pair .
  *
  * @param   pair      Key-value pair of type @c Pair to insert.
- * @param   inserted  Set to 1 if the pair was newly inserted, or 0 if the key already existed.
+ * @param   inserted  Set to 1 if the pair was newly inserted, or 0 if the key
+ *                     already existed.
  *
  * @return            @c MapEntry corresponding to the inserted pair.
  */
@@ -209,8 +217,9 @@
  * Inserts elements from another map in the range [@c start , @c end ).
  *
  * @param   start  First @c MapEntry to insert. Must not be NULL.
- * @param   end    @c MapEntry after the last entry to insert. If this is NULL, all keys from @c start
- *                  through the greatest key in the other map will be inserted.
+ * @param   end    @c MapEntry after the last entry to insert. If this is NULL,
+ *                  all keys from @c start through the greatest key in the
+ *                  other map will be inserted.
  *
  * @return         Whether the operation succeeded.
  */
@@ -222,8 +231,9 @@
  * Removes key-value pairs in the range [@c begin , @c end ).
  *
  * @param  begin  First @c MapEntry to erase.
- * @param  end    @c MapEntry after the last entry to be deleted. If this is NULL, then all keys from
- *                 @c begin through the greatest key in the map will be removed.
+ * @param  end    @c MapEntry after the last entry to be deleted. If this is
+ *                 NULL, all keys from @c begin through the greatest key in the
+ *                 map will be removed.
  */
 #define map_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -248,9 +258,11 @@
 
 
 /**
- * Generates @c Map function declarations for the given key type and value type.
+ * Generates @c Map function declarations for the given key type and value 
+ * type.
  *
- * @param  id  ID to be used for the @c Map , @c MapEntry , and @c Pair types (must be unique).
+ * @param  id  ID to be used for the @c Map , @c MapEntry , and @c Pair types
+ *              (must be unique).
  * @param  kt  Key type.
  * @param  vt  Value type.
  */
@@ -269,30 +281,37 @@ vt *map_at_##id(Map_##id const *this, const kt key);                            
 /**
  * Generates @c Map function definitions for the given key type and value type.
  *
- * @param  id           ID used in @ gen_map_headers .
- * @param  kt           Key type used in @ gen_map_headers .
- * @param  vt           Value type used in @ gen_map_headers .
- * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
- * @param  copyKey      Macro of the form (x, y) which copies y into x to store the pair's key in the map.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the key is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteKey    Macro of the form (x), which is a complement to @c copyKey ; if memory was
- *                       dynamically allocated in @c copyKey , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyKey , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyKey , pass
- *                         @c DSDefault_deepDelete here.
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the pair's value in the map.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
- *                       dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
- *                         @c DSDefault_deepDelete here.
+ * @param  id           ID used in @c gen_map_headers .
+ * @param  kt           Key type used in @c gen_map_headers .
+ * @param  vt           Value type used in @c gen_map_headers .
+ * @param  cmp_lt       Macro of the form @c (x,y) that returns whether @c x is
+ *                       strictly less than @c y .
+ * @param  copyKey      Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the pair's key in the map.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the key is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteKey    Macro of the form @c (x) which is a complement to
+ *                       @c copyKey ; if memory was dynamically allocated in
+ *                       @c copyKey , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyKey , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyKey , pass @c DSDefault_deepDelete here.
+ * @param  copyValue    Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the pair's value in the map.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form @c (x) which is a complement to
+ *                       @c copyValue ; if memory was dynamically allocated in
+ *                       @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_map_source(id, kt, vt, cmp_lt, copyKey, deleteKey, copyValue,                                    \
                        deleteValue)                                                                          \

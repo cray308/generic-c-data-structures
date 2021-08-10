@@ -17,7 +17,8 @@
 
 
 /**
- * Searches for @c val in an array @c a . The array must have been sorted prior to calling this function.
+ * Searches for @c val in an array @c a . The array must have been sorted 
+ * prior to calling this function.
  *
  * @param   a    Start of array.
  * @param   n    Number of elements in the array.
@@ -38,7 +39,8 @@
 
 
 /**
- * Sorts a heap in the range [@c first , @c last ), so that elements are ordered from smallest to largest.
+ * Sorts a heap in the range [@c first , @c last ), so that elements are 
+ * ordered from smallest to largest.
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.
@@ -47,8 +49,8 @@
 
 
 /**
- * Extends a heap in the range [@c first , @c last-1 ) to [@c first , @c last ) (the element in position 
- * @c last-1 is pushed).
+ * Extends a heap in the range [@c first , @c last-1 ) to 
+ * [@c first , @c last ) (the element in position @c last-1 is pushed).
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.
@@ -57,8 +59,8 @@
 
 
 /**
- * Shrinks a heap in the range [@c first , @c last ) to [@c first , @c last-1 ) (the element in position 
- * @c first is popped).
+ * Shrinks a heap in the range [@c first , @c last ) to 
+ * [@c first , @c last-1 ) (the element in position @c first is popped).
  *
  * @param  first  Pointer to first index in the heap.
  * @param  last   Pointer to last index in the heap.
@@ -67,10 +69,11 @@
 
 
 /**
- * Generates algorithm function declarations for the specified type, to be used with built-in or dynamic 
- * arrays.
+ * Generates algorithm function declarations for the specified type, to be 
+ * used with built-in or dynamic arrays.
  *
- * @param  id  ID to be used for the data type used in these functions (must be unique).
+ * @param  id  ID to be used for the data type used in these functions (must be
+ *              unique).
  * @param  t   Type to be stored in the array.
  */
 #define gen_alg_headers(id, t)                                                                               \
@@ -88,7 +91,8 @@ void ds_pop_heap_##id(t* first, t* last);                                       
  *
  * @param  id      ID used in @c gen_alg_headers .
  * @param  t       Type used in @c gen_alg_headers .
- * @param  cmp_lt  Macro of the form (x, y) that returns whether x is strictly less than y.
+ * @param  cmp_lt  Macro of the form @c (x,y) that returns whether @c x is
+ *                  strictly less than @c y .
  */
 #define gen_alg_source(id, t, cmp_lt)                                                                        \
                                                                                                              \

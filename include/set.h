@@ -21,7 +21,8 @@
 
 
 /**
- * Returns the previous @c SetEntry in terms of increasing values, if it exists.
+ * Returns the previous @c SetEntry in terms of increasing values, if it 
+ * exists.
  *
  * @param  e  @c SetEntry to use.
  */
@@ -29,7 +30,8 @@
 
 
 /**
- * Advances the entry by @c n positions. A negative number means to move backwards.
+ * Advances the entry by @c n positions. A negative number means to move 
+ * backwards.
  *
  * @param  e  Address of @c SetEntry (i.e. @c SetEntry** ).
  * @param  n  Number of positions to advance.
@@ -41,10 +43,11 @@
  * Returns the number of elements between @c first and @c last .
  *
  * @param   first  @c SetEntry to start at.
- * @param   last   @c SetEntry to end at. This must be reachable in the forward direction by @c first .
+ * @param   last   @c SetEntry to end at. This must be reachable in the forward
+ *                  direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if @c last is not reachable, returns
- *                 -1.
+ * @return         Number of elements between @c first and @c last , or if
+ *                 @c last is not reachable, returns -1.
  */
 #define setEntry_distance(id, first, last)                                                                   \
         __avlEntry_distance_##id(first, last)
@@ -77,17 +80,19 @@
 /**
  * Iterates through the set in-order.
  *
- * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ * @param  it  @c SetEntry which is assigned to the current element. May be
+ *              dereferenced with @c it->data .
  */
 #define set_iter(id, this, it)                                                                               \
-        for (it = set_iterator_begin(id, this); it != set_iterator_end();                                                          \
+        for (it = set_iterator_begin(id, this); it != set_iterator_end();                                    \
              it = setEntry_getNext(id, it))
 
 
 /**
  * Iterates through the set in reverse order.
  *
- * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ * @param  it  @c SetEntry which is assigned to the current element. May be
+ *              dereferenced with @c it->data .
  */
 #define set_riter(id, this, it)                                                                              \
         for (it = set_iterator_rbegin(id, this); it;                                                         \
@@ -186,10 +191,12 @@
 
 
 /**
- * Inserts @c value into the set, and updates @c inserted with the result of insertion.
+ * Inserts @c value into the set, and updates @c inserted with the result of 
+ * insertion.
  *
  * @param   value     Value to insert.
- * @param   inserted  Set to 1 if the value was newly inserted, or 0 if the value was already a member.
+ * @param   inserted  Set to 1 if the value was newly inserted, or 0 if the
+ *                     value was already a member.
  *
  * @return            @c SetEntry corresponding to the inserted value.
  */
@@ -213,8 +220,9 @@
  * Inserts elements from another set in the range [@c start , @c end ).
  *
  * @param   start  First @c SetEntry to insert. Must not be NULL.
- * @param   end    @c SetEntry after the last entry to insert. If this is NULL, all elements from @c start
- *                  through the end (greatest element) of the other set will be inserted.
+ * @param   end    @c SetEntry after the last entry to insert. If this is NULL,
+ *                  all elements from @c start through the end (greatest
+ *                  element) of the other set will be inserted.
  *
  * @return         Whether the operation succeeded.
  */
@@ -226,8 +234,9 @@
  * Erases elements in the range [@c begin , @c end ).
  *
  * @param  begin  First @c SetEntry to erase.
- * @param  end    @c SetEntry after the last entry to be deleted. If this is NULL, all elements from @c begin
- *                 through the greatest element in the set will be removed.
+ * @param  end    @c SetEntry after the last entry to be deleted. If this is
+ *                 NULL, all elements from @c begin through the greatest
+ *                 element in the set will be removed.
  */
 #define set_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -252,8 +261,8 @@
 
 
 /**
- * Returns a @c Set with the union of this set and @c other (i.e. elements that are in this set, @c other , 
- * or both - all elements).
+ * Returns a @c Set with the union of this set and @c other (i.e. elements 
+ * that are in this set, @c other , or both - all elements).
  *
  * @param   other  Pointer to the other set.
  *
@@ -263,8 +272,8 @@
 
 
 /**
- * Returns a @c Set with the intersection of this set and @c other (i.e. all elements that both sets have in 
- * common).
+ * Returns a @c Set with the intersection of this set and @c other (i.e. all 
+ * elements that both sets have in common).
  *
  * @param   other  Pointer to the other set.
  *
@@ -274,8 +283,8 @@
 
 
 /**
- * Returns a @c Set with the difference of this set and @c other (i.e. all elements that are unique to this 
- * set).
+ * Returns a @c Set with the difference of this set and @c other (i.e. all 
+ * elements that are unique to this set).
  *
  * @param   other  Pointer to the other set.
  *
@@ -285,8 +294,8 @@
 
 
 /**
- * Returns a @c Set with the symmetric difference of this set and @c other (i.e. all elements that neither 
- * set has in common).
+ * Returns a @c Set with the symmetric difference of this set and @c other 
+ * (i.e. all elements that neither set has in common).
  *
  * @param   other  Pointer to the other set.
  *
@@ -297,7 +306,8 @@
 
 
 /**
- * Tests whether this set is a subset of @c other (i.e. whether each element in this subset is in @c other ).
+ * Tests whether this set is a subset of @c other (i.e. whether each element 
+ * in this subset is in @c other ).
  *
  * @param   other  Pointer to the other set.
  *
@@ -307,8 +317,8 @@
 
 
 /**
- * Tests whether this set is a superset of @c other (i.e. whether this set contains each element from 
- * @c other - the inverse of a subset).
+ * Tests whether this set is a superset of @c other (i.e. whether this set 
+ * contains each element from @c other - the inverse of a subset).
  *
  * @param   other  Pointer to the other set.
  *
@@ -318,7 +328,8 @@
 
 
 /**
- * Tests whether this set is disjoint with @c other (i.e. if the sets have no elements in common).
+ * Tests whether this set is disjoint with @c other (i.e. if the sets have no 
+ * elements in common).
  *
  * @param   other  Pointer to the other set.
  *
@@ -330,7 +341,8 @@
 /**
  * Generates @c Set function declarations for the given value type.
  *
- * @param  id           ID to be used for the @c Set and @c SetEntry types (must be unique).
+ * @param  id           ID to be used for the @c Set and @c SetEntry types (must be
+ *                       unique).
  * @param  t            Type to be stored in the set.
  */
 #define gen_set_headers(id, t)                                                                               \
@@ -351,17 +363,21 @@ unsigned char set_disjoint_##id(Set_##id const *this, Set_##id const *other);   
  *
  * @param  id           ID used in @c gen_set_headers .
  * @param  t            Type used in @c gen_set_headers .
- * @param  cmp_lt       Macro of the form (x, y) that returns whether x is strictly less than y.
- * @param  copyValue    Macro of the form (x, y) which copies y into x to store the element in the set.
- *                        - If no special copying is required, pass @c DSDefault_shallowCopy .
- *                        - If the value is a string which should be deep-copied, pass
- *                         @c DSDefault_deepCopyStr .
- * @param  deleteValue  Macro of the form (x), which is a complement to @c copyValue ; if memory was
- *                       dynamically allocated in @c copyValue , it should be freed here.
- *                        - If @c DSDefault_shallowCopy was used in @c copyValue , pass
- *                         @c DSDefault_shallowDelete here.
- *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
- *                         @c DSDefault_deepDelete here.
+ * @param  cmp_lt       Macro of the form @c (x,y) that returns whether @c x is
+ *                       strictly less than @c y .
+ * @param  copyValue    Macro of the form @c (x,y) which copies @c y into @c x
+ *                       to store the element in the set.
+ *                        - If no special copying is required, pass
+ *                         @c DSDefault_shallowCopy .
+ *                        - If the value is a string which should be
+ *                         deep-copied, pass @c DSDefault_deepCopyStr .
+ * @param  deleteValue  Macro of the form @c (x) which is a complement to
+ *                       @c copyValue ; if memory was dynamically allocated in
+ *                       @c copyValue , it should be freed here.
+ *                        - If @c DSDefault_shallowCopy was used in
+ *                         @c copyValue , pass @c DSDefault_shallowDelete here.
+ *                        - If @c DSDefault_deepCopyStr was used in
+ *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
 #define gen_set_source(id, t, cmp_lt, copyValue, deleteValue)                                                \
                                                                                                              \
