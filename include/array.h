@@ -90,7 +90,7 @@
  * Pointer to the last element in the array. The array should be non-empty when using this macro.
  */
 #define array_back(this)                                                                                     \
-        ((this)->size ? &(this)->arr[(this)->size - 1] : &(this)->arr[0])
+        ((this)->size ? &(this)->arr[(this)->size - 1] : &(this)->arr[-1])
 
 
 /**

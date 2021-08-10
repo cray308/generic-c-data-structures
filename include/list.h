@@ -56,7 +56,7 @@
 /**
  * The ending point for iterating over elements in forward order.
  */
-#define list_iterator_end(this) NULL
+#define list_iterator_end() NULL
 
 
 /**
@@ -68,7 +68,7 @@
 /**
  * The ending point for iterating over elements in reverse order.
  */
-#define list_iterator_rend(this) NULL
+#define list_iterator_rend() NULL
 
 
 /**

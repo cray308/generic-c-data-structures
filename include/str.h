@@ -112,16 +112,18 @@ typedef struct {
 
 
 /**
- * Char pointer to the front of the string.
+ * Char pointer to the front of the string. The string should be non-empty 
+ * when using this macro.
  */
 #define string_front(this) &(this)->s[0]
 
 
 /**
- * Char pointer to the back of the string.
+ * Char pointer to the back of the string. The string should be non-empty when 
+ * using this macro.
  */
 #define string_back(this)                                                                                    \
-        ((this)->size ? &(this)->s[(this)->size - 1] : &(this)->s[0])
+        ((this)->size ? &(this)->s[(this)->size - 1] : &(this)->s[-1])
 
 /* --------------------------------------------------------------------------
  * FUNCTIONS

@@ -59,7 +59,7 @@
 /**
  * The ending point for iterating over elements in increasing order.
  */
-#define set_iterator_end(id, this) NULL
+#define set_iterator_end() NULL
 
 
 /**
@@ -71,7 +71,7 @@
 /**
  * The ending point for iterating over elements in decreasing order.
  */
-#define set_iterator_rend(id, this) NULL
+#define set_iterator_rend() NULL
 
 
 /**
@@ -80,7 +80,8 @@
  * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
 #define set_iter(id, this, it)                                                                               \
-        for (it = set_iterator_begin(this); it; it = setEntry_getNext(id, it))
+        for (it = set_iterator_begin(id, this); it != set_iterator_end();                                                          \
+             it = setEntry_getNext(id, it))
 
 
 /**
@@ -89,7 +90,8 @@
  * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
 #define set_riter(id, this, it)                                                                              \
-        for (it = set_iterator_rbegin(this); it; it = setEntry_getPrev(id, it))
+        for (it = set_iterator_rbegin(id, this); it;                                                         \
+             it = setEntry_getPrev(id, it))
 
 /* --------------------------------------------------------------------------
  * HELPERS

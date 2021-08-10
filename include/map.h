@@ -51,25 +51,25 @@
 /**
  * The starting point for iterating over keys in increasing order.
  */
-#define map_iterator_begin(this) __avl_successor_##id((this)->root)
+#define map_iterator_begin(id, this) __avl_successor_##id((this)->root)
 
 
 /**
  * The ending point for iterating over keys in increasing order.
  */
-#define map_iterator_end(this) NULL
+#define map_iterator_end() NULL
 
 
 /**
  * The starting point for iterating over keys in decreasing order.
  */
-#define map_iterator_rbegin(this) __avl_predecessor_##id((this)->root)
+#define map_iterator_rbegin(id, this) __avl_predecessor_##id((this)->root)
 
 
 /**
  * The ending point for iterating over keys in decreasing order.
  */
-#define map_iterator_rend(this) NULL
+#define map_iterator_rend() NULL
 
 
 /**
@@ -78,7 +78,8 @@
  * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
 #define map_iter(id, this, it)                                                                               \
-        for (it = map_iterator_begin(this); it; it = mapEntry_getNext(id, it))
+        for (it = map_iterator_begin(id, this); it;                                                          \
+             it = mapEntry_getNext(id, it))
 
 /**
  * Iterates through the map in reverse order.
@@ -86,7 +87,8 @@
  * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
  */
 #define map_riter(id, this, it)                                                                              \
-        for (it = map_iterator_rbegin(this); it; it = mapEntry_getPrev(id, it))
+        for (it = map_iterator_rbegin(id, this); it;                                                         \
+             it = mapEntry_getPrev(id, it))
 
 /* --------------------------------------------------------------------------
  * HELPERS
