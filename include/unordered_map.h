@@ -6,6 +6,23 @@
 #define __umap_entry_get_key(e) (e)->data.first
 #define __umap_data_get_key(d)  (d).first
 
+/* --------------------------------------------------------------------------
+ * ITERATORS
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Iterates through all entries in the map.
+ *
+ * @param  it  Pointer to @c Pair which is assigned to the current element.
+ */
+#define umap_iter(id, this, it)                                                                              \
+        for (it = __htable_iter_begin_##id(this); it;                                                        \
+             it = __htable_iter_next_##id(this))
+
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
+
 /**
  * The number of entries in the map.
  */
@@ -29,16 +46,9 @@
  */
 #define umap_empty(this) !(this)->size
 
-
-/**
- * Iterates through all entries in the map.
- *
- * @param  it  Pointer to @c Pair which is assigned to the current element.
- */
-#define umap_iter(id, this, it)                                                                              \
-for (it = __htable_iter_begin_##id(this); it;                                                                \
-     it = __htable_iter_next_##id(this))
-
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty map.
@@ -97,7 +107,7 @@ for (it = __htable_iter_begin_##id(this); it;                                   
  * @return            Pointer to the inserted pair.
  */
 #define umap_insert_withResult(id, this, pair, inserted)                                                     \
-__htable_insert_##id(this, pair, inserted)
+        __htable_insert_##id(this, pair, inserted)
 
 
 /**
@@ -109,7 +119,7 @@ __htable_insert_##id(this, pair, inserted)
  * @return       Whether the operation succeeded.
  */
 #define umap_insert_fromArray(id, this, arr, n)                                                              \
-__htable_insert_fromArray_##id(this, arr, n)
+        __htable_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -157,7 +167,7 @@ __htable_insert_fromArray_##id(this, arr, n)
  * @return      Whether the operation succeeded.
  */
 #define umap_set_load_factor(id, this, lf)                                                                   \
-__htable_set_load_factor_##id(this, lf)
+        __htable_set_load_factor_##id(this, lf)
 
 
 /**
@@ -220,12 +230,12 @@ vt *umap_at_##id(UMap_##id const *this, const kt key);                          
  *                        - If @c DSDefault_deepCopyStr  was used in @c copyValue , pass
  *                         @c DSDefault_deepDelete here.
  */
-#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey,                                                       \
-sizeOfKey, copyKey, deleteKey, copyValue, deleteValue)                                                       \
+#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey,                                            \
+                        copyKey, deleteKey, copyValue, deleteValue)                                          \
                                                                                                              \
 __setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id,                              \
-    __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey,                                         \
-    copyKey, deleteKey, copyValue, deleteValue)                                                              \
+    __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey,                                \
+    deleteKey, copyValue, deleteValue)                                                                       \
                                                                                                              \
 vt *umap_at_##id(UMap_##id const *this, const kt key) {                                                      \
     Pair_##id *p = __htable_find_##id(this, key);                                                            \

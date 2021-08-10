@@ -8,44 +8,9 @@
 #define __set_copy_value(x, y)
 #define __set_delete_value(x)
 
-/**
- * The number of elements in the set.
- */
-#define set_size(this) (this)->size
-
-
-/**
- * Tests whether the set is empty.
- */
-#define set_empty(this) !(this)->root
-
-
-/**
- * Returns a @c SetEntry corresponding to the smallest value.
- */
-#define set_begin(id, this) __avl_successor_##id((this)->root)
-
-
-/**
- * Returns a @c SetEntry corresponding to the largest value.
- */
-#define set_rbegin(id, this) __avl_predecessor_##id((this)->root)
-
-
-/**
- * Iterates through the set in-order.
- *
- * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
- */
-#define set_iter(id, this, it) for (it = __avl_successor_##id((this)->root); it; it = __avl_inorder_successor_##id(it))
-
-/**
- * Iterates through the set in reverse order.
- *
- * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
- */
-#define set_riter(id, this, it) for (it = __avl_predecessor_##id((this)->root); it; it = __avl_inorder_predecessor_##id(it))
-
+/* --------------------------------------------------------------------------
+ * ITERATORS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Returns the next @c SetEntry in terms of increasing values, if it exists.
@@ -81,8 +46,69 @@
  * @return         Number of elements between @c first and @c last , or if @c last is not reachable, returns
  *                 -1.
  */
-#define setEntry_distance(id, first, last) __avlEntry_distance_##id(first, last)
+#define setEntry_distance(id, first, last)                                                                   \
+        __avlEntry_distance_##id(first, last)
 
+
+/**
+ * The starting point for iterating over elements in increasing order.
+ */
+#define set_iterator_begin(id, this) __avl_successor_##id((this)->root)
+
+
+/**
+ * The ending point for iterating over elements in increasing order.
+ */
+#define set_iterator_end(id, this) NULL
+
+
+/**
+ * The starting point for iterating over elements in decreasing order.
+ */
+#define set_iterator_rbegin(id, this) __avl_predecessor_##id((this)->root)
+
+
+/**
+ * The ending point for iterating over elements in decreasing order.
+ */
+#define set_iterator_rend(id, this) NULL
+
+
+/**
+ * Iterates through the set in-order.
+ *
+ * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ */
+#define set_iter(id, this, it)                                                                               \
+        for (it = set_iterator_begin(this); it; it = setEntry_getNext(id, it))
+
+
+/**
+ * Iterates through the set in reverse order.
+ *
+ * @param  it  @c SetEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ */
+#define set_riter(id, this, it)                                                                              \
+        for (it = set_iterator_rbegin(this); it; it = setEntry_getPrev(id, it))
+
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
+
+/**
+ * The number of elements in the set.
+ */
+#define set_size(this) (this)->size
+
+
+/**
+ * Tests whether the set is empty.
+ */
+#define set_empty(this) !(this)->root
+
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty set.
@@ -122,7 +148,8 @@
 /**
  * Removes all elements from the set, leaving it with a size of 0.
  */
-#define set_clear(id, this) __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
+#define set_clear(id, this)                                                                                  \
+        __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
 
 
 /**
@@ -132,7 +159,8 @@
  *
  * @return         True if the value was found, false if not.
  */
-#define set_contains(id, this, value) (__avltree_find_key_##id(this, value, 0) != NULL)
+#define set_contains(id, this, value)                                                                        \
+        (__avltree_find_key_##id(this, value, 0) != NULL)
 
 
 /**
@@ -163,7 +191,8 @@
  *
  * @return            @c SetEntry corresponding to the inserted value.
  */
-#define set_insert_withResult(id, this, value, inserted) __avltree_insert_##id(this, value, inserted)
+#define set_insert_withResult(id, this, value, inserted)                                                     \
+        __avltree_insert_##id(this, value, inserted)
 
 
 /**
@@ -174,7 +203,8 @@
  *
  * @return       Whether the operation succeeded.
  */
-#define set_insert_fromArray(id, this, arr, n) __avltree_insert_fromArray_##id(this, arr, n)
+#define set_insert_fromArray(id, this, arr, n)                                                               \
+        __avltree_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -186,7 +216,8 @@
  *
  * @return         Whether the operation succeeded.
  */
-#define set_insert_fromSet(id, this, start, end) __avltree_insert_fromTree_##id(this, start, end)
+#define set_insert_fromSet(id, this, start, end)                                                             \
+        __avltree_insert_fromTree_##id(this, start, end)
 
 
 /**
@@ -204,7 +235,9 @@
  *
  * @param  value  Value to be deleted.
  */
-#define set_remove_value(id, this, value) __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, value, 0))
+#define set_remove_value(id, this, value)                                                                    \
+        __avltree_remove_entry_##id(this,                                                                    \
+            __avltree_find_key_##id(this, value, 0))
 
 
 /**
@@ -212,7 +245,8 @@
  *
  * @param  entry  @c SetEntry to remove.
  */
-#define set_remove_entry(id, this, entry) __avltree_remove_entry_##id(this, entry)
+#define set_remove_entry(id, this, entry)                                                                    \
+        __avltree_remove_entry_##id(this, entry)
 
 
 /**
@@ -256,7 +290,8 @@
  *
  * @return         Newly created set.
  */
-#define set_symmetric_difference(id, this, other) set_symmetric_difference_##id(this, other)
+#define set_symmetric_difference(id, this, other)                                                            \
+        set_symmetric_difference_##id(this, other)
 
 
 /**

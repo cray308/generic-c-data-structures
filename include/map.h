@@ -6,48 +6,9 @@
 #define __map_entry_get_key(e) (e)->data.first
 #define __map_data_get_key(d)  (d).first
 
-/**
- * The number of elements in the map.
- */
-#define map_size(this) (this)->size
-
-
-/**
- * Tests whether the map is empty.
- */
-#define map_empty(this) !(this)->root
-
-
-/**
- * Returns a @c MapEntry corresponding to the smallest key.
- */
-#define map_begin(id, this) __avl_successor_##id((this)->root)
-
-
-/**
- * Returns a @c MapEntry corresponding to the largest key.
- */
-#define map_rbegin(id, this) __avl_predecessor_##id((this)->root)
-
-
-/**
- * Iterates through the map in-order.
- *
- * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
- */
-#define map_iter(id, this, it)                                                                               \
-for (it = __avl_successor_##id((this)->root); it;                                                            \
-     it = __avl_inorder_successor_##id(it))
-
-/**
- * Iterates through the map in reverse order.
- *
- * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
- */
-#define map_riter(id, this, it)                                                                              \
-for (it = __avl_predecessor_##id((this)->root); it;                                                          \
-     it = __avl_inorder_predecessor_##id(it))
-
+/* --------------------------------------------------------------------------
+ * ITERATORS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Returns the next @c MapEntry in terms of increasing keys, if it exists.
@@ -84,8 +45,67 @@ for (it = __avl_predecessor_##id((this)->root); it;                             
  *                 -1.
  */
 #define mapEntry_distance(id, first, last)                                                                   \
-__avlEntry_distance_##id(first, last)
+        __avlEntry_distance_##id(first, last)
 
+
+/**
+ * The starting point for iterating over keys in increasing order.
+ */
+#define map_iterator_begin(this) __avl_successor_##id((this)->root)
+
+
+/**
+ * The ending point for iterating over keys in increasing order.
+ */
+#define map_iterator_end(this) NULL
+
+
+/**
+ * The starting point for iterating over keys in decreasing order.
+ */
+#define map_iterator_rbegin(this) __avl_predecessor_##id((this)->root)
+
+
+/**
+ * The ending point for iterating over keys in decreasing order.
+ */
+#define map_iterator_rend(this) NULL
+
+
+/**
+ * Iterates through the map in-order.
+ *
+ * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ */
+#define map_iter(id, this, it)                                                                               \
+        for (it = map_iterator_begin(this); it; it = mapEntry_getNext(id, it))
+
+/**
+ * Iterates through the map in reverse order.
+ *
+ * @param  it  @c MapEntry which is assigned to the current element. May be dereferenced with @c it->data .
+ */
+#define map_riter(id, this, it)                                                                              \
+        for (it = map_iterator_rbegin(this); it; it = mapEntry_getPrev(id, it))
+
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
+
+/**
+ * The number of elements in the map.
+ */
+#define map_size(this) (this)->size
+
+
+/**
+ * Tests whether the map is empty.
+ */
+#define map_empty(this) !(this)->root
+
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty map.
@@ -126,7 +146,7 @@ __avlEntry_distance_##id(first, last)
  * Removes all keys from the map, leaving it with a size of 0.
  */
 #define map_clear(id, this)                                                                                  \
-__avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
+        __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
 
 
 /**
@@ -168,7 +188,7 @@ __avltree_erase_##id(this, __avl_successor_##id((this)->root), NULL)
  * @return            @c MapEntry corresponding to the inserted pair.
  */
 #define map_insert_withResult(id, this, pair, inserted)                                                      \
-__avltree_insert_##id(this, pair, inserted)
+        __avltree_insert_##id(this, pair, inserted)
 
 
 /**
@@ -180,7 +200,7 @@ __avltree_insert_##id(this, pair, inserted)
  * @return       Whether the operation succeeded.
  */
 #define map_insert_fromArray(id, this, arr, n)                                                               \
-__avltree_insert_fromArray_##id(this, arr, n)
+        __avltree_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -193,7 +213,7 @@ __avltree_insert_fromArray_##id(this, arr, n)
  * @return         Whether the operation succeeded.
  */
 #define map_insert_fromMap(id, this, start, end)                                                             \
-__avltree_insert_fromTree_##id(this, start, end)
+        __avltree_insert_fromTree_##id(this, start, end)
 
 
 /**
@@ -212,7 +232,8 @@ __avltree_insert_fromTree_##id(this, start, end)
  * @param  key  Key to be deleted.
  */
 #define map_remove_key(id, this, key)                                                                        \
-__avltree_remove_entry_##id(this, __avltree_find_key_##id(this, key, 0))
+        __avltree_remove_entry_##id(this,                                                                    \
+            __avltree_find_key_##id(this, key, 0))
 
 
 /**
@@ -221,7 +242,7 @@ __avltree_remove_entry_##id(this, __avltree_find_key_##id(this, key, 0))
  * @param  entry  @c MapEntry to remove.
  */
 #define map_remove_entry(id, this, entry)                                                                    \
-__avltree_remove_entry_##id(this, entry)
+        __avltree_remove_entry_##id(this, entry)
 
 
 /**
@@ -271,12 +292,12 @@ vt *map_at_##id(Map_##id const *this, const kt key);                            
  *                        - If @c DSDefault_deepCopyStr was used in @c copyValue , pass
  *                         @c DSDefault_deepDelete here.
  */
-#define gen_map_source(id, kt, vt, cmp_lt, copyKey, deleteKey,                                               \
-copyValue, deleteValue)                                                                                      \
+#define gen_map_source(id, kt, vt, cmp_lt, copyKey, deleteKey, copyValue,                                    \
+                       deleteValue)                                                                          \
                                                                                                              \
 __setup_avltree_source(id, kt, Map_##id, Pair_##id, MapEntry_##id, cmp_lt,                                   \
-    __map_entry_get_key, __map_data_get_key, copyKey, deleteKey,                                             \
-    copyValue, deleteValue)                                                                                  \
+    __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue,                                  \
+    deleteValue)                                                                                             \
                                                                                                              \
 vt* map_at_##id(Map_##id const *this, const kt key) {                                                        \
     MapEntry_##id *e = __avltree_find_key_##id(this, key, 0);                                                \

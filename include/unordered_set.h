@@ -8,6 +8,23 @@
 #define __uset_copy_value(x, y)
 #define __uset_delete_value(x)
 
+/* --------------------------------------------------------------------------
+ * ITERATORS
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Iterates through all entries in the set.
+ *
+ * @param  it  Pointer to element, which is assigned to the current element.
+ */
+#define uset_iter(id, this, it)                                                                              \
+        for (it = __htable_iter_begin_##id(this); it;                                                        \
+             it = __htable_iter_next_##id(this))
+
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
+
 /**
  * The number of entries in the set.
  */
@@ -31,16 +48,9 @@
  */
 #define uset_empty(this) !(this)->size
 
-
-/**
- * Iterates through all entries in the set.
- *
- * @param  it  Pointer to element, which is assigned to the current element.
- */
-#define uset_iter(id, this, it)                                                                              \
-for (it = __htable_iter_begin_##id(this); it;                                                                \
-     it = __htable_iter_next_##id(this))
-
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty set.
@@ -94,7 +104,7 @@ for (it = __htable_iter_begin_##id(this); it;                                   
  * @param  inserted  Set to 1 if the value was newly inserted, or 0 if the value was already a member.
  */
 #define uset_insert_withResult(id, this, value, inserted)                                                    \
-__htable_insert_##id(this, value, inserted)
+        __htable_insert_##id(this, value, inserted)
 
 
 /**
@@ -106,7 +116,7 @@ __htable_insert_##id(this, value, inserted)
  * @return       Whether the operation succeeded.
  */
 #define uset_insert_fromArray(id, this, arr, n)                                                              \
-__htable_insert_fromArray_##id(this, arr, n)
+        __htable_insert_fromArray_##id(this, arr, n)
 
 
 /**
@@ -117,7 +127,7 @@ __htable_insert_fromArray_##id(this, arr, n)
  * @return         True if the value was found, false if not.
  */
 #define uset_contains(id, this, value)                                                                       \
-(__htable_find_##id(this, value) != NULL)
+        (__htable_find_##id(this, value) != NULL)
 
 
 /**
@@ -147,7 +157,7 @@ __htable_insert_fromArray_##id(this, arr, n)
  * @return      Whether the operation succeeded.
  */
 #define uset_set_load_factor(id, this, lf)                                                                   \
-__htable_set_load_factor_##id(this, lf) 
+        __htable_set_load_factor_##id(this, lf) 
 
 
 /**
@@ -163,7 +173,7 @@ __htable_set_load_factor_##id(this, lf)
  * @param  t   Type to be stored in the set.
  */
 #define gen_uset_headers(id, t)                                                                              \
-__setup_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)
+        __setup_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)
 
 
 /**
@@ -191,9 +201,10 @@ __setup_hash_table_headers(id, t, USet_##id, t, USetEntry_##id)
  *                         @c DSDefault_deepDelete here.
  */
 #define gen_uset_source(id, t, cmp_eq, addrOfValue, sizeOfValue,                                             \
-copyValue, deleteValue)                                                                                      \
-__setup_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id,                                       \
-    __uset_entry_get_key, __uset_data_get_key, addrOfValue, sizeOfValue,                                     \
-    copyValue, deleteValue, __uset_copy_value, __uset_delete_value)
+                        copyValue, deleteValue)                                                              \
+        __setup_hash_table_source(id, t, cmp_eq, USet_##id, t, USetEntry_##id,                               \
+            __uset_entry_get_key, __uset_data_get_key, addrOfValue,                                          \
+            sizeOfValue, copyValue, deleteValue, __uset_copy_value,                                          \
+            __uset_delete_value)
 
 #endif /* DS_UNORDERED_SET_H */

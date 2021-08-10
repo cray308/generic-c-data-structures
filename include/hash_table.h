@@ -38,11 +38,9 @@ DataType* __htable_iter_next_##id(TableType *this);                             
                                                                                                              \
 unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets);                                      \
 DataType *__htable_insert_##id(TableType *this,                                                              \
-                               const DataType data,                                                          \
-                               int *inserted);                                                               \
+                               const DataType data, int *inserted);                                          \
 unsigned char __htable_insert_fromArray_##id(TableType *this,                                                \
-                                             DataType const *arr,                                            \
-                                             unsigned n);                                                    \
+                                             DataType const *arr, unsigned n);                               \
 TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n);                                     \
 TableType *__htable_createCopy_##id(TableType const *other);                                                 \
 unsigned char __htable_erase_##id(TableType *this, const kt key);                                            \
@@ -51,8 +49,9 @@ DataType *__htable_find_##id(TableType const *this, const kt key);              
 unsigned char __htable_set_load_factor_##id(TableType *this, unsigned lf);                                   \
 
 #define __setup_hash_table_source(id, kt, cmp_eq, TableType, DataType,                                       \
-EntryType, entry_get_key, data_get_key, addrOfKey, sizeOfKey, copyKey,                                       \
-deleteKey, copyValue, deleteValue)                                                                           \
+                                  EntryType, entry_get_key, data_get_key,                                    \
+                                  addrOfKey, sizeOfKey, copyKey, deleteKey,                                  \
+                                  copyValue, deleteValue)                                                    \
                                                                                                              \
 DataType* __htable_iter_begin_##id(TableType *this) {                                                        \
     if (!this->size) {                                                                                       \
@@ -113,8 +112,7 @@ unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {        
 }                                                                                                            \
                                                                                                              \
 DataType *__htable_insert_##id(TableType *this,                                                              \
-                               const DataType data,                                                          \
-                               int *inserted) {                                                              \
+                               const DataType data, int *inserted) {                                         \
     unsigned index;                                                                                          \
     struct EntryType *e;                                                                                     \
     if (this->size >= this->threshold) {                                                                     \
@@ -147,8 +145,7 @@ DataType *__htable_insert_##id(TableType *this,                                 
 }                                                                                                            \
                                                                                                              \
 unsigned char __htable_insert_fromArray_##id(TableType *this,                                                \
-                                             DataType const *arr,                                            \
-                                             unsigned n) {                                                   \
+                                             DataType const *arr, unsigned n) {                              \
     unsigned i;                                                                                              \
     if (arr) {                                                                                               \
         for (i = 0; i < n; ++i) {                                                                            \
@@ -207,8 +204,7 @@ TableType *__htable_createCopy_##id(TableType const *other) {                   
                                                                                                              \
 unsigned char __htable_erase_##id(TableType *this, const kt key) {                                           \
     struct EntryType *prev, *curr;                                                                           \
-    unsigned index = murmurhash(addrOfKey(key),                                                              \
-                                (int) sizeOfKey(key),                                                        \
+    unsigned index = murmurhash(addrOfKey(key), (int) sizeOfKey(key),                                        \
                                 this->seed) % this->cap;                                                     \
     if (!this->buckets[index]) return 0; /* this entry does not exist */                                     \
                                                                                                              \
@@ -252,8 +248,7 @@ void __htable_clear_##id(TableType *this) {                                     
 }                                                                                                            \
                                                                                                              \
 DataType *__htable_find_##id(TableType const *this, const kt key) {                                          \
-    unsigned index = murmurhash(addrOfKey(key),                                                              \
-                                (int) sizeOfKey(key),                                                        \
+    unsigned index = murmurhash(addrOfKey(key), (int) sizeOfKey(key),                                        \
                                 this->seed) % this->cap;                                                     \
     struct EntryType *e;                                                                                     \
     for (e = this->buckets[index]; e; e = e->next) {                                                         \
