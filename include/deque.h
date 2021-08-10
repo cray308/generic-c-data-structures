@@ -4,18 +4,23 @@
 #include "ds.h"
 
 #if UINT_MAX == 0xffffffff
-#define DS_DQ_MAX_SIZE 2147483647
-#define DS_DQ_SHIFT_THRESHOLD 1073741823
+#define DS_DQ_MAX_SIZE 0x7fffffff
+#define DS_DQ_SHIFT_THRESHOLD 0x3fffffff
 #elif UINT_MAX == 0xffff
-#define DS_DQ_MAX_SIZE 32767
-#define DS_DQ_SHIFT_THRESHOLD 16383
+#define DS_DQ_MAX_SIZE 0x7fff
+#define DS_DQ_SHIFT_THRESHOLD 0x3fff
 #endif
+
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
 
 /**
  * The number of elements in the deque.
  */
-#define deque_size(this) (((this)->front.size - (this)->front.start) +                                       \
-                          ((this)->back.size - (this)->back.start))
+#define deque_size(this)                                                                                     \
+        (((this)->front.size - (this)->front.start) +                                                        \
+         ((this)->back.size - (this)->back.start))
 
 
 /**
@@ -27,20 +32,25 @@
 /**
  * Pointer to the first element in the deque, if it is not empty.
  */
-#define deque_front(this) (((this)->front.size - (this)->front.start) ?                                      \
-                           &(this)->front.arr[(this)->front.size - 1] :                                      \
-                           (((this)->back.size - (this)->back.start) ?                                       \
-                            &(this)->back.arr[(this)->back.start] : NULL))
+#define deque_front(this)                                                                                    \
+        (((this)->front.size - (this)->front.start) ?                                                        \
+            &(this)->front.arr[(this)->front.size - 1] :                                                     \
+            (((this)->back.size - (this)->back.start) ?                                                      \
+                &(this)->back.arr[(this)->back.start] : NULL))
 
 
 /**
  * Pointer to the last element in the deque, if it is not empty.
  */
-#define deque_back(this) (((this)->back.size - (this)->back.start) ?                                         \
-                          &(this)->back.arr[(this)->back.size - 1] :                                         \
-                          (((this)->front.size - (this)->front.start) ?                                      \
-                            &(this)->front.arr[(this)->front.start] : NULL))
+#define deque_back(this)                                                                                     \
+        (((this)->back.size - (this)->back.start) ?                                                          \
+            &(this)->back.arr[(this)->back.size - 1] :                                                       \
+            (((this)->front.size - (this)->front.start) ?                                                    \
+                &(this)->front.arr[(this)->front.start] : NULL))
 
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty deque.
@@ -114,7 +124,7 @@
  *                         @c DSDefault_deepDelete here.
  */
 #define gen_deque_source(id, t, copyValue, deleteValue)                                                      \
-__setup_deque_source(id, t, Deque_##id, copyValue, deleteValue)
+        __setup_deque_source(id, t, Deque_##id, copyValue, deleteValue)
 
 #define __setup_deque_headers(id, t, TypeName)                                                               \
                                                                                                              \
@@ -177,8 +187,7 @@ void __dq_pop_front_##id(TypeName *this) {                                      
         if (this->back.size > 32 &&                                                                          \
                 this->back.start > (this->back.size >> 1)) {                                                 \
             const unsigned half = this->back.cap >> 1;                                                       \
-            memmove(this->back.arr,                                                                          \
-                    this->back.arr + this->back.start,                                                       \
+            memmove(this->back.arr, this->back.arr + this->back.start,                                       \
                     (this->back.size - this->back.start) * sizeof(t));                                       \
             this->back.size -= this->back.start;                                                             \
             this->back.start = 0;                                                                            \
@@ -218,8 +227,7 @@ void __dq_pop_back_##id(TypeName *this) {                                       
         if (this->front.size > 32 &&                                                                         \
                 this->front.start > (this->front.size >> 1)) {                                               \
             const unsigned half = this->front.cap >> 1;                                                      \
-            memmove(this->front.arr,                                                                         \
-                    this->front.arr + this->front.start,                                                     \
+            memmove(this->front.arr, this->front.arr + this->front.start,                                    \
                     (this->front.size - this->front.start) * sizeof(t));                                     \
             this->front.size -= this->front.start;                                                           \
             this->front.start = 0;                                                                           \

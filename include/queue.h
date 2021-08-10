@@ -3,6 +3,10 @@
 
 #include "deque.h"
 
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
+
 /**
  * The number of elements in the queue.
  */
@@ -26,6 +30,9 @@
  */
 #define queue_empty(this) deque_empty(this)
 
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty queue.
@@ -83,6 +90,6 @@
  *                         @c DSDefault_deepDelete here.
  */
 #define gen_queue_source(id, t, copyValue, deleteValue)                                                      \
-__setup_deque_source(id, t, Queue_##id, copyValue, deleteValue)
+        __setup_deque_source(id, t, Queue_##id, copyValue, deleteValue)
 
 #endif /* DS_QUEUE_H */

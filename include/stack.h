@@ -3,6 +3,10 @@
 
 #include "deque.h"
 
+/* --------------------------------------------------------------------------
+ * HELPERS
+ * -------------------------------------------------------------------------- */
+
 /**
  * The number of elements in the stack.
  */
@@ -20,6 +24,9 @@
  */
 #define stack_top(this) deque_back(this)
 
+/* --------------------------------------------------------------------------
+ * FUNCTIONS
+ * -------------------------------------------------------------------------- */
 
 /**
  * Creates a new, empty stack.
@@ -76,6 +83,6 @@
  *                         @c DSDefault_deepDelete here.
  */
 #define gen_stack_source(id, t, copyValue, deleteValue)                                                      \
-__setup_deque_source(id, t, Stack_##id, copyValue, deleteValue)
+        __setup_deque_source(id, t, Stack_##id, copyValue, deleteValue)
 
 #endif /* DS_STACK_H */
