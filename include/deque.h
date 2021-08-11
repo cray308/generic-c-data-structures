@@ -16,7 +16,7 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * The number of elements in the deque.
+ * @c unsigned : The number of elements in the deque.
  */
 #define deque_size(this)                                                                                     \
         (((this)->front.size - (this)->front.start) +                                                        \
@@ -24,13 +24,13 @@
 
 
 /**
- * Tests whether there are no elements in the deque.
+ * @c bool : Whether there are no elements in the deque.
  */
 #define deque_empty(this) !deque_size(this)
 
 
 /**
- * Pointer to the first element in the deque, if it is not empty.
+ * @c t* : Pointer to the first element in the deque, if it is not empty.
  */
 #define deque_front(this)                                                                                    \
         (((this)->front.size - (this)->front.start) ?                                                        \
@@ -40,7 +40,7 @@
 
 
 /**
- * Pointer to the last element in the deque, if it is not empty.
+ * @c t* : Pointer to the last element in the deque, if it is not empty.
  */
 #define deque_back(this)                                                                                     \
         (((this)->back.size - (this)->back.start) ?                                                          \
@@ -55,7 +55,7 @@
 /**
  * Creates a new, empty deque.
  *
- * @return  Pointer to the newly allocated deque.
+ * @return  @c Deque* : Newly allocated deque.
  */
 #define deque_new(id) __dq_new_##id()
 
@@ -75,9 +75,9 @@
 /**
  * Appends @c value to the back of the deque.
  *
- * @param   value  Value to be emplaced.
+ * @param   value  @c t : Value to be emplaced.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define deque_push_back(id, this, value) __dq_push_back_##id(this, value)
 
@@ -91,9 +91,9 @@
 /**
  * Places @c value in the front of the deque.
  *
- * @param   value  Value to be emplaced.
+ * @param   value  @c t : Value to be emplaced.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define deque_push_front(id, this, value) __dq_push_front_##id(this, value)
 

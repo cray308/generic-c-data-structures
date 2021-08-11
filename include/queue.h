@@ -8,25 +8,25 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * The number of elements in the queue.
+ * @c unsigned : The number of elements in the queue.
  */
 #define queue_size(this) deque_size(this)
 
 
 /**
- * Pointer to the first element in the queue, if it is not empty.
+ * @c t* : Pointer to the first element in the queue, if it is not empty.
  */
 #define queue_front(this) deque_front(this)
 
 
 /**
- * Pointer to the last element in the queue, if it is not empty.
+ * @c t* : Pointer to the last element in the queue, if it is not empty.
  */
 #define queue_back(this) deque_back(this)
 
 
 /**
- * Tests whether there are no elements in the queue.
+ * @c bool : Tests whether there are no elements in the queue.
  */
 #define queue_empty(this) deque_empty(this)
 
@@ -37,7 +37,7 @@
 /**
  * Creates a new, empty queue.
  *
- * @return  Pointer to the newly allocated queue.
+ * @return  @c Queue* : Newly allocated queue.
  */
 #define queue_new(id) deque_new(id)
 
@@ -57,9 +57,9 @@
 /**
  * Appends @c value to the back of the queue.
  *
- * @param   value  Value to be emplaced.
+ * @param   value  @c t : Value to be emplaced.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define queue_push(id, this, value) deque_push_back(id, this, value)
 

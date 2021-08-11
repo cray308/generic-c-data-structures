@@ -8,19 +8,19 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * The number of elements in the stack.
+ * @c unsigned : The number of elements in the stack.
  */
 #define stack_size(this) deque_size(this)
 
 
 /**
- * Tests whether there are no elements in the stack.
+ * @c bool : Whether there are no elements in the stack.
  */
 #define stack_empty(this) deque_empty(this)
 
 
 /**
- * Pointer to the top element in the stack, if it is not empty.
+ * @c t* : Pointer to the top element in the stack, if it is not empty.
  */
 #define stack_top(this) deque_back(this)
 
@@ -31,7 +31,7 @@
 /**
  * Creates a new, empty stack.
  *
- * @return  Pointer to the newly allocated stack.
+ * @return  @c Stack* : Newly allocated stack.
  */
 #define stack_new(id) deque_new(id)
 
@@ -50,9 +50,9 @@
 /**
  * Pushes @c value onto the top of the stack.
  *
- * @param   value  Value to be emplaced.
+ * @param   value  @c t : Value to be emplaced.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define stack_push(id, this, value) deque_push_back(id, this, value)
 

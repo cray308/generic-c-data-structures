@@ -18,25 +18,25 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * The starting point for iterating over elements in forward order.
+ * @c t* : The starting point for iterating over elements in forward order.
  */
 #define array_iterator_begin(this) array_front(this)
 
 
 /**
- * The ending point for iterating over elements in forward order.
+ * @c t* : The ending point for iterating over elements in forward order.
  */
 #define array_iterator_end(this) &(this)->arr[(this)->size]
 
 
 /**
- * The starting point for iterating over elements in reverse order.
+ * @c t* : The starting point for iterating over elements in reverse order.
  */
 #define array_iterator_rbegin(this) array_back(this)
 
 
 /**
- * The ending point for iterating over elements in reverse order.
+ * @c t* : The ending point for iterating over elements in reverse order.
  */
 #define array_iterator_rend(this) &(this)->arr[-1]
 
@@ -44,8 +44,8 @@
 /**
  * Macro for iterating over the array from front to back.
  *
- * @param  it  Pointer to the array's datatype @c (t*) which is assigned to the
- *              current element. May be dereferenced with @c (*it) .
+ * @param  it  @c t* : Assigned to the current element. May be dereferenced
+ *              with @c (*it) .
  */
 #define array_iter(this, it)                                                                                 \
         for (it = array_front(this); it != array_iterator_end(this); ++it)
@@ -54,8 +54,8 @@
 /**
  * Macro for iterating over the array in reverse (from back to front).
  *
- * @param  it  Pointer to the array's datatype @c (t*) which is assigned to the
- *              current element. May be dereferenced with @c (*it) .
+ * @param  it  @c t* : Assigned to the current element. May be dereferenced
+ *              with @c (*it) .
  */
 #define array_riter(this, it)                                                                                \
         for (it = array_back(this); it != array_iterator_rend(this); --it)
@@ -65,10 +65,12 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Pointer to the element at index @c i . If the index is out of bounds, 
- * returns NULL.
+ * Pointer to the element at index @c i .
  *
- * @param  i  The index in the array.
+ * @param   i  @c unsigned : The index in the array.
+ *
+ * @return     @c t* : Pointer to the element at this index, or NULL if it is
+ *             out of bounds.
  */
 #define array_at(this, i) ((i) < (this)->size ? &(this)->arr[i] : NULL)
 
@@ -77,40 +79,42 @@
  * Direct access to the element at index @c i . Does NOT perform bounds 
  * checking.
  *
- * @param  i  The index in the array.
+ * @param   i  @c unsigned : The index in the array.
+ *
+ * @return     @c t : Element at this index.
  */
 #define array_index(this, i) (this)->arr[i]
 
 
 /**
- * Pointer to the first element in the array. The array should be non-empty 
- * when using this macro.
+ * @c t* : Pointer to the first element. The array should be non-empty when 
+ * using this macro.
  */
 #define array_front(this) &(this)->arr[0]
 
 
 /**
- * Pointer to the last element in the array. The array should be non-empty 
- * when using this macro.
+ * @c t* : Pointer to the last element. The array should be non-empty when 
+ * using this macro.
  */
 #define array_back(this)                                                                                     \
         ((this)->size ? &(this)->arr[(this)->size - 1] : &(this)->arr[-1])
 
 
 /**
- * The number of elements in the array.
+ * @c unsigned : The current number of elements.
  */
 #define array_size(this) (this)->size
 
 
 /**
- * The capacity (maximum number of elements prior to resizing) of the array.
+ * @c unsigned : The maximum number of elements prior to resizing.
  */
 #define array_capacity(this) (this)->capacity
 
 
 /**
- * Tests whether there are no elements in the array.
+ * @c bool : Whether there are no elements in the array.
  */
 #define array_empty(this) !(this)->size
 
@@ -121,7 +125,7 @@
 /**
  * Creates a new, empty array.
  *
- * @return  Pointer to the newly created array.
+ * @return  @c Array* : Newly created array.
  */
 #define array_new(id) array_new_fromArray_##id(NULL, 0)
 
@@ -129,32 +133,34 @@
 /**
  * Creates a new array with size @c n , where each index is set to @c value .
  *
- * @param   n      Number of elements to initialize.
- * @param   value  Value to set for each of the indices.
+ * @param   n      @c unsigned : Number of elements to initialize.
+ * @param   value  @c t : Value to set for each of the indices.
  *
- * @return         Pointer to the newly created array.
+ * @return         @c Array* : Newly created array.
  */
 #define array_new_repeatingValue(id, n, value)                                                               \
         array_new_repeatingValue_##id(n, value)
 
 
 /**
- * Creates a new array as a copy of a built-in array @c arr which has @c n 
- * elements.
+ * Creates a new array as a copy of a built-in array @c arr .
  *
- * @param   arr   Pointer to the first element to insert. The @c Array type in
- *                 this file can be used bypassing @c array_at(id,a,index) .
- * @param   n     Number of elements to include.
+ * @param   arr   @c t* : Pointer to the first element to insert. The @c Array
+ *                 type in this file can be used by passing
+ *                 @c array_at(id,a,index) .
+ * @param   n     @c unsigned : Number of elements to include from @c arr .
  *
- * @return        Pointer to the newly created array.
+ * @return        @c Array* : Newly created array.
  */
 #define array_new_fromArray(id, arr, n) array_new_fromArray_##id(arr, n)
 
 
 /**
- * Creates a new array as a copy of @c Array object @c other .
+ * Creates a new array as a copy of @c other .
  *
- * @return  Pointer to the newly created array.
+ * @param   other  @c Array* : Array to copy.
+ * 
+ * @return         @c Array* : Newly created array.
  */
 #define array_createCopy(id, other)                                                                          \
         array_new_fromArray_##id((other)->arr, (other)->size)
@@ -173,9 +179,9 @@
  * size, all but the first @c n elements are removed. If this is greater than 
  * the current size, elements are appended to the array with a value of 0.
  *
- * @param   n  The new array size.
+ * @param   n  @c unsigned : The new array size.
  *
- * @return     Whether the operation succeeded.
+ * @return     @c bool : Whether the operation succeeded.
  */
 #define array_resize(id, this, n) array_resize_usingValue_##id(this, n, 0)
 
@@ -186,11 +192,11 @@
  * the current size, elements are appended to the array with a value of 
  * @c value .
  *
- * @param   n      The new array size.
- * @param   value  Value to hold in the new indices if @c n is greater than the
- *                  current size.
+ * @param   n      @c unsigned : The new array size.
+ * @param   value  @c t : Value to hold in the new indices if @c n is greater
+ *                  than the current size.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define array_resize_usingValue(id, this, n, value)                                                          \
         array_resize_usingValue_##id(this, n, value)
@@ -201,9 +207,9 @@
  * capacity, nothing is done. If you wish to decrease the capacity, see 
  * @c array_shrink_to_fit .
  *
- * @param   n  The new capacity.
+ * @param   n  @c unsigned : The new capacity.
  *
- * @return    Whether the operation succeeded.
+ * @return     @c bool : Whether the operation succeeded.
  */
 #define array_reserve(id, this, n) array_reserve_##id(this, n)
 
@@ -211,7 +217,7 @@
 /**
  * Appends @c value to the array.
  *
- * @param  value  Value to insert.
+ * @param  value  @c t : Value to insert.
  */
 #define array_push_back(id, this, value)                                                                     \
         array_insert_repeatingValue_##id(this, (this)->size, 1, value)
@@ -222,12 +228,13 @@
  * shifted one position to the right. After insertion, the new element will be 
  * located at @c index .
  *
- * @param   index  Index before which the element will be inserted. If this is
- *                  specified as @c array_size , the element is appended.
- * @param   value  Value to insert.
+ * @param   index  @c unsigned : Index before which the element will be
+ *                  inserted. If this is specified as @c array_size , the
+ *                  element is appended.
+ * @param   value  @c t : Value to insert.
  *
- * @return         The index where the element was inserted, or @c ARRAY_ERROR
- *                 if there was an error.
+ * @return         @c unsigned : The index where the element was inserted, or
+ *                 @c ARRAY_ERROR if there was an error.
  */
 #define array_insert(id, this, index, value)                                                                 \
         array_insert_repeatingValue_##id(this, index, 1, value)
@@ -236,32 +243,34 @@
 /**
  * Inserts @c n copies of @c value before @c index .
  *
- * @param   index   Index before which the elements should be inserted. If this
- *                   is specified as @c array_size , the elements are appended.
- * @param   n       Number of copies of @c value to insert.
- * @param   value   Value to insert.
+ * @param   index   @c unsigned : Index before which the elements should be
+ *                   inserted. If this is specified as @c array_size , the
+ *                   elements are appended.
+ * @param   n       @c unsigned: Number of copies of @c value to insert.
+ * @param   value   @c t : Value to insert.
  *
- * @return          The index where the first element was inserted, or
- *                  @c ARRAY_ERROR if there was an error.
+ * @return          @c unsigned : The index where the first element was
+ *                  inserted, or @c ARRAY_ERROR if there was an error.
  */
 #define array_insert_repeatingValue(id, this, index, n, value)                                               \
         array_insert_repeatingValue_##id(this, index, n, value)
 
 
 /**
- * Inserts @c n new elements from @c arr before @c index . Any elements after 
- * this index will be shifted to the right. After insertion, the first of the 
- * new elements will be located at @c index .
+ * Inserts @c n new elements from built-in array @c arr before @c index . Any 
+ * elements after this index will be shifted to the right. After insertion, 
+ * the first of the new elements will be located at @c index .
  *
- * @param   index  Index before which the elements will be inserted. If this is
- *                  specified as @c array_size , the elements are appended.
- * @param   arr    Pointer to the first element to insert in a built-in array.
- *                  The @c Array type in this file can be used by passing
+ * @param   index  @c unsigned : Index before which the elements will be
+ *                  inserted. If this is specified as @c array_size , the
+ *                  elements are appended.
+ * @param   arr    @c t* : Pointer to the first element to insert. The @c Array
+ *                  type in this file can be used by passing
  *                  @c array_at(id,a,index) .
- * @param   n      Number of elements to insert from @c arr .
+ * @param   n      @c unsigned : Number of elements to insert from @c arr .
  *
- * @return         The index where the first element was inserted, or
- *                 @c ARRAY_ERROR if there was an error.
+ * @return         @c unsigned : The index where the first element was
+ *                 inserted, or @c ARRAY_ERROR if there was an error.
  */
 #define array_insert_fromArray(id, this, index, arr, n)                                                      \
         array_insert_fromArray_##id(this, index, arr, n)
@@ -282,14 +291,14 @@
 /**
  * Removes @c nelem elements from the array, starting at index @c first .
  *
- * @param  first  The first index to delete.
- * @param  nelem  The number of elements to delete. If this is
+ * @param  first  @c unsigned : The first index to delete.
+ * @param  nelem  @c unsigned : The number of elements to delete. If this is
  *                 @c DS_ARG_NOT_APPLICABLE , it means to erase all elements
  *                 from @c first to the end of the array.
  *
- * @return        The index after the last element to be deleted. If the last
- *                element to be deleted was the end of the array, returns
- *                @c array_size . If an error occurred, returns
+ * @return        @c unsigned : The index after the last element to be deleted.
+ *                If the last element to be deleted was the end of the array,
+ *                returns @c array_size . If an error occurred, returns
  *                @c ARRAY_ERROR .
  */
 #define array_erase(id, this, first, nelem)                                                                  \
@@ -309,16 +318,17 @@
  * @c start and moving to the next element to include with a step size of 
  * @c step_size .
  *
- * @param   start      Index to start the subarray.
- * @param   n          Maximum number of elements to include in the new
- *                      subarray. @c DS_ARG_NOT_APPLICABLE implies to include
- *                      as many elements as the start and step size allow.
- * @param   step_size  How to adjust the index when copying elements. 1 means
- *                      move forward 1 index at a time, -1 means move backwards
- *                      one index at a time, 2 would mean every other index,
- *                      etc.
+ * @param   start      @c unsigned : Index to start the subarray.
+ * @param   n          @c unsigned : Maximum number of elements to include in
+ *                      the new subarray. @c DS_ARG_NOT_APPLICABLE implies to
+ *                      include as many elements as the start and step size
+ *                      allow.
+ * @param   step_size  @c int : How to adjust the index when copying elements.
+ *                      1 means move forward 1 index at a time, -1 means move
+ *                      backwards one index at a time, 2 would mean every other
+ *                      index, etc.
  *
- * @return             A newly allocated subarray, or NULL if an error
+ * @return             @c Array* : Newly allocated array, or NULL if an error
  *                     occurred.
  */
 #define array_subarr(id, this, start, n, step_size)                                                          \
@@ -536,12 +546,12 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
 
 
 /**
- * Given a sorted array, finds @c key .
+ * Given that the array is sorted, finds @c key .
  *
- * @param  key  Value to compare to an array element's data.
+ * @param  key  @c t : Value to find.
  *
- * @return      Pointer to the array element if it was found, or NULL if it was
- *              not found.
+ * @return      @c t* : Pointer to the array element if it was found, or NULL
+ *              if it was not found.
  */
 #define array_find(id, this, key)                                                                            \
         ds_binary_search_##id((this)->arr, 0, (int) (this)->size - 1, key)
@@ -549,81 +559,82 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
 
 /**
  * Merges the arrays in range [@c first1 , @c last1 ) and 
- * [@c first2 , @c last2 ) into a new @c Array .
+ * [@c first2 , @c last2 ) into a new array. Both arrays must have been sorted 
+ * before this.
  *
- * @param   first1  Pointer to start of first array.
- * @param   last1   Pointer to end of first array (non-inclusive).
- * @param   first2  Pointer to start of second array.
- * @param   last2   Pointer to end of second array (non-inclusive).
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
  *
- * @return          Pointer to newly allocated array.
+ * @return          @c Array* : Newly allocated array.
  */
 #define merge_array(id, first1, last1, first2, last2)                                                        \
         merge_array_##id(first1, last1, first2, last2)
 
 
 /**
- * Creates a new @c Array representing the union of the arrays in range 
+ * Creates a new array representing the union of the arrays in range 
  * [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. elements that are 
  * in the first array, the second array, or both - all elements). Both arrays 
  * must have been sorted before this.
  *
- * @param   first1  Pointer to start of first array.
- * @param   last1   Pointer to end of first array (non-inclusive).
- * @param   first2  Pointer to start of second array.
- * @param   last2   Pointer to end of second array (non-inclusive).
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
  *
- * @return          Pointer to newly allocated array.
+ * @return          @c Array* : Newly allocated array.
  */
 #define array_union(id, first1, last1, first2, last2)                                                        \
         array_union_##id(first1, last1, first2, last2)
 
 
 /**
- * Creates a new @c Array representing the intersection of the arrays in range 
+ * Creates a new array representing the intersection of the arrays in range 
  * [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. all elements that 
  * both arrays have in common). Both arrays must have been sorted before this.
  *
- * @param   first1  Pointer to start of first array.
- * @param   last1   Pointer to end of first array (non-inclusive).
- * @param   first2  Pointer to start of second array.
- * @param   last2   Pointer to end of second array (non-inclusive).
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
  *
- * @return          Pointer to newly allocated array.
+ * @return          @c Array* : Newly allocated array.
  */
 #define array_intersection(id, first1, last1, first2, last2)                                                 \
         array_intersection_##id(first1, last1, first2, last2)
 
 
 /**
- * Creates a new @c Array representing the difference of the arrays in range 
+ * Creates a new array representing the difference of the arrays in range 
  * [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. all elements that 
  * are unique to the first array). Both arrays must have been sorted before 
  * this.
  *
- * @param   first1  Pointer to start of first array.
- * @param   last1   Pointer to end of first array (non-inclusive).
- * @param   first2  Pointer to start of second array.
- * @param   last2   Pointer to end of second array (non-inclusive).
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
  *
- * @return          Pointer to newly allocated array.
+ * @return          @c Array* : Newly allocated array.
  */
 #define array_difference(id, first1, last1, first2, last2)                                                   \
         array_difference_##id(first1, last1, first2, last2)
 
 
 /**
- * Creates a new @c Array representing the symmetric difference of the arrays 
+ * Creates a new array representing the symmetric difference of the arrays 
  * in range [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. all 
  * elements that neither array has in common). Both arrays must have been 
  * sorted before this.
  *
- * @param   first1  Pointer to start of first array.
- * @param   last1   Pointer to end of first array (non-inclusive).
- * @param   first2  Pointer to start of second array.
- * @param   last2   Pointer to end of second array (non-inclusive).
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
  *
- * @return          Pointer to newly allocated array.
+ * @return          @c Array* : Newly allocated array.
  */
 #define array_symmetric_difference(id, first1, last1, first2, last2)                                         \
         array_symmetric_difference_##id(first1, last1, first2, last2)
@@ -634,13 +645,13 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  * element in the range [@c first2 , @c last2 ). Both arrays must have been 
  * sorted before this.
  *
- * @param   first1  Pointer to start of first array.
- * @param   last1   Pointer to end of first array (non-inclusive).
- * @param   first2  Pointer to start of second array.
- * @param   last2   Pointer to end of second array (non-inclusive).
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
  *
- * @return          Whether the first array contains each element in the second
- *                  array.
+ * @return          @c bool : Whether the first array contains each element in
+ *                  the second array.
  */
 #define array_includes(id, first1, last1, first2, last2)                                                     \
         array_includes_##id(first1, last1, first2, last2)

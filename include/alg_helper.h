@@ -10,8 +10,8 @@
 /**
  * Sorts the array @c a with @c n elements.
  *
- * @param  a  Start of array.
- * @param  n  Number of elements in the array.
+ * @param  a  @c t* : Start of array.
+ * @param  n  @c unsigned : Number of elements in the array.
  */
 #define sort(id, a, n) ds_sort_##id(a, n)
 
@@ -20,11 +20,12 @@
  * Searches for @c val in an array @c a . The array must have been sorted 
  * prior to calling this function.
  *
- * @param   a    Start of array.
- * @param   n    Number of elements in the array.
- * @param   val  Value to search for.
+ * @param   a    @c t* : Start of array.
+ * @param   n    @c int :  Number of elements in the array.
+ * @param   val  @c t : Value to search for.
  *
- * @return       Pointer to element if it was found, NULL if it was not found.
+ * @return       @c t* : Pointer to element if it was found, NULL if it was
+ *               not found.
  */
 #define binary_search(id, a, n, val) ds_binary_search_##id(a, 0, n - 1, val)
 
@@ -32,8 +33,8 @@
 /**
  * Creates a max-heap in the range [@c first , @c last ).
  *
- * @param  first  Pointer to first index in the heap.
- * @param  last   Pointer to last index in the heap.
+ * @param  first  @c t* : Pointer to first index in the heap.
+ * @param  last   @c t* : Pointer to last index in the heap (non-inclusive).
  */
 #define make_heap(id, first, last) ds_make_heap_##id(first, last)
 
@@ -42,8 +43,8 @@
  * Sorts a heap in the range [@c first , @c last ), so that elements are 
  * ordered from smallest to largest.
  *
- * @param  first  Pointer to first index in the heap.
- * @param  last   Pointer to last index in the heap.
+ * @param  first  @c t* : Pointer to first index in the heap.
+ * @param  last   @c t* : Pointer to last index in the heap (non-inclusive).
  */
 #define sort_heap(id, first, last) ds_sort_heap_##id(first, last)
 
@@ -52,8 +53,8 @@
  * Extends a heap in the range [@c first , @c last-1 ) to 
  * [@c first , @c last ) (the element in position @c last-1 is pushed).
  *
- * @param  first  Pointer to first index in the heap.
- * @param  last   Pointer to last index in the heap.
+ * @param  first  @c t* : Pointer to first index in the heap.
+ * @param  last   @c t* : Pointer to last index in the heap (non-inclusive).
  */
 #define push_heap(id, first, last) ds_push_heap_##id(first, last)
 
@@ -62,8 +63,8 @@
  * Shrinks a heap in the range [@c first , @c last ) to 
  * [@c first , @c last-1 ) (the element in position @c first is popped).
  *
- * @param  first  Pointer to first index in the heap.
- * @param  last   Pointer to last index in the heap.
+ * @param  first  @c t* : Pointer to first index in the heap.
+ * @param  last   @c t* : Pointer to last index in the heap (non-inclusive).
  */
 #define pop_heap(id, first, last) ds_pop_heap_##id(first, last)
 
