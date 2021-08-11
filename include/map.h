@@ -11,17 +11,21 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Returns the next @c MapEntry in terms of increasing keys, if it exists.
+ * Returns the next entry in terms of increasing keys, if it exists.
  *
- * @param  e  @c MapEntry to use.
+ * @param   e  @c MapEntry* : Entry to use.
+ *
+ * @return     @c MapEntry* : Next entry.
  */
 #define mapEntry_getNext(id, e) __avl_inorder_successor_##id(e)
 
 
 /**
- * Returns the previous @c MapEntry in terms of increasing keys, if it exists.
+ * Returns the previous entry in terms of increasing keys, if it exists.
  *
- * @param  e  @c MapEntry to use.
+ * @param   e  @c MapEntry* : Entry to use.
+ *
+ * @return     @c MapEntry* : Previous entry.
  */
 #define mapEntry_getPrev(id, e) __avl_inorder_predecessor_##id(e)
 
@@ -30,8 +34,8 @@
  * Advances the entry by @c n positions. A negative number means to move 
  * backwards.
  *
- * @param  e  Address of MapEntry (i.e. @c MapEntry** ).
- * @param  n  Number of positions to advance.
+ * @param  e  @c MapEntry** : Address of entry.
+ * @param  n  @c long : Number of positions to advance.
  */
 #define mapEntry_advance(id, e, n) __avlEntry_advance_##id(e, n)
 
@@ -39,37 +43,39 @@
 /**
  * Returns the number of elements between @c first and @c last .
  *
- * @param   first  @c MapEntry to start at.
- * @param   last   @c MapEntry to end at. This must be reachable in the forward
- *                  direction by @c first .
+ * @param   first  @c MapEntry* : Entry to start at.
+ * @param   last   @c MapEntry* : Entry to end at. This must be reachable in
+ *                  the forward direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if
- *                 @c last is not reachable, returns -1.
+ * @return         @c long : Number of elements between @c first and @c last ,
+ *                 or if @c last is not reachable, returns -1.
  */
 #define mapEntry_distance(id, first, last)                                                                   \
         __avlEntry_distance_##id(first, last)
 
 
 /**
- * The starting point for iterating over keys in increasing order.
+ * @c MapEntry* : The starting point for iterating over keys in increasing 
+ * order.
  */
 #define map_iterator_begin(id, this) __avl_successor_##id((this)->root)
 
 
 /**
- * The ending point for iterating over keys in increasing order.
+ * @c MapEntry* : The ending point for iterating over keys in increasing order.
  */
 #define map_iterator_end() NULL
 
 
 /**
- * The starting point for iterating over keys in decreasing order.
+ * @c MapEntry* : The starting point for iterating over keys in decreasing 
+ * order.
  */
 #define map_iterator_rbegin(id, this) __avl_predecessor_##id((this)->root)
 
 
 /**
- * The ending point for iterating over keys in decreasing order.
+ * @c MapEntry* : The ending point for iterating over keys in decreasing order.
  */
 #define map_iterator_rend() NULL
 
@@ -77,7 +83,7 @@
 /**
  * Iterates through the map in-order.
  *
- * @param  it  @c MapEntry which is assigned to the current element. May be
+ * @param  it  @c MapEntry* : Assigned to the current element. May be
  *              dereferenced with @c it->data .
  */
 #define map_iter(id, this, it)                                                                               \
@@ -87,7 +93,7 @@
 /**
  * Iterates through the map in reverse order.
  *
- * @param  it  @c MapEntry which is assigned to the current element. May be
+ * @param  it  @c MapEntry* : Assigned to the current element. May be
  *              dereferenced with @c it->data .
  */
 #define map_riter(id, this, it)                                                                              \
@@ -99,13 +105,13 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * The number of elements in the map.
+ * @c unsigned : The number of elements in the map.
  */
 #define map_size(this) (this)->size
 
 
 /**
- * Tests whether the map is empty.
+ * @c bool : Whether the map is empty.
  */
 #define map_empty(this) !(this)->root
 
@@ -116,7 +122,7 @@
 /**
  * Creates a new, empty map.
  *
- * @return  Pointer to the newly created map.
+ * @return  @c Map* : Newly created map.
  */
 #define map_new(id) __avltree_new_fromArray_##id(NULL, 0)
 
@@ -124,10 +130,10 @@
 /**
  * Creates a new map using @c n key-value pairs in a built-in array @c arr .
  *
- * @param   arr  Pointer to the first element of type @c Pair to insert.
- * @param   n    Number of elements to include.
+ * @param   arr  @c Pair* : Pointer to the first element to insert.
+ * @param   n    @c unsigned : Number of elements to include.
  *
- * @return       Pointer to the newly created map.
+ * @return       @c Map* : Newly created map.
  */
 #define map_new_fromArray(id, arr, n) __avltree_new_fromArray_##id(arr, n)
 
@@ -135,9 +141,9 @@
 /**
  * Creates a new map as a copy of @c other .
  *
- * @param   other  @c Map to copy.
+ * @param   other  @c Map* : Map to copy.
  *
- * @return         Pointer to the newly created map.
+ * @return         @c Map* : Newly created map.
  */
 #define map_createCopy(id, other) __avltree_createCopy_##id(other)
 
@@ -158,10 +164,10 @@
 /**
  * Returns the entry with a key matching @c k .
  *
- * @param   k  Key to find.
+ * @param   k  @c kt : Key to find.
  *
- * @return     @c MapEntry whose key matches @c k , or NULL if it was not
- *             found.
+ * @return     @c MapEntry* : Entry whose key matches @c k , or NULL if it was
+ *             not found.
  */
 #define map_find(id, this, k) __avltree_find_key_##id(this, k, 0)
 
@@ -170,7 +176,10 @@
  * Similar to @c map_find , but returns a pointer to the pair's value rather 
  * than to the entry iterator as a whole.
  *
- * @param  k  Key to find.
+ * @param   k  @c kt : Key to find.
+ *
+ * @return     @c vt* : Pointer to the value whose key matches @c k, or NULL if
+ *             it was not found.
  */
 #define map_at(id, this, k) map_at_##id(this, k)
 
@@ -179,9 +188,9 @@
  * Inserts @c pair into the map. If the key already exists, the value is 
  * updated to that of @c pair .
  *
- * @param   pair  Key-value pair of type @c Pair to insert.
+ * @param   pair  @c Pair : Key-value pair to insert.
  *
- * @return        @c MapEntry corresponding to the inserted pair.
+ * @return        @c MapEntry* : Entry corresponding to the inserted pair.
  */
 #define map_insert(id, this, pair) __avltree_insert_##id(this, pair, NULL)
 
@@ -191,11 +200,11 @@
  * insertion. If the key already exists, the value is updated to that of 
  * @c pair .
  *
- * @param   pair      Key-value pair of type @c Pair to insert.
- * @param   inserted  Set to 1 if the pair was newly inserted, or 0 if the key
- *                     already existed.
+ * @param   pair      @c Pair : Key-value pair to insert.
+ * @param   inserted  @c int* : Set to 1 if the pair was newly inserted, or 0
+ *                     if the key already existed.
  *
- * @return            @c MapEntry corresponding to the inserted pair.
+ * @return            @c MapEntry* : Entry corresponding to the inserted pair.
  */
 #define map_insert_withResult(id, this, pair, inserted)                                                      \
         __avltree_insert_##id(this, pair, inserted)
@@ -204,10 +213,10 @@
 /**
  * Inserts @c n key-value pairs from a built-in array @c arr .
  *
- * @param   arr  Pointer to the first element of type @c Pair to insert.
- * @param   n    Number of elements to include.
+ * @param   arr  @c Pair* : Pointer to the first element to insert.
+ * @param   n    @c unsigned : Number of elements to include.
  *
- * @return       Whether the operation succeeded.
+ * @return       @c bool : Whether the operation succeeded.
  */
 #define map_insert_fromArray(id, this, arr, n)                                                               \
         __avltree_insert_fromArray_##id(this, arr, n)
@@ -216,12 +225,12 @@
 /**
  * Inserts elements from another map in the range [@c start , @c end ).
  *
- * @param   start  First @c MapEntry to insert. Must not be NULL.
- * @param   end    @c MapEntry after the last entry to insert. If this is NULL,
- *                  all keys from @c start through the greatest key in the
- *                  other map will be inserted.
+ * @param   start  @c MapEntry* : First entry to insert. Must not be NULL.
+ * @param   end    @c MapEntry* : Entry after the last entry to insert. If this
+ *                  is NULL, all keys from @c start through the greatest key in
+ *                  the other map will be inserted.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define map_insert_fromMap(id, this, start, end)                                                             \
         __avltree_insert_fromTree_##id(this, start, end)
@@ -230,10 +239,10 @@
 /**
  * Removes key-value pairs in the range [@c begin , @c end ).
  *
- * @param  begin  First @c MapEntry to erase.
- * @param  end    @c MapEntry after the last entry to be deleted. If this is
- *                 NULL, all keys from @c begin through the greatest key in the
- *                 map will be removed.
+ * @param  begin  @c MapEntry* : First entry to erase.
+ * @param  end    @c MapEntry* : Entry after the last entry to be deleted. If
+ *                 this is NULL, all keys from @c begin through the greatest
+ *                 key in the map will be removed.
  */
 #define map_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -241,7 +250,7 @@
 /**
  * Removes a single pair from the map whose key is equal to @c key .
  *
- * @param  key  Key to be deleted.
+ * @param  key  @c kt : Key to be deleted.
  */
 #define map_remove_key(id, this, key)                                                                        \
         __avltree_remove_entry_##id(this,                                                                    \
@@ -251,7 +260,7 @@
 /**
  * Removes @c entry from the map.
  *
- * @param  entry  @c MapEntry to remove.
+ * @param  entry  @c MapEntry* : Entry to remove.
  */
 #define map_remove_entry(id, this, entry)                                                                    \
         __avltree_remove_entry_##id(this, entry)

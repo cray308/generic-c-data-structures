@@ -10,17 +10,21 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Returns the next @c ListEntry , if it exists.
+ * Returns the next entry, if it exists.
  *
- * @param  e  @c ListEntry to use.
+ * @param   e  @c ListEntry* : Entry to use.
+ *
+ * @return     @c ListEntry* : Next entry.
  */
 #define listEntry_getNext(e) ((e) ? (e)->next : NULL)
 
 
 /**
- * Returns the previous @c ListEntry , if it exists.
+ * Returns the previous entry, if it exists.
  *
- * @param  e  @c ListEntry to use.
+ * @param   e  @c ListEntry* : Entry to use.
+ *
+ * @return     @c ListEntry* : Previous entry.
  */
 #define listEntry_getPrev(e) ((e) ? (e)->prev : NULL)
 
@@ -29,8 +33,8 @@
  * Advances the entry by @c n positions. A negative number means to move 
  * backwards.
  *
- * @param  e  Address of @c ListEntry (i.e. @c ListEntry** ).
- * @param  n  Number of positions to advance.
+ * @param  e  @c ListEntry** : Address of entry.
+ * @param  n  @c long : Number of positions to advance.
  */
 #define listEntry_advance(id, e, n) listEntry_advance_##id(e, n)
 
@@ -38,37 +42,41 @@
 /**
  * Returns the number of elements between @c first and @c last .
  *
- * @param   first  @c ListEntry to start at.
- * @param   last   @c ListEntry to end at. This must be reachable in the
- *                  forward direction by @c first .
+ * @param   first  @c ListEntry* : Entry to start at.
+ * @param   last   @c ListEntry* : Entry to end at. This must be reachable in
+ *                  the forward direction by @c first .
  *
- * @return         Number of elements between @c first and @c last , or if
- *                 @c last is not reachable, returns -1.
+ * @return         @c long : Number of elements between @c first and @c last ,
+ *                 or if @c last is not reachable, returns -1.
  */
 #define listEntry_distance(id, first, last)                                                                  \
         listEntry_distance_##id(first, last)
 
 
 /**
- * The starting point for iterating over elements in forward order.
+ * @c ListEntry* : The starting point for iterating over elements in forward 
+ * order.
  */
 #define list_iterator_begin(this) (this)->front
 
 
 /**
- * The ending point for iterating over elements in forward order.
+ * @c ListEntry* : The ending point for iterating over elements in forward 
+ * order.
  */
 #define list_iterator_end() NULL
 
 
 /**
- * The starting point for iterating over elements in reverse order.
+ * @c ListEntry* : The starting point for iterating over elements in reverse 
+ * order.
  */
 #define list_iterator_rbegin(this) (this)->back
 
 
 /**
- * The ending point for iterating over elements in reverse order.
+ * @c ListEntry* : The ending point for iterating over elements in reverse 
+ * order.
  */
 #define list_iterator_rend() NULL
 
@@ -76,7 +84,7 @@
 /**
  * Macro for iterating over the list from front to back.
  *
- * @param  it  @c ListEntry which is assigned to the current element. May be
+ * @param  it  @c ListEntry* : Assigned to the current element. May be
  *              dereferenced with @c it->data .
  */
 #define list_iter(this, it) for (it = (this)->front; it; it = (it)->next)
@@ -85,7 +93,7 @@
 /**
  * Macro for iterating over the list in reverse (from back to front).
  *
- * @param  it  @c ListEntry which is assigned to the current element. May be
+ * @param  it  @c ListEntry* : Assigned to the current element. May be
  *              dereferenced with @c it->data .
  */
 #define list_riter(this, it) for (it = (this)->back; it; it = (it)->prev)
@@ -95,25 +103,25 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * Pointer to the front element's data, if the list is not empty.
+ * @c t* : Pointer to the front element's data, if the list is not empty.
  */
 #define list_front(this) ((this)->front ? &(this)->front->data : NULL)
 
 
 /**
- * Pointer to the back element's data, if the list is not empty.
+ * @c t* : Pointer to the back element's data, if the list is not empty.
  */
 #define list_back(this) ((this)->back ? &(this)->back->data : NULL)
 
 
 /**
- * Whether the list has no elements.
+ * @c bool : Whether the list has no elements.
  */
 #define list_empty(this) !(this)->front
 
 
 /**
- * The number of elements in the list.
+ * @c unsigned : The number of elements in the list.
  */
 #define list_size(this) (this)->size
 
@@ -124,7 +132,7 @@
 /**
  * Creates a new, empty list.
  *
- * @return  Pointer to the newly allocated list.
+ * @return  @c List* : Newly allocated list.
  */
 #define list_new(id) list_new_fromArray_##id(NULL, 0)
 
@@ -132,10 +140,10 @@
 /**
  * Creates a new list with size @c n , where each element is set to @c value .
  *
- * @param   n      Number of elements to initialize.
- * @param   value  Value to set for each of the elements.
+ * @param   n      @c unsigned : Number of elements to initialize.
+ * @param   value  @c t : Value to set for each of the elements.
  *
- * @return         Pointer to the newly created list.
+ * @return         @c List* : Newly created list.
  */
 #define list_new_repeatingValue(id, n, value)                                                                \
         list_new_repeatingValue_##id(n, value)
@@ -144,10 +152,10 @@
 /**
  * Creates a new list using @c n elements in a built-in array @c arr .
  *
- * @param   arr  Pointer to the first element to insert.
- * @param   n    Number of elements to include.
+ * @param   arr  @c t* : Pointer to the first element to insert.
+ * @param   n    @c unsigned : Number of elements to include.
  *
- * @return       Pointer to the newly allocated list.
+ * @return       @c List* : Newly allocated list.
  */
 #define list_new_fromArray(id, arr, n) list_new_fromArray_##id(arr, n)
 
@@ -155,9 +163,9 @@
 /**
  * Creates a new list as a copy of @c other .
  *
- * @param   other  @c List to copy.
+ * @param   other  @c List* : List to copy.
  *
- * @return         Pointer to the newly allocated list.
+ * @return         @c List* : Newly allocated list.
  */
 #define list_createCopy(id, other) list_createCopy_##id(other)
 
@@ -175,9 +183,9 @@
  * all but the first @c n elements are removed. If this is greater than the 
  * current size, elements are appended to the list with a value of 0.
  *
- * @param   n  The new list size.
+ * @param   n  @c unsigned : The new list size.
  *
- * @return     Whether the operation succeeded.
+ * @return     @c bool : Whether the operation succeeded.
  */
 #define list_resize(id, this, n) list_resize_usingValue_##id(this, n, 0)
 
@@ -187,11 +195,11 @@
  * all but the first @c n elements are removed. If this is greater than the 
  * current size, elements are appended to the list with a value of @c value .
  *
- * @param   n      The new list size.
- * @param   value  Value to hold in the new elements if @c n is greater than
- *                  the current size.
+ * @param   n      @c unsigned : The new list size.
+ * @param   value  @c t : Value to hold in the new elements if @c n is greater
+ *                  than the current size.
  *
- * @return         Whether the operation succeeded.
+ * @return         @c bool : Whether the operation succeeded.
  */
 #define list_resize_usingValue(id, this, n, value)                                                           \
         list_resize_usingValue_##id(this, n, value)
@@ -200,7 +208,7 @@
 /**
  * Prepends @c value to the start of the list.
  *
- * @param  value  Value to insert.
+ * @param  value  @c t : Value to insert.
  */
 #define list_push_front(id, this, value)                                                                     \
         list_insert(id, this, (this)->front, value)
@@ -209,7 +217,7 @@
 /**
  * Appends @c value to the end of the list.
  *
- * @param  value  Value to insert.
+ * @param  value  @c t : Value to insert.
  */
 #define list_push_back(id, this, value) list_insert(id, this, NULL, value)
 
@@ -231,11 +239,12 @@
 /**
  * Inserts @c value before @c pos .
  *
- * @param   pos     @c ListEntry before which the element should be inserted.
- *                   If this is NULL, the element is appended.
- * @param   value   Value to insert.
+ * @param   pos     @c ListEntry* : Entry before which the element should be
+ *                   inserted. If this is NULL, the element is appended.
+ * @param   value   @c t : Value to insert.
  *
- * @return          @c ListEntry corresponding to the inserted element.
+ * @return          @c ListEntry* : Entry corresponding to the inserted
+ *                  element.
  */
 #define list_insert(id, this, pos, value)                                                                    \
         list_insert_repeatingValue_##id(this, pos, 1, value)
@@ -244,13 +253,14 @@
 /**
  * Inserts @c n copies of @c value before @c pos .
  *
- * @param   pos     @c ListEntry before which the elements should be inserted.
- *                   If this is NULL, the elements are appended.
- * @param   n       Number of copies of @c value to insert.
- * @param   value   Value to insert.
+ * @param   pos     @c ListEntry* : Entry before which the elements should be
+ *                   inserted. If this is NULL, the elements are appended.
+ * @param   n       @c unsigned : Number of copies of @c value to insert.
+ * @param   value   @c t : Value to insert.
  *
- * @return          If successful, returns a @c ListEntry corresponding to the
- *                  first inserted element. If an error occurred, returns NULL.
+ * @return          @c ListEntry* : If successful, returns an entry
+ *                  corresponding to the first inserted element. If an error
+ *                  occurred, returns NULL.
  */
 #define list_insert_repeatingValue(id, this, pos, n, value)                                                  \
         list_insert_repeatingValue_##id(this, pos, n, value)
@@ -259,31 +269,33 @@
 /**
  * Inserts @c n elements from the built-in array @c arr before @c pos .
  *
- * @param   pos  @c ListEntry before which the elements should be inserted. If
- *                this is NULL, the elements are appended.
- * @param   arr  Pointer to the first element to insert.
- * @param   n    Number of elements to include.
+ * @param   pos  @c ListEntry* : Entry before which the elements should be
+ *                inserted. If this is NULL, the elements are appended.
+ * @param   arr  @c t* : Pointer to the first element to insert.
+ * @param   n    @c unsigned : Number of elements to include.
  *
- * @return       If successful, returns a @c ListEntry corresponding to the
- *               first inserted element. If an error occurred, returns NULL.
+ * @return       @c ListEntry* : If successful, returns an entry corresponding
+ *               to the first inserted element. If an error occurred, returns
+ *               NULL.
  */
 #define list_insert_fromArray(id, this, pos, arr, n)                                                         \
         list_insert_fromArray_##id(this, pos, arr, n)
 
 
 /**
- * Inserts new elements from another @c List in the range [@c start , @c end ) 
+ * Inserts new elements from another list in the range [@c start , @c end ) 
  * before @c pos .
  *
- * @param   pos    @c ListEntry before which the elements should be inserted.
- *                  If this is NULL, the elements are appended.
- * @param   start  First @c ListEntry to insert. Must not be NULL.
- * @param   end    @c ListEntry after the last entry to insert. If this is
- *                  NULL, all elements from @c start through the end of the
- *                  other list will be inserted.
+ * @param   pos    @c ListEntry* : Entry before which the elements should be
+ *                  inserted. If this is NULL, the elements are appended.
+ * @param   start  @c ListEntry* : First entry to insert. Must not be NULL.
+ * @param   end    @c ListEntry* : Entry after the last entry to insert. If
+ *                  this is NULL, all elements from @c start through the end of
+ *                  the other list will be inserted.
  *
- * @return         If successful, returns a @c ListEntry corresponding to the
- *                 first inserted element. If an error occurred, returns NULL.
+ * @return         @c ListEntry* : If successful, returns an entry
+ *                 corresponding to the first inserted element. If an error
+ *                 occurred, returns NULL.
  */
 #define list_insert_fromList(id, this, pos, start, end)                                                      \
         list_insert_fromList_##id(this, pos, start, end)
@@ -292,12 +304,12 @@
 /**
  * Removes the element at @c pos .
  *
- * @param   pos  @c ListEntry to be removed.
+ * @param   pos  @c ListEntry* : Entry to be removed.
  *
- * @return       If successful, returns a @c ListEntry corresponding to the
- *               element that was after @c pos ; if @c pos was the last element
- *               in the list, this is @c LIST_END . If an error occurred,
- *               returns NULL.
+ * @return       @c ListEntry* : If successful, returns an entry corresponding
+ *               to the element that was after @c pos ; if @c pos was the last
+ *               element in the list, this is @c LIST_END . If an error
+ *               occurred, returns NULL.
  */
 #define list_remove(id, this, pos)                                                                           \
         list_erase_##id(this, pos, pos ? (pos)->next : NULL)
@@ -306,15 +318,17 @@
 /**
  * Erases elements within the range [@c first , @c last ).
  *
- * @param   first  First @c ListEntry to be removed - must be provided.
- * @param   last   @c ListEntry after the last entry to be deleted. If this is
- *                  NULL, all elements from @c first through the end of the
- *                  list will be removed.
+ * @param   first  @c ListEntry* : First entry to be removed - must be
+ *                  provided.
+ * @param   last   @c ListEntry* : Entry after the last entry to be deleted. If
+ *                  this is NULL, all elements from @c first through the end of
+ *                  the list will be removed.
  *
- * @return         If successful, returns a @c ListEntry corresponding to the
- *                 element after the last deleted element; if the last deleted
- *                 element was the last element in the list, this is
- *                 @c LIST_END . If an error occurred, returns NULL.
+ * @return         @c ListEntry* : If successful, returns an entry
+ *                 corresponding to the element after the last deleted element;
+ *                 if the last deleted element was the last element in the
+ *                 list, this is @c LIST_END . If an error occurred, returns
+ *                 NULL.
  */
 #define list_erase(id, this, first, last) list_erase_##id(this, first, last)
 
@@ -334,8 +348,8 @@
 /**
  * Removes any elements satisfying @c condition .
  *
- * @param  condition  Function pointer to check if an element meets the
- *                     condition.
+ * @param  condition  @c int*(t*) : Function pointer to check if an element
+ *                     meets the condition.
  */
 #define list_remove_if(id, this, condition)                                                                  \
         list_remove_if_##id(this, condition)
@@ -344,10 +358,10 @@
 /**
  * Moves all elements from @c other into this list before @c pos .
  *
- * @param  pos    @c ListEntry in this list before which elements in @c other
- *                 will be moved. If this is NULL, elements from @c other will
- *                 be appended to this list.
- * @param  other  Other @c List from which elements will be moved.
+ * @param  pos    @c ListEntry* : Entry in this list before which elements in
+ *                 @c other will be moved. If this is NULL, elements from
+ *                 @c other will be appended to this list.
+ * @param  other  @c List* : Other list from which elements will be moved.
  */
 #define list_splice(id, this, pos, other)                                                                    \
         list_splice_range_##id(this, pos, other, (other)->front, NULL)
@@ -356,10 +370,11 @@
 /**
  * Moves @c entry from @c other into this list before @c pos .
  *
- * @param  pos    @c ListEntry in this list before which @c entry will be
- *                 moved. If this is NULL, @c entry is appended to this list.
- * @param  other  Other @c List from which @c entry will be moved.
- * @param  entry  @c ListEntry to move.
+ * @param  pos    @c ListEntry* : Entry in this list before which @c entry will
+ *                 be moved. If this is NULL, @c entry is appended to this
+ *                 list.
+ * @param  other  @c List* : Other list from which @c entry will be moved.
+ * @param  entry  @c ListEntry* : Entry to move.
  */
 #define list_splice_element(id, this, pos, other, entry)                                                     \
         list_splice_range_##id(this, pos, other, entry,                                                      \
@@ -370,14 +385,14 @@
  * Moves elements from @c other in the range [@c first , @c last ) into this 
  * list before @c pos .
  *
- * @param  pos    @c ListEntry in this list before which elements in @c other
- *                 will be moved. If this is NULL, elements from @c other will
- *                 be appended to this list.
- * @param  other  Other @c List from which elements will be moved.
- * @param  first  First @c ListEntry from @c other to move.
- * @param  last   @c ListEntry after the last entry in @c other to move. If
- *                 this is NULL, all entries from @c first through the end of
- *                 @c other are moved.
+ * @param  pos    @c ListEntry* : Entry in this list before which elements in
+ *                 @c other will be moved. If this is NULL, elements from
+ *                 @c other will be appended to this list.
+ * @param  other  @c List* : Other list from which elements will be moved.
+ * @param  first  @c ListEntry* : First entry from @c other to move.
+ * @param  last   @c ListEntry* : Entry after the last entry in @c other to
+ *                 move. If this is NULL, all entries from @c first through the
+ *                 end of @c other are moved.
  */
 #define list_splice_range(id, this, pos, other, first, last)                                                 \
         list_splice_range_##id(this, pos, other, first, last)
@@ -772,7 +787,7 @@ void list_splice_range_##id(List_##id *this,                                    
 /**
  * Removes any elements equal to @c value .
  *
- * @param  value  Value to compare to a list element's data.
+ * @param  value  @c t : Value to remove.
  */
 #define list_remove_value(id, this, value) list_remove_value_##id(this, value)
 
@@ -780,10 +795,11 @@ void list_splice_range_##id(List_##id *this,                                    
 /**
  * Finds the first instance of @c value .
  *
- * @param   value  Value to search for.
+ * @param   value  @c t : Value to search for.
  *
- * @return         If @c value was found, returns a @c ListEntry corresponding
- *                 to that element. If it was not found, returns NULL.
+ * @return         @c ListEntry* : If @c value was found, returns an entry
+ *                 corresponding to that element. If it was not found, returns
+ *                 NULL.
  */
 #define list_find(id, this, value) list_find_##id(this, value)
 
@@ -793,71 +809,70 @@ void list_splice_range_##id(List_##id *this,                                    
  * to this operation. @c other is left with a size of 0, and this list grows 
  * by as many elements as @c other previously contained.
  *
- * @param  other  Other @c List , which will be merged with this list.
+ * @param  other  @c List* : Other list.
  */
 #define list_merge(id, this, other) list_merge_##id(this, other)
 
 
 /**
  * Sorts the list according to the @c cmp_lt macro provided in 
- * @c gen_list_source .
- * 
- * Time complexity: approx. O(n * log(n))
+ * @c gen_list_source . Time complexity: approx. O(n * log(n)).
  */
 #define list_sort(id, this) list_sort_##id(this)
 
 
 /**
- * Creates a new @c List representing the union of this list and @c other 
+ * Creates a new list representing the union of this list and @c other 
  * (i.e. elements that are in this list, @c other , or both - all elements).
  *
- * @param   other   Second @c List .
+ * @param   other   @c List* : Second list.
  *
- * @return          Pointer to newly allocated list.
+ * @return          @c List* : Newly allocated list.
  */
 #define list_union(id, this, other) list_union_##id(this, other)
 
 
 /**
- * Creates a new @c List representing the intersection of this list and 
+ * Creates a new list representing the intersection of this list and 
  * @c other (i.e. all elements that both lists have in common).
  *
- * @param   other   Second @c List .
+ * @param   other   @c List* : Second list.
  *
- * @return          Pointer to newly allocated list.
+ * @return          @c List* : Newly allocated list.
  */
 #define list_intersection(id, this, other) list_intersection_##id(this, other)
 
 
 /**
- * Creates a new @c List representing the difference of this list and @c other 
+ * Creates a new list representing the difference of this list and @c other 
  * (i.e. all elements that are unique to this list).
  *
- * @param   other   Second @c List .
+ * @param   other   @c List* : Second list.
  *
- * @return          Pointer to newly allocated list.
+ * @return          @c List* : Newly allocated list.
  */
 #define list_difference(id, this, other) list_difference_##id(this, other)
 
 
 /**
- * Creates a new @c List representing the symmetric difference of this list 
+ * Creates a new list representing the symmetric difference of this list 
  * and @c other (i.e. all elements that neither list has in common).
  *
- * @param   other   Second @c List .
+ * @param   other   @c List* : Second list.
  *
- * @return          Pointer to newly allocated list.
+ * @return          @c List* : Newly allocated list.
  */
-#define list_symmetric_difference(id, this, other) \
+#define list_symmetric_difference(id, this, other)                                                           \
         list_symmetric_difference_##id(this, other)
 
 
 /**
  * Determines whether this list contains each element in @c other .
  *
- * @param   other   Second @c List .
+ * @param   other   @c List* : Second list.
  *
- * @return          Whether this list contains each element in @c other .
+ * @return          @c bool : Whether this list contains each element in
+ *                  @c other .
  */
 #define list_includes(id, this, other) list_includes_##id(this, other)
 
