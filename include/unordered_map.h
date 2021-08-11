@@ -13,7 +13,7 @@
 /**
  * Iterates through all entries in the map.
  *
- * @param  it  Pointer to @c Pair which is assigned to the current element.
+ * @param  it  @c Pair* : Assigned to the current element.
  */
 #define umap_iter(id, this, it)                                                                              \
         for (it = __htable_iter_begin_##id(this); it;                                                        \
@@ -24,25 +24,25 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * The number of entries in the map.
+ * @c unsigned : The number of entries in the map.
  */
 #define umap_size(this) (this)->size
 
 
 /**
- * The current value of the map's max load factor.
+ * @c unsigned : The current value of the map's max load factor.
  */
 #define umap_max_load_factor(this) (this)->lf
 
 
 /**
- * The total number of buckets in the map.
+ * @c unsigned : The total number of buckets in the map.
  */
 #define umap_bucket_count(this) (this)->cap
 
 
 /**
- * Whether the map is empty.
+ * @c bool : Whether the map is empty.
  */
 #define umap_empty(this) !(this)->size
 
@@ -53,19 +53,18 @@
 /**
  * Creates a new, empty map.
  *
- * @return  Pointer to newly created map.
+ * @return  @c UMap* : Newly created map.
  */
 #define umap_new(id) __htable_new_fromArray_##id(NULL, 0)
 
 
 /**
- * Creates a new map using @c n key-value pairs in a built-in array @c arr 
- * containing type @c Pair .
+ * Creates a new map using @c n key-value pairs in a built-in array @c arr .
  *
- * @param   arr  Pointer to the first element to insert.
- * @param   n    Number of elements to include.
+ * @param   arr  @c Pair* : Pointer to the first element to insert.
+ * @param   n    @c unsigned : Number of elements to include.
  *
- * @return       Pointer to the newly created map.
+ * @return       @c UMap* : Newly created map.
  */
 #define umap_new_fromArray(id, arr, n) __htable_new_fromArray_##id(arr, n)
 
@@ -73,9 +72,9 @@
 /**
  * Creates a new map as a copy of @c other .
  *
- * @param   other  @c UMap to copy.
+ * @param   other  @c UMap* : Map to copy.
  *
- * @return         Pointer to the newly created map.
+ * @return         @c UMap* : Newly created map.
  */
 #define umap_createCopy(id, other) __htable_createCopy_##id(other)
 
@@ -92,9 +91,9 @@
  * Inserts @c pair into the map. If the key already exists, the value is 
  * updated to that of @c pair .
  *
- * @param  pair  Key-value pair of type @c Pair to insert.
+ * @param  pair  @c Pair : Key-value pair to insert.
  *
- * @return       Pointer to the inserted pair.
+ * @return       @c Pair* : Pointer to the inserted pair.
  */
 #define umap_insert(id, this, pair) __htable_insert_##id(this, pair, NULL)
 
@@ -104,24 +103,23 @@
  * insertion. If the key already exists, the value is updated to that of 
  * @c pair .
  *
- * @param   pair      Key-value pair of type @c Pair to insert.
- * @param   inserted  Pointer to int which is set to 1 if a new pair was
- *                     inserted, or 0 if not.
+ * @param   pair      @c Pair : Key-value pair to insert.
+ * @param   inserted  @c int* : Set to 1 if a new pair was inserted, or 0 if
+ *                     not.
  *
- * @return            Pointer to the inserted pair.
+ * @return            @c Pair* : Pointer to the inserted pair.
  */
 #define umap_insert_withResult(id, this, pair, inserted)                                                     \
         __htable_insert_##id(this, pair, inserted)
 
 
 /**
- * Inserts @c n key-value pairs from a built-in array @c arr containing type 
- * @c Pair .
+ * Inserts @c n key-value pairs from a built-in array @c arr .
  *
- * @param   arr  Pointer to the first element to insert.
- * @param   n    Number of elements to include.
+ * @param   arr  @c Pair* : Pointer to the first element to insert.
+ * @param   n    @c unsigned : Number of elements to include.
  *
- * @return       Whether the operation succeeded.
+ * @return       @c bool : Whether the operation succeeded.
  */
 #define umap_insert_fromArray(id, this, arr, n)                                                              \
         __htable_insert_fromArray_##id(this, arr, n)
@@ -130,10 +128,10 @@
 /**
  * Finds the entry with a key matching @c k .
  *
- * @param  k   Key to find.
+ * @param  k   @c kt : Key to find.
  *
- * @return     Pointer to @c Pair whose key matches @c k , or NULL if it was
- *             not found.
+ * @return     @c Pair* : Pointer to pair whose key matches @c k , or NULL if
+ *             it was not found.
  */
 #define umap_find(id, this, k) __htable_find_##id(this, k)
 
@@ -142,7 +140,10 @@
  * Similar to @c umap_find , but returns a pointer to the pair's value rather 
  * than to the pair as a whole.
  *
- * @param  k  Key to find.
+ * @param   k  @c kt : Key to find.
+ *
+ * @return     @c vt* : Pointer to the value whose key matches @c k, or NULL if
+ *             it was not found.
  */
 #define umap_at(id, this, k) umap_at_##id(this, k)
 
@@ -150,7 +151,7 @@
 /**
  * Removes a single pair from the map whose key is equal to @c k .
  *
- * @param  k  Key to be deleted.
+ * @param  k  @c kt : Key to be deleted.
  */
 #define umap_remove_key(id, this, k) __htable_erase_##id(this, k)
 
@@ -159,9 +160,9 @@
  * Changes the number of buckets in the map to @c nbuckets . If this is less 
  * than or equal to the current number of buckets, nothing is done.
  *
- * @param   nbuckets  New number of buckets to use in the map.
+ * @param   nbuckets  @c unsigned : New number of buckets to use in the map.
  *
- * @return            Whether the operation succeeded.
+ * @return            @c bool : Whether the operation succeeded.
  */
 #define umap_rehash(id, this, nbuckets) __htable_rehash_##id(this, nbuckets)
 
@@ -170,9 +171,9 @@
  * If it is reasonable, sets the maximum load factor to @c lf , and may rehash 
  * the map if required.
  *
- * @param   lf  The new load factor to use.
+ * @param   lf  @c unsigned : The new load factor to use.
  *
- * @return      Whether the operation succeeded.
+ * @return      @c bool : Whether the operation succeeded.
  */
 #define umap_set_load_factor(id, this, lf)                                                                   \
         __htable_set_load_factor_##id(this, lf)
