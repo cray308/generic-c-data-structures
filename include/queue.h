@@ -8,25 +8,26 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * @c unsigned : The number of elements in the queue.
+ * @brief @c unsigned : The number of elements in the queue.
  */
 #define queue_size(this) deque_size(this)
 
 
 /**
- * @c t* : Pointer to the first element in the queue, if it is not empty.
+ * @brief @c t* : Pointer to the first element in the queue, if it is not 
+ * empty.
  */
 #define queue_front(this) deque_front(this)
 
 
 /**
- * @c t* : Pointer to the last element in the queue, if it is not empty.
+ * @brief @c t* : Pointer to the last element in the queue, if it is not empty.
  */
 #define queue_back(this) deque_back(this)
 
 
 /**
- * @c bool : Tests whether there are no elements in the queue.
+ * @brief @c bool : Tests whether there are no elements in the queue.
  */
 #define queue_empty(this) deque_empty(this)
 
@@ -92,7 +93,7 @@
  *                        - If @c DSDefault_deepCopyStr was used in
  *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_queue_source(id, t, copyValue, deleteValue)                                                      \
+#define gen_queue_source(id, t, copyValue, deleteValue)                                  \
         __setup_deque_source(id, t, Queue_##id, copyValue, deleteValue)
 
 #endif /* DS_QUEUE_H */

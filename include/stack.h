@@ -8,19 +8,19 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * @c unsigned : The number of elements in the stack.
+ * @brief @c unsigned : The number of elements in the stack.
  */
 #define stack_size(this) deque_size(this)
 
 
 /**
- * @c bool : Whether there are no elements in the stack.
+ * @brief @c bool : Whether there are no elements in the stack.
  */
 #define stack_empty(this) deque_empty(this)
 
 
 /**
- * @c t* : Pointer to the top element in the stack, if it is not empty.
+ * @brief @c t* : Pointer to the top element in the stack, if it is not empty.
  */
 #define stack_top(this) deque_back(this)
 
@@ -85,7 +85,7 @@
  *                        - If @c DSDefault_deepCopyStr was used in
  *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_stack_source(id, t, copyValue, deleteValue)                                                      \
+#define gen_stack_source(id, t, copyValue, deleteValue)                                  \
         __setup_deque_source(id, t, Stack_##id, copyValue, deleteValue)
 
 #endif /* DS_STACK_H */

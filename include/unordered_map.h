@@ -15,8 +15,8 @@
  *
  * @param  it  @c Pair* : Assigned to the current element.
  */
-#define umap_iter(id, this, it)                                                                              \
-        for (it = __htable_iter_begin_##id(this); it;                                                        \
+#define umap_iter(id, this, it)                                                          \
+        for (it = __htable_iter_begin_##id(this); it;                                    \
              it = __htable_iter_next_##id(this))
 
 /* --------------------------------------------------------------------------
@@ -24,25 +24,25 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * @c unsigned : The number of entries in the map.
+ * @brief @c unsigned : The number of entries in the map.
  */
 #define umap_size(this) (this)->size
 
 
 /**
- * @c unsigned : The current value of the map's max load factor.
+ * @brief @c unsigned : The current value of the map's max load factor.
  */
 #define umap_max_load_factor(this) (this)->lf
 
 
 /**
- * @c unsigned : The total number of buckets in the map.
+ * @brief @c unsigned : The total number of buckets in the map.
  */
 #define umap_bucket_count(this) (this)->cap
 
 
 /**
- * @c bool : Whether the map is empty.
+ * @brief @c bool : Whether the map is empty.
  */
 #define umap_empty(this) !(this)->size
 
@@ -82,8 +82,8 @@
 /**
  * Deletes all elements and frees the map.
  */
-#define umap_free(id, this) do {                                                                             \
-    __htable_clear_##id(this); free((this)->buckets); free(this);                                            \
+#define umap_free(id, this) do {                                                         \
+    __htable_clear_##id(this); free((this)->buckets); free(this);                        \
 } while(0)
 
 
@@ -109,7 +109,7 @@
  *
  * @return            @c Pair* : Pointer to the inserted pair.
  */
-#define umap_insert_withResult(id, this, pair, inserted)                                                     \
+#define umap_insert_withResult(id, this, pair, inserted)                                 \
         __htable_insert_##id(this, pair, inserted)
 
 
@@ -121,7 +121,7 @@
  *
  * @return       @c bool : Whether the operation succeeded.
  */
-#define umap_insert_fromArray(id, this, arr, n)                                                              \
+#define umap_insert_fromArray(id, this, arr, n)                                          \
         __htable_insert_fromArray_##id(this, arr, n)
 
 
@@ -142,8 +142,8 @@
  *
  * @param   k  @c kt : Key to find.
  *
- * @return     @c vt* : Pointer to the value whose key matches @c k, or NULL if
- *             it was not found.
+ * @return     @c vt* : Pointer to the value whose key matches @c k , or NULL
+ *             if it was not found.
  */
 #define umap_at(id, this, k) umap_at_##id(this, k)
 
@@ -175,7 +175,7 @@
  *
  * @return      @c bool : Whether the operation succeeded.
  */
-#define umap_set_load_factor(id, this, lf)                                                                   \
+#define umap_set_load_factor(id, this, lf)                                               \
         __htable_set_load_factor_##id(this, lf)
 
 
@@ -194,16 +194,16 @@
  * @param  kt  Key type.
  * @param  vt  Value type.
  */
-#define gen_umap_headers(id, kt, vt)                                                                         \
-                                                                                                             \
-typedef struct {                                                                                             \
-    kt first;                                                                                                \
-    vt second;                                                                                               \
-} Pair_##id;                                                                                                 \
-                                                                                                             \
-__setup_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                                     \
-                                                                                                             \
-vt *umap_at_##id(UMap_##id const *this, const kt key);                                                       \
+#define gen_umap_headers(id, kt, vt)                                                     \
+                                                                                         \
+typedef struct {                                                                         \
+    kt first;                                                                            \
+    vt second;                                                                           \
+} Pair_##id;                                                                             \
+                                                                                         \
+__setup_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                 \
+                                                                                         \
+vt *umap_at_##id(UMap_##id const *this, const kt key);                                   \
 
 
 /**
@@ -252,16 +252,16 @@ vt *umap_at_##id(UMap_##id const *this, const kt key);                          
  *                        - If @c DSDefault_deepCopyStr  was used in
  *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey,                                            \
-                        copyKey, deleteKey, copyValue, deleteValue)                                          \
-                                                                                                             \
-__setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id,                              \
-    __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey,                                \
-    deleteKey, copyValue, deleteValue)                                                                       \
-                                                                                                             \
-vt *umap_at_##id(UMap_##id const *this, const kt key) {                                                      \
-    Pair_##id *p = __htable_find_##id(this, key);                                                            \
-    return p ? &(p->second) : NULL;                                                                          \
-}                                                                                                            \
+#define gen_umap_source(id, kt, vt, cmp_eq, addrOfKey, sizeOfKey,                        \
+                        copyKey, deleteKey, copyValue, deleteValue)                      \
+                                                                                         \
+__setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id,          \
+    __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey,            \
+    deleteKey, copyValue, deleteValue)                                                   \
+                                                                                         \
+vt *umap_at_##id(UMap_##id const *this, const kt key) {                                  \
+    Pair_##id *p = __htable_find_##id(this, key);                                        \
+    return p ? &(p->second) : NULL;                                                      \
+}                                                                                        \
 
 #endif /* DS_UNORDERED_MAP_H */

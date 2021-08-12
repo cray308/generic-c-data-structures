@@ -18,25 +18,29 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * @c t* : The starting point for iterating over elements in forward order.
+ * @brief @c t* : The starting point for iterating over elements in forward 
+ * order.
  */
 #define array_iterator_begin(this) array_front(this)
 
 
 /**
- * @c t* : The ending point for iterating over elements in forward order.
+ * @brief @c t* : The ending point for iterating over elements in forward 
+ * order.
  */
 #define array_iterator_end(this) &(this)->arr[(this)->size]
 
 
 /**
- * @c t* : The starting point for iterating over elements in reverse order.
+ * @brief @c t* : The starting point for iterating over elements in reverse 
+ * order.
  */
 #define array_iterator_rbegin(this) array_back(this)
 
 
 /**
- * @c t* : The ending point for iterating over elements in reverse order.
+ * @brief @c t* : The ending point for iterating over elements in reverse 
+ * order.
  */
 #define array_iterator_rend(this) &(this)->arr[-1]
 
@@ -47,7 +51,7 @@
  * @param  it  @c t* : Assigned to the current element. May be dereferenced
  *              with @c (*it) .
  */
-#define array_iter(this, it)                                                                                 \
+#define array_iter(this, it)                                                             \
         for (it = array_front(this); it != array_iterator_end(this); ++it)
 
 
@@ -57,7 +61,7 @@
  * @param  it  @c t* : Assigned to the current element. May be dereferenced
  *              with @c (*it) .
  */
-#define array_riter(this, it)                                                                                \
+#define array_riter(this, it)                                                            \
         for (it = array_back(this); it != array_iterator_rend(this); --it)
 
 /* --------------------------------------------------------------------------
@@ -87,34 +91,34 @@
 
 
 /**
- * @c t* : Pointer to the first element. The array should be non-empty when 
- * using this macro.
+ * @brief @c t* : Pointer to the first element. The array should be non-empty 
+ * when using this macro.
  */
 #define array_front(this) &(this)->arr[0]
 
 
 /**
- * @c t* : Pointer to the last element. The array should be non-empty when 
- * using this macro.
+ * @brief @c t* : Pointer to the last element. The array should be non-empty 
+ * when using this macro.
  */
-#define array_back(this)                                                                                     \
+#define array_back(this)                                                                 \
         ((this)->size ? &(this)->arr[(this)->size - 1] : &(this)->arr[-1])
 
 
 /**
- * @c unsigned : The current number of elements.
+ * @brief @c unsigned : The current number of elements.
  */
 #define array_size(this) (this)->size
 
 
 /**
- * @c unsigned : The maximum number of elements prior to resizing.
+ * @brief @c unsigned : The maximum number of elements prior to resizing.
  */
 #define array_capacity(this) (this)->capacity
 
 
 /**
- * @c bool : Whether there are no elements in the array.
+ * @brief @c bool : Whether there are no elements in the array.
  */
 #define array_empty(this) !(this)->size
 
@@ -138,7 +142,7 @@
  *
  * @return         @c Array* : Newly created array.
  */
-#define array_new_repeatingValue(id, n, value)                                                               \
+#define array_new_repeatingValue(id, n, value)                                           \
         array_new_repeatingValue_##id(n, value)
 
 
@@ -162,15 +166,15 @@
  * 
  * @return         @c Array* : Newly created array.
  */
-#define array_createCopy(id, other)                                                                          \
+#define array_createCopy(id, other)                                                      \
         array_new_fromArray_##id((other)->arr, (other)->size)
 
 
 /**
  * Deletes all elements and frees the array.
  */
-#define array_free(id, this) do {                                                                            \
-    array_clear(id, this); free((this)->arr); free(this);                                                    \
+#define array_free(id, this) do {                                                        \
+    array_clear(id, this); free((this)->arr); free(this);                                \
 } while(0)
 
 
@@ -198,7 +202,7 @@
  *
  * @return         @c bool : Whether the operation succeeded.
  */
-#define array_resize_usingValue(id, this, n, value)                                                          \
+#define array_resize_usingValue(id, this, n, value)                                      \
         array_resize_usingValue_##id(this, n, value)
 
 
@@ -219,7 +223,7 @@
  *
  * @param  value  @c t : Value to insert.
  */
-#define array_push_back(id, this, value)                                                                     \
+#define array_push_back(id, this, value)                                                 \
         array_insert_repeatingValue_##id(this, (this)->size, 1, value)
 
 
@@ -236,7 +240,7 @@
  * @return         @c unsigned : The index where the element was inserted, or
  *                 @c ARRAY_ERROR if there was an error.
  */
-#define array_insert(id, this, index, value)                                                                 \
+#define array_insert(id, this, index, value)                                             \
         array_insert_repeatingValue_##id(this, index, 1, value)
 
 
@@ -246,13 +250,13 @@
  * @param   index   @c unsigned : Index before which the elements should be
  *                   inserted. If this is specified as @c array_size , the
  *                   elements are appended.
- * @param   n       @c unsigned: Number of copies of @c value to insert.
+ * @param   n       @c unsigned : Number of copies of @c value to insert.
  * @param   value   @c t : Value to insert.
  *
  * @return          @c unsigned : The index where the first element was
  *                  inserted, or @c ARRAY_ERROR if there was an error.
  */
-#define array_insert_repeatingValue(id, this, index, n, value)                                               \
+#define array_insert_repeatingValue(id, this, index, n, value)                           \
         array_insert_repeatingValue_##id(this, index, n, value)
 
 
@@ -272,7 +276,7 @@
  * @return         @c unsigned : The index where the first element was
  *                 inserted, or @c ARRAY_ERROR if there was an error.
  */
-#define array_insert_fromArray(id, this, index, arr, n)                                                      \
+#define array_insert_fromArray(id, this, index, arr, n)                                  \
         array_insert_fromArray_##id(this, index, arr, n)
 
 
@@ -301,14 +305,14 @@
  *                returns @c array_size . If an error occurred, returns
  *                @c ARRAY_ERROR .
  */
-#define array_erase(id, this, first, nelem)                                                                  \
+#define array_erase(id, this, first, nelem)                                              \
         array_erase_##id(this, first, nelem)
 
 
 /**
- * If the array's capacity is greater than its size, reallocates only enough 
- * memory to hold @c array_size number of elements. This should only be used 
- * if the array's capacity has grown to be much larger than its size.
+ * @brief If the array's capacity is greater than its size, reallocates only 
+ * enough memory to hold @c array_size number of elements. This should only be 
+ * used if the array's capacity has grown to be much larger than its size.
  */
 #define array_shrink_to_fit(id, this) array_shrink_to_fit_##id(this)
 
@@ -331,7 +335,7 @@
  * @return             @c Array* : Newly allocated array, or NULL if an error
  *                     occurred.
  */
-#define array_subarr(id, this, start, n, step_size)                                                          \
+#define array_subarr(id, this, start, n, step_size)                                      \
         array_subarr_##id(this, start, n, step_size)
 
 
@@ -341,27 +345,27 @@
  * @param  id  ID to be used for the array (must be unique).
  * @param  t   Type to be stored in the array.
  */
-#define gen_array_headers(id, t)                                                                             \
-                                                                                                             \
-typedef struct {                                                                                             \
-    unsigned size;                                                                                           \
-    unsigned capacity;                                                                                       \
-    t *arr;                                                                                                  \
-} Array_##id;                                                                                                \
-                                                                                                             \
-unsigned char array_reserve_##id(Array_##id *this, unsigned n);                                              \
-unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem);                                 \
-unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,                                  \
-                                          unsigned n, const t value);                                        \
-unsigned char array_resize_usingValue_##id(Array_##id *this,                                                 \
-                                           unsigned n, const t value);                                       \
-unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                                       \
-                                     t const *arr, unsigned n);                                              \
-Array_##id *array_new_fromArray_##id(t const *arr, unsigned size);                                           \
-Array_##id *array_new_repeatingValue_##id(unsigned n, const t value);                                        \
-void array_shrink_to_fit_##id(Array_##id *this);                                                             \
-Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                                              \
-                              unsigned n, int step_size);                                                    \
+#define gen_array_headers(id, t)                                                         \
+                                                                                         \
+typedef struct {                                                                         \
+    unsigned size;                                                                       \
+    unsigned capacity;                                                                   \
+    t *arr;                                                                              \
+} Array_##id;                                                                            \
+                                                                                         \
+unsigned char array_reserve_##id(Array_##id *this, unsigned n);                          \
+unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem);             \
+unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
+                                          unsigned n, const t value);                    \
+unsigned char array_resize_usingValue_##id(Array_##id *this,                             \
+                                           unsigned n, const t value);                   \
+unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                   \
+                                     t const *arr, unsigned n);                          \
+Array_##id *array_new_fromArray_##id(t const *arr, unsigned size);                       \
+Array_##id *array_new_repeatingValue_##id(unsigned n, const t value);                    \
+void array_shrink_to_fit_##id(Array_##id *this);                                         \
+Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \
+                              unsigned n, int step_size);                                \
 
 
 /**
@@ -383,156 +387,156 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  *                        - If @c DSDefault_deepCopyStr was used in
  *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_array_source(id, t, copyValue, deleteValue)                                                      \
-                                                                                                             \
-unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                                             \
-    unsigned ncap = this->capacity;                                                                          \
-    t *tmp;                                                                                                  \
-    if (n <= ncap) return 1;                                                                                 \
-    else if (ncap == DS_ARRAY_MAX_SIZE) return 0;                                                            \
-                                                                                                             \
-    if (n < DS_ARRAY_SHIFT_THRESHOLD) {                                                                      \
-        while (ncap < n) ncap <<= 1;                                                                         \
-    } else {                                                                                                 \
-        ncap = DS_ARRAY_MAX_SIZE;                                                                            \
-    }                                                                                                        \
-                                                                                                             \
-    if (!(tmp = realloc(this->arr, ncap * sizeof(t)))) return 0;                                             \
-    this->capacity = ncap;                                                                                   \
-    this->arr = tmp;                                                                                         \
-    return 1;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem) {                                \
-    unsigned endIdx, i, n = this->size - first, res;                                                         \
-    if (first >= this->size || !nelem) return ARRAY_ERROR;                                                   \
-                                                                                                             \
-    if (nelem != DS_ARG_NOT_APPLICABLE) n = min(n, nelem);                                                   \
-    endIdx = first + n;                                                                                      \
-    res = this->size - n;                                                                                    \
-                                                                                                             \
-    for (i = first; i < endIdx; ++i) {                                                                       \
-        deleteValue(this->arr[i]);                                                                           \
-    }                                                                                                        \
-                                                                                                             \
-    if (endIdx < this->size) { /* move elements from endIdx onward back to first */                          \
-        memmove(&this->arr[first], &this->arr[endIdx],                                                       \
-                (this->size - endIdx) * sizeof(t));                                                          \
-        res = first;                                                                                         \
-    }                                                                                                        \
-    this->size -= n;                                                                                         \
-    return res;                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,                                  \
-                                          unsigned n, const t value) {                                       \
-    t* i; t* end;                                                                                            \
-    unsigned res = this->size;                                                                               \
-    if (!n || index > res || !array_reserve_##id(this, res + n))                                             \
-        return ARRAY_ERROR;                                                                                  \
-                                                                                                             \
-    if (index != res) { /* insert in the middle of a */                                                      \
-        memmove(&this->arr[index + n], &this->arr[index],                                                    \
-                (res - index) * sizeof(t));                                                                  \
-        res = index;                                                                                         \
-    }                                                                                                        \
-    end = &this->arr[res + n];                                                                               \
-                                                                                                             \
-    for (i = &this->arr[res]; i != end; ++i) {                                                               \
-        copyValue(*i, value);                                                                                \
-    }                                                                                                        \
-    this->size += n;                                                                                         \
-    return res;                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-unsigned char array_resize_usingValue_##id(Array_##id *this,                                                 \
-                                           unsigned n, const t value) {                                      \
-    if (n == this->size) return 1;                                                                           \
-    else if (n < this->size) {                                                                               \
-        array_erase_##id(this, n, this->size - n);                                                           \
-        return 1;                                                                                            \
-    }                                                                                                        \
-    return array_insert_repeatingValue_##id(this, this->size, n - this->size,                                \
-                                            value) != ARRAY_ERROR;                                           \
-}                                                                                                            \
-                                                                                                             \
-unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                                       \
-                                     t const *arr, unsigned n) {                                             \
-    t* i; t* end;                                                                                            \
-    unsigned res = this->size;                                                                               \
-    if (!(arr && n) || index > res || !array_reserve_##id(this, res + n))                                    \
-        return ARRAY_ERROR;                                                                                  \
-                                                                                                             \
-    if (index != res) { /* insert in the middle of a */                                                      \
-        memmove(&this->arr[index + n], &this->arr[index],                                                    \
-                (res - index) * sizeof(t));                                                                  \
-        res = index;                                                                                         \
-    }                                                                                                        \
-    end = &this->arr[res + n];                                                                               \
-                                                                                                             \
-    for (i = &this->arr[res]; i != end; ++i, ++arr) {                                                        \
-        copyValue(*i, *arr);                                                                                 \
-    }                                                                                                        \
-    this->size += n;                                                                                         \
-    return res;                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *array_new_fromArray_##id(t const *arr, unsigned size) {                                          \
-    Array_##id *a = malloc(sizeof(Array_##id));                                                              \
-    if (!a) return NULL;                                                                                     \
-    else if (!(a->arr = malloc(8 * sizeof(t)))) {                                                            \
-        free(a);                                                                                             \
-        return NULL;                                                                                         \
-    }                                                                                                        \
-    a->size = 0;                                                                                             \
-    a->capacity = 8;                                                                                         \
-    array_insert_fromArray_##id(a, 0, arr, size);                                                            \
-    return a;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *array_new_repeatingValue_##id(unsigned n, const t value) {                                       \
-    Array_##id *a = array_new(id);                                                                           \
-    if (a) array_insert_repeatingValue_##id(a, 0, n, value);                                                 \
-    return a;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-void array_shrink_to_fit_##id(Array_##id *this) {                                                            \
-    t *tmp;                                                                                                  \
-    if (this->capacity == 8 || this->size == this->capacity || !this->size ||                                \
-            !(tmp = realloc(this->arr, this->size * sizeof(t)))) return;                                     \
-    this->capacity = this->size;                                                                             \
-    this->arr = tmp;                                                                                         \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                                              \
-                              unsigned n, int step_size) {                                                   \
-    Array_##id *sub;                                                                                         \
-    if (start >= this->size || !n || !(sub = array_new(id))) return NULL;                                    \
-                                                                                                             \
-    if (!step_size) step_size = 1;                                                                           \
-                                                                                                             \
-    if (step_size < 0) {                                                                                     \
-        long i = start, end = -1;                                                                            \
-        if (n != DS_ARG_NOT_APPLICABLE) {                                                                    \
-            const long limit = i + ((long) n * step_size);                                                   \
-            end = max(end, limit);                                                                           \
-        }                                                                                                    \
-        for (; i > end; i += step_size) {                                                                    \
-            array_push_back(id, sub, this->arr[i]);                                                          \
-        }                                                                                                    \
-    } else {                                                                                                 \
-        const unsigned ss = (unsigned) step_size;                                                            \
-        unsigned long i = start, end = this->size;                                                           \
-        if (n != DS_ARG_NOT_APPLICABLE) {                                                                    \
-            const unsigned long limit = i + (n * ss);                                                        \
-            end = min(end, limit);                                                                           \
-        }                                                                                                    \
-        for (; i < end; i += ss) {                                                                           \
-            array_push_back(id, sub, this->arr[i]);                                                          \
-        }                                                                                                    \
-    }                                                                                                        \
-    return sub;                                                                                              \
-}                                                                                                            \
+#define gen_array_source(id, t, copyValue, deleteValue)                                  \
+                                                                                         \
+unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                         \
+    unsigned ncap = this->capacity;                                                      \
+    t *tmp;                                                                              \
+    if (n <= ncap) return 1;                                                             \
+    else if (ncap == DS_ARRAY_MAX_SIZE) return 0;                                        \
+                                                                                         \
+    if (n < DS_ARRAY_SHIFT_THRESHOLD) {                                                  \
+        while (ncap < n) ncap <<= 1;                                                     \
+    } else {                                                                             \
+        ncap = DS_ARRAY_MAX_SIZE;                                                        \
+    }                                                                                    \
+                                                                                         \
+    if (!(tmp = realloc(this->arr, ncap * sizeof(t)))) return 0;                         \
+    this->capacity = ncap;                                                               \
+    this->arr = tmp;                                                                     \
+    return 1;                                                                            \
+}                                                                                        \
+                                                                                         \
+unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem) {            \
+    unsigned endIdx, i, n = this->size - first, res;                                     \
+    if (first >= this->size || !nelem) return ARRAY_ERROR;                               \
+                                                                                         \
+    if (nelem != DS_ARG_NOT_APPLICABLE) n = min(n, nelem);                               \
+    endIdx = first + n;                                                                  \
+    res = this->size - n;                                                                \
+                                                                                         \
+    for (i = first; i < endIdx; ++i) {                                                   \
+        deleteValue(this->arr[i]);                                                       \
+    }                                                                                    \
+                                                                                         \
+    if (endIdx < this->size) { /* move elements from endIdx onward back to first */      \
+        memmove(&this->arr[first], &this->arr[endIdx],                                   \
+                (this->size - endIdx) * sizeof(t));                                      \
+        res = first;                                                                     \
+    }                                                                                    \
+    this->size -= n;                                                                     \
+    return res;                                                                          \
+}                                                                                        \
+                                                                                         \
+unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
+                                          unsigned n, const t value) {                   \
+    t* i; t* end;                                                                        \
+    unsigned res = this->size;                                                           \
+    if (!n || index > res || !array_reserve_##id(this, res + n))                         \
+        return ARRAY_ERROR;                                                              \
+                                                                                         \
+    if (index != res) { /* insert in the middle of a */                                  \
+        memmove(&this->arr[index + n], &this->arr[index],                                \
+                (res - index) * sizeof(t));                                              \
+        res = index;                                                                     \
+    }                                                                                    \
+    end = &this->arr[res + n];                                                           \
+                                                                                         \
+    for (i = &this->arr[res]; i != end; ++i) {                                           \
+        copyValue(*i, value);                                                            \
+    }                                                                                    \
+    this->size += n;                                                                     \
+    return res;                                                                          \
+}                                                                                        \
+                                                                                         \
+unsigned char array_resize_usingValue_##id(Array_##id *this,                             \
+                                           unsigned n, const t value) {                  \
+    if (n == this->size) return 1;                                                       \
+    else if (n < this->size) {                                                           \
+        array_erase_##id(this, n, this->size - n);                                       \
+        return 1;                                                                        \
+    }                                                                                    \
+    return array_insert_repeatingValue_##id(this, this->size, n - this->size,            \
+                                            value) != ARRAY_ERROR;                       \
+}                                                                                        \
+                                                                                         \
+unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                   \
+                                     t const *arr, unsigned n) {                         \
+    t* i; t* end;                                                                        \
+    unsigned res = this->size;                                                           \
+    if (!(arr && n) || index > res || !array_reserve_##id(this, res + n))                \
+        return ARRAY_ERROR;                                                              \
+                                                                                         \
+    if (index != res) { /* insert in the middle of a */                                  \
+        memmove(&this->arr[index + n], &this->arr[index],                                \
+                (res - index) * sizeof(t));                                              \
+        res = index;                                                                     \
+    }                                                                                    \
+    end = &this->arr[res + n];                                                           \
+                                                                                         \
+    for (i = &this->arr[res]; i != end; ++i, ++arr) {                                    \
+        copyValue(*i, *arr);                                                             \
+    }                                                                                    \
+    this->size += n;                                                                     \
+    return res;                                                                          \
+}                                                                                        \
+                                                                                         \
+Array_##id *array_new_fromArray_##id(t const *arr, unsigned size) {                      \
+    Array_##id *a = malloc(sizeof(Array_##id));                                          \
+    if (!a) return NULL;                                                                 \
+    else if (!(a->arr = malloc(8 * sizeof(t)))) {                                        \
+        free(a);                                                                         \
+        return NULL;                                                                     \
+    }                                                                                    \
+    a->size = 0;                                                                         \
+    a->capacity = 8;                                                                     \
+    array_insert_fromArray_##id(a, 0, arr, size);                                        \
+    return a;                                                                            \
+}                                                                                        \
+                                                                                         \
+Array_##id *array_new_repeatingValue_##id(unsigned n, const t value) {                   \
+    Array_##id *a = array_new(id);                                                       \
+    if (a) array_insert_repeatingValue_##id(a, 0, n, value);                             \
+    return a;                                                                            \
+}                                                                                        \
+                                                                                         \
+void array_shrink_to_fit_##id(Array_##id *this) {                                        \
+    t *tmp;                                                                              \
+    if (this->capacity == 8 || this->size == this->capacity || !this->size ||            \
+            !(tmp = realloc(this->arr, this->size * sizeof(t)))) return;                 \
+    this->capacity = this->size;                                                         \
+    this->arr = tmp;                                                                     \
+}                                                                                        \
+                                                                                         \
+Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \
+                              unsigned n, int step_size) {                               \
+    Array_##id *sub;                                                                     \
+    if (start >= this->size || !n || !(sub = array_new(id))) return NULL;                \
+                                                                                         \
+    if (!step_size) step_size = 1;                                                       \
+                                                                                         \
+    if (step_size < 0) {                                                                 \
+        long i = start, end = -1;                                                        \
+        if (n != DS_ARG_NOT_APPLICABLE) {                                                \
+            const long limit = i + ((long) n * step_size);                               \
+            end = max(end, limit);                                                       \
+        }                                                                                \
+        for (; i > end; i += step_size) {                                                \
+            array_push_back(id, sub, this->arr[i]);                                      \
+        }                                                                                \
+    } else {                                                                             \
+        const unsigned ss = (unsigned) step_size;                                        \
+        unsigned long i = start, end = this->size;                                       \
+        if (n != DS_ARG_NOT_APPLICABLE) {                                                \
+            const unsigned long limit = i + (n * ss);                                    \
+            end = min(end, limit);                                                       \
+        }                                                                                \
+        for (; i < end; i += ss) {                                                       \
+            array_push_back(id, sub, this->arr[i]);                                      \
+        }                                                                                \
+    }                                                                                    \
+    return sub;                                                                          \
+}                                                                                        \
 
 
 /* --------------------------------------------------------------------------
@@ -553,14 +557,14 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  * @return      @c t* : Pointer to the array element if it was found, or NULL
  *              if it was not found.
  */
-#define array_find(id, this, key)                                                                            \
+#define array_find(id, this, key)                                                        \
         ds_binary_search_##id((this)->arr, 0, (int) (this)->size - 1, key)
 
 
 /**
- * Merges the arrays in range [@c first1 , @c last1 ) and 
- * [@c first2 , @c last2 ) into a new array. Both arrays must have been sorted 
- * before this.
+ * Merges the arrays in range [ @c first1 , @c last1 ) and 
+ * [ @c first2 , @c last2 ) into a new array. Both arrays must have been 
+ * sorted before this.
  *
  * @param   first1  @c t* : Pointer to start of first array.
  * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
@@ -569,15 +573,15 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  *
  * @return          @c Array* : Newly allocated array.
  */
-#define merge_array(id, first1, last1, first2, last2)                                                        \
+#define merge_array(id, first1, last1, first2, last2)                                    \
         merge_array_##id(first1, last1, first2, last2)
 
 
 /**
  * Creates a new array representing the union of the arrays in range 
- * [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. elements that are 
- * in the first array, the second array, or both - all elements). Both arrays 
- * must have been sorted before this.
+ * [ @c first1 , @c last1 ) and [ @c first2 , @c last2 ) (i.e. elements that 
+ * are in the first array, the second array, or both - all elements). Both 
+ * arrays must have been sorted before this.
  *
  * @param   first1  @c t* : Pointer to start of first array.
  * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
@@ -586,30 +590,14 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  *
  * @return          @c Array* : Newly allocated array.
  */
-#define array_union(id, first1, last1, first2, last2)                                                        \
+#define array_union(id, first1, last1, first2, last2)                                    \
         array_union_##id(first1, last1, first2, last2)
 
 
 /**
  * Creates a new array representing the intersection of the arrays in range 
- * [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. all elements that 
- * both arrays have in common). Both arrays must have been sorted before this.
- *
- * @param   first1  @c t* : Pointer to start of first array.
- * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
- * @param   first2  @c t* : Pointer to start of second array.
- * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
- *
- * @return          @c Array* : Newly allocated array.
- */
-#define array_intersection(id, first1, last1, first2, last2)                                                 \
-        array_intersection_##id(first1, last1, first2, last2)
-
-
-/**
- * Creates a new array representing the difference of the arrays in range 
- * [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. all elements that 
- * are unique to the first array). Both arrays must have been sorted before 
+ * [ @c first1 , @c last1 ) and [ @c first2 , @c last2 ) (i.e. all elements 
+ * that both arrays have in common). Both arrays must have been sorted before 
  * this.
  *
  * @param   first1  @c t* : Pointer to start of first array.
@@ -619,13 +607,30 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  *
  * @return          @c Array* : Newly allocated array.
  */
-#define array_difference(id, first1, last1, first2, last2)                                                   \
+#define array_intersection(id, first1, last1, first2, last2)                             \
+        array_intersection_##id(first1, last1, first2, last2)
+
+
+/**
+ * Creates a new array representing the difference of the arrays in range 
+ * [ @c first1 , @c last1 ) and [ @c first2 , @c last2 ) (i.e. all elements 
+ * that are unique to the first array). Both arrays must have been sorted 
+ * before this.
+ *
+ * @param   first1  @c t* : Pointer to start of first array.
+ * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
+ * @param   first2  @c t* : Pointer to start of second array.
+ * @param   last2   @c t* : Pointer to end of second array (non-inclusive).
+ *
+ * @return          @c Array* : Newly allocated array.
+ */
+#define array_difference(id, first1, last1, first2, last2)                               \
         array_difference_##id(first1, last1, first2, last2)
 
 
 /**
  * Creates a new array representing the symmetric difference of the arrays 
- * in range [@c first1 , @c last1 ) and [@c first2 , @c last2 ) (i.e. all 
+ * in range [ @c first1 , @c last1 ) and [ @c first2 , @c last2 ) (i.e. all 
  * elements that neither array has in common). Both arrays must have been 
  * sorted before this.
  *
@@ -636,14 +641,14 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  *
  * @return          @c Array* : Newly allocated array.
  */
-#define array_symmetric_difference(id, first1, last1, first2, last2)                                         \
+#define array_symmetric_difference(id, first1, last1, first2, last2)                     \
         array_symmetric_difference_##id(first1, last1, first2, last2)
 
 
 /**
- * Determines whether the array in range [@c first1 , @c last1 ) contains each 
- * element in the range [@c first2 , @c last2 ). Both arrays must have been 
- * sorted before this.
+ * Determines whether the array in range [ @c first1 , @c last1 ) contains 
+ * each element in the range [ @c first2 , @c last2 ). Both arrays must have 
+ * been sorted before this.
  *
  * @param   first1  @c t* : Pointer to start of first array.
  * @param   last1   @c t* : Pointer to end of first array (non-inclusive).
@@ -653,7 +658,7 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  * @return          @c bool : Whether the first array contains each element in
  *                  the second array.
  */
-#define array_includes(id, first1, last1, first2, last2)                                                     \
+#define array_includes(id, first1, last1, first2, last2)                                 \
         array_includes_##id(first1, last1, first2, last2)
 
 
@@ -664,23 +669,23 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
  * @param  id  ID to be used for the array (must be unique).
  * @param  t   Type to be stored in the array.
  */
-#define gen_array_headers_withAlg(id, t)                                                                     \
-                                                                                                             \
-gen_array_headers(id, t)                                                                                     \
-gen_alg_headers(id, t)                                                                                       \
-                                                                                                             \
-Array_##id *array_union_##id(t const *first1, t const *last1,                                                \
-                             t const *first2, t const *last2);                                               \
-Array_##id *array_intersection_##id(t const *first1, t const *last1,                                         \
-                                    t const *first2, t const *last2);                                        \
-Array_##id *array_difference_##id(t const *first1, t const *last1,                                           \
-                                  t const *first2, t const *last2);                                          \
-Array_##id *array_symmetric_difference_##id(t const *first1, t const *last1,                                 \
-                                            t const *first2, t const *last2);                                \
-unsigned char array_includes_##id(t const *first1, t const *last1,                                           \
-                                  t const *first2, t const *last2);                                          \
-Array_##id *merge_array_##id(t const *first1, t const *last1,                                                \
-                             t const *first2, t const *last2);                                               \
+#define gen_array_headers_withAlg(id, t)                                                 \
+                                                                                         \
+gen_array_headers(id, t)                                                                 \
+gen_alg_headers(id, t)                                                                   \
+                                                                                         \
+Array_##id *array_union_##id(t const *first1, t const *last1,                            \
+                             t const *first2, t const *last2);                           \
+Array_##id *array_intersection_##id(t const *first1, t const *last1,                     \
+                                    t const *first2, t const *last2);                    \
+Array_##id *array_difference_##id(t const *first1, t const *last1,                       \
+                                  t const *first2, t const *last2);                      \
+Array_##id *array_symmetric_difference_##id(t const *first1, t const *last1,             \
+                                            t const *first2, t const *last2);            \
+unsigned char array_includes_##id(t const *first1, t const *last1,                       \
+                                  t const *first2, t const *last2);                      \
+Array_##id *merge_array_##id(t const *first1, t const *last1,                            \
+                             t const *first2, t const *last2);                           \
 
 
 /**
@@ -705,185 +710,185 @@ Array_##id *merge_array_##id(t const *first1, t const *last1,                   
  *                        - If @c DSDefault_deepCopyStr was used in
  *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_array_source_withAlg(id, t, cmp_lt, copyValue, deleteValue)                                      \
-                                                                                                             \
-gen_array_source(id, t, copyValue, deleteValue)                                                              \
-gen_alg_source(id, t, cmp_lt)                                                                                \
-                                                                                                             \
-Array_##id *array_union_##id(t const *first1, t const *last1,                                                \
-                             t const *first2, t const *last2) {                                              \
-    Array_##id *d_new = array_new(id);                                                                       \
-    if (!d_new) return NULL;                                                                                 \
-    else if (!(first1 && first2)) {                                                                          \
-        if (first1) {                                                                                        \
-            array_insert_fromArray_##id(d_new, d_new->size,                                                  \
-                                        first1, (unsigned) (last1 - first1));                                \
-        } else if (first2) {                                                                                 \
-            array_insert_fromArray_##id(d_new, d_new->size,                                                  \
-                                        first2, (unsigned) (last2 - first2));                                \
-        }                                                                                                    \
-        return d_new;                                                                                        \
-    }                                                                                                        \
-                                                                                                             \
-    while (first1 != last1 && first2 != last2) {                                                             \
-        if (cmp_lt(*first1, *first2)) {                                                                      \
-            array_push_back(id, d_new, *first1);                                                             \
-            ++first1;                                                                                        \
-        } else if (cmp_lt(*first2, *first1)) {                                                               \
-            array_push_back(id, d_new, *first2);                                                             \
-            ++first2;                                                                                        \
-        } else {                                                                                             \
-            array_push_back(id, d_new, *first1);                                                             \
-            ++first1;                                                                                        \
-            ++first2;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        array_insert_fromArray_##id(d_new, d_new->size,                                                      \
-                                    first1, (unsigned) (last1 - first1));                                    \
-    } else if (first2 != last2) {                                                                            \
-        array_insert_fromArray_##id(d_new, d_new->size,                                                      \
-                                    first2, (unsigned) (last2 - first2));                                    \
-    }                                                                                                        \
-    return d_new;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *array_intersection_##id(t const *first1, t const *last1,                                         \
-                                    t const *first2, t const *last2) {                                       \
-    Array_##id *d_new = array_new(id);                                                                       \
-    if (!d_new) return NULL;                                                                                 \
-    else if (!(first1 && first2)) return d_new;                                                              \
-                                                                                                             \
-    while (first1 != last1 && first2 != last2) {                                                             \
-        if (cmp_lt(*first1, *first2)) {                                                                      \
-            ++first1;                                                                                        \
-        } else if (cmp_lt(*first2, *first1)) {                                                               \
-            ++first2;                                                                                        \
-        } else {                                                                                             \
-            array_push_back(id, d_new, *first1);                                                             \
-            ++first1;                                                                                        \
-            ++first2;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    return d_new;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *array_difference_##id(t const *first1, t const *last1,                                           \
-                                  t const *first2, t const *last2) {                                         \
-    Array_##id *d_new = array_new(id);                                                                       \
-    if (!d_new) return NULL;                                                                                 \
-    else if (!(first1 && first2)) {                                                                          \
-        if (first1) {                                                                                        \
-            array_insert_fromArray_##id(d_new, d_new->size,                                                  \
-                                        first1, (unsigned) (last1 - first1));                                \
-        }                                                                                                    \
-        return d_new;                                                                                        \
-    }                                                                                                        \
-                                                                                                             \
-    while (first1 != last1 && first2 != last2) {                                                             \
-        if (cmp_lt(*first1, *first2)) {                                                                      \
-            array_push_back(id, d_new, *first1);                                                             \
-            ++first1;                                                                                        \
-        } else if (cmp_lt(*first2, *first1)) {                                                               \
-            ++first2;                                                                                        \
-        } else {                                                                                             \
-            ++first1;                                                                                        \
-            ++first2;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        array_insert_fromArray_##id(d_new, d_new->size,                                                      \
-                                    first1, (unsigned) (last1 - first1));                                    \
-    }                                                                                                        \
-    return d_new;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *array_symmetric_difference_##id(t const *first1, t const *last1,                                 \
-                                            t const *first2, t const *last2) {                               \
-    Array_##id *d_new = array_new(id);                                                                       \
-    if (!d_new) return NULL;                                                                                 \
-    else if (!(first1 && first2)) {                                                                          \
-        if (first1) {                                                                                        \
-            array_insert_fromArray_##id(d_new, d_new->size,                                                  \
-                                        first1, (unsigned) (last1 - first1));                                \
-        } else if (first2) {                                                                                 \
-            array_insert_fromArray_##id(d_new, d_new->size,                                                  \
-                                        first2, (unsigned) (last2 - first2));                                \
-        }                                                                                                    \
-        return d_new;                                                                                        \
-    }                                                                                                        \
-                                                                                                             \
-    while (first1 != last1 && first2 != last2) {                                                             \
-        if (cmp_lt(*first1, *first2)) {                                                                      \
-            array_push_back(id, d_new, *first1);                                                             \
-            ++first1;                                                                                        \
-        } else if (cmp_lt(*first2, *first1)) {                                                               \
-            array_push_back(id, d_new, *first2);                                                             \
-            ++first2;                                                                                        \
-        } else {                                                                                             \
-            ++first1;                                                                                        \
-            ++first2;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        array_insert_fromArray_##id(d_new, d_new->size,                                                      \
-                                    first1, (unsigned) (last1 - first1));                                    \
-    } else if (first2 != last2) {                                                                            \
-        array_insert_fromArray_##id(d_new, d_new->size,                                                      \
-                                    first2, (unsigned) (last2 - first2));                                    \
-    }                                                                                                        \
-    return d_new;                                                                                            \
-}                                                                                                            \
-                                                                                                             \
-unsigned char array_includes_##id(t const *first1, t const *last1,                                           \
-                                  t const *first2, t const *last2) {                                         \
-    if (!(first1 && first2)) return first2 ? 0 : 1;                                                          \
-                                                                                                             \
-    while (first1 != last1 && first2 != last2) {                                                             \
-        if (cmp_lt(*first1, *first2)) {                                                                      \
-            ++first1;                                                                                        \
-        } else if (cmp_lt(*first2, *first1)) {                                                               \
-            return 0;                                                                                        \
-        } else {                                                                                             \
-            ++first1;                                                                                        \
-            ++first2;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    return first2 == last2;                                                                                  \
-}                                                                                                            \
-                                                                                                             \
-Array_##id *merge_array_##id(t const *first1, t const *last1,                                                \
-                             t const *first2, t const *last2) {                                              \
-    Array_##id *a = array_new(id);                                                                           \
-    if (!a) return NULL;                                                                                     \
-    else if (!(first1 && first2)) {                                                                          \
-        if (first1) {                                                                                        \
-            array_insert_fromArray_##id(a, a->size,                                                          \
-                                        first1, (unsigned) (last1 - first1));                                \
-        } else if (first2) {                                                                                 \
-            array_insert_fromArray_##id(a, a->size,                                                          \
-                                        first2, (unsigned) (last2 - first2));                                \
-        }                                                                                                    \
-        return a;                                                                                            \
-    }                                                                                                        \
-                                                                                                             \
-    while (first1 != last1 && first2 != last2) {                                                             \
-        if (cmp_lt(*first2, *first1)) {                                                                      \
-            array_push_back(id, a, *first2);                                                                 \
-            ++first2;                                                                                        \
-        } else {                                                                                             \
-            array_push_back(id, a, *first1);                                                                 \
-            ++first1;                                                                                        \
-        }                                                                                                    \
-    }                                                                                                        \
-    if (first1 != last1) {                                                                                   \
-        array_insert_fromArray_##id(a, a->size,                                                              \
-                                    first1, (unsigned) (last1 - first1));                                    \
-    } else if (first2 != last2) {                                                                            \
-        array_insert_fromArray_##id(a, a->size,                                                              \
-                                    first2, (unsigned) (last2 - first2));                                    \
-    }                                                                                                        \
-    return a;                                                                                                \
-}                                                                                                            \
+#define gen_array_source_withAlg(id, t, cmp_lt, copyValue, deleteValue)                  \
+                                                                                         \
+gen_array_source(id, t, copyValue, deleteValue)                                          \
+gen_alg_source(id, t, cmp_lt)                                                            \
+                                                                                         \
+Array_##id *array_union_##id(t const *first1, t const *last1,                            \
+                             t const *first2, t const *last2) {                          \
+    Array_##id *d_new = array_new(id);                                                   \
+    if (!d_new) return NULL;                                                             \
+    else if (!(first1 && first2)) {                                                      \
+        if (first1) {                                                                    \
+            array_insert_fromArray_##id(d_new, d_new->size,                              \
+                                        first1, (unsigned) (last1 - first1));            \
+        } else if (first2) {                                                             \
+            array_insert_fromArray_##id(d_new, d_new->size,                              \
+                                        first2, (unsigned) (last2 - first2));            \
+        }                                                                                \
+        return d_new;                                                                    \
+    }                                                                                    \
+                                                                                         \
+    while (first1 != last1 && first2 != last2) {                                         \
+        if (cmp_lt(*first1, *first2)) {                                                  \
+            array_push_back(id, d_new, *first1);                                         \
+            ++first1;                                                                    \
+        } else if (cmp_lt(*first2, *first1)) {                                           \
+            array_push_back(id, d_new, *first2);                                         \
+            ++first2;                                                                    \
+        } else {                                                                         \
+            array_push_back(id, d_new, *first1);                                         \
+            ++first1;                                                                    \
+            ++first2;                                                                    \
+        }                                                                                \
+    }                                                                                    \
+    if (first1 != last1) {                                                               \
+        array_insert_fromArray_##id(d_new, d_new->size,                                  \
+                                    first1, (unsigned) (last1 - first1));                \
+    } else if (first2 != last2) {                                                        \
+        array_insert_fromArray_##id(d_new, d_new->size,                                  \
+                                    first2, (unsigned) (last2 - first2));                \
+    }                                                                                    \
+    return d_new;                                                                        \
+}                                                                                        \
+                                                                                         \
+Array_##id *array_intersection_##id(t const *first1, t const *last1,                     \
+                                    t const *first2, t const *last2) {                   \
+    Array_##id *d_new = array_new(id);                                                   \
+    if (!d_new) return NULL;                                                             \
+    else if (!(first1 && first2)) return d_new;                                          \
+                                                                                         \
+    while (first1 != last1 && first2 != last2) {                                         \
+        if (cmp_lt(*first1, *first2)) {                                                  \
+            ++first1;                                                                    \
+        } else if (cmp_lt(*first2, *first1)) {                                           \
+            ++first2;                                                                    \
+        } else {                                                                         \
+            array_push_back(id, d_new, *first1);                                         \
+            ++first1;                                                                    \
+            ++first2;                                                                    \
+        }                                                                                \
+    }                                                                                    \
+    return d_new;                                                                        \
+}                                                                                        \
+                                                                                         \
+Array_##id *array_difference_##id(t const *first1, t const *last1,                       \
+                                  t const *first2, t const *last2) {                     \
+    Array_##id *d_new = array_new(id);                                                   \
+    if (!d_new) return NULL;                                                             \
+    else if (!(first1 && first2)) {                                                      \
+        if (first1) {                                                                    \
+            array_insert_fromArray_##id(d_new, d_new->size,                              \
+                                        first1, (unsigned) (last1 - first1));            \
+        }                                                                                \
+        return d_new;                                                                    \
+    }                                                                                    \
+                                                                                         \
+    while (first1 != last1 && first2 != last2) {                                         \
+        if (cmp_lt(*first1, *first2)) {                                                  \
+            array_push_back(id, d_new, *first1);                                         \
+            ++first1;                                                                    \
+        } else if (cmp_lt(*first2, *first1)) {                                           \
+            ++first2;                                                                    \
+        } else {                                                                         \
+            ++first1;                                                                    \
+            ++first2;                                                                    \
+        }                                                                                \
+    }                                                                                    \
+    if (first1 != last1) {                                                               \
+        array_insert_fromArray_##id(d_new, d_new->size,                                  \
+                                    first1, (unsigned) (last1 - first1));                \
+    }                                                                                    \
+    return d_new;                                                                        \
+}                                                                                        \
+                                                                                         \
+Array_##id *array_symmetric_difference_##id(t const *first1, t const *last1,             \
+                                            t const *first2, t const *last2) {           \
+    Array_##id *d_new = array_new(id);                                                   \
+    if (!d_new) return NULL;                                                             \
+    else if (!(first1 && first2)) {                                                      \
+        if (first1) {                                                                    \
+            array_insert_fromArray_##id(d_new, d_new->size,                              \
+                                        first1, (unsigned) (last1 - first1));            \
+        } else if (first2) {                                                             \
+            array_insert_fromArray_##id(d_new, d_new->size,                              \
+                                        first2, (unsigned) (last2 - first2));            \
+        }                                                                                \
+        return d_new;                                                                    \
+    }                                                                                    \
+                                                                                         \
+    while (first1 != last1 && first2 != last2) {                                         \
+        if (cmp_lt(*first1, *first2)) {                                                  \
+            array_push_back(id, d_new, *first1);                                         \
+            ++first1;                                                                    \
+        } else if (cmp_lt(*first2, *first1)) {                                           \
+            array_push_back(id, d_new, *first2);                                         \
+            ++first2;                                                                    \
+        } else {                                                                         \
+            ++first1;                                                                    \
+            ++first2;                                                                    \
+        }                                                                                \
+    }                                                                                    \
+    if (first1 != last1) {                                                               \
+        array_insert_fromArray_##id(d_new, d_new->size,                                  \
+                                    first1, (unsigned) (last1 - first1));                \
+    } else if (first2 != last2) {                                                        \
+        array_insert_fromArray_##id(d_new, d_new->size,                                  \
+                                    first2, (unsigned) (last2 - first2));                \
+    }                                                                                    \
+    return d_new;                                                                        \
+}                                                                                        \
+                                                                                         \
+unsigned char array_includes_##id(t const *first1, t const *last1,                       \
+                                  t const *first2, t const *last2) {                     \
+    if (!(first1 && first2)) return first2 ? 0 : 1;                                      \
+                                                                                         \
+    while (first1 != last1 && first2 != last2) {                                         \
+        if (cmp_lt(*first1, *first2)) {                                                  \
+            ++first1;                                                                    \
+        } else if (cmp_lt(*first2, *first1)) {                                           \
+            return 0;                                                                    \
+        } else {                                                                         \
+            ++first1;                                                                    \
+            ++first2;                                                                    \
+        }                                                                                \
+    }                                                                                    \
+    return first2 == last2;                                                              \
+}                                                                                        \
+                                                                                         \
+Array_##id *merge_array_##id(t const *first1, t const *last1,                            \
+                             t const *first2, t const *last2) {                          \
+    Array_##id *a = array_new(id);                                                       \
+    if (!a) return NULL;                                                                 \
+    else if (!(first1 && first2)) {                                                      \
+        if (first1) {                                                                    \
+            array_insert_fromArray_##id(a, a->size,                                      \
+                                        first1, (unsigned) (last1 - first1));            \
+        } else if (first2) {                                                             \
+            array_insert_fromArray_##id(a, a->size,                                      \
+                                        first2, (unsigned) (last2 - first2));            \
+        }                                                                                \
+        return a;                                                                        \
+    }                                                                                    \
+                                                                                         \
+    while (first1 != last1 && first2 != last2) {                                         \
+        if (cmp_lt(*first2, *first1)) {                                                  \
+            array_push_back(id, a, *first2);                                             \
+            ++first2;                                                                    \
+        } else {                                                                         \
+            array_push_back(id, a, *first1);                                             \
+            ++first1;                                                                    \
+        }                                                                                \
+    }                                                                                    \
+    if (first1 != last1) {                                                               \
+        array_insert_fromArray_##id(a, a->size,                                          \
+                                    first1, (unsigned) (last1 - first1));                \
+    } else if (first2 != last2) {                                                        \
+        array_insert_fromArray_##id(a, a->size,                                          \
+                                    first2, (unsigned) (last2 - first2));                \
+    }                                                                                    \
+    return a;                                                                            \
+}                                                                                        \
 
 #endif /* DS_ARRAY_H */

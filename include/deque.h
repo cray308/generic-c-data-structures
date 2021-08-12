@@ -16,36 +16,37 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * @c unsigned : The number of elements in the deque.
+ * @brief @c unsigned : The number of elements in the deque.
  */
-#define deque_size(this)                                                                                     \
-        (((this)->front.size - (this)->front.start) +                                                        \
+#define deque_size(this)                                                                 \
+        (((this)->front.size - (this)->front.start) +                                    \
          ((this)->back.size - (this)->back.start))
 
 
 /**
- * @c bool : Whether there are no elements in the deque.
+ * @brief @c bool : Whether there are no elements in the deque.
  */
 #define deque_empty(this) !deque_size(this)
 
 
 /**
- * @c t* : Pointer to the first element in the deque, if it is not empty.
+ * @brief @c t* : Pointer to the first element in the deque, if it is not 
+ * empty.
  */
-#define deque_front(this)                                                                                    \
-        (((this)->front.size - (this)->front.start) ?                                                        \
-            &(this)->front.arr[(this)->front.size - 1] :                                                     \
-            (((this)->back.size - (this)->back.start) ?                                                      \
+#define deque_front(this)                                                                \
+        (((this)->front.size - (this)->front.start) ?                                    \
+            &(this)->front.arr[(this)->front.size - 1] :                                 \
+            (((this)->back.size - (this)->back.start) ?                                  \
                 &(this)->back.arr[(this)->back.start] : NULL))
 
 
 /**
- * @c t* : Pointer to the last element in the deque, if it is not empty.
+ * @brief @c t* : Pointer to the last element in the deque, if it is not empty.
  */
-#define deque_back(this)                                                                                     \
-        (((this)->back.size - (this)->back.start) ?                                                          \
-            &(this)->back.arr[(this)->back.size - 1] :                                                       \
-            (((this)->front.size - (this)->front.start) ?                                                    \
+#define deque_back(this)                                                                 \
+        (((this)->back.size - (this)->back.start) ?                                      \
+            &(this)->back.arr[(this)->back.size - 1] :                                   \
+            (((this)->front.size - (this)->front.start) ?                                \
                 &(this)->front.arr[(this)->front.start] : NULL))
 
 /* --------------------------------------------------------------------------
@@ -126,138 +127,138 @@
  *                        - If @c DSDefault_deepCopyStr was used in
  *                         @c copyValue , pass @c DSDefault_deepDelete here.
  */
-#define gen_deque_source(id, t, copyValue, deleteValue)                                                      \
+#define gen_deque_source(id, t, copyValue, deleteValue)                                  \
         __setup_deque_source(id, t, Deque_##id, copyValue, deleteValue)
 
-#define __setup_deque_headers(id, t, TypeName)                                                               \
-                                                                                                             \
-typedef struct {                                                                                             \
-    struct {                                                                                                 \
-        t *arr;                                                                                              \
-        unsigned size, cap, start;                                                                           \
-    } front;                                                                                                 \
-    struct {                                                                                                 \
-        t *arr;                                                                                              \
-        unsigned size, cap, start;                                                                           \
-    } back;                                                                                                  \
-} TypeName;                                                                                                  \
-                                                                                                             \
-TypeName *__dq_new_##id(void);                                                                               \
-void __dq_free_##id(TypeName *this);                                                                         \
-void __dq_pop_front_##id(TypeName *this);                                                                    \
-unsigned char __dq_push_back_##id(TypeName *this, const t item);                                             \
-void __dq_pop_back_##id(TypeName *this);                                                                     \
-unsigned char __dq_push_front_##id(TypeName *this, const t item);                                            \
+#define __setup_deque_headers(id, t, TypeName)                                           \
+                                                                                         \
+typedef struct {                                                                         \
+    struct {                                                                             \
+        t *arr;                                                                          \
+        unsigned size, cap, start;                                                       \
+    } front;                                                                             \
+    struct {                                                                             \
+        t *arr;                                                                          \
+        unsigned size, cap, start;                                                       \
+    } back;                                                                              \
+} TypeName;                                                                              \
+                                                                                         \
+TypeName *__dq_new_##id(void);                                                           \
+void __dq_free_##id(TypeName *this);                                                     \
+void __dq_pop_front_##id(TypeName *this);                                                \
+unsigned char __dq_push_back_##id(TypeName *this, const t item);                         \
+void __dq_pop_back_##id(TypeName *this);                                                 \
+unsigned char __dq_push_front_##id(TypeName *this, const t item);                        \
 
-#define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                                        \
-                                                                                                             \
-TypeName *__dq_new_##id(void) {                                                                              \
-    TypeName *q = malloc(sizeof(TypeName));                                                                  \
-    if (!q) return NULL;                                                                                     \
-    else if (!(q->front.arr = malloc(8 * sizeof(t)))) {                                                      \
-        free(q);                                                                                             \
-        return NULL;                                                                                         \
-    } else if (!(q->back.arr = malloc(8 * sizeof(t)))) {                                                     \
-        free(q->front.arr);                                                                                  \
-        free(q);                                                                                             \
-        return NULL;                                                                                         \
-    }                                                                                                        \
-    q->front.cap = q->back.cap = 8;                                                                          \
-    q->front.size = q->back.size = q->front.start = q->back.start = 0;                                       \
-    return q;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-void __dq_free_##id(TypeName *this) {                                                                        \
-    unsigned i;                                                                                              \
-    for (i = this->front.start; i < this->front.size; ++i) {                                                 \
-        deleteValue(this->front.arr[i]);                                                                     \
-    }                                                                                                        \
-    for (i = this->back.start; i < this->back.size; ++i) {                                                   \
-        deleteValue(this->back.arr[i]);                                                                      \
-    }                                                                                                        \
-    free(this->front.arr);                                                                                   \
-    free(this->back.arr);                                                                                    \
-    free(this);                                                                                              \
-}                                                                                                            \
-                                                                                                             \
-void __dq_pop_front_##id(TypeName *this) {                                                                   \
-    if (this->front.size - this->front.start) {                                                              \
-        deleteValue(this->front.arr[this->front.size - 1]);                                                  \
-        --this->front.size;                                                                                  \
-    } else if (this->back.size - this->back.start) {                                                         \
-        deleteValue(this->back.arr[this->back.start]);                                                       \
-        ++this->back.start;                                                                                  \
-        if (this->back.size > 32 &&                                                                          \
-                this->back.start > (this->back.size >> 1)) {                                                 \
-            const unsigned half = this->back.cap >> 1;                                                       \
-            memmove(this->back.arr, this->back.arr + this->back.start,                                       \
-                    (this->back.size - this->back.start) * sizeof(t));                                       \
-            this->back.size -= this->back.start;                                                             \
-            this->back.start = 0;                                                                            \
-            if (half > 8 && this->back.size < half) {                                                        \
-                t *tmp = realloc(this->back.arr, half * sizeof(t));                                          \
-                if (!tmp) return;                                                                            \
-                this->back.arr = tmp;                                                                        \
-                this->back.cap = half;                                                                       \
-            }                                                                                                \
-        }                                                                                                    \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-unsigned char __dq_push_back_##id(TypeName *this, const t item) {                                            \
-    t *tmp;                                                                                                  \
-    unsigned cap = this->back.cap;                                                                           \
-    if (this->back.size == cap) {                                                                            \
-        if (cap == DS_DQ_MAX_SIZE) return 0;                                                                 \
-        else if (cap < DS_DQ_SHIFT_THRESHOLD) cap <<= 1;                                                     \
-        else cap = DS_DQ_MAX_SIZE;                                                                           \
-        if (!(tmp = realloc(this->back.arr, cap * sizeof(t)))) return 0;                                     \
-        this->back.arr = tmp;                                                                                \
-        this->back.cap = cap;                                                                                \
-    }                                                                                                        \
-    copyValue(this->back.arr[this->back.size], item);                                                        \
-    ++this->back.size;                                                                                       \
-    return 1;                                                                                                \
-}                                                                                                            \
-                                                                                                             \
-void __dq_pop_back_##id(TypeName *this) {                                                                    \
-    if (this->back.size - this->back.start) {                                                                \
-        deleteValue(this->back.arr[this->back.size - 1]);                                                    \
-        --this->back.size;                                                                                   \
-    } else if (this->front.size - this->front.start) {                                                       \
-        deleteValue(this->front.arr[this->front.start]);                                                     \
-        ++this->front.start;                                                                                 \
-        if (this->front.size > 32 &&                                                                         \
-                this->front.start > (this->front.size >> 1)) {                                               \
-            const unsigned half = this->front.cap >> 1;                                                      \
-            memmove(this->front.arr, this->front.arr + this->front.start,                                    \
-                    (this->front.size - this->front.start) * sizeof(t));                                     \
-            this->front.size -= this->front.start;                                                           \
-            this->front.start = 0;                                                                           \
-            if (half > 8 && this->front.size < half) {                                                       \
-                t *tmp = realloc(this->front.arr, half * sizeof(t));                                         \
-                if (!tmp) return;                                                                            \
-                this->front.arr = tmp;                                                                       \
-                this->back.cap = half;                                                                       \
-            }                                                                                                \
-        }                                                                                                    \
-    }                                                                                                        \
-}                                                                                                            \
-                                                                                                             \
-unsigned char __dq_push_front_##id(TypeName *this, const t item) {                                           \
-    t *tmp;                                                                                                  \
-    unsigned cap = this->front.cap;                                                                          \
-    if (this->front.size == cap) {                                                                           \
-        if (cap == DS_DQ_MAX_SIZE) return 0;                                                                 \
-        else if (cap < DS_DQ_SHIFT_THRESHOLD) cap <<= 1;                                                     \
-        else cap = DS_DQ_MAX_SIZE;                                                                           \
-        if (!(tmp = realloc(this->front.arr, cap * sizeof(t)))) return 0;                                    \
-        this->front.arr = tmp;                                                                               \
-        this->front.cap = cap;                                                                               \
-    }                                                                                                        \
-    copyValue(this->front.arr[this->front.size], item);                                                      \
-    ++this->front.size;                                                                                      \
-    return 1;                                                                                                \
-}                                                                                                            \
+#define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                    \
+                                                                                         \
+TypeName *__dq_new_##id(void) {                                                          \
+    TypeName *q = malloc(sizeof(TypeName));                                              \
+    if (!q) return NULL;                                                                 \
+    else if (!(q->front.arr = malloc(8 * sizeof(t)))) {                                  \
+        free(q);                                                                         \
+        return NULL;                                                                     \
+    } else if (!(q->back.arr = malloc(8 * sizeof(t)))) {                                 \
+        free(q->front.arr);                                                              \
+        free(q);                                                                         \
+        return NULL;                                                                     \
+    }                                                                                    \
+    q->front.cap = q->back.cap = 8;                                                      \
+    q->front.size = q->back.size = q->front.start = q->back.start = 0;                   \
+    return q;                                                                            \
+}                                                                                        \
+                                                                                         \
+void __dq_free_##id(TypeName *this) {                                                    \
+    unsigned i;                                                                          \
+    for (i = this->front.start; i < this->front.size; ++i) {                             \
+        deleteValue(this->front.arr[i]);                                                 \
+    }                                                                                    \
+    for (i = this->back.start; i < this->back.size; ++i) {                               \
+        deleteValue(this->back.arr[i]);                                                  \
+    }                                                                                    \
+    free(this->front.arr);                                                               \
+    free(this->back.arr);                                                                \
+    free(this);                                                                          \
+}                                                                                        \
+                                                                                         \
+void __dq_pop_front_##id(TypeName *this) {                                               \
+    if (this->front.size - this->front.start) {                                          \
+        deleteValue(this->front.arr[this->front.size - 1]);                              \
+        --this->front.size;                                                              \
+    } else if (this->back.size - this->back.start) {                                     \
+        deleteValue(this->back.arr[this->back.start]);                                   \
+        ++this->back.start;                                                              \
+        if (this->back.size > 32 &&                                                      \
+                this->back.start > (this->back.size >> 1)) {                             \
+            const unsigned half = this->back.cap >> 1;                                   \
+            memmove(this->back.arr, this->back.arr + this->back.start,                   \
+                    (this->back.size - this->back.start) * sizeof(t));                   \
+            this->back.size -= this->back.start;                                         \
+            this->back.start = 0;                                                        \
+            if (half > 8 && this->back.size < half) {                                    \
+                t *tmp = realloc(this->back.arr, half * sizeof(t));                      \
+                if (!tmp) return;                                                        \
+                this->back.arr = tmp;                                                    \
+                this->back.cap = half;                                                   \
+            }                                                                            \
+        }                                                                                \
+    }                                                                                    \
+}                                                                                        \
+                                                                                         \
+unsigned char __dq_push_back_##id(TypeName *this, const t item) {                        \
+    t *tmp;                                                                              \
+    unsigned cap = this->back.cap;                                                       \
+    if (this->back.size == cap) {                                                        \
+        if (cap == DS_DQ_MAX_SIZE) return 0;                                             \
+        else if (cap < DS_DQ_SHIFT_THRESHOLD) cap <<= 1;                                 \
+        else cap = DS_DQ_MAX_SIZE;                                                       \
+        if (!(tmp = realloc(this->back.arr, cap * sizeof(t)))) return 0;                 \
+        this->back.arr = tmp;                                                            \
+        this->back.cap = cap;                                                            \
+    }                                                                                    \
+    copyValue(this->back.arr[this->back.size], item);                                    \
+    ++this->back.size;                                                                   \
+    return 1;                                                                            \
+}                                                                                        \
+                                                                                         \
+void __dq_pop_back_##id(TypeName *this) {                                                \
+    if (this->back.size - this->back.start) {                                            \
+        deleteValue(this->back.arr[this->back.size - 1]);                                \
+        --this->back.size;                                                               \
+    } else if (this->front.size - this->front.start) {                                   \
+        deleteValue(this->front.arr[this->front.start]);                                 \
+        ++this->front.start;                                                             \
+        if (this->front.size > 32 &&                                                     \
+                this->front.start > (this->front.size >> 1)) {                           \
+            const unsigned half = this->front.cap >> 1;                                  \
+            memmove(this->front.arr, this->front.arr + this->front.start,                \
+                    (this->front.size - this->front.start) * sizeof(t));                 \
+            this->front.size -= this->front.start;                                       \
+            this->front.start = 0;                                                       \
+            if (half > 8 && this->front.size < half) {                                   \
+                t *tmp = realloc(this->front.arr, half * sizeof(t));                     \
+                if (!tmp) return;                                                        \
+                this->front.arr = tmp;                                                   \
+                this->back.cap = half;                                                   \
+            }                                                                            \
+        }                                                                                \
+    }                                                                                    \
+}                                                                                        \
+                                                                                         \
+unsigned char __dq_push_front_##id(TypeName *this, const t item) {                       \
+    t *tmp;                                                                              \
+    unsigned cap = this->front.cap;                                                      \
+    if (this->front.size == cap) {                                                       \
+        if (cap == DS_DQ_MAX_SIZE) return 0;                                             \
+        else if (cap < DS_DQ_SHIFT_THRESHOLD) cap <<= 1;                                 \
+        else cap = DS_DQ_MAX_SIZE;                                                       \
+        if (!(tmp = realloc(this->front.arr, cap * sizeof(t)))) return 0;                \
+        this->front.arr = tmp;                                                           \
+        this->front.cap = cap;                                                           \
+    }                                                                                    \
+    copyValue(this->front.arr[this->front.size], item);                                  \
+    ++this->front.size;                                                                  \
+    return 1;                                                                            \
+}                                                                                        \
 
 #endif /* DS_DEQUE_H */

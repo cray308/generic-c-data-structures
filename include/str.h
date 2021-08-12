@@ -27,27 +27,29 @@ typedef struct {
  * -------------------------------------------------------------------------- */
 
 /**
- * @c char* : The starting point for iterating over characters in forward 
- * order.
+ * @brief @c char* : The starting point for iterating over characters in 
+ * forward order.
  */
 #define string_iterator_begin(this) string_front(this)
 
 
 /**
- * @c char* : The ending point for iterating over characters in forward order.
+ * @brief @c char* : The ending point for iterating over characters in forward 
+ * order.
  */
 #define string_iterator_end(this) &(this)->s[(this)->size]
 
 
 /**
- * @c char* : The starting point for iterating over characters in reverse 
- * order.
+ * @brief @c char* : The starting point for iterating over characters in 
+ * reverse order.
  */
 #define string_iterator_rbegin(this) string_back(this)
 
 
 /**
- * @c char* : The ending point for iterating over characters in reverse order.
+ * @brief @c char* : The ending point for iterating over characters in reverse 
+ * order.
  */
 #define string_iterator_rend(this) &(this)->s[-1]
 
@@ -57,7 +59,7 @@ typedef struct {
  *
  * @param  it  @c char* : Assigned to the current character.
  */
-#define string_iter(this, it)                                                                                \
+#define string_iter(this, it)                                                            \
         for (it = string_front(this); it != string_iterator_end(this); ++it)
 
 
@@ -66,7 +68,7 @@ typedef struct {
  *
  * @param  it  @c char* : Assigned to the current character.
  */
-#define string_riter(this, it)                                                                               \
+#define string_riter(this, it)                                                           \
         for (it = string_back(this); it != string_iterator_rend(this); --it)
 
 /* --------------------------------------------------------------------------
@@ -74,26 +76,26 @@ typedef struct {
  * -------------------------------------------------------------------------- */
 
 /**
- * @c char* : The c-string representation.
+ * @brief @c char* : The c-string representation.
  */
 #define string_c_str(this) (this)->s
 
 
 /**
- * @c unsigned : The number of characters in the string (analogous to strlen, 
- * but O(1) time complexity in this case).
+ * @brief @c unsigned : The number of characters in the string (analogous to 
+ * strlen, but O(1) time complexity in this case).
  */
 #define string_len(this) (this)->size
 
 
 /**
- * @c unsigned : The maximum number of characters prior to resizing.
+ * @brief @c unsigned : The maximum number of characters prior to resizing.
  */
 #define string_capacity(this) (this)->cap
 
 
 /**
- * @c bool : Whether the size of the string is 0.
+ * @brief @c bool : Whether the size of the string is 0.
  */
 #define string_empty(this) !(this)->size
 
@@ -121,17 +123,17 @@ typedef struct {
 
 
 /**
- * @c char* : Pointer to the first character. The string should be non-empty 
- * when using this macro.
+ * @brief @c char* : Pointer to the first character. The string should be 
+ * non-empty when using this macro.
  */
 #define string_front(this) &(this)->s[0]
 
 
 /**
- * @c char* : Pointer to the last character. The string should be non-empty 
- * when using this macro.
+ * @brief @c char* : Pointer to the last character. The string should be 
+ * non-empty when using this macro.
  */
-#define string_back(this)                                                                                    \
+#define string_back(this)                                                                \
         ((this)->size ? &(this)->s[(this)->size - 1] : &(this)->s[-1])
 
 /* --------------------------------------------------------------------------
@@ -240,7 +242,7 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos,
  *
  * @return          @c bool : Whether the operation succeeded.
  */
-#define string_insert_fromString(this, pos, other, subpos, len)                                              \
+#define string_insert_fromString(this, pos, other, subpos, len)                          \
         string_replace_fromString(this, pos, 0, other, subpos, len)
 
 
@@ -255,7 +257,7 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos,
  *
  * @return       @c bool : Whether the operation succeeded.
  */
-#define string_insert_repeatingChar(this, pos, n, c)                                                         \
+#define string_insert_repeatingChar(this, pos, n, c)                                     \
         string_replace_repeatingChar(this, pos, 0, n, c)
 
 
@@ -284,7 +286,7 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos,
  *
  * @return          @c bool : Whether the operation succeeded.
  */
-#define string_append_fromString(this, other, subpos, len)                                                   \
+#define string_append_fromString(this, other, subpos, len)                               \
         string_insert_fromString(this, (this)->size, other, subpos, len)
 
 
@@ -296,7 +298,7 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos,
  *
  * @return     @c bool : Whether the operation succeeded.
  */
-#define string_append_repeatingChar(this, n, c)                                                              \
+#define string_append_repeatingChar(this, n, c)                                          \
         string_insert_repeatingChar(this, (this)->size, n, c)
 
 
@@ -407,9 +409,10 @@ void string_erase(String *this, unsigned start, unsigned n);
 
 
 /**
- * If the string's capacity is greater than its length, reallocates only 
- * enough memory to hold @c (string_len+1) characters. This should only be 
- * used if the string's capacity has grown to be much larger than its length.
+ * @brief If the string's capacity is greater than its length, reallocates 
+ * only enough memory to hold @c (string_len+1) characters. This should only 
+ * be used if the string's capacity has grown to be much larger than its 
+ * length.
  */
 void string_shrink_to_fit(String *this);
 
@@ -421,7 +424,7 @@ void string_shrink_to_fit(String *this);
  *
  * @return     @c bool : Whether the operation succeeded.
  */
-#define string_push_back(this, c)                                                                            \
+#define string_push_back(this, c)                                                        \
         string_resize_usingChar(this, (this)->size + 1, c)
 
 
@@ -575,10 +578,10 @@ String **string_split(String const *this, char const *delim);
  *
  * @param  arr  @c String** : Array allocated by @c string_split .
  */
-#define string_split_free(arr) {                                                                             \
-    String **_sPtr;                                                                                          \
-    for (_sPtr = arr; *_sPtr; ++_sPtr) string_free(*_sPtr);                                                  \
-    free(arr);                                                                                               \
+#define string_split_free(arr) {                                                         \
+    String **_sPtr;                                                                      \
+    for (_sPtr = arr; *_sPtr; ++_sPtr) string_free(*_sPtr);                              \
+    free(arr);                                                                           \
 }
 
 
@@ -692,7 +695,7 @@ unsigned char string_replace_withFormat(String *this, unsigned pos,
  *
  * @return          @c bool : Whether the operation succeeded.
  */
-#define string_insert_withFormat(this, pos, format, ...)                                                     \
+#define string_insert_withFormat(this, pos, format, ...)                                 \
         string_replace_withFormat(this, pos, 0, format, __VA_ARGS__)
 
 /**
@@ -702,7 +705,7 @@ unsigned char string_replace_withFormat(String *this, unsigned pos,
  *
  * @return          @c bool : Whether the operation succeeded.
  */
-#define string_append_withFormat(this, format, ...)                                                          \
+#define string_append_withFormat(this, format, ...)                                      \
         string_insert_withFormat(this, (this)->size, format, __VA_ARGS__)
 
 /**

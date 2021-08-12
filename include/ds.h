@@ -9,10 +9,10 @@
 
 #define DSDefault_shallowCopy(dest, src) (dest) = (src)
 #define DSDefault_shallowDelete(x) /* do nothing */
-#define DSDefault_deepCopyStr(dest, src) do {                                                                \
-    dest = malloc(strlen(src) + 1);                                                                          \
-    if (!dest) exit(1);                                                                                      \
-    strcpy(dest, src);                                                                                       \
+#define DSDefault_deepCopyStr(dest, src) do {                                            \
+    dest = malloc(strlen(src) + 1);                                                      \
+    if (!dest) exit(1);                                                                  \
+    strcpy(dest, src);                                                                   \
 } while(0)
 #define DSDefault_deepDelete(x) free(x)
 
