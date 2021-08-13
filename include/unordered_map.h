@@ -203,7 +203,7 @@ typedef struct {                                                                
                                                                                          \
 __setup_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                 \
                                                                                          \
-vt *umap_at_##id(UMap_##id const *this, const kt key);                                   \
+vt *umap_at_##id(UMap_##id const *this, kt const key);                                   \
 
 
 /**
@@ -259,7 +259,7 @@ __setup_hash_table_source(id, kt, cmp_eq, UMap_##id, Pair_##id, UMapEntry_##id, 
     __umap_entry_get_key, __umap_data_get_key, addrOfKey, sizeOfKey, copyKey,            \
     deleteKey, copyValue, deleteValue)                                                   \
                                                                                          \
-vt *umap_at_##id(UMap_##id const *this, const kt key) {                                  \
+vt *umap_at_##id(UMap_##id const *this, kt const key) {                                  \
     Pair_##id *p = __htable_find_##id(this, key);                                        \
     return p ? &(p->second) : NULL;                                                      \
 }                                                                                        \

@@ -427,7 +427,7 @@ long listEntry_distance_##id(ListEntry_##id const *p1,                          
                                                                                          \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this,                         \
                                                 ListEntry_##id *pos,                     \
-                                                unsigned n, const t value);              \
+                                                unsigned n, t const value);              \
 ListEntry_##id *list_insert_fromArray_##id(List_##id *this,                              \
                                            ListEntry_##id *pos,                          \
                                            t const *arr, unsigned n);                    \
@@ -436,7 +436,7 @@ ListEntry_##id *list_insert_fromList_##id(List_##id *this,                      
                                           ListEntry_##id const *start,                   \
                                           ListEntry_##id const *end);                    \
 List_##id *list_new_fromArray_##id(t const *arr, unsigned size);                         \
-List_##id *list_new_repeatingValue_##id(unsigned n, const t value);                      \
+List_##id *list_new_repeatingValue_##id(unsigned n, t const value);                      \
 List_##id *list_createCopy_##id(List_##id const *other);                                 \
 ListEntry_##id *list_erase_##id(List_##id *this,                                         \
                                 ListEntry_##id *first, ListEntry_##id *last);            \
@@ -491,7 +491,7 @@ long listEntry_distance_##id(ListEntry_##id const *p1,                          
                                                                                          \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this,                         \
                                                 ListEntry_##id *pos,                     \
-                                                unsigned n, const t value) {             \
+                                                unsigned n, t const value) {             \
     unsigned i;                                                                          \
     ListEntry_##id *new;                                                                 \
     if (!n || n + this->size < this->size) return NULL;                                  \
@@ -631,7 +631,7 @@ List_##id *list_new_fromArray_##id(t const *arr, unsigned size) {               
     return l;                                                                            \
 }                                                                                        \
                                                                                          \
-List_##id *list_new_repeatingValue_##id(unsigned n, const t value) {                     \
+List_##id *list_new_repeatingValue_##id(unsigned n, t const value) {                     \
     List_##id *l = list_new(id);                                                         \
     if (l) list_insert_repeatingValue_##id(l, NULL, n, value);                           \
     return l;                                                                            \

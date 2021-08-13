@@ -27,9 +27,9 @@ void __avlEntry_advance_##id(EntryType **p1, long n);                           
 long __avlEntry_distance_##id(EntryType const *p1, EntryType const *p2);                 \
                                                                                          \
 EntryType *__avltree_find_key_##id(TreeType const *this,                                 \
-                                   const kt key, unsigned char candidate);               \
+                                   kt const key, unsigned char candidate);               \
 EntryType *__avltree_insert_##id(TreeType *this,                                         \
-                                 const DataType data, int *inserted);                    \
+                                 DataType const data, int *inserted);                    \
 unsigned char __avltree_insert_fromArray_##id(TreeType *this,                            \
                                               DataType const *arr,                       \
                                               unsigned n);                               \
@@ -137,7 +137,7 @@ EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {               
 }                                                                                        \
                                                                                          \
 EntryType *__avltree_find_key_##id(TreeType const *this,                                 \
-                                   const kt key, unsigned char candidate) {              \
+                                   kt const key, unsigned char candidate) {              \
     EntryType *curr = this->root;                                                        \
     while (curr) {                                                                       \
         if (cmp_lt(key, entry_get_key(curr))) {                                          \
@@ -162,7 +162,7 @@ EntryType *__avltree_find_key_##id(TreeType const *this,                        
 }                                                                                        \
                                                                                          \
 EntryType *__avltree_insert_##id(TreeType *this,                                         \
-                                 const DataType data, int *inserted) {                   \
+                                 DataType const data, int *inserted) {                   \
     EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1);              \
     EntryType *new, *parent;                                                             \
     if (this->size == UINT_MAX) return NULL;                                             \

@@ -356,13 +356,13 @@ typedef struct {                                                                
 unsigned char array_reserve_##id(Array_##id *this, unsigned n);                          \
 unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem);             \
 unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
-                                          unsigned n, const t value);                    \
+                                          unsigned n, t const value);                    \
 unsigned char array_resize_usingValue_##id(Array_##id *this,                             \
-                                           unsigned n, const t value);                   \
+                                           unsigned n, t const value);                   \
 unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                   \
                                      t const *arr, unsigned n);                          \
 Array_##id *array_new_fromArray_##id(t const *arr, unsigned size);                       \
-Array_##id *array_new_repeatingValue_##id(unsigned n, const t value);                    \
+Array_##id *array_new_repeatingValue_##id(unsigned n, t const value);                    \
 void array_shrink_to_fit_##id(Array_##id *this);                                         \
 Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \
                               unsigned n, int step_size);                                \
@@ -429,7 +429,7 @@ unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem) {   
 }                                                                                        \
                                                                                          \
 unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
-                                          unsigned n, const t value) {                   \
+                                          unsigned n, t const value) {                   \
     t* i; t* end;                                                                        \
     unsigned res = this->size;                                                           \
     if (!n || index > res || !array_reserve_##id(this, res + n))                         \
@@ -450,7 +450,7 @@ unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,     
 }                                                                                        \
                                                                                          \
 unsigned char array_resize_usingValue_##id(Array_##id *this,                             \
-                                           unsigned n, const t value) {                  \
+                                           unsigned n, t const value) {                  \
     if (n == this->size) return 1;                                                       \
     else if (n < this->size) {                                                           \
         array_erase_##id(this, n, this->size - n);                                       \
@@ -494,7 +494,7 @@ Array_##id *array_new_fromArray_##id(t const *arr, unsigned size) {             
     return a;                                                                            \
 }                                                                                        \
                                                                                          \
-Array_##id *array_new_repeatingValue_##id(unsigned n, const t value) {                   \
+Array_##id *array_new_repeatingValue_##id(unsigned n, t const value) {                   \
     Array_##id *a = array_new(id);                                                       \
     if (a) array_insert_repeatingValue_##id(a, 0, n, value);                             \
     return a;                                                                            \

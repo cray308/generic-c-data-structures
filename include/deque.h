@@ -146,9 +146,9 @@ typedef struct {                                                                
 TypeName *__dq_new_##id(void);                                                           \
 void __dq_free_##id(TypeName *this);                                                     \
 void __dq_pop_front_##id(TypeName *this);                                                \
-unsigned char __dq_push_back_##id(TypeName *this, const t item);                         \
+unsigned char __dq_push_back_##id(TypeName *this, t const item);                         \
 void __dq_pop_back_##id(TypeName *this);                                                 \
-unsigned char __dq_push_front_##id(TypeName *this, const t item);                        \
+unsigned char __dq_push_front_##id(TypeName *this, t const item);                        \
 
 #define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                    \
                                                                                          \
@@ -205,7 +205,7 @@ void __dq_pop_front_##id(TypeName *this) {                                      
     }                                                                                    \
 }                                                                                        \
                                                                                          \
-unsigned char __dq_push_back_##id(TypeName *this, const t item) {                        \
+unsigned char __dq_push_back_##id(TypeName *this, t const item) {                        \
     t *tmp;                                                                              \
     unsigned cap = this->back.cap;                                                       \
     if (this->back.size == cap) {                                                        \
@@ -245,7 +245,7 @@ void __dq_pop_back_##id(TypeName *this) {                                       
     }                                                                                    \
 }                                                                                        \
                                                                                          \
-unsigned char __dq_push_front_##id(TypeName *this, const t item) {                       \
+unsigned char __dq_push_front_##id(TypeName *this, t const item) {                       \
     t *tmp;                                                                              \
     unsigned cap = this->front.cap;                                                      \
     if (this->front.size == cap) {                                                       \

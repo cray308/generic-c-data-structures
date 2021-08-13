@@ -286,7 +286,7 @@ typedef struct {                                                                
                                                                                          \
 __setup_avltree_headers(id, kt, Map_##id, Pair_##id, MapEntry_##id)                      \
                                                                                          \
-vt *map_at_##id(Map_##id const *this, const kt key);                                     \
+vt *map_at_##id(Map_##id const *this, kt const key);                                     \
 
 
 /**
@@ -331,7 +331,7 @@ __setup_avltree_source(id, kt, Map_##id, Pair_##id, MapEntry_##id, cmp_lt,      
     __map_entry_get_key, __map_data_get_key, copyKey, deleteKey, copyValue,              \
     deleteValue)                                                                         \
                                                                                          \
-vt* map_at_##id(Map_##id const *this, const kt key) {                                    \
+vt* map_at_##id(Map_##id const *this, kt const key) {                                    \
     MapEntry_##id *e = __avltree_find_key_##id(this, key, 0);                            \
     return e ? &(e->data.second) : NULL;                                                 \
 }                                                                                        \
