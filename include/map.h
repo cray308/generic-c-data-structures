@@ -286,7 +286,8 @@ typedef struct {                                                                
                                                                                          \
 __setup_avltree_headers(id, kt, Map_##id, Pair_##id, MapEntry_##id)                      \
                                                                                          \
-vt *map_at_##id(Map_##id const *this, kt const key);                                     \
+vt *map_at_##id(Map_##id const *this, kt const key)                                      \
+  __attribute__((nonnull (1)));                                                          \
 
 
 /**

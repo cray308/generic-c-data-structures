@@ -20,6 +20,7 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 void compare_ints(List_int *l, int *comparison, unsigned size) {
     unsigned i = 0;
     ListEntry_int *it;
+    assert(l);
     assert(list_size(l) == size);
     if (size) {
         assert(!list_empty(l));
@@ -43,6 +44,7 @@ void compare_ints(List_int *l, int *comparison, unsigned size) {
 void compare_strs(List_str *l, char **comparison, unsigned size) {
     unsigned i = 0;
     ListEntry_str *it;
+    assert(l);
     assert(list_size(l) == size);
     if (size) {
         assert(!list_empty(l));
@@ -734,6 +736,9 @@ void test_includes(void) {
     b[1] = list_new_fromArray(str, &strs[5], 6);
     b[2] = list_new_fromArray(str, strs, 11);
 
+    for (i = 0; i < 3; ++i) {
+        assert(a[i] && b[i]);
+    }
     assert(list_includes(int, a[0], a[0]));
     assert(!list_includes(int, a[0], a[1]));
     assert(list_includes(int, a[1], a[0]));

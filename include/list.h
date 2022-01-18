@@ -421,32 +421,42 @@ typedef struct {                                                                
     ListEntry_##id *back;                                                                \
 } List_##id;                                                                             \
                                                                                          \
-void listEntry_advance_##id(ListEntry_##id **p1, long n);                                \
+void listEntry_advance_##id(ListEntry_##id **p1, long n)                                 \
+  __attribute__((nonnull (1)));                                                          \
 long listEntry_distance_##id(ListEntry_##id const *p1,                                   \
                              ListEntry_##id const *p2);                                  \
                                                                                          \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this,                         \
                                                 ListEntry_##id *pos,                     \
-                                                unsigned n, t const value);              \
+                                                unsigned n, t const value)               \
+  __attribute__((nonnull (1)));                                                          \
 ListEntry_##id *list_insert_fromArray_##id(List_##id *this,                              \
                                            ListEntry_##id *pos,                          \
-                                           t const *arr, unsigned n);                    \
+                                           t const *arr, unsigned n)                     \
+  __attribute__((nonnull (1)));                                                          \
 ListEntry_##id *list_insert_fromList_##id(List_##id *this,                               \
                                           ListEntry_##id *pos,                           \
                                           ListEntry_##id const *start,                   \
-                                          ListEntry_##id const *end);                    \
+                                          ListEntry_##id const *end)                     \
+  __attribute__((nonnull (1)));                                                          \
 List_##id *list_new_fromArray_##id(t const *arr, unsigned size);                         \
 List_##id *list_new_repeatingValue_##id(unsigned n, t const value);                      \
-List_##id *list_createCopy_##id(List_##id const *other);                                 \
+List_##id *list_createCopy_##id(List_##id const *other)                                  \
+  __attribute__((nonnull (1)));                                                          \
 ListEntry_##id *list_erase_##id(List_##id *this,                                         \
-                                ListEntry_##id *first, ListEntry_##id *last);            \
+                                ListEntry_##id *first, ListEntry_##id *last)             \
+  __attribute__((nonnull (1)));                                                          \
 unsigned char list_resize_usingValue_##id(List_##id *this,                               \
-                                          unsigned n, t value);                          \
-void list_reverse_##id(List_##id *this);                                                 \
-void list_remove_if_##id(List_##id *this, int (*cond)(t*));                              \
+                                          unsigned n, t value)                           \
+  __attribute__((nonnull (1)));                                                          \
+void list_reverse_##id(List_##id *this)                                                  \
+  __attribute__((nonnull (1)));                                                          \
+void list_remove_if_##id(List_##id *this, int (*cond)(t*))                               \
+  __attribute__((nonnull (1,2)));                                                        \
 void list_splice_range_##id(List_##id *this,                                             \
                             ListEntry_##id *position, List_##id *other,                  \
-                            ListEntry_##id *first, ListEntry_##id *last);                \
+                            ListEntry_##id *first, ListEntry_##id *last)                 \
+  __attribute__((nonnull (1,3)));                                                        \
 
 
 /**
@@ -890,20 +900,30 @@ void list_splice_range_##id(List_##id *this,                                    
                                                                                          \
 gen_list_headers(id, t)                                                                  \
                                                                                          \
-List_##id *list_union_##id(List_##id const *this, List_##id const *other);               \
+List_##id *list_union_##id(List_##id const *this, List_##id const *other)                \
+  __attribute__((nonnull (1,2)));                                                        \
 List_##id *list_intersection_##id(List_##id const *this,                                 \
-                                  List_##id const *other);                               \
+                                  List_##id const *other)                                \
+  __attribute__((nonnull (1,2)));                                                        \
 List_##id *list_difference_##id(List_##id const *this,                                   \
-                                List_##id const *other);                                 \
+                                List_##id const *other)                                  \
+  __attribute__((nonnull (1,2)));                                                        \
 List_##id *list_symmetric_difference_##id(List_##id const *this,                         \
-                                          List_##id const *other);                       \
+                                          List_##id const *other)                        \
+  __attribute__((nonnull (1,2)));                                                        \
 unsigned char list_includes_##id(List_##id const *this,                                  \
-                                 List_##id const *other);                                \
-void list_unique_##id(List_##id *this);                                                  \
-void list_remove_value_##id(List_##id *this, const t val);                               \
-ListEntry_##id *list_find_##id(List_##id *this, const t val);                            \
-void list_merge_##id(List_##id *this, List_##id *other);                                 \
-void list_sort_##id(List_##id *this);                                                    \
+                                 List_##id const *other)                                 \
+  __attribute__((nonnull (1,2)));                                                        \
+void list_unique_##id(List_##id *this)                                                   \
+  __attribute__((nonnull (1)));                                                          \
+void list_remove_value_##id(List_##id *this, const t val)                                \
+  __attribute__((nonnull (1)));                                                          \
+ListEntry_##id *list_find_##id(List_##id *this, const t val)                             \
+  __attribute__((nonnull (1)));                                                          \
+void list_merge_##id(List_##id *this, List_##id *other)                                  \
+  __attribute__((nonnull (1)));                                                          \
+void list_sort_##id(List_##id *this)                                                     \
+  __attribute__((nonnull (1)));                                                          \
 
 
 /**

@@ -79,12 +79,18 @@
  */
 #define gen_alg_headers(id, t)                                                           \
                                                                                          \
-void ds_make_heap_##id(t* first, t const *last);                                         \
-void ds_sort_heap_##id(t* first, t* last);                                               \
-void ds_sort_##id(t* arr, unsigned n);                                                   \
-t* ds_binary_search_##id(t* arr, int l, int r, const t val);                             \
-void ds_push_heap_##id(t* first, t const *last);                                         \
-void ds_pop_heap_##id(t* first, t* last);                                                \
+void ds_make_heap_##id(t* first, t const *last)                                          \
+  __attribute__((nonnull (1,2)));                                                        \
+void ds_sort_heap_##id(t* first, t* last)                                                \
+  __attribute__((nonnull (1,2)));                                                        \
+void ds_sort_##id(t* arr, unsigned n)                                                    \
+  __attribute__((nonnull (1)));                                                          \
+t* ds_binary_search_##id(t* arr, int l, int r, const t val)                              \
+  __attribute__((nonnull (1)));                                                          \
+void ds_push_heap_##id(t* first, t const *last)                                          \
+  __attribute__((nonnull (1,2)));                                                        \
+void ds_pop_heap_##id(t* first, t* last)                                                 \
+  __attribute__((nonnull (1,2)));                                                        \
 
 
 /**
@@ -96,6 +102,24 @@ void ds_pop_heap_##id(t* first, t* last);                                       
  *                  strictly less than @c y .
  */
 #define gen_alg_source(id, t, cmp_lt)                                                    \
+                                                                                         \
+static void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val)        \
+  __attribute__((nonnull (1,4)));                                                        \
+                                                                                         \
+static void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t const *value)    \
+  __attribute__((nonnull (1,4)));                                                        \
+                                                                                         \
+static void __ds_pop_heap_##id(t *first, t const *last, t *result)                       \
+  __attribute__((nonnull (1,2,3)));                                                      \
+                                                                                         \
+static void __ds_introsort_##id(t *first, t *last, unsigned depth_limit)                 \
+  __attribute__((nonnull (1,2)));                                                        \
+                                                                                         \
+static void __ds_unguarded_linear_insert_##id(t *last)                                   \
+  __attribute__((nonnull (1)));                                                          \
+                                                                                         \
+static void __ds_insertion_sort_##id(t *first, t const *last)                            \
+  __attribute__((nonnull (1,2)));                                                        \
                                                                                          \
 void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val) {             \
     unsigned parent = (i - 1) >> 1;                                                      \

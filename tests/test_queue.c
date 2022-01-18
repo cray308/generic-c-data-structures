@@ -16,20 +16,16 @@ char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","
 
 static void compare_int_vals(Queue_int *qi, int first, int last) {
     int *ptr = queue_front(qi);
-    assert(ptr != NULL);
-    assert(*ptr == first);
+    assert(ptr && *ptr == first);
     ptr = queue_back(qi);
-    assert(ptr != NULL);
-    assert(*ptr == last);
+    assert(ptr && *ptr == last);
 }
 
 static void compare_str_vals(Queue_str *qs, char *first, char *last) {
     char **ptr = queue_front(qs);
-    assert(ptr != NULL);
-    assert(streq(*ptr, first));
+    assert(ptr && streq(*ptr, first));
     ptr = queue_back(qs);
-    assert(ptr != NULL);
-    assert(streq(*ptr, last));
+    assert(ptr && streq(*ptr, last));
 }
 
 int main(void) {
@@ -37,8 +33,7 @@ int main(void) {
     Queue_int *qi = queue_new(int);
     Queue_str *qs = queue_new(str);
 
-    assert(qi);
-    assert(qs);
+    assert(qi && qs);
     assert(queue_empty(qi));
     assert(queue_empty(qs));
     assert(queue_size(qi) == 0);

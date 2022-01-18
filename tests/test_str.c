@@ -17,8 +17,7 @@ void compareStrs(String *s, const char *comparison, unsigned size) {
     }
     string_iter(s, it) {
         ref = string_at(s, size - j);
-        assert(ref);
-        assert(*ref == comparison[i]);
+        assert(ref && *ref == comparison[i]);
         assert(string_index(s, i) == comparison[i]);
         assert(*it == comparison[i++]); --j;
     }
@@ -27,8 +26,7 @@ void compareStrs(String *s, const char *comparison, unsigned size) {
     j = 1;
     string_riter(s, it) {
         ref = string_at(s, size - j);
-        assert(ref);
-        assert(*ref == comparison[i]);
+        assert(ref && *ref == comparison[i]);
         assert(string_index(s, i) == comparison[i]);
         assert(*it == comparison[i--]); ++j;
     }

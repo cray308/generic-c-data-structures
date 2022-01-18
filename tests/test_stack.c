@@ -14,14 +14,12 @@ char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","
 
 static void compare_int_vals(Stack_int *qi, int val) {
     int *ptr = stack_top(qi);
-    assert(ptr != NULL);
-    assert(*ptr == val);
+    assert(ptr && *ptr == val);
 }
 
 static void compare_str_vals(Stack_str *qs, char *val) {
     char **ptr = stack_top(qs);
-    assert(ptr != NULL);
-    assert(streq(*ptr, val));
+    assert(ptr && streq(*ptr, val));
 }
 
 int main(void) {
@@ -29,8 +27,7 @@ int main(void) {
     Stack_str *ss = stack_new(str);
     int i;
 
-    assert(si);
-    assert(ss);
+    assert(si && ss);
     assert(stack_empty(si));
     assert(stack_empty(ss));
     assert(stack_size(si) == 0);
