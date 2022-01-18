@@ -5,6 +5,13 @@
 #include <string.h>
 #include <limits.h>
 
+#if DEBUG
+#include <assert.h>
+#define customAssert(x) assert((x));
+#else
+#define customAssert(x)
+#endif
+
 #define DS_ARG_NOT_APPLICABLE UINT_MAX
 
 #define DSDefault_shallowCopy(dest, src) (dest) = (src)

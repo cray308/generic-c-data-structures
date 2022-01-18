@@ -144,11 +144,16 @@ typedef struct {                                                                
 } TypeName;                                                                              \
                                                                                          \
 TypeName *__dq_new_##id(void);                                                           \
-void __dq_free_##id(TypeName *this);                                                     \
-void __dq_pop_front_##id(TypeName *this);                                                \
-unsigned char __dq_push_back_##id(TypeName *this, t const item);                         \
-void __dq_pop_back_##id(TypeName *this);                                                 \
-unsigned char __dq_push_front_##id(TypeName *this, t const item);                        \
+void __dq_free_##id(TypeName *this)                                                      \
+  __attribute__((nonnull (1)));                                                          \
+void __dq_pop_front_##id(TypeName *this)                                                 \
+  __attribute__((nonnull (1)));                                                          \
+unsigned char __dq_push_back_##id(TypeName *this, t const item)                          \
+  __attribute__((nonnull (1)));                                                          \
+void __dq_pop_back_##id(TypeName *this)                                                  \
+  __attribute__((nonnull (1)));                                                          \
+unsigned char __dq_push_front_##id(TypeName *this, t const item)                         \
+  __attribute__((nonnull (1)));                                                          \
 
 #define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                    \
                                                                                          \

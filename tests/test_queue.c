@@ -14,10 +14,31 @@ char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","
 "015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",
 "034","035","036","037","038","039","040","041","042","043","044","045","046","047","048","049"};
 
+static void compare_int_vals(Queue_int *qi, int first, int last) {
+    int *ptr = queue_front(qi);
+    assert(ptr != NULL);
+    assert(*ptr == first);
+    ptr = queue_back(qi);
+    assert(ptr != NULL);
+    assert(*ptr == last);
+}
+
+static void compare_str_vals(Queue_str *qs, char *first, char *last) {
+    char **ptr = queue_front(qs);
+    assert(ptr != NULL);
+    assert(streq(*ptr, first));
+    ptr = queue_back(qs);
+    assert(ptr != NULL);
+    assert(streq(*ptr, last));
+}
+
 int main(void) {
     int i;
     Queue_int *qi = queue_new(int);
     Queue_str *qs = queue_new(str);
+
+    assert(qi);
+    assert(qs);
     assert(queue_empty(qi));
     assert(queue_empty(qs));
     assert(queue_size(qi) == 0);
@@ -32,32 +53,26 @@ int main(void) {
         queue_push(str, qs, strs[i]);
         assert(queue_size(qi) == (unsigned)(i + 1));
         assert(queue_size(qs) == (unsigned)(i + 1));
-        assert(*queue_front(qi) == FIRST);
-        assert(streq(*queue_front(qs), strs[FIRST]));
-        assert(*queue_back(qi) == i);
-        assert(streq(*queue_back(qs), strs[i]));
+        compare_int_vals(qi, FIRST, i);
+        compare_str_vals(qs, strs[FIRST], strs[i]);
     }
     assert(!queue_empty(qi));
     assert(!queue_empty(qs));
-    assert(*queue_front(qi) == FIRST);
-    assert(streq(*queue_front(qs), strs[FIRST]));
-    assert(*queue_back(qi) == LAST);
-    assert(streq(*queue_back(qs), strs[LAST]));
+    compare_int_vals(qi, FIRST, LAST);
+    compare_str_vals(qs, strs[FIRST], strs[LAST]);
 
     i = 0;
     while (!queue_empty(qi)) {
-        assert(*queue_front(qi) == i++);
+        compare_int_vals(qi, i++, LAST);
         assert(queue_size(qi) == (unsigned)(LEN - i) + 1);
-        assert(*queue_back(qi) == LAST);
         queue_pop(int, qi);
     }
     assert(i == LEN);
 
     i = 0;
     while (!queue_empty(qs)) {
-        assert(streq(*queue_front(qs), strs[i++]));
+        compare_str_vals(qs, strs[i++], strs[LAST]);
         assert(queue_size(qs) == (unsigned)(LEN - i) + 1);
-        assert(streq(*queue_back(qs), strs[LAST]));
         queue_pop(str, qs);
     }
     assert(i == LEN);

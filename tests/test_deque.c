@@ -19,9 +19,29 @@ char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","
 "110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128",
 "129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146","147","148","149","150"};
 
+static void compare_int_vals(Deque_int *qi, int first, int last) {
+    int *ptr = deque_front(qi);
+    assert(ptr != NULL);
+    assert(*ptr == first);
+    ptr = deque_back(qi);
+    assert(ptr != NULL);
+    assert(*ptr == last);
+}
+
+static void compare_str_vals(Deque_str *qs, char *first, char *last) {
+    char **ptr = deque_front(qs);
+    assert(ptr != NULL);
+    assert(streq(*ptr, first));
+    ptr = deque_back(qs);
+    assert(ptr != NULL);
+    assert(streq(*ptr, last));
+}
+
 void test_empty(void) {
     Deque_int *qi = deque_new(int);
     Deque_str *qs = deque_new(str);
+    assert(qi);
+    assert(qs);
     assert(deque_empty(qi));
     assert(deque_empty(qs));
     assert(deque_size(qi) == 0);
@@ -40,35 +60,31 @@ void test_push_pop_front(void) {
     unsigned count = 1;
     int i;
 
+    assert(qi);
+    assert(qs);
     for (i = LEN - 1; i >= 0; --i) {
         deque_push_front(int, qi, i);
         deque_push_front(str, qs, strs[i]);
         assert(deque_size(qi) == count);
         assert(deque_size(qs) == count++);
-        assert(*deque_front(qi) == i);
-        assert(streq(*deque_front(qs), strs[i]));
-        assert(*deque_back(qi) == LAST);
-        assert(streq(*deque_back(qs), strs[LAST]));
+        compare_int_vals(qi, i, LAST);
+        compare_str_vals(qs, strs[i], strs[LAST]);
     }
-    assert(*deque_front(qi) == FIRST);
-    assert(streq(*deque_front(qs), strs[FIRST]));
-    assert(*deque_back(qi) == LAST);
-    assert(streq(*deque_back(qs), strs[LAST]));
+    compare_int_vals(qi, FIRST, LAST);
+    compare_str_vals(qs, strs[FIRST], strs[LAST]);
 
     i = 0;
     while (!deque_empty(qi)) {
-        assert(*deque_front(qi) == i++);
+        compare_int_vals(qi, i++, LAST);
         assert(deque_size(qi) == (unsigned) (LEN - i) + 1);
-        assert(*deque_back(qi) == LAST);
         deque_pop_front(int, qi);
     }
     assert(i == LEN);
 
     i = 0;
     while (!deque_empty(qs)) {
-        assert(streq(*deque_front(qs), strs[i++]));
+        compare_str_vals(qs, strs[i++], strs[LAST]);
         assert(deque_size(qs) == (unsigned) (LEN - i) + 1);
-        assert(streq(*deque_back(qs), strs[LAST]));
         deque_pop_front(str, qs);
     }
     assert(i == LEN);
@@ -87,35 +103,32 @@ void test_push_pop_back(void) {
     Deque_int *qi = deque_new(int);
     Deque_str *qs = deque_new(str);
     int i;
+
+    assert(qi);
+    assert(qs);
     for (i = 0; i < LEN; ++i) {
         deque_push_back(int, qi, i);
         deque_push_back(str, qs, strs[i]);
         assert(deque_size(qi) == (unsigned) i + 1);
         assert(deque_size(qs) == (unsigned) i + 1);
-        assert(*deque_front(qi) == FIRST);
-        assert(streq(*deque_front(qs), strs[FIRST]));
-        assert(*deque_back(qi) == i);
-        assert(streq(*deque_back(qs), strs[i]));
+        compare_int_vals(qi, FIRST, i);
+        compare_str_vals(qs, strs[FIRST], strs[i]);
     }
-    assert(*deque_front(qi) == FIRST);
-    assert(streq(*deque_front(qs), strs[FIRST]));
-    assert(*deque_back(qi) == LAST);
-    assert(streq(*deque_back(qs), strs[LAST]));
+    compare_int_vals(qi, FIRST, LAST);
+    compare_str_vals(qs, strs[FIRST], strs[LAST]);
 
     i = LEN - 1;
     while (!deque_empty(qi)) {
-        assert(*deque_back(qi) == i);
+        compare_int_vals(qi, FIRST, i);
         assert(deque_size(qi) == (unsigned) (i-- + 1));
-        assert(*deque_front(qi) == FIRST);
         deque_pop_back(int, qi);
     }
     assert(i == -1);
 
     i = LEN - 1;
     while (!deque_empty(qs)) {
-        assert(streq(*deque_back(qs), strs[i]));
+        compare_str_vals(qs, strs[FIRST], strs[i]);
         assert(deque_size(qs) == (unsigned) (i-- + 1));
-        assert(streq(*deque_front(qs), strs[FIRST]));
         deque_pop_back(str, qs);
     }
     assert(i == -1);
@@ -135,35 +148,32 @@ void test_push_front_pop_back(void) {
     Deque_str *qs = deque_new(str);
     int i;
     unsigned count = 1;
+
+    assert(qi);
+    assert(qs);
     for (i = LEN - 1; i >= 0; --i) {
         deque_push_front(int, qi, i);
         deque_push_front(str, qs, strs[i]);
         assert(deque_size(qi) == count);
         assert(deque_size(qs) == count++);
-        assert(*deque_front(qi) == i);
-        assert(streq(*deque_front(qs), strs[i]));
-        assert(*deque_back(qi) == LAST);
-        assert(streq(*deque_back(qs), strs[LAST]));
+        compare_int_vals(qi, i, LAST);
+        compare_str_vals(qs, strs[i], strs[LAST]);
     }
-    assert(*deque_front(qi) == FIRST);
-    assert(streq(*deque_front(qs), strs[FIRST]));
-    assert(*deque_back(qi) == LAST);
-    assert(streq(*deque_back(qs), strs[LAST]));
+    compare_int_vals(qi, FIRST, LAST);
+    compare_str_vals(qs, strs[FIRST], strs[LAST]);
 
     i = LEN - 1;
     while (!deque_empty(qi)) {
-        assert(*deque_back(qi) == i);
+        compare_int_vals(qi, FIRST, i);
         assert(deque_size(qi) == (unsigned) (i-- + 1));
-        assert(*deque_front(qi) == FIRST);
         deque_pop_back(int, qi);
     }
     assert(i == -1);
 
     i = LEN - 1;
     while (!deque_empty(qs)) {
-        assert(streq(*deque_back(qs), strs[i]));
+        compare_str_vals(qs, strs[FIRST], strs[i]);
         assert(deque_size(qs) == (unsigned) (i-- + 1));
-        assert(streq(*deque_front(qs), strs[FIRST]));
         deque_pop_back(str, qs);
     }
     assert(i == -1);
@@ -182,35 +192,32 @@ void test_push_back_pop_front(void) {
     Deque_int *qi = deque_new(int);
     Deque_str *qs = deque_new(str);
     int i;
+
+    assert(qi);
+    assert(qs);
     for (i = 0; i < LEN; ++i) {
         deque_push_back(int, qi, i);
         deque_push_back(str, qs, strs[i]);
         assert(deque_size(qi) == (unsigned) i + 1);
         assert(deque_size(qs) == (unsigned) i + 1);
-        assert(*deque_front(qi) == FIRST);
-        assert(streq(*deque_front(qs), strs[FIRST]));
-        assert(*deque_back(qi) == i);
-        assert(streq(*deque_back(qs), strs[i]));
+        compare_int_vals(qi, FIRST, i);
+        compare_str_vals(qs, strs[FIRST], strs[i]);
     }
-    assert(*deque_front(qi) == FIRST);
-    assert(streq(*deque_front(qs), strs[FIRST]));
-    assert(*deque_back(qi) == LAST);
-    assert(streq(*deque_back(qs), strs[LAST]));
+    compare_int_vals(qi, FIRST, LAST);
+    compare_str_vals(qs, strs[FIRST], strs[LAST]);
 
     i = 0;
     while (!deque_empty(qi)) {
-        assert(*deque_front(qi) == i++);
+        compare_int_vals(qi, i++, LAST);
         assert(deque_size(qi) == (unsigned) (LEN - i) + 1);
-        assert(*deque_back(qi) == LAST);
         deque_pop_front(int, qi);
     }
     assert(i == LEN);
 
     i = 0;
     while (!deque_empty(qs)) {
-        assert(streq(*deque_front(qs), strs[i++]));
+        compare_str_vals(qs, strs[i++], strs[LAST]);
         assert(deque_size(qs) == (unsigned) (LEN - i) + 1);
-        assert(streq(*deque_back(qs), strs[LAST]));
         deque_pop_front(str, qs);
     }
     assert(i == LEN);
@@ -230,20 +237,25 @@ void test_mixed(void) {
     Deque_int *qi = deque_new(int);
     Deque_str *qs = deque_new(str);
     size_t count = 1;
-    int i;
+    int i, *iptr;
+    char **sptr;
 
+    assert(qi);
+    assert(qs);
     for (i = midFirst; i >= 0; --i) {
         deque_push_front(int, qi, i);
         deque_push_front(str, qs, strs[i]);
         assert(deque_size(qi) == count);
         assert(deque_size(qs) == count++);
-        assert(*deque_front(qi) == i);
-        assert(streq(*deque_front(qs), strs[i]));
-        assert(*deque_back(qi) == midFirst);
-        assert(streq(*deque_back(qs), strs[midFirst]));
+        compare_int_vals(qi, i, midFirst);
+        compare_str_vals(qs, strs[i], strs[midFirst]);
     }
-    assert(*deque_front(qi) == FIRST);
-    assert(streq(*deque_front(qs), strs[FIRST]));
+    iptr = deque_front(qi);
+    assert(iptr != NULL);
+    assert(*iptr == FIRST);
+    sptr = deque_front(qs);
+    assert(sptr != NULL);
+    assert(streq(*sptr, strs[FIRST]));
     assert(deque_size(qi) == (unsigned) midFirst + 1);
     assert(deque_size(qs) == (unsigned) midFirst + 1);
 
@@ -252,35 +264,34 @@ void test_mixed(void) {
         deque_push_back(str, qs, strs[i]);
         assert(deque_size(qi) == (unsigned) i + 1);
         assert(deque_size(qs) == (unsigned) i + 1);
-        assert(*deque_front(qi) == FIRST);
-        assert(streq(*deque_front(qs), strs[FIRST]));
-        assert(*deque_back(qi) == i);
-        assert(streq(*deque_back(qs), strs[i]));
+        compare_int_vals(qi, FIRST, i);
+        compare_str_vals(qs, strs[FIRST], strs[i]);
     }
     assert(deque_size(qi) == LEN);
     assert(deque_size(qs) == LEN);
-    assert(*deque_back(qi) == LAST);
-    assert(streq(*deque_back(qs), strs[LAST]));
+    iptr = deque_back(qi);
+    assert(iptr != NULL);
+    assert(*iptr == LAST);
+    sptr = deque_back(qs);
+    assert(sptr != NULL);
+    assert(streq(*sptr, strs[LAST]));
 
     for (i = LEN - 1; i >= LEN - 81; --i) {
-        assert(*deque_back(qi) == i);
+        compare_int_vals(qi, FIRST, i);
         assert(deque_size(qi) == (unsigned) i + 1);
-        assert(*deque_front(qi) == FIRST);
         deque_pop_back(int, qi);
     }
     for (i = LEN - 1; i >= LEN - 81; --i) {
-        assert(streq(*deque_back(qs), strs[i]));
+        compare_str_vals(qs, strs[FIRST], strs[i]);
         assert(deque_size(qs) == (unsigned) i + 1);
-        assert(streq(*deque_front(qs), strs[FIRST]));
         deque_pop_back(str, qs);
     }
 
     count = deque_size(qi);
     i = 0;
     while (!deque_empty(qi)) {
-        assert(*deque_front(qi) == i++);
+        compare_int_vals(qi, i++, lastIdx);
         assert(deque_size(qi) == (count - (unsigned) i) + 1);
-        assert(*deque_back(qi) == lastIdx);
         deque_pop_front(int, qi);
     }
     assert(i == (int) count);
@@ -288,9 +299,8 @@ void test_mixed(void) {
     count = deque_size(qs);
     i = 0;
     while (!deque_empty(qs)) {
-        assert(streq(*deque_front(qs), strs[i++]));
+        compare_str_vals(qs, strs[i++], strs[lastIdx]);
         assert(deque_size(qs) == (count - (unsigned) i) + 1);
-        assert(streq(*deque_back(qs), strs[lastIdx]));
         deque_pop_front(str, qs);
     }
     assert(i == (int) count);

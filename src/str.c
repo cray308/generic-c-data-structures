@@ -1,6 +1,6 @@
 #include "str.h"
 
-unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
+static unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
     unsigned i = 1, j = 0;
     unsigned *table = malloc(sizeof(unsigned) * len);
     if (!table) return NULL;

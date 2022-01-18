@@ -353,19 +353,26 @@ typedef struct {                                                                
     t *arr;                                                                              \
 } Array_##id;                                                                            \
                                                                                          \
-unsigned char array_reserve_##id(Array_##id *this, unsigned n);                          \
-unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem);             \
+unsigned char array_reserve_##id(Array_##id *this, unsigned n)                           \
+  __attribute__((nonnull (1)));                                                          \
+unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem)              \
+  __attribute__((nonnull (1)));                                                          \
 unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
-                                          unsigned n, t const value);                    \
+                                          unsigned n, t const value)                     \
+  __attribute__((nonnull (1)));                                                          \
 unsigned char array_resize_usingValue_##id(Array_##id *this,                             \
-                                           unsigned n, t const value);                   \
+                                           unsigned n, t const value)                    \
+  __attribute__((nonnull (1)));                                                          \
 unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                   \
-                                     t const *arr, unsigned n);                          \
+                                     t const *arr, unsigned n)                           \
+  __attribute__((nonnull (1)));                                                          \
 Array_##id *array_new_fromArray_##id(t const *arr, unsigned size);                       \
 Array_##id *array_new_repeatingValue_##id(unsigned n, t const value);                    \
-void array_shrink_to_fit_##id(Array_##id *this);                                         \
+void array_shrink_to_fit_##id(Array_##id *this)                                          \
+  __attribute__((nonnull (1)));                                                          \
 Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \
-                              unsigned n, int step_size);                                \
+                              unsigned n, int step_size)                                 \
+  __attribute__((nonnull (1)));                                                          \
 
 
 /**
@@ -675,17 +682,23 @@ gen_array_headers(id, t)                                                        
 gen_alg_headers(id, t)                                                                   \
                                                                                          \
 Array_##id *array_union_##id(t const *first1, t const *last1,                            \
-                             t const *first2, t const *last2);                           \
+                             t const *first2, t const *last2)                            \
+  __attribute__((nonnull (2,4)));                                                        \
 Array_##id *array_intersection_##id(t const *first1, t const *last1,                     \
-                                    t const *first2, t const *last2);                    \
+                                    t const *first2, t const *last2)                     \
+  __attribute__((nonnull (2,4)));                                                        \
 Array_##id *array_difference_##id(t const *first1, t const *last1,                       \
-                                  t const *first2, t const *last2);                      \
+                                  t const *first2, t const *last2)                       \
+__attribute__((nonnull (2,4)));                                                          \
 Array_##id *array_symmetric_difference_##id(t const *first1, t const *last1,             \
-                                            t const *first2, t const *last2);            \
+                                            t const *first2, t const *last2)             \
+  __attribute__((nonnull (2,4)));                                                        \
 unsigned char array_includes_##id(t const *first1, t const *last1,                       \
-                                  t const *first2, t const *last2);                      \
+                                  t const *first2, t const *last2)                       \
+  __attribute__((nonnull (2,4)));                                                        \
 Array_##id *merge_array_##id(t const *first1, t const *last1,                            \
-                             t const *first2, t const *last2);                           \
+                             t const *first2, t const *last2)                            \
+  __attribute__((nonnull (2,4)));                                                        \
 
 
 /**

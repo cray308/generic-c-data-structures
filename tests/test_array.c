@@ -19,7 +19,8 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 
 void compare_ints(Array_int *a, int *comparison, unsigned size) {
     unsigned i = 0, j = size;
-    int *it;
+    int *it, *ref;
+    assert(a);
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
@@ -28,7 +29,9 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
         assert(array_empty(a));
     }
     array_iter(a, it) {
-        assert(*array_at(a, size - j) == comparison[i]);
+        ref = array_at(a, size - j);
+        assert(ref);
+        assert(*ref == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
         assert(*it == comparison[i++]); --j;
     }
@@ -36,7 +39,9 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
     i = size - 1;
     j = 1;
     array_riter(a, it) {
-        assert(*array_at(a, size - j) == comparison[i]);
+        ref = array_at(a, size - j);
+        assert(ref);
+        assert(*ref == comparison[i]);
         assert(array_index(a, i) == comparison[i]);
         assert(*it == comparison[i--]); ++j;
     }
@@ -45,7 +50,8 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
 
 void compare_strs(Array_str *a, char **comparison, unsigned size) {
     unsigned i = 0, j = size;
-    char **it;
+    char **it, **ref;
+    assert(a);
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
@@ -54,7 +60,9 @@ void compare_strs(Array_str *a, char **comparison, unsigned size) {
         assert(array_empty(a));
     }
     array_iter(a, it) {
-        assert(streq(*array_at(a, size - j), comparison[i]));
+        ref = array_at(a, size - j);
+        assert(ref);
+        assert(streq(*ref, comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
         assert(streq(*it, comparison[i++])); --j;
     }
@@ -62,7 +70,9 @@ void compare_strs(Array_str *a, char **comparison, unsigned size) {
     i = size - 1;
     j = 1;
     array_riter(a, it) {
-        assert(streq(*array_at(a, size - j), comparison[i]));
+        ref = array_at(a, size - j);
+        assert(ref);
+        assert(streq(*ref, comparison[i]));
         assert(streq(array_index(a, i), comparison[i]));
         assert(streq(*it, comparison[i--])); ++j;
     }

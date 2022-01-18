@@ -7,7 +7,7 @@ const char *testStr = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcde
 
 void compareStrs(String *s, const char *comparison, unsigned size) {
     unsigned i = 0, j = size;
-    const char *it;
+    const char *it, *ref;
     assert(string_len(s) == size);
     if (size) {
         assert(!string_empty(s));
@@ -16,7 +16,9 @@ void compareStrs(String *s, const char *comparison, unsigned size) {
         assert(string_empty(s));
     }
     string_iter(s, it) {
-        assert(*string_at(s, size - j) == comparison[i]);
+        ref = string_at(s, size - j);
+        assert(ref);
+        assert(*ref == comparison[i]);
         assert(string_index(s, i) == comparison[i]);
         assert(*it == comparison[i++]); --j;
     }
@@ -24,7 +26,9 @@ void compareStrs(String *s, const char *comparison, unsigned size) {
     i = size - 1;
     j = 1;
     string_riter(s, it) {
-        assert(*string_at(s, size - j) == comparison[i]);
+        ref = string_at(s, size - j);
+        assert(ref);
+        assert(*ref == comparison[i]);
         assert(string_index(s, i) == comparison[i]);
         assert(*it == comparison[i--]); ++j;
     }

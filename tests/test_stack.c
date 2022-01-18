@@ -12,10 +12,25 @@ char *strs[LEN] = {"000","001","002","003","004","005","006","007","008","009","
 "015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033",
 "034","035","036","037","038","039","040","041","042","043","044","045","046","047","048","049"};
 
+static void compare_int_vals(Stack_int *qi, int val) {
+    int *ptr = stack_top(qi);
+    assert(ptr != NULL);
+    assert(*ptr == val);
+}
+
+static void compare_str_vals(Stack_str *qs, char *val) {
+    char **ptr = stack_top(qs);
+    assert(ptr != NULL);
+    assert(streq(*ptr, val));
+}
+
 int main(void) {
     Stack_int *si = stack_new(int);
     Stack_str *ss = stack_new(str);
     int i;
+
+    assert(si);
+    assert(ss);
     assert(stack_empty(si));
     assert(stack_empty(ss));
     assert(stack_size(si) == 0);
@@ -26,8 +41,8 @@ int main(void) {
     for (i = 0; i < LEN; ++i) {
         stack_push(int, si, i);
         stack_push(str, ss, strs[i]);
-        assert(*stack_top(si) == i);
-        assert(streq(*stack_top(ss), strs[i]));
+        compare_int_vals(si, i);
+        compare_str_vals(ss, strs[i]);
         assert(stack_size(si) == (unsigned) i + 1);
         assert(stack_size(ss) == (unsigned) i + 1);
     }
@@ -36,7 +51,7 @@ int main(void) {
 
     i = LEN - 1;
     while (!stack_empty(si)) {
-        assert(*stack_top(si) == i);
+        compare_int_vals(si, i);
         assert(stack_size(si) == (unsigned)(i-- + 1));
         stack_pop(int, si);
     }
@@ -44,7 +59,7 @@ int main(void) {
 
     i = LEN - 1;
     while (!stack_empty(ss)) {
-        assert(streq(*stack_top(ss), strs[i]));
+        compare_str_vals(ss, strs[i]);
         assert(stack_size(ss) == (unsigned)(i-- + 1));
         stack_pop(str, ss);
     }
