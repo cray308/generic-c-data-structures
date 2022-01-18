@@ -143,9 +143,12 @@ void test_init_fromArray(void) {
         data[i].i = i;
         data[i].s = strs[i];
     }
+
+    assert(m1);
     compare_int_str(m1, data, 0);
     umap_free(int_str, m1);
     m1 = umap_new_fromArray(int_str, arrInt, 0);
+    assert(m1);
     compare_int_str(m1, data, 0);
     umap_free(int_str, m1);
 
@@ -189,7 +192,10 @@ void test_createCopy(void) {
         data[i].i = i;
         data[i].s = strs[i];
     }
+
+    assert(b);
     m1 = umap_createCopy(int_str, b);
+    assert(m1);
     compare_int_str(m1, data, 0);
     umap_free(int_str, m1);
     umap_free(int_str, b);
@@ -352,6 +358,7 @@ void test_find(void) {
     Pair_strv_int p2;
     Pair_strp_int p3;
 
+    assert(m1 && m2 && m3);
     assert(!umap_find(int_str, m1, 0));
     umap_insert_fromArray(int_str, m1, arrInt, 10);
     assert(!umap_find(int_str, m1, 9));
@@ -422,6 +429,7 @@ void test_set_load_factor(void) {
         data[i].s = strs[i];
     }
 
+    assert(m1 && m2 && m3);
     assert(umap_max_load_factor(m1) == 75);
     assert(umap_max_load_factor(m2) == 75);
     assert(umap_max_load_factor(m3) == 75);
@@ -487,6 +495,7 @@ void test_rehash(void) {
         data[i].s = strs[i];
     }
 
+    assert(m1 && m2 && m3);
     assert(umap_bucket_count(m1) == 32);
     assert(umap_bucket_count(m2) == 32);
     assert(umap_bucket_count(m3) == 32);
