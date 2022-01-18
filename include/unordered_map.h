@@ -203,7 +203,8 @@ typedef struct {                                                                
                                                                                          \
 __setup_hash_table_headers(id, kt, UMap_##id, Pair_##id, UMapEntry_##id)                 \
                                                                                          \
-vt *umap_at_##id(UMap_##id const *this, kt const key);                                   \
+vt *umap_at_##id(UMap_##id const *this, kt const key)                                    \
+  __attribute__((nonnull));                                                              \
 
 
 /**

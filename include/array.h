@@ -367,7 +367,8 @@ unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,          
                                      t const *arr, unsigned n)                           \
   __attribute__((nonnull (1)));                                                          \
 Array_##id *array_new_fromArray_##id(t const *arr, unsigned size);                       \
-Array_##id *array_new_repeatingValue_##id(unsigned n, t const value);                    \
+Array_##id *array_new_repeatingValue_##id(unsigned n, t const value)                     \
+  __attribute__((nonnull));                                                              \
 void array_shrink_to_fit_##id(Array_##id *this)                                          \
   __attribute__((nonnull (1)));                                                          \
 Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \

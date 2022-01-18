@@ -440,7 +440,8 @@ ListEntry_##id *list_insert_fromList_##id(List_##id *this,                      
                                           ListEntry_##id const *end)                     \
   __attribute__((nonnull (1)));                                                          \
 List_##id *list_new_fromArray_##id(t const *arr, unsigned size);                         \
-List_##id *list_new_repeatingValue_##id(unsigned n, t const value);                      \
+List_##id *list_new_repeatingValue_##id(unsigned n, t const value)                       \
+  __attribute__((nonnull));                                                              \
 List_##id *list_createCopy_##id(List_##id const *other)                                  \
   __attribute__((nonnull (1)));                                                          \
 ListEntry_##id *list_erase_##id(List_##id *this,                                         \
@@ -917,11 +918,11 @@ unsigned char list_includes_##id(List_##id const *this,                         
 void list_unique_##id(List_##id *this)                                                   \
   __attribute__((nonnull (1)));                                                          \
 void list_remove_value_##id(List_##id *this, const t val)                                \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 ListEntry_##id *list_find_##id(List_##id *this, const t val)                             \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 void list_merge_##id(List_##id *this, List_##id *other)                                  \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull (1,2)));                                                        \
 void list_sort_##id(List_##id *this)                                                     \
   __attribute__((nonnull (1)));                                                          \
 

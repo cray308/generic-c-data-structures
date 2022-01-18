@@ -457,7 +457,7 @@ void string_shrink_to_fit(String *this)
  */
 unsigned string_find_first_of(String const *this, unsigned pos,
                               char const *chars, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,3)));
 
 
 /**
@@ -475,7 +475,7 @@ unsigned string_find_first_of(String const *this, unsigned pos,
  */
 unsigned string_find_last_of(String const *this, unsigned pos,
                              char const *chars, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,3)));
 
 
 /**
@@ -493,7 +493,7 @@ unsigned string_find_last_of(String const *this, unsigned pos,
  */
 unsigned string_find_first_not_of(String const *this, unsigned pos,
                                   char const *chars, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,3)));
 
 
 /**
@@ -511,7 +511,7 @@ unsigned string_find_first_not_of(String const *this, unsigned pos,
  */
 unsigned string_find_last_not_of(String const *this, unsigned pos,
                                  char const *chars, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,3)));
 
 
 /**
@@ -531,7 +531,7 @@ unsigned string_find_last_not_of(String const *this, unsigned pos,
  */
 unsigned string_find(String const *this, unsigned start_pos,
                      char const *needle, unsigned len)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,3)));
 
 
 /**
@@ -551,7 +551,7 @@ unsigned string_find(String const *this, unsigned start_pos,
  */
 unsigned string_rfind(String const *this, unsigned end_pos,
                       char const *needle, unsigned len)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,3)));
 
 
 /**
@@ -586,7 +586,7 @@ String *string_substr(String const *this, unsigned start,
  *                 string, or NULL if an error occurred.
  */
 String **string_split(String const *this, char const *delim)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull (1,2)));
 
 
 /**

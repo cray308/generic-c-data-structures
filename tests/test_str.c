@@ -378,7 +378,6 @@ void test_substr(void) {
 
 void test_find_first_of(void) {
     String *s = string_new_fromCStr("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz", 52);
-    assert(string_find_first_of(s, 0, NULL, 5) == STRING_ERROR);
     assert(string_find_first_of(s, 1, "", 5) == 1);
     assert(string_find_first_of(s, 1, "abc", 0) == 1);
     assert(string_find_first_of(s, 52, "abc", 3) == STRING_ERROR);
@@ -392,7 +391,6 @@ void test_find_first_of(void) {
 
 void test_find_last_of(void) {
     String *s = string_new_fromCStr("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz", 52);
-    assert(string_find_last_of(s, s->size - 1, NULL, 5) == STRING_ERROR);
     assert(string_find_last_of(s, 50, "", 5) == 50);
     assert(string_find_last_of(s, 50, "abc", 0) == 50);
     assert(string_find_last_of(s, s->size - 53, "abc", 3) == STRING_ERROR);
@@ -407,7 +405,6 @@ void test_find_last_of(void) {
 
 void test_find_first_not_of(void) {
     String *s = string_new_fromCStr("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz", 52);
-    assert(string_find_first_not_of(s, 0, NULL, 5) == STRING_ERROR);
     assert(string_find_first_not_of(s, 1, "", 5) == 1);
     assert(string_find_first_not_of(s, 1, "abc", 0) == 1);
     assert(string_find_first_not_of(s, 52, "abc", 3) == STRING_ERROR);
@@ -421,7 +418,6 @@ void test_find_first_not_of(void) {
 
 void test_find_last_not_of(void) {
     String *s = string_new_fromCStr("aabbccddeeffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz", 52);
-    assert(string_find_last_not_of(s, s->size - 1, NULL, 5) == STRING_ERROR);
     assert(string_find_last_not_of(s, 50, "", 5) == 50);
     assert(string_find_last_not_of(s, 50, "abc", 0) == 50);
     assert(string_find_last_not_of(s, s->size - 53, "abc", 3) == STRING_ERROR);
@@ -436,7 +432,6 @@ void test_find_last_not_of(void) {
 
 void test_find(void) {
     String *s = string_new_fromCStr("ABC ABCDAB ABCDABCDABDE", 23);
-    assert(string_find(s, 0, NULL, 5) == STRING_ERROR);
     assert(string_find(s, 1, "", 5) == 1);
     assert(string_find(s, 1, "x", 0) == 1);
     assert(string_find(s, 30, "abc", 3) == STRING_ERROR);
@@ -450,7 +445,6 @@ void test_find(void) {
 
 void test_rfind(void) {
     String *s = string_new_fromCStr("ABC ABCDAB ABCDABCDABDE", 23);
-    assert(string_rfind(s, s->size - 1, NULL, 5) == STRING_ERROR);
     assert(string_rfind(s, 21, "", 5) == 21);
     assert(string_rfind(s, 21, "x", 0) == 21);
     assert(string_rfind(s, s->size - 30, "abc", 3) == STRING_ERROR);
@@ -469,7 +463,6 @@ void test_split(void) {
     const char *cmp1[] = {"this has several words"," definitely more than eight words"};
     const char *cmp2[] = {"this","has","several","words,","definitely","more","than","eight","words"};
     String **split, **it, *s = string_new();
-    assert(string_split(s, NULL) == NULL);
     assert(string_split(s, "") == NULL);
     assert(string_split(s, ":") == NULL);
     string_append(s, "this has several words, definitely more than eight words", 56);

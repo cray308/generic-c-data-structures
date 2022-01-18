@@ -156,7 +156,7 @@ void string_shrink_to_fit(String *this) {
 unsigned string_find_first_of(String const *this, unsigned pos,
                               char const *chars, unsigned n) {
     char const *c, *end;
-    if (pos >= this->size || !chars) return STRING_ERROR;
+    if (pos >= this->size) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
 
     end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
@@ -177,7 +177,7 @@ unsigned string_find_first_of(String const *this, unsigned pos,
 unsigned string_find_last_of(String const *this, unsigned pos,
                              char const *chars, unsigned n) {
     char const *c, *end;
-    if (pos >= this->size || !chars) return STRING_ERROR;
+    if (pos >= this->size) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
 
     end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
@@ -198,7 +198,7 @@ unsigned string_find_last_of(String const *this, unsigned pos,
 unsigned string_find_first_not_of(String const *this, unsigned pos,
                                   char const *chars, unsigned n) {
     char const *c, *end;
-    if (pos >= this->size || !chars) return STRING_ERROR;
+    if (pos >= this->size) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
 
     end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
@@ -221,7 +221,7 @@ unsigned string_find_first_not_of(String const *this, unsigned pos,
 unsigned string_find_last_not_of(String const *this, unsigned pos,
                                  char const *chars, unsigned n) {
     char const *c, *end;
-    if (pos >= this->size || !chars) return STRING_ERROR;
+    if (pos >= this->size) return STRING_ERROR;
     else if (!(*chars && n)) return pos;
 
     end = (n == DS_ARG_NOT_APPLICABLE) ? &chars[strlen(chars)] : &chars[n];
@@ -247,7 +247,7 @@ unsigned string_find(String const *this, unsigned start_pos,
     unsigned res = STRING_NPOS, i = 0, j = 0;
     unsigned *table;
     char *haystack;
-    if (start_pos >= this->size || !needle) return STRING_ERROR;
+    if (start_pos >= this->size) return STRING_ERROR;
     else if (!(*needle && len)) return start_pos;
 
     if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(needle);
@@ -282,7 +282,7 @@ unsigned string_rfind(String const *this, unsigned end_pos,
     unsigned res = STRING_NPOS, i, j, minIndex;
     unsigned *table;
     char *haystack = this->s;
-    if (end_pos >= this->size || !needle) return STRING_ERROR;
+    if (end_pos >= this->size) return STRING_ERROR;
     else if (!(*needle && len)) return end_pos;
 
     if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(needle);
@@ -366,7 +366,7 @@ String **string_split(String const *this, char const *delim) {
     String **arr = NULL;
     String *substring = NULL;
 
-    if (!(delim && *delim && iEnd) || !(len = (unsigned) strlen(delim)) ||
+    if (!(*delim && iEnd) || !(len = (unsigned) strlen(delim)) ||
             !(positions = calloc(arrLen, sizeof(unsigned)))) return NULL;
     else if (!(table = str_gen_prefix_table(delim, len))) {
         free(positions);

@@ -86,7 +86,7 @@ void ds_sort_heap_##id(t* first, t* last)                                       
 void ds_sort_##id(t* arr, unsigned n)                                                    \
   __attribute__((nonnull (1)));                                                          \
 t* ds_binary_search_##id(t* arr, int l, int r, const t val)                              \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 void ds_push_heap_##id(t* first, t const *last)                                          \
   __attribute__((nonnull (1,2)));                                                        \
 void ds_pop_heap_##id(t* first, t* last)                                                 \

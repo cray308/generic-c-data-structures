@@ -29,7 +29,7 @@ long __avlEntry_distance_##id(EntryType const *p1, EntryType const *p2);        
                                                                                          \
 EntryType *__avltree_find_key_##id(TreeType const *this,                                 \
                                    kt const key, unsigned char candidate)                \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 EntryType *__avltree_insert_##id(TreeType *this,                                         \
                                  DataType const data, int *inserted)                     \
   __attribute__((nonnull (1)));                                                          \
