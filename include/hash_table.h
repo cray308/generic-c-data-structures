@@ -46,8 +46,7 @@ DataType *__htable_insert_##id(TableType *this,                                 
 unsigned char __htable_insert_fromArray_##id(TableType *this,                            \
                                              DataType const *arr, unsigned n)            \
   __attribute__((nonnull (1)));                                                          \
-TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n)                  \
-  __attribute__((nonnull (1)));                                                          \
+TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n);                 \
 TableType *__htable_createCopy_##id(TableType const *other)                              \
   __attribute__((nonnull (1)));                                                          \
 unsigned char __htable_erase_##id(TableType *this, kt const key)                         \
