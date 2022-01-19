@@ -22,7 +22,6 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 void compare_ints(Set_int *s, int *comparison, unsigned size) {
     unsigned i = 0;
     SetEntry_int *it;
-    assert(s);
     assert(set_size(s) == size);
     if (size) {
         assert(!set_empty(s));
@@ -43,7 +42,6 @@ void compare_ints(Set_int *s, int *comparison, unsigned size) {
 void compare_strs(Set_str *s, char **comparison, unsigned size) {
     unsigned i = 0;
     SetEntry_str *it;
-    assert(s);
     assert(set_size(s) == size);
     if (size) {
         assert(!set_empty(s));
@@ -101,14 +99,12 @@ void test_createCopy(void) {
     Set_int *b = set_new_fromArray(int, NULL, 0), *si;
     Set_str *c, *ss;
 
-    assert(b);
     si = set_createCopy(int, b);
     compare_ints(si, ints, 0);
     set_free(int, si);
     set_free(int, b);
     b = set_new_fromArray(int, ints_rand, 50);
     c = set_new_fromArray(str, strs_rand, 50);
-    assert(b && c);
     si = set_createCopy(int, b);
     ss = set_createCopy(str, c);
     set_free(int, b);
@@ -125,7 +121,6 @@ void test_insert_element(void) {
     int a1[] = {50,40,30,20,10}, c1[] = {10,20,30,40,50}, i, inserted = -1;
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"010","020","030","040","050"};
 
-    assert(si && ss);
     for (i = 0; i < 5; ++i) {
         set_insert_withResult(int, si, a1[i], &inserted);
         assert(inserted);
@@ -166,7 +161,6 @@ void test_insert_fromArray(void) {
     Set_int *si = set_new(int);
     Set_str *ss = set_new(str);
 
-    assert(si && ss);
     set_insert_fromArray(int, si, NULL, 5);
     set_insert_fromArray(int, si, ints, 0);
     compare_ints(si, c1, 0);
@@ -279,7 +273,6 @@ void test_find(void) {
     Set_int *si = set_new(int);
     Set_str *ss = set_new_fromArray(str, a2, 10);
 
-    assert(si && ss);
     assert(!set_contains(int, si, 0));
     set_insert_fromArray(int, si, a1, 10);
     assert(!set_contains(int, si, 9));

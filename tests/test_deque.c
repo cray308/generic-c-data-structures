@@ -36,7 +36,6 @@ static void compare_str_vals(Deque_str *qs, char *first, char *last) {
 void test_empty(void) {
     Deque_int *qi = deque_new(int);
     Deque_str *qs = deque_new(str);
-    assert(qi && qs);
     assert(deque_empty(qi));
     assert(deque_empty(qs));
     assert(deque_size(qi) == 0);
@@ -55,7 +54,6 @@ void test_push_pop_front(void) {
     unsigned count = 1;
     int i;
 
-    assert(qi && qs);
     for (i = LEN - 1; i >= 0; --i) {
         deque_push_front(int, qi, i);
         deque_push_front(str, qs, strs[i]);
@@ -98,7 +96,6 @@ void test_push_pop_back(void) {
     Deque_str *qs = deque_new(str);
     int i;
 
-    assert(qi && qs);
     for (i = 0; i < LEN; ++i) {
         deque_push_back(int, qi, i);
         deque_push_back(str, qs, strs[i]);
@@ -142,7 +139,6 @@ void test_push_front_pop_back(void) {
     int i;
     unsigned count = 1;
 
-    assert(qi && qs);
     for (i = LEN - 1; i >= 0; --i) {
         deque_push_front(int, qi, i);
         deque_push_front(str, qs, strs[i]);
@@ -185,7 +181,6 @@ void test_push_back_pop_front(void) {
     Deque_str *qs = deque_new(str);
     int i;
 
-    assert(qi && qs);
     for (i = 0; i < LEN; ++i) {
         deque_push_back(int, qi, i);
         deque_push_back(str, qs, strs[i]);
@@ -231,7 +226,6 @@ void test_mixed(void) {
     int i, *iptr;
     char **sptr;
 
-    assert(qi && qs);
     for (i = midFirst; i >= 0; --i) {
         deque_push_front(int, qi, i);
         deque_push_front(str, qs, strs[i]);

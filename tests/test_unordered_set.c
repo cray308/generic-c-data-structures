@@ -35,7 +35,6 @@ void compare_ints(USet_int *s, IntData *comparison, unsigned size) {
     unsigned i = 0;
     int *it;
     IntData data, *found;
-    assert(s);
     assert(uset_size(s) == size);
     if (size) {
         assert(!uset_empty(s));
@@ -64,7 +63,6 @@ void compare_strs(USet_str *s, StrData *comparison, unsigned size) {
     unsigned i = 0;
     char **it;
     StrData data, *found;
-    assert(s);
     assert(uset_size(s) == size);
     if (size) {
         assert(!uset_empty(s));
@@ -139,7 +137,6 @@ void test_createCopy(void) {
         c1[i].i = i;
         c2[i].s = strs[i];
     }
-    assert(b);
     si = uset_createCopy(int, b);
     compare_ints(si, c1, 0);
     uset_free(int, si);
@@ -164,7 +161,6 @@ void test_insert_element(void) {
     int a1[] = {50,40,30,20,10}, i, inserted = -1;
     char *a2[] = {"050","040","030","020","010"};
 
-    assert(si && ss);
     for (i = 0; i < 5; ++i) {
         uset_insert_withResult(int, si, a1[i], &inserted);
         assert(inserted);
@@ -207,7 +203,6 @@ void test_insert_fromArray(void) {
     USet_int *si = uset_new(int);
     USet_str *ss = uset_new(str);
 
-    assert(si && ss);
     uset_insert_fromArray(int, si, NULL, 5);
     uset_insert_fromArray(int, si, ints, 0);
     compare_ints(si, c1, 0);
@@ -226,8 +221,6 @@ void test_remove_value(void) {
     StrData c2[] = {{"020",0},{"030",0}};
     USet_int *si = uset_new_fromArray(int, a1, 5);
     USet_str *ss = uset_new_fromArray(str, a2, 5);
-
-    assert(si && ss);
     for (i = 0; i < 8; ++i) {
         uset_remove(int, si, removedInts[i]);
         uset_remove(str, ss, removedStrs[i]);
@@ -244,7 +237,6 @@ void test_find(void) {
     USet_int *si = uset_new(int);
     USet_str *ss = uset_new_fromArray(str, a2, 10);
 
-    assert(si && ss);
     assert(!uset_contains(int, si, 0));
     uset_insert_fromArray(int, si, a1, 10);
     assert(!uset_contains(int, si, 9));
@@ -280,8 +272,6 @@ void test_set_load_factor(void) {
         c1[i].i = i;
         c2[i].s = strs[i];
     }
-
-    assert(si && ss);
     assert(uset_max_load_factor(si) == 75);
     assert(uset_max_load_factor(ss) == 75);
     uset_set_load_factor(int, si, 24);
@@ -323,8 +313,6 @@ void test_rehash(void) {
         c1[i].i = i;
         c2[i].s = strs[i];
     }
-
-    assert(si && ss);
     assert(uset_bucket_count(si) == 32);
     assert(uset_bucket_count(ss) == 32);
     uset_rehash(int, si, 16);

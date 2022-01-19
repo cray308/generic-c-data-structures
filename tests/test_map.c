@@ -30,7 +30,6 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
     unsigned i = 0;                                                                                          \
     int *at;                                                                                                 \
     MapEntry_##id *it;                                                                                       \
-    assert(m);                                                                                               \
     assert(map_size(m) == size);                                                                             \
     if (size) {                                                                                              \
         assert(!map_empty(m));                                                                               \
@@ -57,7 +56,6 @@ void compare_int_str(Map_int_str *m, int *keys, char **values, unsigned size) {
     unsigned i = 0;
     char **at;
     MapEntry_int_str *it;
-    assert(m);
     assert(map_size(m) == size);
     if (size) {
         assert(!map_empty(m));
@@ -162,7 +160,6 @@ void test_createCopy(void) {
         arrStr2[i].first = strs_rand[i];
         arrStr2[i].second = ints_rand[i];
     }
-    assert(b);
     m1 = map_createCopy(int_str, b);
     compare_int_str(m1, ints, strs, 0);
     map_free(int_str, m1);
@@ -194,7 +191,6 @@ void test_insert_element(void) {
     int a1[] = {50,40,30,20,10}, c1[] = {10,20,30,40,50}, c3[] = {100,20,30,400,500}, i, inserted = -1;
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"010","020","030","040","050"}, *c4[] = {"100","020","030","400","500"};
 
-    assert(m1 && m2 && m3);
     for (i = 0; i < 5; ++i) {
         x.first = a1[i];
         x.second = a2[i];
@@ -278,7 +274,6 @@ void test_insert_fromArray(void) {
     Map_strv_int *m2 = map_new(strv_int);
     Map_strp_int *m3 = map_new(strp_int);
 
-    assert(m1 && m2 && m3);
     map_insert_fromArray(int_str, m1, NULL, 5);
     map_insert_fromArray(int_str, m1, arrInt, 0);
     compare_int_str(m1, k1, v1, 0);

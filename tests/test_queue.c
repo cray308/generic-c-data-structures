@@ -33,7 +33,6 @@ int main(void) {
     Queue_int *qi = queue_new(int);
     Queue_str *qs = queue_new(str);
 
-    assert(qi && qs);
     assert(queue_empty(qi));
     assert(queue_empty(qs));
     assert(queue_size(qi) == 0);

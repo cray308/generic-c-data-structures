@@ -27,7 +27,6 @@ int main(void) {
     Stack_str *ss = stack_new(str);
     int i;
 
-    assert(si && ss);
     assert(stack_empty(si));
     assert(stack_empty(ss));
     assert(stack_size(si) == 0);

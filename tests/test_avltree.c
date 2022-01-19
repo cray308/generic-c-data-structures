@@ -24,7 +24,6 @@ __setup_avltree_source(str, char *, AVLTree_str, char *, AVLNode_str, ds_cmp_str
 
 void test_increasing_ints(void) {
     AVLTree_int *t = tree_new(int);
-    assert(t);
     assert(t->size == 0);
     assert(t->root == NULL);
 
@@ -178,7 +177,6 @@ void test_increasing_ints(void) {
 
 void test_decreasing_ints(void) {
     AVLTree_int *t = tree_new(int);
-    assert(t);
     assert(t->size == 0);
     assert(t->root == NULL);
 
@@ -442,8 +440,6 @@ void test_iter(void) {
     AVLTree_int *t = tree_new(int);
     AVLNode_int *it;
     int i;
-
-    assert(t);
     for (i = 0; i <= 20; ++i) {
         int x = 0;
         tree_insert(int, t, i);
@@ -517,8 +513,6 @@ void test_strings(void) {
     AVLTree_str *t = tree_new(str);
     AVLNode_str *it;
     int i;
-
-    assert(t);
     for (i = 0; i <= 20; ++i) {
         int x = 20 - i;
         tree_insert(str, t, sortedStrs[20 - i]);
@@ -595,7 +589,6 @@ void test_erase(void) {
     char *comparison[] = {"000", "001", "598", "599"};
     AVLNode_str *first, *last;
     AVLTree_str *t = tree_new(str);
-    assert(t);
 
     for (i = 0; i < 600; ++i) {
         sprintf(strs[i], "%03d", i);

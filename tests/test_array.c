@@ -16,10 +16,12 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "150","155","160","165","170","175","180","185","190","195","200","205","210","215","220","225","230",
 "235","240","245"};
 
+static void compare_ints(Array_int *a, int *comparison, unsigned size) __attribute__((nonnull (1)));
+static void compare_strs(Array_str *a, char **comparison, unsigned size) __attribute__((nonnull (1)));
+
 void compare_ints(Array_int *a, int *comparison, unsigned size) {
     unsigned i = 0, j = size;
     int *it, *ref;
-    assert(a);
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
@@ -48,7 +50,6 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
 void compare_strs(Array_str *a, char **comparison, unsigned size) {
     unsigned i = 0, j = size;
     char **it, **ref;
-    assert(a);
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
