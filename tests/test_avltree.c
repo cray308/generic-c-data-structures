@@ -1,5 +1,5 @@
-#include <assert.h>
 #include "avltree.h"
+#include <assert.h>
 #include <stdio.h>
 
 #define __tree_entry_get_key(e) ((e)->data)
@@ -24,6 +24,7 @@ __setup_avltree_source(str, char *, AVLTree_str, char *, AVLNode_str, ds_cmp_str
 
 void test_increasing_ints(void) {
     AVLTree_int *t = tree_new(int);
+    assert(t);
     assert(t->size == 0);
     assert(t->root == NULL);
 
@@ -177,6 +178,7 @@ void test_increasing_ints(void) {
 
 void test_decreasing_ints(void) {
     AVLTree_int *t = tree_new(int);
+    assert(t);
     assert(t->size == 0);
     assert(t->root == NULL);
 
@@ -440,6 +442,8 @@ void test_iter(void) {
     AVLTree_int *t = tree_new(int);
     AVLNode_int *it;
     int i;
+
+    assert(t);
     for (i = 0; i <= 20; ++i) {
         int x = 0;
         tree_insert(int, t, i);

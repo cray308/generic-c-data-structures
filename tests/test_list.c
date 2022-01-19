@@ -1,6 +1,5 @@
 #include "list.h"
 #include <assert.h>
-#include <limits.h>
 
 gen_list_headers_withAlg(int, int)
 gen_list_headers_withAlg(str, char *)

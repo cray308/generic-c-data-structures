@@ -1,6 +1,5 @@
 #include "str.h"
 #include <assert.h>
-#include <limits.h>
 
 #define LEN 78
 const char *testStr = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";

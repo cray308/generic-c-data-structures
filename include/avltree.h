@@ -311,6 +311,7 @@ void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                
                                                                                          \
     if (v->left && v->right) {                                                           \
         EntryType *temp = __avl_inorder_successor_##id(v);                               \
+        customAssert(temp)                                                               \
         deleteData = 0;                                                                  \
         deleteKey(entry_get_key(v));                                                     \
         deleteValue(v->data.second);                                                     \

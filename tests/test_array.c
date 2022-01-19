@@ -1,6 +1,5 @@
 #include "array.h"
 #include <assert.h>
-#include <limits.h>
 
 #define customStrCopy(dest, src) do { if (src) { dest = malloc(strlen(src) + 1); strcpy(dest, src); } } while(0)
 #define customStrDelete(x) do { if (x) free(x); } while(0)

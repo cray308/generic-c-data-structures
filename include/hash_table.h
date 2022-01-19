@@ -63,6 +63,20 @@ unsigned char __htable_set_load_factor_##id(TableType *this, unsigned lf)       
                                   addrOfKey, sizeOfKey, copyKey, deleteKey,              \
                                   copyValue, deleteValue)                                \
                                                                                          \
+static unsigned char __htable_insert_entry_##id(struct EntryType **dest,                 \
+                                                DataType const src)                      \
+  __attribute__((nonnull));                                                              \
+                                                                                         \
+unsigned char __htable_insert_entry_##id(struct EntryType **dest, DataType const src) {  \
+    struct EntryType *new = calloc(1, sizeof(struct EntryType));                         \
+    if (!new) return 0;                                                                  \
+    copyKey(entry_get_key(new), data_get_key(src));                                      \
+    copyValue(new->data.second, src.second);                                             \
+    new->next = *dest;                                                                   \
+    *dest = new;                                                                         \
+    return 1;                                                                            \
+}                                                                                        \
+                                                                                         \
 DataType* __htable_iter_begin_##id(TableType *this) {                                    \
     if (!this->size) {                                                                   \
         this->it.curr = NULL;                                                            \
@@ -143,11 +157,7 @@ DataType *__htable_insert_##id(TableType *this,                                 
         copyValue(e->data.second, data.second);                                          \
         if (inserted) *inserted = 0;                                                     \
     } else {                                                                             \
-        if (!(e = calloc(1, sizeof(struct EntryType)))) return NULL;                     \
-        copyKey(entry_get_key(e), data_get_key(data));                                   \
-        copyValue(e->data.second, data.second);                                          \
-        e->next = this->buckets[index];                                                  \
-        this->buckets[index] = e;                                                        \
+        if (!__htable_insert_entry_##id(&this->buckets[index], data)) return NULL;       \
         this->size++;                                                                    \
         if (inserted) *inserted = 1;                                                     \
     }                                                                                    \
@@ -183,7 +193,7 @@ TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n) {       
                                                                                          \
 TableType *__htable_createCopy_##id(TableType const *other) {                            \
     unsigned i;                                                                          \
-    struct EntryType *e, *new;                                                           \
+    struct EntryType *e;                                                                 \
     TableType *ht = malloc(sizeof(TableType));                                           \
     if (!ht) return NULL;                                                                \
     else if (!(ht->buckets = calloc(other->cap, sizeof(struct EntryType *)))) {          \
@@ -197,16 +207,12 @@ TableType *__htable_createCopy_##id(TableType const *other) {                   
     ht->threshold = other->threshold;                                                    \
     for (i = 0; i < other->cap; ++i) {                                                   \
         for (e = other->buckets[i]; e; e = e->next) {                                    \
-            if (!(new = calloc(1, sizeof(struct EntryType)))) {                          \
+            if (!__htable_insert_entry_##id(&ht->buckets[i], e->data)) {                 \
                 __htable_clear_##id(ht);                                                 \
                 free(ht->buckets);                                                       \
                 free(ht);                                                                \
                 return NULL;                                                             \
             }                                                                            \
-            copyKey(entry_get_key(new), entry_get_key(e));                               \
-            copyValue(new->data.second, e->data.second);                                 \
-            new->next = ht->buckets[i];                                                  \
-            ht->buckets[i] = new;                                                        \
         }                                                                                \
     }                                                                                    \
     return ht;                                                                           \
