@@ -103,25 +103,7 @@ void ds_pop_heap_##id(t* first, t* last)                                        
  */
 #define gen_alg_source(id, t, cmp_lt)                                                    \
                                                                                          \
-static void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val)        \
-  __attribute__((nonnull (1,4)));                                                        \
-                                                                                         \
-static void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t const *value)    \
-  __attribute__((nonnull (1,4)));                                                        \
-                                                                                         \
-static void __ds_pop_heap_##id(t *first, t const *last, t *result)                       \
-  __attribute__((nonnull (1,2,3)));                                                      \
-                                                                                         \
-static void __ds_introsort_##id(t *first, t *last, unsigned depth_limit)                 \
-  __attribute__((nonnull (1,2)));                                                        \
-                                                                                         \
-static void __ds_unguarded_linear_insert_##id(t *last)                                   \
-  __attribute__((nonnull (1)));                                                          \
-                                                                                         \
-static void __ds_insertion_sort_##id(t *first, t const *last)                            \
-  __attribute__((nonnull (1,2)));                                                        \
-                                                                                         \
-void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val) {             \
+static void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val) {      \
     unsigned parent = (i - 1) >> 1;                                                      \
     for (; i > top && cmp_lt(*(first + parent), *val);                                   \
             i = parent, parent = (i - 1) >> 1) {                                         \
@@ -130,7 +112,7 @@ void __ds_push_heap_##id(t *first, unsigned i, unsigned top, t const *val) {    
     *(first + i) = *val;                                                                 \
 }                                                                                        \
                                                                                          \
-void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t const *value) {         \
+static void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t const *value) {  \
     const unsigned top = i;                                                              \
     const unsigned half = (len - 1) >> 1;                                                \
     unsigned second = i;                                                                 \
@@ -150,7 +132,7 @@ void __ds_adjust_heap_##id(t *first, unsigned i, unsigned len, t const *value) {
     __ds_push_heap_##id(first, i, top, value);                                           \
 }                                                                                        \
                                                                                          \
-void __ds_pop_heap_##id(t *first, t const *last, t *result) {                            \
+static void __ds_pop_heap_##id(t *first, t const *last, t *result) {                     \
     t value = *result;                                                                   \
     *result = *first;                                                                    \
     __ds_adjust_heap_##id(first, 0, (unsigned) (last - first), &value);                  \
@@ -174,7 +156,7 @@ void ds_sort_heap_##id(t *first, t *last) {                                     
     }                                                                                    \
 }                                                                                        \
                                                                                          \
-void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {                      \
+static void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {               \
     register t _temp;                                                                    \
     t* cut; t* left; t* mid; t* right;                                                   \
     while ((last - first) > 16) {                                                        \
@@ -236,14 +218,14 @@ void __ds_introsort_##id(t *first, t *last, unsigned depth_limit) {             
  * insertion sort functions
  * -------------------------------------------------------------------------- */         \
                                                                                          \
-void __ds_unguarded_linear_insert_##id(t *last) {                                        \
+static void __ds_unguarded_linear_insert_##id(t *last) {                                 \
     t const val = *last;                                                                 \
     t *next = last - 1;                                                                  \
     for (; cmp_lt(val, *next); *last = *next, last = next--);                            \
     *last = val;                                                                         \
 }                                                                                        \
                                                                                          \
-void __ds_insertion_sort_##id(t *first, t const *last) {                                 \
+static void __ds_insertion_sort_##id(t *first, t const *last) {                          \
     t* const begin = first + 1;                                                          \
     t *i;                                                                                \
     if (first == last) return;                                                           \

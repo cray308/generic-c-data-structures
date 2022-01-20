@@ -1,5 +1,11 @@
 #include "hash.h"
 #include <stdint.h>
+#include <stdlib.h>
+#include <time.h>
+
+__attribute__((constructor)) static void hashInit(void) {
+    srand((unsigned) time(NULL));
+}
 
 unsigned murmurhash(const void *key, int len, unsigned seed) {
     const uint8_t *data = (const uint8_t *) key;

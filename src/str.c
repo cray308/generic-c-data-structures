@@ -97,8 +97,11 @@ unsigned char string_replace_repeatingChar(String *this, unsigned pos,
 
 String *string_new_fromCStr(char const *s, unsigned n) {
     String *t = malloc(sizeof(String));
+    customAssert(t)
     if (!t) return NULL;
-    else if (!(t->s = malloc(64))) {
+    t->s = malloc(64);
+    customAssert(t->s)
+    if (!t->s) {
         free(t);
         return NULL;
     }
@@ -446,7 +449,7 @@ cleanup:
 #include <stdarg.h>
 #include <stdio.h>
 
-char *str_read_format(unsigned *n, const char *format, va_list args) {
+static char *str_read_format(unsigned *n, const char *format, va_list args) {
     va_list localArgs;
     int _n, buf_size = 256;
     char *temp, *buf;

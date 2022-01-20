@@ -491,8 +491,11 @@ unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,          
                                                                                          \
 Array_##id *array_new_fromArray_##id(t const *arr, unsigned size) {                      \
     Array_##id *a = malloc(sizeof(Array_##id));                                          \
+    customAssert(a)                                                                      \
     if (!a) return NULL;                                                                 \
-    else if (!(a->arr = malloc(8 * sizeof(t)))) {                                        \
+    a->arr = malloc(8 * sizeof(t));                                                      \
+    customAssert(a->arr)                                                                 \
+    if (!a->arr) {                                                                       \
         free(a);                                                                         \
         return NULL;                                                                     \
     }                                                                                    \

@@ -54,12 +54,6 @@ void __avltree_erase_##id(TreeType *this,                                       
                                entry_get_key, data_get_key, copyKey, deleteKey,          \
                                copyValue, deleteValue)                                   \
                                                                                          \
-static EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x)                    \
-  __attribute__((nonnull (1,2)));                                                        \
-                                                                                         \
-static EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x)                   \
-  __attribute__((nonnull (1,2)));                                                        \
-                                                                                         \
 EntryType *__avl_successor_##id(EntryType *x) {                                          \
     if (x) {                                                                             \
         for (; x->left; x = x->left);                                                    \
@@ -114,7 +108,7 @@ long __avlEntry_distance_##id(EntryType const *p1, EntryType const *p2) {       
     return dist;                                                                         \
 }                                                                                        \
                                                                                          \
-EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                         \
+static EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                  \
     EntryType *nParent = x->right;                                                       \
     if (x == this->root) this->root = nParent;                                           \
     x->right = nParent->left;                                                            \
@@ -132,7 +126,7 @@ EntryType *__avl_leftRotate_##id(TreeType *this, EntryType *x) {                
     return nParent;                                                                      \
 }                                                                                        \
                                                                                          \
-EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {                        \
+static EntryType *__avl_rightRotate_##id(TreeType *this, EntryType *x) {                 \
     EntryType *nParent = x->left;                                                        \
     if (x == this->root) this->root = nParent;                                           \
     x->left = nParent->right;                                                            \
@@ -293,6 +287,7 @@ unsigned char __avltree_insert_fromTree_##id(TreeType *this,                    
                                                                                          \
 TreeType *__avltree_new_fromArray_##id(DataType const *arr, unsigned n) {                \
     TreeType *t = calloc(1, sizeof(TreeType));                                           \
+    customAssert(t)                                                                      \
     if (t) __avltree_insert_fromArray_##id(t, arr, n);                                   \
     return t;                                                                            \
 }                                                                                        \

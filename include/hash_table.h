@@ -3,7 +3,6 @@
 
 #include "ds.h"
 #include "hash.h"
-#include <time.h>
 
 #if UINT_MAX == 0xffffffff
 #define DS_HTABLE_MAX_SIZE 42949672
@@ -62,20 +61,6 @@ unsigned char __htable_set_load_factor_##id(TableType *this, unsigned lf)       
                                   EntryType, entry_get_key, data_get_key,                \
                                   addrOfKey, sizeOfKey, copyKey, deleteKey,              \
                                   copyValue, deleteValue)                                \
-                                                                                         \
-static unsigned char __htable_insert_entry_##id(struct EntryType **dest,                 \
-                                                DataType const src)                      \
-  __attribute__((nonnull));                                                              \
-                                                                                         \
-unsigned char __htable_insert_entry_##id(struct EntryType **dest, DataType const src) {  \
-    struct EntryType *new = calloc(1, sizeof(struct EntryType));                         \
-    if (!new) return 0;                                                                  \
-    copyKey(entry_get_key(new), data_get_key(src));                                      \
-    copyValue(new->data.second, src.second);                                             \
-    new->next = *dest;                                                                   \
-    *dest = new;                                                                         \
-    return 1;                                                                            \
-}                                                                                        \
                                                                                          \
 DataType* __htable_iter_begin_##id(TableType *this) {                                    \
     if (!this->size) {                                                                   \
@@ -157,7 +142,11 @@ DataType *__htable_insert_##id(TableType *this,                                 
         copyValue(e->data.second, data.second);                                          \
         if (inserted) *inserted = 0;                                                     \
     } else {                                                                             \
-        if (!__htable_insert_entry_##id(&this->buckets[index], data)) return NULL;       \
+        if (!(e = calloc(1, sizeof(struct EntryType)))) return NULL;                     \
+        copyKey(entry_get_key(e), data_get_key(data));                                   \
+        copyValue(e->data.second, data.second);                                          \
+        e->next = this->buckets[index];                                                  \
+        this->buckets[index] = e;                                                        \
         this->size++;                                                                    \
         if (inserted) *inserted = 1;                                                     \
     }                                                                                    \
@@ -177,12 +166,14 @@ unsigned char __htable_insert_fromArray_##id(TableType *this,                   
                                                                                          \
 TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n) {                \
     TableType *ht = calloc(1, sizeof(TableType));                                        \
+    customAssert(ht)                                                                     \
     if (!ht) return NULL;                                                                \
-    else if (!(ht->buckets = calloc(32, sizeof(struct EntryType *)))) {                  \
+    ht->buckets = calloc(32, sizeof(struct EntryType *));                                \
+    customAssert(ht->buckets)                                                            \
+    if (!ht->buckets) {                                                                  \
         free(ht);                                                                        \
         return NULL;                                                                     \
     }                                                                                    \
-    srand((unsigned) time(NULL));                                                        \
     ht->cap = 32;                                                                        \
     ht->lf = 75;                                                                         \
     ht->threshold = 24;                                                                  \
@@ -194,25 +185,10 @@ TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n) {       
 TableType *__htable_createCopy_##id(TableType const *other) {                            \
     unsigned i;                                                                          \
     struct EntryType *e;                                                                 \
-    TableType *ht = malloc(sizeof(TableType));                                           \
-    if (!ht) return NULL;                                                                \
-    else if (!(ht->buckets = calloc(other->cap, sizeof(struct EntryType *)))) {          \
-        free(ht);                                                                        \
-        return NULL;                                                                     \
-    }                                                                                    \
-    ht->size = other->size;                                                              \
-    ht->cap = other->cap;                                                                \
-    ht->seed = other->seed;                                                              \
-    ht->lf = other->lf;                                                                  \
-    ht->threshold = other->threshold;                                                    \
+    TableType *ht = __htable_new_fromArray_##id(NULL, 0);                                \
     for (i = 0; i < other->cap; ++i) {                                                   \
         for (e = other->buckets[i]; e; e = e->next) {                                    \
-            if (!__htable_insert_entry_##id(&ht->buckets[i], e->data)) {                 \
-                __htable_clear_##id(ht);                                                 \
-                free(ht->buckets);                                                       \
-                free(ht);                                                                \
-                return NULL;                                                             \
-            }                                                                            \
+            __htable_insert_##id(ht, e->data, NULL);                                     \
         }                                                                                \
     }                                                                                    \
     return ht;                                                                           \

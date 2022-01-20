@@ -159,11 +159,17 @@ unsigned char __dq_push_front_##id(TypeName *this, t const item)                
                                                                                          \
 TypeName *__dq_new_##id(void) {                                                          \
     TypeName *q = malloc(sizeof(TypeName));                                              \
+    customAssert(q)                                                                      \
     if (!q) return NULL;                                                                 \
-    else if (!(q->front.arr = malloc(8 * sizeof(t)))) {                                  \
+    q->front.arr = malloc(8 * sizeof(t));                                                \
+    customAssert(q->front.arr)                                                           \
+    if (!q->front.arr) {                                                                 \
         free(q);                                                                         \
         return NULL;                                                                     \
-    } else if (!(q->back.arr = malloc(8 * sizeof(t)))) {                                 \
+    }                                                                                    \
+    q->back.arr = malloc(8 * sizeof(t));                                                 \
+    customAssert(q->back.arr)                                                            \
+    if (!q->back.arr) {                                                                  \
         free(q->front.arr);                                                              \
         free(q);                                                                         \
         return NULL;                                                                     \

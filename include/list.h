@@ -638,6 +638,7 @@ ListEntry_##id *list_insert_fromList_##id(List_##id *this,                      
                                                                                          \
 List_##id *list_new_fromArray_##id(t const *arr, unsigned size) {                        \
     List_##id *l = calloc(1, sizeof(List_##id));                                         \
+    customAssert(l)                                                                      \
     if (l) list_insert_fromArray_##id(l, NULL, arr, size);                               \
     return l;                                                                            \
 }                                                                                        \
