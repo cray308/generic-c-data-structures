@@ -1,13 +1,14 @@
 OPTIMIZE = 2
 WERROR = -Werror
 
-CFLAGS = -std=c99 -Iinclude -O$(OPTIMIZE)
-CFLAGS += -Wall -Wextra $(WERROR) -Wpedantic -Wconversion -Wnonnull -Wstrict-prototypes
+CFLAGS = -std=c89 -Iinclude -O$(OPTIMIZE) \
+ -Wall -Wextra $(WERROR) -Wpedantic -Wconversion -Wnonnull -Wstrict-prototypes
 
-TEST_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue
-TEST_BINARIES += bin/c/test_array bin/c/test_str bin/c/test_list
-TEST_BINARIES += bin/c/test_avltree bin/c/test_set bin/c/test_map
-TEST_BINARIES += bin/c/test_unordered_set bin/c/test_unordered_map
+SCAN_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue \
+ bin/c/test_array bin/c/test_str bin/c/test_list \
+ bin/c/test_avltree bin/c/test_set bin/c/test_map
+
+TEST_BINARIES = $(SCAN_BINARIES) bin/c/test_unordered_set bin/c/test_unordered_map
 
 BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds
 
@@ -20,9 +21,9 @@ debug: CFLAGS += -g -DDEBUG
 debug: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 scan: OPTIMIZE = 2
-scan: WERROR = 
+scan: WERROR =
 scan: CFLAGS += -g -fanalyzer -DDEBUG
-scan: $(TEST_BINARIES)
+scan: $(SCAN_BINARIES)
 
 test: $(TEST_BINARIES)
 	@bash bin/run_tests.sh
