@@ -219,7 +219,9 @@ void test_remove_entry(void) {
     Set_str *ss = set_new_fromArray(str, a2, 5);
 
     set_remove_entry(int, si, NULL);
+    assert(si->root->left && si->root->right);
     set_remove_entry(int, si, si->root);
+    assert(ss->root->left && ss->root->right);
     set_remove_entry(str, ss, ss->root);
     set_remove_entry(int, si, set_iterator_begin(int, si));
     set_remove_entry(str, ss, set_iterator_begin(str, ss));

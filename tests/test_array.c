@@ -22,7 +22,10 @@ void compare_ints(Array_int *a, int *comparison, unsigned size) {
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
-        assert(*array_front(a) == comparison[0] && *array_back(a) == comparison[size-1]);
+        ref = array_front(a);
+        assert(ref && *ref == comparison[0]);
+        ref = array_back(a);
+        assert(ref && *ref == comparison[size-1]);
     } else {
         assert(array_empty(a));
     }
@@ -50,7 +53,10 @@ void compare_strs(Array_str *a, char **comparison, unsigned size) {
     assert(array_size(a) == size);
     if (size) {
         assert(!array_empty(a));
-        assert(streq(*array_front(a), comparison[0]) && streq(*array_back(a), comparison[size-1]));
+        ref = array_front(a);
+        assert(ref && *ref && streq(*ref, comparison[0]));
+        ref = array_back(a);
+        assert(ref && *ref && streq(*ref, comparison[size-1]));
     } else {
         assert(array_empty(a));
     }

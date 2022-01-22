@@ -23,6 +23,7 @@ __setup_avltree_source(int, int, AVLTree_int, int, AVLNode_int, ds_cmp_num_lt, _
 __setup_avltree_source(str, char *, AVLTree_str, char *, AVLNode_str, ds_cmp_str_lt, __tree_entry_get_key, __tree_data_get_key, DSDefault_deepCopyStr, DSDefault_deepDelete, __tree_copy_value, __tree_delete_value)
 
 void test_increasing_ints(void) {
+    AVLNode_int *node;
     AVLTree_int *t = tree_new(int);
     assert(t->size == 0);
     assert(t->root == NULL);
@@ -112,7 +113,9 @@ void test_increasing_ints(void) {
     assert(t->root->right->right);
     assert(t->root->right->right->data == 7);
 
-    tree_remove_value(int, t, 2); /* remove node 2 */
+    node = tree_find(int, t, 2);
+    assert(node->left && node->right);
+    tree_remove_entry(int, t, node); /* remove node 2 */
     assert(t->root != NULL);
     assert(t->size == 5);
     assert(t->root->data == 5);
@@ -331,6 +334,7 @@ void test_decreasing_ints(void) {
     assert(t->root->left);
     assert(t->root->left->data == 3);
 
+    assert(t->root->left->left && t->root->left->right);
     tree_remove_entry(int, t, t->root->left); /* remove node 3 */
     assert(t->root != NULL);
     assert(t->size == 8);

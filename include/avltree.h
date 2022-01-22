@@ -212,7 +212,9 @@ EntryType *__avltree_insert_##id(TreeType *this,                                
                     parent = __avl_rightRotate_##id(this, parent);                       \
                     parent->bf = parent->right->bf = 0;                                  \
                 } else {                                                                 \
-                    signed char old = parent->left->right->bf;                           \
+                    signed char old;                                                     \
+                    customAssert(parent->left->right)                                    \
+                    old = parent->left->right->bf;                                       \
                     __avl_leftRotate_##id(this, parent->left);                           \
                     parent = __avl_rightRotate_##id(this, parent);                       \
                     parent->bf = 0;                                                      \
@@ -238,7 +240,9 @@ EntryType *__avltree_insert_##id(TreeType *this,                                
                     parent = __avl_leftRotate_##id(this, parent);                        \
                     parent->bf = parent->left->bf = 0;                                   \
                 } else {                                                                 \
-                    signed char old = parent->right->left->bf;                           \
+                    signed char old;                                                     \
+                    customAssert(parent->right->left)                                    \
+                    old = parent->right->left->bf;                                       \
                     __avl_rightRotate_##id(this, parent->right);                         \
                     parent = __avl_leftRotate_##id(this, parent);                        \
                     parent->bf = 0;                                                      \

@@ -356,8 +356,11 @@ void test_remove_entry(void) {
     Map_strp_int *m3 = map_new_fromArray(strp_int, arrStr2, 5);
 
     map_remove_entry(int_str, m1, NULL);
+    assert(m1->root->left && m1->root->right);
     map_remove_entry(int_str, m1, m1->root);
+    assert(m2->root->left && m2->root->right);
     map_remove_entry(strv_int, m2, m2->root);
+    assert(m3->root->left && m3->root->right);
     map_remove_entry(strp_int, m3, m3->root);
     map_remove_entry(int_str, m1, map_iterator_begin(int_str, m1));
     map_remove_entry(strv_int, m2, map_iterator_begin(strv_int, m2));

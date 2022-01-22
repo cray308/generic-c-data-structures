@@ -2,7 +2,7 @@ OPTIMIZE = 2
 WERROR = -Werror
 
 CFLAGS = -std=c89 -Iinclude -O$(OPTIMIZE) \
- -Wall -Wextra $(WERROR) -Wpedantic -Wconversion -Wnonnull -Wstrict-prototypes
+ -Wall -Wextra $(WERROR) -Wpedantic -Wconversion -Wstrict-prototypes
 
 SCAN_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue \
  bin/c/test_array bin/c/test_str bin/c/test_list \
