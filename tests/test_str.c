@@ -176,7 +176,6 @@ void test_cstr(void) {
 
 void test_insert_cStr(void) {
     String *s = string_new();
-    string_insert(s, 0, NULL, 64);
     string_insert(s, 0, "", 64);
     string_insert(s, 0, testStr, 0);
     string_insert(s, s->size - 1, testStr, 64);
@@ -226,7 +225,6 @@ void test_insert_fromString(void) {
 
 void test_append_cStr(void) {
     String *s = string_new();
-    string_append(s, NULL, 64);
     string_append(s, "", 64);
     string_append(s, testStr, 0);
     compareStrs(s, testStr, 0);
@@ -268,7 +266,6 @@ void test_append_repeatingChar(void) {
 
 void test_replace_cStr(void) {
     String *s = string_new();
-    string_replace(s, 0, 0, NULL, 64);
     string_replace(s, 0, 0, "", 64);
     string_replace(s, 0, 0, testStr, 0);
     string_replace(s, s->size - 1, 0, testStr, 64);

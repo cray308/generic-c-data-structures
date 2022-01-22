@@ -134,26 +134,23 @@
                                                                                          \
 typedef struct {                                                                         \
     struct {                                                                             \
-        t *arr;                                                                          \
+        t* arr;                                                                          \
         unsigned size, cap, start;                                                       \
     } front;                                                                             \
     struct {                                                                             \
-        t *arr;                                                                          \
+        t* arr;                                                                          \
         unsigned size, cap, start;                                                       \
     } back;                                                                              \
 } TypeName;                                                                              \
                                                                                          \
 TypeName *__dq_new_##id(void);                                                           \
-void __dq_free_##id(TypeName *this)                                                      \
-  __attribute__((nonnull (1)));                                                          \
-void __dq_pop_front_##id(TypeName *this)                                                 \
-  __attribute__((nonnull (1)));                                                          \
+void __dq_free_##id(TypeName *this) __attribute__((nonnull));                            \
+void __dq_pop_front_##id(TypeName *this) __attribute__((nonnull));                       \
 unsigned char __dq_push_back_##id(TypeName *this, t const item)                          \
-  __attribute__((nonnull (1)));                                                          \
-void __dq_pop_back_##id(TypeName *this)                                                  \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
+void __dq_pop_back_##id(TypeName *this) __attribute__((nonnull));                        \
 unsigned char __dq_push_front_##id(TypeName *this, t const item)                         \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 
 #define __setup_deque_source(id, t, TypeName, copyValue, deleteValue)                    \
                                                                                          \
@@ -207,7 +204,7 @@ void __dq_pop_front_##id(TypeName *this) {                                      
             this->back.size -= this->back.start;                                         \
             this->back.start = 0;                                                        \
             if (half > 8 && this->back.size < half) {                                    \
-                t *tmp = realloc(this->back.arr, half * sizeof(t));                      \
+                t* tmp = realloc(this->back.arr, half * sizeof(t));                      \
                 if (!tmp) return;                                                        \
                 this->back.arr = tmp;                                                    \
                 this->back.cap = half;                                                   \
@@ -217,7 +214,7 @@ void __dq_pop_front_##id(TypeName *this) {                                      
 }                                                                                        \
                                                                                          \
 unsigned char __dq_push_back_##id(TypeName *this, t const item) {                        \
-    t *tmp;                                                                              \
+    t* tmp;                                                                              \
     unsigned cap = this->back.cap;                                                       \
     if (this->back.size == cap) {                                                        \
         if (cap == DS_DQ_MAX_SIZE) return 0;                                             \
@@ -247,7 +244,7 @@ void __dq_pop_back_##id(TypeName *this) {                                       
             this->front.size -= this->front.start;                                       \
             this->front.start = 0;                                                       \
             if (half > 8 && this->front.size < half) {                                   \
-                t *tmp = realloc(this->front.arr, half * sizeof(t));                     \
+                t* tmp = realloc(this->front.arr, half * sizeof(t));                     \
                 if (!tmp) return;                                                        \
                 this->front.arr = tmp;                                                   \
                 this->back.cap = half;                                                   \
@@ -257,7 +254,7 @@ void __dq_pop_back_##id(TypeName *this) {                                       
 }                                                                                        \
                                                                                          \
 unsigned char __dq_push_front_##id(TypeName *this, t const item) {                       \
-    t *tmp;                                                                              \
+    t* tmp;                                                                              \
     unsigned cap = this->front.cap;                                                      \
     if (this->front.size == cap) {                                                       \
         if (cap == DS_DQ_MAX_SIZE) return 0;                                             \

@@ -345,11 +345,12 @@ void test_decreasing_ints(void) {
     assert(t->root->left->left->data == 2);
     assert(t->root->left->left->left);
     assert(t->root->left->left->left->data == 1);
+#ifndef __clang_analyzer__
     assert(t->root->left->right);
     assert(t->root->left->right->data == 5);
     assert(t->root->left->right->right);
     assert(t->root->left->right->right->data == 6);
-
+#endif
     tree_remove_entry(int, t, t->root->right->right); /* remove node 10 */
     assert(t->root != NULL);
     assert(t->size == 7);

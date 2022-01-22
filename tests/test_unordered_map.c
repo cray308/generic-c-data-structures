@@ -303,7 +303,6 @@ void test_insert_fromArray(void) {
     UMap_strv_int *m2 = umap_new(strv_int);
     UMap_strp_int *m3 = umap_new(strp_int);
 
-    umap_insert_fromArray(int_str, m1, NULL, 5);
     umap_insert_fromArray(int_str, m1, arrInt, 0);
     compare_int_str(m1, c1, 0);
     umap_insert_fromArray(int_str, m1, arrInt, 7);

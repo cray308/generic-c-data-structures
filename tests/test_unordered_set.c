@@ -203,7 +203,6 @@ void test_insert_fromArray(void) {
     USet_int *si = uset_new(int);
     USet_str *ss = uset_new(str);
 
-    uset_insert_fromArray(int, si, NULL, 5);
     uset_insert_fromArray(int, si, ints, 0);
     compare_ints(si, c1, 0);
     uset_insert_fromArray(int, si, a1, 7);

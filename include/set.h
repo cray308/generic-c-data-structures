@@ -360,18 +360,18 @@
 __setup_avltree_headers(id, t, Set_##id, t, SetEntry_##id)                               \
                                                                                          \
 Set_##id *set_union_##id(Set_##id const *this, Set_##id const *other)                    \
-  __attribute__((nonnull (1,2)));                                                        \
+  __attribute__((nonnull));                                                              \
 Set_##id *set_intersection_##id(Set_##id const *this, Set_##id const *other)             \
-  __attribute__((nonnull (1,2)));                                                        \
+  __attribute__((nonnull));                                                              \
 Set_##id *set_difference_##id(Set_##id const *this, Set_##id const *other)               \
-  __attribute__((nonnull (1,2)));                                                        \
+  __attribute__((nonnull));                                                              \
 Set_##id *set_symmetric_difference_##id(Set_##id const *this,                            \
                                         Set_##id const *other)                           \
-  __attribute__((nonnull (1,2)));                                                        \
+  __attribute__((nonnull));                                                              \
 unsigned char set_includes_##id(Set_##id const *this, Set_##id const *other)             \
-  __attribute__((nonnull (1,2)));                                                        \
+  __attribute__((nonnull));                                                              \
 unsigned char set_disjoint_##id(Set_##id const *this, Set_##id const *other)             \
-  __attribute__((nonnull (1,2)));                                                        \
+  __attribute__((nonnull));                                                              \
 
 
 /**

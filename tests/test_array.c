@@ -291,7 +291,6 @@ void test_insert_fromArray(void) {
     char *c2[] = {"000","000","005","005","010","015","015"};
     Array_int *ai = array_new(int);
     Array_str *as = array_new(str);
-    assert(array_insert_fromArray(int, ai, 0, NULL, 2) == ARRAY_ERROR);
     assert(array_insert_fromArray(int, ai, 0, ints, 0) == ARRAY_ERROR);
     assert(array_insert_fromArray(int, ai, ai->size - 1, ints, 1) == ARRAY_ERROR);
     assert(array_insert_fromArray(int, ai, array_size(ai), arr1[0], 1) == 0);

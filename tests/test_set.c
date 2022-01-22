@@ -161,7 +161,6 @@ void test_insert_fromArray(void) {
     Set_int *si = set_new(int);
     Set_str *ss = set_new(str);
 
-    set_insert_fromArray(int, si, NULL, 5);
     set_insert_fromArray(int, si, ints, 0);
     compare_ints(si, c1, 0);
     set_insert_fromArray(int, si, a1, 7);

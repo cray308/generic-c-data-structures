@@ -39,7 +39,7 @@ unsigned char string_reserve(String *this, unsigned n) {
 unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace,
                              char const *s, unsigned len) {
     unsigned end, n = this->size - pos;
-    if (!(s && *s && len) || pos > this->size) return 1;
+    if (!(*s && len) || pos > this->size) return 1;
 
     if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(s);
     if (nToReplace != DS_ARG_NOT_APPLICABLE) n = min(n, nToReplace);
@@ -108,7 +108,7 @@ String *string_new_fromCStr(char const *s, unsigned n) {
     t->size = 0;
     t->cap = 64;
     t->s[0] = 0;
-    string_append(t, s, n);
+    if (s) string_append(t, s, n);
     return t;
 }
 

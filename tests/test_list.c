@@ -305,7 +305,6 @@ void test_insert_fromArray(void) {
     List_int *li = list_new(int);
     List_str *ls = list_new(str);
 
-    assert(list_insert_fromArray(int, li, NULL, NULL, 2) == NULL);
     assert(list_insert_fromArray(int, li, NULL, ints, 0) == NULL);
     assert(list_insert_fromArray(int, li, NULL, arr1[0], 1)->data == 10);
     assert(streq(list_insert_fromArray(str, ls, NULL, arr2[0], 1)->data, "010"));

@@ -32,30 +32,28 @@ typedef struct {                                                                
     struct EntryType **buckets;                                                          \
 } TableType;                                                                             \
                                                                                          \
-DataType* __htable_iter_begin_##id(TableType *this)                                      \
-__attribute__((nonnull (1)));                                                            \
-DataType* __htable_iter_next_##id(TableType *this)                                       \
-  __attribute__((nonnull (1)));                                                          \
+DataType* __htable_iter_begin_##id(TableType *this) __attribute__((nonnull));            \
+DataType* __htable_iter_next_##id(TableType *this) __attribute__((nonnull));             \
                                                                                          \
 unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets)                   \
-  __attribute__((nonnull (1)));                                                          \
-DataType *__htable_insert_##id(TableType *this,                                          \
+  __attribute__((nonnull));                                                              \
+DataType* __htable_insert_##id(TableType *this,                                          \
                                DataType const data, int *inserted)                       \
   __attribute__((nonnull (1)));                                                          \
 unsigned char __htable_insert_fromArray_##id(TableType *this,                            \
                                              DataType const *arr, unsigned n)            \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n);                 \
 TableType *__htable_createCopy_##id(TableType const *other)                              \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 unsigned char __htable_erase_##id(TableType *this, kt const key)                         \
   __attribute__((nonnull));                                                              \
 void __htable_clear_##id(TableType *this)                                                \
-  __attribute__((nonnull (1)));                                                          \
-DataType *__htable_find_##id(TableType const *this, kt const key)                        \
+  __attribute__((nonnull));                                                              \
+DataType* __htable_find_##id(TableType const *this, kt const key)                        \
   __attribute__((nonnull));                                                              \
 unsigned char __htable_set_load_factor_##id(TableType *this, unsigned lf)                \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 
 #define __setup_hash_table_source(id, kt, cmp_eq, TableType, DataType,                   \
                                   EntryType, entry_get_key, data_get_key,                \
@@ -120,7 +118,7 @@ unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {        
     return 1;                                                                            \
 }                                                                                        \
                                                                                          \
-DataType *__htable_insert_##id(TableType *this,                                          \
+DataType* __htable_insert_##id(TableType *this,                                          \
                                DataType const data, int *inserted) {                     \
     unsigned index;                                                                      \
     struct EntryType *e;                                                                 \
@@ -156,10 +154,8 @@ DataType *__htable_insert_##id(TableType *this,                                 
 unsigned char __htable_insert_fromArray_##id(TableType *this,                            \
                                              DataType const *arr, unsigned n) {          \
     unsigned i;                                                                          \
-    if (arr) {                                                                           \
-        for (i = 0; i < n; ++i) {                                                        \
-            if (!__htable_insert_##id(this, arr[i], NULL)) return 0;                     \
-        }                                                                                \
+    for (i = 0; i < n; ++i) {                                                            \
+        if (!__htable_insert_##id(this, arr[i], NULL)) return 0;                         \
     }                                                                                    \
     return 1;                                                                            \
 }                                                                                        \
@@ -178,7 +174,7 @@ TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n) {       
     ht->lf = 75;                                                                         \
     ht->threshold = 24;                                                                  \
     ht->seed = ((unsigned) rand()) % UINT_MAX;                                           \
-    __htable_insert_fromArray_##id(ht, arr, n);                                          \
+    if (arr) __htable_insert_fromArray_##id(ht, arr, n);                                 \
     return ht;                                                                           \
 }                                                                                        \
                                                                                          \
@@ -186,9 +182,11 @@ TableType *__htable_createCopy_##id(TableType const *other) {                   
     unsigned i;                                                                          \
     struct EntryType *e;                                                                 \
     TableType *ht = __htable_new_fromArray_##id(NULL, 0);                                \
-    for (i = 0; i < other->cap; ++i) {                                                   \
-        for (e = other->buckets[i]; e; e = e->next) {                                    \
-            __htable_insert_##id(ht, e->data, NULL);                                     \
+    if (ht) {                                                                            \
+        for (i = 0; i < other->cap; ++i) {                                               \
+            for (e = other->buckets[i]; e; e = e->next) {                                \
+                __htable_insert_##id(ht, e->data, NULL);                                 \
+            }                                                                            \
         }                                                                                \
     }                                                                                    \
     return ht;                                                                           \
@@ -239,7 +237,7 @@ void __htable_clear_##id(TableType *this) {                                     
     this->size = 0;                                                                      \
 }                                                                                        \
                                                                                          \
-DataType *__htable_find_##id(TableType const *this, kt const key) {                      \
+DataType* __htable_find_##id(TableType const *this, kt const key) {                      \
     unsigned index = murmurhash(addrOfKey(key), (int) sizeOfKey(key),                    \
                                 this->seed) % this->cap;                                 \
     struct EntryType *e;                                                                 \

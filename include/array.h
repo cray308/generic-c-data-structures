@@ -350,13 +350,13 @@
 typedef struct {                                                                         \
     unsigned size;                                                                       \
     unsigned capacity;                                                                   \
-    t *arr;                                                                              \
+    t* arr;                                                                              \
 } Array_##id;                                                                            \
                                                                                          \
 unsigned char array_reserve_##id(Array_##id *this, unsigned n)                           \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem)              \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
                                           unsigned n, t const value)                     \
   __attribute__((nonnull (1)));                                                          \
@@ -365,15 +365,14 @@ unsigned char array_resize_usingValue_##id(Array_##id *this,                    
   __attribute__((nonnull (1)));                                                          \
 unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                   \
                                      t const *arr, unsigned n)                           \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 Array_##id *array_new_fromArray_##id(t const *arr, unsigned size);                       \
 Array_##id *array_new_repeatingValue_##id(unsigned n, t const value)                     \
   __attribute__((nonnull));                                                              \
-void array_shrink_to_fit_##id(Array_##id *this)                                          \
-  __attribute__((nonnull (1)));                                                          \
+void array_shrink_to_fit_##id(Array_##id *this) __attribute__((nonnull));                \
 Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \
                               unsigned n, int step_size)                                 \
-  __attribute__((nonnull (1)));                                                          \
+  __attribute__((nonnull));                                                              \
 
 
 /**
@@ -399,7 +398,7 @@ Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                 
                                                                                          \
 unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                         \
     unsigned ncap = this->capacity;                                                      \
-    t *tmp;                                                                              \
+    t* tmp;                                                                              \
     if (n <= ncap) return 1;                                                             \
     else if (ncap == DS_ARRAY_MAX_SIZE) return 0;                                        \
                                                                                          \
@@ -472,7 +471,7 @@ unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,          
                                      t const *arr, unsigned n) {                         \
     t* i; t* end;                                                                        \
     unsigned res = this->size;                                                           \
-    if (!(arr && n) || index > res || !array_reserve_##id(this, res + n))                \
+    if (!n || index > res || !array_reserve_##id(this, res + n))                         \
         return ARRAY_ERROR;                                                              \
                                                                                          \
     if (index != res) { /* insert in the middle of a */                                  \
@@ -501,7 +500,7 @@ Array_##id *array_new_fromArray_##id(t const *arr, unsigned size) {             
     }                                                                                    \
     a->size = 0;                                                                         \
     a->capacity = 8;                                                                     \
-    array_insert_fromArray_##id(a, 0, arr, size);                                        \
+    if (arr) array_insert_fromArray_##id(a, 0, arr, size);                               \
     return a;                                                                            \
 }                                                                                        \
                                                                                          \
@@ -512,7 +511,7 @@ Array_##id *array_new_repeatingValue_##id(unsigned n, t const value) {          
 }                                                                                        \
                                                                                          \
 void array_shrink_to_fit_##id(Array_##id *this) {                                        \
-    t *tmp;                                                                              \
+    t* tmp;                                                                              \
     if (this->capacity == 8 || this->size == this->capacity || !this->size ||            \
             !(tmp = realloc(this->arr, this->size * sizeof(t)))) return;                 \
     this->capacity = this->size;                                                         \

@@ -274,7 +274,6 @@ void test_insert_fromArray(void) {
     Map_strv_int *m2 = map_new(strv_int);
     Map_strp_int *m3 = map_new(strp_int);
 
-    map_insert_fromArray(int_str, m1, NULL, 5);
     map_insert_fromArray(int_str, m1, arrInt, 0);
     compare_int_str(m1, k1, v1, 0);
     map_insert_fromArray(int_str, m1, arrInt, 7);

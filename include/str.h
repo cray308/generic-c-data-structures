@@ -148,7 +148,7 @@ typedef struct {
  * @return     Whether the operation succeeded.
  */
 unsigned char string_reserve(String *this, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -168,7 +168,7 @@ unsigned char string_reserve(String *this, unsigned n)
  */
 unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace,
                              char const *s, unsigned len)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -192,7 +192,7 @@ unsigned char string_replace_fromString(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         String const *other,
                                         unsigned subpos, unsigned len)
-  __attribute__((nonnull (1,4)));
+  __attribute__((nonnull));
 
 
 /**
@@ -211,7 +211,7 @@ unsigned char string_replace_fromString(String *this, unsigned pos,
 unsigned char string_replace_repeatingChar(String *this, unsigned pos,
                                            unsigned nToReplace,
                                            unsigned n, char c)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -350,7 +350,7 @@ String *string_new_fromCStr(char const *s, unsigned n);
  * @return         Newly created string.
  */
 String *string_new_fromString(String const *other, unsigned pos, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -376,7 +376,7 @@ String *string_new_repeatingChar(unsigned n, char c);
  * @return     Whether the operation succeeded.
  */
 unsigned char string_resize_usingChar(String *this, unsigned n, char c)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -400,7 +400,7 @@ unsigned char string_resize_usingChar(String *this, unsigned n, char c)
  *                 until the end will be removed.
  */
 void string_erase(String *this, unsigned start, unsigned n)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -421,8 +421,7 @@ void string_erase(String *this, unsigned start, unsigned n)
  * be used if the string's capacity has grown to be much larger than its 
  * length.
  */
-void string_shrink_to_fit(String *this)
-  __attribute__((nonnull (1)));
+void string_shrink_to_fit(String *this) __attribute__((nonnull));
 
 
 /**
@@ -457,7 +456,7 @@ void string_shrink_to_fit(String *this)
  */
 unsigned string_find_first_of(String const *this, unsigned pos,
                               char const *chars, unsigned n)
-  __attribute__((nonnull (1,3)));
+  __attribute__((nonnull));
 
 
 /**
@@ -475,7 +474,7 @@ unsigned string_find_first_of(String const *this, unsigned pos,
  */
 unsigned string_find_last_of(String const *this, unsigned pos,
                              char const *chars, unsigned n)
-  __attribute__((nonnull (1,3)));
+  __attribute__((nonnull));
 
 
 /**
@@ -493,7 +492,7 @@ unsigned string_find_last_of(String const *this, unsigned pos,
  */
 unsigned string_find_first_not_of(String const *this, unsigned pos,
                                   char const *chars, unsigned n)
-  __attribute__((nonnull (1,3)));
+  __attribute__((nonnull));
 
 
 /**
@@ -511,7 +510,7 @@ unsigned string_find_first_not_of(String const *this, unsigned pos,
  */
 unsigned string_find_last_not_of(String const *this, unsigned pos,
                                  char const *chars, unsigned n)
-  __attribute__((nonnull (1,3)));
+  __attribute__((nonnull));
 
 
 /**
@@ -531,7 +530,7 @@ unsigned string_find_last_not_of(String const *this, unsigned pos,
  */
 unsigned string_find(String const *this, unsigned start_pos,
                      char const *needle, unsigned len)
-  __attribute__((nonnull (1,3)));
+  __attribute__((nonnull));
 
 
 /**
@@ -551,7 +550,7 @@ unsigned string_find(String const *this, unsigned start_pos,
  */
 unsigned string_rfind(String const *this, unsigned end_pos,
                       char const *needle, unsigned len)
-  __attribute__((nonnull (1,3)));
+  __attribute__((nonnull));
 
 
 /**
@@ -572,7 +571,7 @@ unsigned string_rfind(String const *this, unsigned end_pos,
  */
 String *string_substr(String const *this, unsigned start,
                       unsigned n, int step_size)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 
 /**
@@ -586,7 +585,7 @@ String *string_substr(String const *this, unsigned start,
  *                 string, or NULL if an error occurred.
  */
 String **string_split(String const *this, char const *delim)
-  __attribute__((nonnull (1,2)));
+  __attribute__((nonnull));
 
 
 /**
@@ -610,7 +609,7 @@ __attribute__((__unused__)) static
 #if __STDC_VERSION__ >= 199901L
 inline
 #endif
-unsigned char isAlphaNum(char const *s) __attribute__((nonnull (1)));
+unsigned char isAlphaNum(char const *s) __attribute__((nonnull));
 
 unsigned char isAlphaNum(char const *s) {
     if (!*s) return 0;
@@ -630,7 +629,7 @@ __attribute__((__unused__)) static
 #if __STDC_VERSION__ >= 199901L
 inline
 #endif
-unsigned char isAlpha(char const *s) __attribute__((nonnull (1)));
+unsigned char isAlpha(char const *s) __attribute__((nonnull));
 
 unsigned char isAlpha(char const *s) {
     if (!*s) return 0;
@@ -650,7 +649,7 @@ __attribute__((__unused__)) static
 #if __STDC_VERSION__ >= 199901L
 inline
 #endif
-unsigned char isDigit(char const *s) __attribute__((nonnull (1)));
+unsigned char isDigit(char const *s) __attribute__((nonnull));
 
 unsigned char isDigit(char const *s) {
     if (!*s) return 0;
@@ -670,7 +669,7 @@ __attribute__((__unused__)) static
 #if __STDC_VERSION__ >= 199901L
 inline
 #endif
-void toLowercase(char *s) __attribute__((nonnull (1)));
+void toLowercase(char *s) __attribute__((nonnull));
 
 void toLowercase(char *s) {
     for (; *s; ++s) *s = (char) tolower(*s);
@@ -686,7 +685,7 @@ __attribute__((__unused__)) static
 #if __STDC_VERSION__ >= 199901L
 inline
 #endif
-void toUppercase(char *s) __attribute__((nonnull (1)));
+void toUppercase(char *s) __attribute__((nonnull));
 
 void toUppercase(char *s) {
     for (; *s; ++s) *s = (char) toupper(*s);
@@ -710,7 +709,7 @@ void toUppercase(char *s) {
 unsigned char string_replace_withFormat(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         char const *format, ...)
-  __attribute__((nonnull (1,4)));
+  __attribute__((nonnull));
 
 /**
  * Inserts @c format into this string before @c pos .
@@ -743,7 +742,7 @@ unsigned char string_replace_withFormat(String *this, unsigned pos,
  * @return          Newly created string.
  */
 String *string_new_withFormat(char const *format, ...)
-  __attribute__((nonnull (1)));
+  __attribute__((nonnull));
 
 #endif /* __STDC_VERSION__ >= 199901L */
 #endif /* DS_STR_H */
