@@ -1,5 +1,7 @@
 #include "queue.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 #define LEN 50
 #define FIRST 0

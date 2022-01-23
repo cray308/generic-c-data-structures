@@ -1,16 +1,20 @@
 #ifndef DS_H
 #define DS_H
 
+#ifndef __CDS_SCAN
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#endif /* __CDS_SCAN */
 
 #if DEBUG
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif /* __CDS_SCAN */
 #define customAssert(x) assert((x));
 #else
 #define customAssert(x)
-#endif
+#endif /* DEBUG */
 
 #define DS_ARG_NOT_APPLICABLE UINT_MAX
 

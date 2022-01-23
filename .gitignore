@@ -2,5 +2,7 @@ bin/c/*
 !bin/c/.gitkeep
 bin/cpp/*
 !bin/cpp/.gitkeep
+src/scan/*
+!src/scan/.gitkeep
 *.o
 vgcore.*

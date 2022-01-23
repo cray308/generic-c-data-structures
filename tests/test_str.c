@@ -1,5 +1,7 @@
 #include "str.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 #define LEN 78
 const char *testStr = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";

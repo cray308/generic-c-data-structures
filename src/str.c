@@ -446,8 +446,10 @@ cleanup:
 }
 
 #if __STDC_VERSION__ >= 199901L
+#ifndef __CDS_SCAN
 #include <stdarg.h>
 #include <stdio.h>
+#endif /* __CDS_SCAN */
 
 static char *str_read_format(unsigned *n, const char *format, va_list args) {
     va_list localArgs;

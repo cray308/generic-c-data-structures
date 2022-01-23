@@ -1,5 +1,7 @@
 #include "array.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 #define customStrCopy(dest, src) do { if (src) { dest = malloc(strlen(src) + 1); strcpy(dest, src); } } while(0)
 #define customStrDelete(x) do { if (x) free(x); } while(0)
@@ -111,6 +113,7 @@ void test_init_repeatingValue(void) {
 }
 
 void test_init_fromArray(void) {
+    char *strVals[7] = {0};
     Array_int *ai = array_new_fromArray(int, NULL, 5);
     Array_str *as;
     compare_ints(ai, ints, 0);
@@ -122,6 +125,7 @@ void test_init_fromArray(void) {
 
     ai = array_new_fromArray(int, ints, 1);
     as = array_new_fromArray(str, strs, 1);
+    memcpy(&as->arr[1], strVals, 7 * sizeof(char *));
     compare_ints(ai, ints, 1);
     compare_strs(as, strs, 1);
     array_free(int, ai);
@@ -129,6 +133,7 @@ void test_init_fromArray(void) {
 
     ai = array_new_fromArray(int, ints, 2);
     as = array_new_fromArray(str, strs, 2);
+    memcpy(&as->arr[2], strVals, 6 * sizeof(char *));
     compare_ints(ai, ints, 2);
     compare_strs(as, strs, 2);
     array_free(int, ai);

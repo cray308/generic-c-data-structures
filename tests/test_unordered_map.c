@@ -1,5 +1,7 @@
 #include "unordered_map.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 #define freeNestedMap(x) umap_free(strv_int, x)
 

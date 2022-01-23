@@ -1,5 +1,7 @@
 #include "set.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 gen_set_headers(int, int)
 gen_set_headers(str, char *)

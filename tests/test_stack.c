@@ -1,5 +1,7 @@
 #include "stack.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 #define LEN 50
 

@@ -1,5 +1,7 @@
 #include "list.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 gen_list_headers_withAlg(int, int)
 gen_list_headers_withAlg(str, char *)
@@ -337,6 +339,7 @@ void test_insert_fromList(void) {
     assert(list_insert_fromList(int, li, NULL, p1, p1) == NULL);
     p1 = from1->front;
     p3 = from2->front;
+    assert(p1 && p3);
     assert(list_insert_fromList(int, li, NULL, p1, p1) == NULL);
     assert(list_insert_fromList(int, li, NULL, p1, p1->next)->data == 10);
     assert(streq(list_insert_fromList(str, ls, NULL, p3, p3->next)->data, "010"));
@@ -412,6 +415,7 @@ void test_splice_all(void) {
     arr2[2] = list_new_fromArray(str, &strs[2], 3);
     arr2[3] = list_new_fromArray(str, &strs[5], 2);
 
+    assert(arr1[1]->front && arr2[1]->front);
     list_splice(int, li, li->front, arr1[0]);
     compare_ints(li, ints, 0);
     list_splice(int, li, li->front, arr1[1]);

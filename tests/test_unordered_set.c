@@ -1,5 +1,7 @@
 #include "unordered_set.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 gen_uset_headers(int, int)
 gen_uset_headers(str, char *)

@@ -2,7 +2,9 @@
 #define DS_STR_H
 
 #include "ds.h"
+#ifndef __CDS_SCAN
 #include <ctype.h>
+#endif /* __CDS_SCAN */
 
 typedef struct {
     unsigned size;

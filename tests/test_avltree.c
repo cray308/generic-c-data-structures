@@ -1,6 +1,8 @@
 #include "avltree.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
 #include <stdio.h>
+#endif
 
 #define __tree_entry_get_key(e) ((e)->data)
 #define __tree_data_get_key(d)  (d)

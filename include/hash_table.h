@@ -86,10 +86,38 @@ DataType* __htable_iter_next_##id(TableType *this) {                            
     return this->it.curr ? &this->it.curr->data : NULL;                                  \
 }                                                                                        \
                                                                                          \
+static DataType* __htable_insert_nocheck_##id(TableType *this,                           \
+                                              DataType const data,                       \
+                                              int *inserted) {                           \
+    /* get index and entry at this index */                                              \
+    struct EntryType *e;                                                                 \
+    unsigned index = murmurhash(addrOfKey(data_get_key(data)),                           \
+                                (int) sizeOfKey(data_get_key(data)),                     \
+                                this->seed) % this->cap;                                 \
+    for (e = this->buckets[index]; e; e = e->next) {                                     \
+        if (cmp_eq(entry_get_key(e), data_get_key(data))) break;                         \
+    }                                                                                    \
+                                                                                         \
+    if (e) {                                                                             \
+        deleteValue(e->data.second);                                                     \
+        copyValue(e->data.second, data.second);                                          \
+        if (inserted) *inserted = 0;                                                     \
+    } else {                                                                             \
+        if (this->size == DS_HTABLE_MAX_SIZE ||                                          \
+                !(e = calloc(1, sizeof(struct EntryType)))) return NULL;                 \
+        copyKey(entry_get_key(e), data_get_key(data));                                   \
+        copyValue(e->data.second, data.second);                                          \
+        e->next = this->buckets[index];                                                  \
+        this->buckets[index] = e;                                                        \
+        this->size++;                                                                    \
+        if (inserted) *inserted = 1;                                                     \
+    }                                                                                    \
+    return &e->data;                                                                     \
+}                                                                                        \
+                                                                                         \
 unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {                 \
     unsigned ncap = this->cap, i;                                                        \
-    struct EntryType **new;                                                              \
-    struct EntryType *e, *next;                                                          \
+    struct EntryType **new, *e, *next;                                                   \
     if (nbuckets <= ncap) return 1;                                                      \
     else if (ncap == DS_HTABLE_MAX_SIZE) return 0;                                       \
                                                                                          \
@@ -120,42 +148,20 @@ unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {        
                                                                                          \
 DataType* __htable_insert_##id(TableType *this,                                          \
                                DataType const data, int *inserted) {                     \
-    unsigned index;                                                                      \
-    struct EntryType *e;                                                                 \
     if (this->size >= this->threshold) {                                                 \
         __htable_rehash_##id(this, this->cap + 1);                                       \
     }                                                                                    \
-    if (this->size == DS_HTABLE_MAX_SIZE) return NULL;                                   \
-                                                                                         \
-    /* get index and entry at that index */                                              \
-    index = murmurhash(addrOfKey(data_get_key(data)),                                    \
-                       (int) sizeOfKey(data_get_key(data)),                              \
-                       this->seed) % this->cap;                                          \
-    for (e = this->buckets[index]; e; e = e->next) {                                     \
-        if (cmp_eq(entry_get_key(e), data_get_key(data))) break;                         \
-    }                                                                                    \
-                                                                                         \
-    if (e) {                                                                             \
-        deleteValue(e->data.second);                                                     \
-        copyValue(e->data.second, data.second);                                          \
-        if (inserted) *inserted = 0;                                                     \
-    } else {                                                                             \
-        if (!(e = calloc(1, sizeof(struct EntryType)))) return NULL;                     \
-        copyKey(entry_get_key(e), data_get_key(data));                                   \
-        copyValue(e->data.second, data.second);                                          \
-        e->next = this->buckets[index];                                                  \
-        this->buckets[index] = e;                                                        \
-        this->size++;                                                                    \
-        if (inserted) *inserted = 1;                                                     \
-    }                                                                                    \
-    return &e->data;                                                                     \
+    return __htable_insert_nocheck_##id(this, data, inserted);                           \
 }                                                                                        \
                                                                                          \
 unsigned char __htable_insert_fromArray_##id(TableType *this,                            \
                                              DataType const *arr, unsigned n) {          \
     unsigned i;                                                                          \
+    if (this->size + n >= this->threshold) {                                             \
+        __htable_rehash_##id(this, this->cap + n);                                       \
+    }                                                                                    \
     for (i = 0; i < n; ++i) {                                                            \
-        if (!__htable_insert_##id(this, arr[i], NULL)) return 0;                         \
+        if (!__htable_insert_nocheck_##id(this, arr[i], NULL)) return 0;                 \
     }                                                                                    \
     return 1;                                                                            \
 }                                                                                        \
@@ -174,7 +180,7 @@ TableType *__htable_new_fromArray_##id(DataType const *arr, unsigned n) {       
     ht->lf = 75;                                                                         \
     ht->threshold = 24;                                                                  \
     ht->seed = ((unsigned) rand()) % UINT_MAX;                                           \
-    if (arr) __htable_insert_fromArray_##id(ht, arr, n);                                 \
+    if (arr && n) __htable_insert_fromArray_##id(ht, arr, n);                            \
     return ht;                                                                           \
 }                                                                                        \
                                                                                          \
@@ -183,9 +189,10 @@ TableType *__htable_createCopy_##id(TableType const *other) {                   
     struct EntryType *e;                                                                 \
     TableType *ht = __htable_new_fromArray_##id(NULL, 0);                                \
     if (ht) {                                                                            \
+        __htable_rehash_##id(ht, other->cap);                                            \
         for (i = 0; i < other->cap; ++i) {                                               \
             for (e = other->buckets[i]; e; e = e->next) {                                \
-                __htable_insert_##id(ht, e->data, NULL);                                 \
+                __htable_insert_nocheck_##id(ht, e->data, NULL);                         \
             }                                                                            \
         }                                                                                \
     }                                                                                    \

@@ -1,5 +1,7 @@
 #include "deque.h"
+#ifndef __CDS_SCAN
 #include <assert.h>
+#endif
 
 gen_deque_headers(int, int)
 gen_deque_headers(str, char *)
