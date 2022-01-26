@@ -118,38 +118,47 @@ void test_createCopy(void) {
 }
 
 void test_insert_element(void) {
+    SetEntry_int *p1; SetEntry_str *p2;
     Set_int *si = set_new(int);
     Set_str *ss = set_new(str);
     int a1[] = {50,40,30,20,10}, c1[] = {10,20,30,40,50}, i, inserted = -1;
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"010","020","030","040","050"};
 
     for (i = 0; i < 5; ++i) {
-        set_insert_withResult(int, si, a1[i], &inserted);
+        p1 = set_insert_withResult(int, si, a1[i], &inserted);
+        assert(p1 && p1->data == a1[i]);
         assert(inserted);
         inserted = -1;
-        set_insert_withResult(str, ss, a2[i], &inserted);
+        p2 = set_insert_withResult(str, ss, a2[i], &inserted);
+        assert(p2 && streq(p2->data, a2[i]));
         assert(inserted);
         inserted = -1;
     }
     compare_ints(si, c1, 5);
     compare_strs(ss, c2, 5);
 
-    set_insert_withResult(int, si, 40, &inserted);
+    p1 = set_insert_withResult(int, si, 40, &inserted);
+    assert(p1 && p1->data == 40);
     assert(!inserted);
     inserted = -1;
-    set_insert_withResult(str, ss, "040", &inserted);
+    p2 = set_insert_withResult(str, ss, "040", &inserted);
+    assert(p2 && streq(p2->data, "040"));
     assert(!inserted);
     inserted = -1;
-    set_insert_withResult(int, si, 10, &inserted);
+    p1 = set_insert_withResult(int, si, 10, &inserted);
+    assert(p1 && p1->data == 10);
     assert(!inserted);
     inserted = -1;
-    set_insert_withResult(str, ss, "010", &inserted);
+    p2 = set_insert_withResult(str, ss, "010", &inserted);
+    assert(p2 && streq(p2->data, "010"));
     assert(!inserted);
     inserted = -1;
-    set_insert_withResult(int, si, 50, &inserted);
+    p1 = set_insert_withResult(int, si, 50, &inserted);
+    assert(p1 && p1->data == 50);
     assert(!inserted);
     inserted = -1;
-    set_insert_withResult(str, ss, "050", &inserted);
+    p2 = set_insert_withResult(str, ss, "050", &inserted);
+    assert(p2 && streq(p2->data, "050"));
     assert(!inserted);
     compare_ints(si, c1, 5);
     compare_strs(ss, c2, 5);
@@ -198,14 +207,15 @@ void test_insert_fromSet(void) {
 }
 
 void test_remove_value(void) {
+    unsigned char removed[] = {0, 0, 0, 0, 1, 1, 1, 0};
     int a1[] = {50,40,30,20,10}, c1[] = {20,30}, removedInts[] = {0,60,39,41,40,10,50,40}, i;
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"020","030"}, *removedStrs[] = {"000","060","039","041","040","010","050","040"};
     Set_int *si = set_new_fromArray(int, a1, 5);
     Set_str *ss = set_new_fromArray(str, a2, 5);
 
     for (i = 0; i < 8; ++i) {
-        set_remove_value(int, si, removedInts[i]);
-        set_remove_value(str, ss, removedStrs[i]);
+        assert(set_remove_value(int, si, removedInts[i]) == removed[i]);
+        assert(set_remove_value(str, ss, removedStrs[i]) == removed[i]);
     }
     compare_ints(si, c1, 2);
     compare_strs(ss, c2, 2);
@@ -219,15 +229,15 @@ void test_remove_entry(void) {
     Set_int *si = set_new_fromArray(int, a1, 5);
     Set_str *ss = set_new_fromArray(str, a2, 5);
 
-    set_remove_entry(int, si, NULL);
+    assert(!set_remove_entry(int, si, NULL));
     assert(si->root->left && si->root->right);
-    set_remove_entry(int, si, si->root);
+    assert(set_remove_entry(int, si, si->root));
     assert(ss->root->left && ss->root->right);
-    set_remove_entry(str, ss, ss->root);
-    set_remove_entry(int, si, set_iterator_begin(int, si));
-    set_remove_entry(str, ss, set_iterator_begin(str, ss));
-    set_remove_entry(int, si, set_iterator_rbegin(int, si));
-    set_remove_entry(str, ss, set_iterator_rbegin(str, ss));
+    assert(set_remove_entry(str, ss, ss->root));
+    assert(set_remove_entry(int, si, set_iterator_begin(int, si)));
+    assert(set_remove_entry(str, ss, set_iterator_begin(str, ss)));
+    assert(set_remove_entry(int, si, set_iterator_rbegin(int, si)));
+    assert(set_remove_entry(str, ss, set_iterator_rbegin(str, ss)));
     compare_ints(si, c1, 2);
     compare_strs(ss, c2, 2);
     set_free(int, si);

@@ -216,9 +216,9 @@ void test_insert_element(void) {
     UMap_int_str *m1 = umap_new(int_str);
     UMap_strv_int *m2 = umap_new(strv_int);
     UMap_strp_int *m3 = umap_new(strp_int);
-    Pair_int_str x;
-    Pair_strv_int y;
-    Pair_strp_int z;
+    Pair_int_str x, *p1;
+    Pair_strv_int y, *p2;
+    Pair_strp_int z, *p3;
     int a1[] = {50,40,30,20,10}, i, inserted = -1;
     char *a2[] = {"050","040","030","020","010"};
     DictData c1[] = {{10,"010",0},{20,"020",0},{30,"030",0},{40,"040",0},{50,"050",0}}, c2[] = {{10,"100",0},{20,"020",0},{30,"030",0},{40,"400",0},{50,"500",0}}, c3[] = {{100,"010",0},{20,"020",0},{30,"030",0},{400,"040",0},{500,"050",0}};
@@ -230,13 +230,16 @@ void test_insert_element(void) {
         y.second = a1[i];
         z.first = a2[i];
         z.second = a1[i];
-        umap_insert_withResult(int_str, m1, x, &inserted);
+        p1 = umap_insert_withResult(int_str, m1, x, &inserted);
+        assert(p1 && p1->first == x.first && streq(p1->second, x.second));
         assert(inserted);
         inserted = -1;
-        umap_insert_withResult(strv_int, m2, y, &inserted);
+        p2 = umap_insert_withResult(strv_int, m2, y, &inserted);
+        assert(p2 && streq(p2->first, y.first) && p2->second == y.second);
         assert(inserted);
         inserted = -1;
-        umap_insert_withResult(strp_int, m3, z, &inserted);
+        p3 = umap_insert_withResult(strp_int, m3, z, &inserted);
+        assert(p3 && streq(p3->first, z.first) && p3->second == z.second);
         assert(inserted);
         inserted = -1;
     }
@@ -250,13 +253,16 @@ void test_insert_element(void) {
     y.second = 400;
     z.first = "040";
     z.second = 400;
-    umap_insert_withResult(int_str, m1, x, &inserted);
+    p1 = umap_insert_withResult(int_str, m1, x, &inserted);
+    assert(p1 && p1->first == x.first && streq(p1->second, x.second));
     assert(!inserted);
     inserted = -1;
-    umap_insert_withResult(strv_int, m2, y, &inserted);
+    p2 = umap_insert_withResult(strv_int, m2, y, &inserted);
+    assert(p2 && streq(p2->first, y.first) && p2->second == y.second);
     assert(!inserted);
     inserted = -1;
-    umap_insert_withResult(strp_int, m3, z, &inserted);
+    p3 = umap_insert_withResult(strp_int, m3, z, &inserted);
+    assert(p3 && streq(p3->first, z.first) && p3->second == z.second);
     assert(!inserted);
     inserted = -1;
     x.first = 10;
@@ -265,13 +271,16 @@ void test_insert_element(void) {
     y.second = 100;
     z.first = "010";
     z.second = 100;
-    umap_insert_withResult(int_str, m1, x, &inserted);
+    p1 = umap_insert_withResult(int_str, m1, x, &inserted);
+    assert(p1 && p1->first == x.first && streq(p1->second, x.second));
     assert(!inserted);
     inserted = -1;
-    umap_insert_withResult(strv_int, m2, y, &inserted);
+    p2 = umap_insert_withResult(strv_int, m2, y, &inserted);
+    assert(p2 && streq(p2->first, y.first) && p2->second == y.second);
     assert(!inserted);
     inserted = -1;
-    umap_insert_withResult(strp_int, m3, z, &inserted);
+    p3 = umap_insert_withResult(strp_int, m3, z, &inserted);
+    assert(p3 && streq(p3->first, z.first) && p3->second == z.second);
     assert(!inserted);
     inserted = -1;
     x.first = 50;
@@ -280,13 +289,16 @@ void test_insert_element(void) {
     y.second = 500;
     z.first = "050";
     z.second = 500;
-    umap_insert_withResult(int_str, m1, x, &inserted);
+    p1 = umap_insert_withResult(int_str, m1, x, &inserted);
+    assert(p1 && p1->first == x.first && streq(p1->second, x.second));
     assert(!inserted);
     inserted = -1;
-    umap_insert_withResult(strv_int, m2, y, &inserted);
+    p2 = umap_insert_withResult(strv_int, m2, y, &inserted);
+    assert(p2 && streq(p2->first, y.first) && p2->second == y.second);
     assert(!inserted);
     inserted = -1;
-    umap_insert_withResult(strp_int, m3, z, &inserted);
+    p3 = umap_insert_withResult(strp_int, m3, z, &inserted);
+    assert(p3 && streq(p3->first, z.first) && p3->second == z.second);
     assert(!inserted);
     compare_int_str(m1, c2, 5);
     compare_strv_int(m2, c3, 5);
@@ -319,6 +331,7 @@ void test_insert_fromArray(void) {
 }
 
 void test_remove_key(void) {
+    unsigned char removed[] = {0, 0, 0, 0, 1, 1, 1, 0};
     DictData c[] = {{20,"020",0},{30,"030",0}};
     int removedInts[] = {0,60,39,41,40,10,50,40}, i;
     char *removedStrs[] = {"000","060","039","041","040","010","050","040"};
@@ -330,9 +343,9 @@ void test_remove_key(void) {
     UMap_strp_int *m3 = umap_new_fromArray(strp_int, arrStr2, 5);
 
     for (i = 0; i < 8; ++i) {
-        umap_remove_key(int_str, m1, removedInts[i]);
-        umap_remove_key(strv_int, m2, removedStrs[i]);
-        umap_remove_key(strp_int, m3, removedStrs[i]);
+        assert(umap_remove_key(int_str, m1, removedInts[i]) == removed[i]);
+        assert(umap_remove_key(strv_int, m2, removedStrs[i]) == removed[i]);
+        assert(umap_remove_key(strp_int, m3, removedStrs[i]) == removed[i]);
     }
     compare_int_str(m1, c, 2);
     compare_strv_int(m2, c, 2);

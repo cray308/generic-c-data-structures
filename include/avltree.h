@@ -43,7 +43,7 @@ unsigned char __avltree_insert_fromTree_##id(TreeType *this,                    
 TreeType *__avltree_new_fromArray_##id(DataType const *arr, unsigned n);                 \
 TreeType *__avltree_createCopy_##id(TreeType const *other)                               \
   __attribute__((nonnull));                                                              \
-void __avltree_remove_entry_##id(TreeType *this, EntryType *v)                           \
+unsigned char __avltree_remove_entry_##id(TreeType *this, EntryType *v)                  \
   __attribute__((nonnull (1)));                                                          \
 void __avltree_erase_##id(TreeType *this,                                                \
                           EntryType *begin, EntryType const *end)                        \
@@ -295,10 +295,10 @@ TreeType *__avltree_createCopy_##id(TreeType const *other) {                    
     return t;                                                                            \
 }                                                                                        \
                                                                                          \
-void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                         \
+unsigned char __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                \
     char deleteData = 1;                                                                 \
     EntryType *curr, *parent, *child;                                                    \
-    if (!v) return;                                                                      \
+    if (!v) return 0;                                                                    \
                                                                                          \
     if (v->left && v->right) {                                                           \
         EntryType *temp = __avl_inorder_successor_##id(v);                               \
@@ -394,13 +394,14 @@ void __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                
     }                                                                                    \
     free(v);                                                                             \
     --this->size;                                                                        \
+    return 1;                                                                            \
 }                                                                                        \
                                                                                          \
 void __avltree_erase_##id(TreeType *this,                                                \
                           EntryType *begin, EntryType const *end) {                      \
     char getNext = 1, eraseToEnd;                                                        \
     kt nextKey; kt lastKey = (kt) 0;                                                     \
-    kt keys[256];                                                                        \
+    static kt keys[256];                                                                 \
     if (!begin) return;                                                                  \
                                                                                          \
     eraseToEnd = !end;                                                                   \
