@@ -147,7 +147,7 @@ void test_reserve(void) {
     assert(string_capacity(s) == 64);
     string_reserve(s, 63);
     assert(string_capacity(s) == 64);
-    string_reserve(s, 65);
+    string_reserve(s, 64); /* increase capacity because of the nul terminator */
     assert(string_capacity(s) == 128);
     string_free(s);
 }
@@ -279,8 +279,13 @@ void test_replace_cStr(void) {
     string_replace(s, s->size - 5, 20, "y", 1);
     string_replace(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "longString", 7);
     compareStrs(s, "abclongStr", 10);
-    string_replace(s, 0, DS_ARG_NOT_APPLICABLE, ".", 1);
-    compareStrs(s, ".", 1);
+    string_replace(s, 7, DS_ARG_NOT_APPLICABLE, "", 1);
+    compareStrs(s, "abclong", 7);
+    assert(!string_replace(s, 6, 0, "xxxxx", UINT_MAX - 3));
+    string_replace(s, 0, 3, "x", 0);
+    compareStrs(s, "long", 4);
+    string_replace(s, 0, DS_ARG_NOT_APPLICABLE, "x", 0);
+    compareStrs(s, testStr, 0);
     string_free(s);
 }
 
@@ -299,8 +304,13 @@ void test_replace_fromString(void) {
     string_replace_fromString(s, s->size - 5, 20, b, 0, 1);
     string_replace_fromString(s, s->size - 5, DS_ARG_NOT_APPLICABLE, b, 5, 7);
     compareStrs(s, "abclongStr", 10);
-    string_replace_fromString(s, 0, DS_ARG_NOT_APPLICABLE, b, 1, 1);
-    compareStrs(s, ".", 1);
+    string_replace_fromString(s, 3, DS_ARG_NOT_APPLICABLE, b, 1, 0);
+    compareStrs(s, "abc", 3);
+    b->s[3] = 0;
+    assert(string_replace_fromString(s, 2, DS_ARG_NOT_APPLICABLE, b, 3, 6));
+    compareStrs(s, "ab\0clong", 8);
+    string_replace_fromString(s, 0, DS_ARG_NOT_APPLICABLE, b, 0, 0);
+    compareStrs(s, testStr, 0);
     string_free(s);
     string_free(b);
 }
@@ -317,7 +327,10 @@ void test_replace_repeatingChar(void) {
     string_replace_repeatingChar(s, s->size - 5, 20, 1, 'y');
     string_replace_repeatingChar(s, s->size - 5, DS_ARG_NOT_APPLICABLE, 7, 'l');
     compareStrs(s, "aaalllllll", 10);
-    string_replace_repeatingChar(s, 0, DS_ARG_NOT_APPLICABLE, 1, '.');
+    assert(string_replace_repeatingChar(s, 3, 0, 2, '\0'));
+    compareStrs(s, "aaa\0\0lllllll", 12);
+    assert(!string_replace_repeatingChar(s, 0, DS_ARG_NOT_APPLICABLE, 0, '.'));
+    assert(string_replace_repeatingChar(s, 0, DS_ARG_NOT_APPLICABLE, 1, '.'));
     compareStrs(s, ".", 1);
     string_free(s);
 }

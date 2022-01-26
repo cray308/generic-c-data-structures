@@ -482,88 +482,82 @@ void list_splice_range_##id(List_##id *this,                                    
                                                                                          \
 void listEntry_advance_##id(ListEntry_##id **p1, long n) {                               \
     long count = 0;                                                                      \
-    ListEntry_##id *curr = *p1;                                                          \
     if (n >= 0) {                                                                        \
-        for (; count++ < n && curr; curr = curr->next);                                  \
+        for (; count < n && *p1; *p1 = (*p1)->next, ++count);                            \
     } else {                                                                             \
-        for (; count-- > n && curr; curr = curr->prev);                                  \
+        for (; count > n && *p1; *p1 = (*p1)->prev, --count);                            \
     }                                                                                    \
-    *p1 = curr;                                                                          \
 }                                                                                        \
                                                                                          \
 long listEntry_distance_##id(ListEntry_##id const *p1,                                   \
                              ListEntry_##id const *p2) {                                 \
     long dist;                                                                           \
     for (dist = 0; p1 && p1 != p2; p1 = p1->next, ++dist);                               \
-    if (p1 != p2) return -1;                                                             \
-    return dist;                                                                         \
+    return (p1 == p2) ? dist : -1;                                                       \
 }                                                                                        \
                                                                                          \
 ListEntry_##id *list_insert_repeatingValue_##id(List_##id *this,                         \
                                                 ListEntry_##id *pos,                     \
                                                 unsigned n, t const value) {             \
-    unsigned i;                                                                          \
-    ListEntry_##id *new;                                                                 \
-    if (!n || n + this->size < this->size) return NULL;                                  \
+    unsigned i = 1;                                                                      \
+    ListEntry_##id *rv, *first, *last, *curr;                                            \
+    if (n + this->size <= this->size ||                                                  \
+            !(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                   \
                                                                                          \
-    for (i = 0; i < n; ++i) {                                                            \
-        if (!(new = calloc(1, sizeof(ListEntry_##id)))) {                                \
-            pos = NULL;                                                                  \
+    rv = first;                                                                          \
+    copyValue(first->data, value);                                                       \
+    last = first;                                                                        \
+    for (; i < n; ++i, curr->prev = last, last->next = curr, last = curr) {              \
+        if (!(curr = calloc(1, sizeof(ListEntry_##id)))) {                               \
+            rv = NULL;                                                                   \
             break;                                                                       \
         }                                                                                \
-        copyValue(new->data, value);                                                     \
-        if (!pos) {                                                                      \
-            if (!this->front) {                                                          \
-                this->front = this->back = new;                                          \
-            } else {                                                                     \
-                new->prev = this->back;                                                  \
-                this->back->next = new;                                                  \
-                this->back = new;                                                        \
-            }                                                                            \
-        } else {                                                                         \
-            ListEntry_##id *prev = pos->prev;                                            \
-            new->next = pos;                                                             \
-            pos->prev = new;                                                             \
-            new->prev = prev;                                                            \
-            if (prev) {                                                                  \
-                prev->next = new;                                                        \
-            } else {                                                                     \
-                this->front = new;                                                       \
-            }                                                                            \
+        copyValue(curr->data, value);                                                    \
+    }                                                                                    \
+                                                                                         \
+    first->prev = pos ? pos->prev : NULL;                                                \
+    last->next = pos;                                                                    \
+    if (first->prev) {                                                                   \
+        first->prev->next = first;                                                       \
+    } else if (pos == this->front) {                                                     \
+        this->front = first;                                                             \
+    }                                                                                    \
+    if (pos) {                                                                           \
+        pos->prev = last;                                                                \
+    } else {                                                                             \
+        if (this->back) {                                                                \
+            this->back->next = first;                                                    \
+            first->prev = this->back;                                                    \
         }                                                                                \
-        pos = new;                                                                       \
+        this->back = last;                                                               \
     }                                                                                    \
     this->size += i;                                                                     \
-    return pos;                                                                          \
+    return rv;                                                                           \
 }                                                                                        \
                                                                                          \
 ListEntry_##id *list_insert_fromArray_##id(List_##id *this,                              \
                                            ListEntry_##id *pos,                          \
                                            t const *arr, unsigned n) {                   \
     unsigned i = 1;                                                                      \
-    ListEntry_##id *prev = pos ? pos->prev : NULL;                                       \
-    ListEntry_##id *first, *last, *curr;                                                 \
-    if (!n || n + this->size < this->size ||                                             \
+    ListEntry_##id *rv, *first, *last, *curr;                                            \
+    if (n + this->size <= this->size ||                                                  \
             !(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                   \
                                                                                          \
+    rv = first;                                                                          \
     copyValue(first->data, *arr);                                                        \
     last = first;                                                                        \
     for (; i < n; ++i, curr->prev = last, last->next = curr, last = curr) {              \
         if (!(curr = calloc(1, sizeof(ListEntry_##id)))) {                               \
-            for (; first; first = last) {                                                \
-                last = first->next;                                                      \
-                deleteValue(first->data);                                                \
-                free(first);                                                             \
-            }                                                                            \
-            return NULL;                                                                 \
+            rv = NULL;                                                                   \
+            break;                                                                       \
         }                                                                                \
         copyValue(curr->data, arr[i]);                                                   \
     }                                                                                    \
                                                                                          \
-    first->prev = prev;                                                                  \
+    first->prev = pos ? pos->prev : NULL;                                                \
     last->next = pos;                                                                    \
-    if (prev) {                                                                          \
-        prev->next = first;                                                              \
+    if (first->prev) {                                                                   \
+        first->prev->next = first;                                                       \
     } else if (pos == this->front) {                                                     \
         this->front = first;                                                             \
     }                                                                                    \
@@ -576,49 +570,37 @@ ListEntry_##id *list_insert_fromArray_##id(List_##id *this,                     
         }                                                                                \
         this->back = last;                                                               \
     }                                                                                    \
-    this->size += n;                                                                     \
-    return first;                                                                        \
+    this->size += i;                                                                     \
+    return rv;                                                                           \
 }                                                                                        \
                                                                                          \
 ListEntry_##id *list_insert_fromList_##id(List_##id *this,                               \
                                           ListEntry_##id *pos,                           \
                                           ListEntry_##id const *start,                   \
                                           ListEntry_##id const *end) {                   \
-    ListEntry_##id *prev = pos ? pos->prev : NULL;                                       \
-    ListEntry_##id *first, *last, *curr;                                                 \
-    unsigned count = 1;                                                                  \
-    if (!start || start == end ||                                                        \
+    ListEntry_##id *rv, *first, *last, *curr;                                            \
+    unsigned newSize = this->size + 1;                                                   \
+    if (!start || start == end || !newSize ||                                            \
             !(first = calloc(1, sizeof(ListEntry_##id)))) return NULL;                   \
                                                                                          \
+    rv = first;                                                                          \
     copyValue(first->data, start->data);                                                 \
     last = first;                                                                        \
     start = start->next;                                                                 \
-    for (; start != end; ++count, start = start->next, curr->prev = last,                \
+    for (; start != end; start = start->next, curr->prev = last,                         \
             last->next = curr, last = curr) {                                            \
-        if (!(curr = calloc(1, sizeof(ListEntry_##id)))) {                               \
-            for (; first; first = last) {                                                \
-                last = first->next;                                                      \
-                deleteValue(first->data);                                                \
-                free(first);                                                             \
-            }                                                                            \
-            return NULL;                                                                 \
+        if (++newSize == 0 || !(curr = calloc(1, sizeof(ListEntry_##id)))) {             \
+            if (!newSize) newSize = UINT_MAX;                                            \
+            rv = NULL;                                                                   \
+            break;                                                                       \
         }                                                                                \
         copyValue(curr->data, start->data);                                              \
     }                                                                                    \
                                                                                          \
-    if (this->size + count < this->size) {                                               \
-        for (; first; first = last) {                                                    \
-            last = first->next;                                                          \
-            deleteValue(first->data);                                                    \
-            free(first);                                                                 \
-        }                                                                                \
-        return NULL;                                                                     \
-    }                                                                                    \
-                                                                                         \
-    first->prev = prev;                                                                  \
+    first->prev = pos ? pos->prev : NULL;                                                \
     last->next = pos;                                                                    \
-    if (prev) {                                                                          \
-        prev->next = first;                                                              \
+    if (first->prev) {                                                                   \
+        first->prev->next = first;                                                       \
     } else if (pos == this->front) {                                                     \
         this->front = first;                                                             \
     }                                                                                    \
@@ -631,20 +613,20 @@ ListEntry_##id *list_insert_fromList_##id(List_##id *this,                      
         }                                                                                \
         this->back = last;                                                               \
     }                                                                                    \
-    this->size += count;                                                                 \
-    return first;                                                                        \
+    this->size = newSize;                                                                \
+    return rv;                                                                           \
 }                                                                                        \
                                                                                          \
 List_##id *list_new_fromArray_##id(t const *arr, unsigned size) {                        \
     List_##id *l = calloc(1, sizeof(List_##id));                                         \
     customAssert(l)                                                                      \
-    if (l && arr) list_insert_fromArray_##id(l, NULL, arr, size);                        \
+    if (l && arr && size) list_insert_fromArray_##id(l, NULL, arr, size);                \
     return l;                                                                            \
 }                                                                                        \
                                                                                          \
 List_##id *list_new_repeatingValue_##id(unsigned n, t const value) {                     \
     List_##id *l = list_new(id);                                                         \
-    if (l) list_insert_repeatingValue_##id(l, NULL, n, value);                           \
+    if (l && n) list_insert_repeatingValue_##id(l, NULL, n, value);                      \
     return l;                                                                            \
 }                                                                                        \
                                                                                          \
@@ -684,11 +666,10 @@ ListEntry_##id *list_erase_##id(List_##id *this,                                
                                                                                          \
 unsigned char list_resize_usingValue_##id(List_##id *this,                               \
                                           unsigned n, t value) {                         \
-    ListEntry_##id *first;                                                               \
-    unsigned i;                                                                          \
+    ListEntry_##id *first = this->front;                                                 \
     if (n == this->size) return 1;                                                       \
     else if (n < this->size) {                                                           \
-        for (first = this->front, i = 0; i < n; ++i, first = first->next);               \
+        listEntry_advance_##id(&first, n);                                               \
         list_erase_##id(this, first, NULL);                                              \
         return 1;                                                                        \
     }                                                                                    \

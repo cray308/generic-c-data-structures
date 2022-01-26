@@ -435,24 +435,35 @@ unsigned array_erase_##id(Array_##id *this, unsigned first, unsigned nelem) {   
     return res;                                                                          \
 }                                                                                        \
                                                                                          \
-unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
-                                          unsigned n, t const value) {                   \
-    t* i; t* end;                                                                        \
+static unsigned array_check_insert_##id(Array_##id *this, t** end,                       \
+                                        unsigned index, unsigned n) {                    \
     unsigned res = this->size;                                                           \
-    if (!n || index > res || !array_reserve_##id(this, res + n))                         \
+    unsigned newSize = res + n;                                                          \
+    if (newSize <= res || index > res || !array_reserve_##id(this, newSize))             \
         return ARRAY_ERROR;                                                              \
                                                                                          \
     if (index != res) { /* insert in the middle of a */                                  \
-        memmove(&this->arr[index + n], &this->arr[index],                                \
+        unsigned after = index + n;                                                      \
+        memmove(&this->arr[after], &this->arr[index],                                    \
                 (res - index) * sizeof(t));                                              \
         res = index;                                                                     \
+        *end = &this->arr[after];                                                        \
+    } else {                                                                             \
+        *end = &this->arr[newSize];                                                      \
     }                                                                                    \
-    end = &this->arr[res + n];                                                           \
+    this->size = newSize;                                                                \
+    return res;                                                                          \
+}                                                                                        \
                                                                                          \
-    for (i = &this->arr[res]; i != end; ++i) {                                           \
-        copyValue(*i, value);                                                            \
+unsigned array_insert_repeatingValue_##id(Array_##id *this, unsigned index,              \
+                                          unsigned n, t const value) {                   \
+    t* i; t* end;                                                                        \
+    unsigned res = array_check_insert_##id(this, &end, index, n);                        \
+    if (res != ARRAY_ERROR) {                                                            \
+        for (i = &this->arr[res]; i != end; ++i) {                                       \
+            copyValue(*i, value);                                                        \
+        }                                                                                \
     }                                                                                    \
-    this->size += n;                                                                     \
     return res;                                                                          \
 }                                                                                        \
                                                                                          \
@@ -470,21 +481,12 @@ unsigned char array_resize_usingValue_##id(Array_##id *this,                    
 unsigned array_insert_fromArray_##id(Array_##id *this, unsigned index,                   \
                                      t const *arr, unsigned n) {                         \
     t* i; t* end;                                                                        \
-    unsigned res = this->size;                                                           \
-    if (!n || index > res || !array_reserve_##id(this, res + n))                         \
-        return ARRAY_ERROR;                                                              \
-                                                                                         \
-    if (index != res) { /* insert in the middle of a */                                  \
-        memmove(&this->arr[index + n], &this->arr[index],                                \
-                (res - index) * sizeof(t));                                              \
-        res = index;                                                                     \
+    unsigned res = array_check_insert_##id(this, &end, index, n);                        \
+    if (res != ARRAY_ERROR) {                                                            \
+        for (i = &this->arr[res]; i != end; ++i, ++arr) {                                \
+            copyValue(*i, *arr);                                                         \
+        }                                                                                \
     }                                                                                    \
-    end = &this->arr[res + n];                                                           \
-                                                                                         \
-    for (i = &this->arr[res]; i != end; ++i, ++arr) {                                    \
-        copyValue(*i, *arr);                                                             \
-    }                                                                                    \
-    this->size += n;                                                                     \
     return res;                                                                          \
 }                                                                                        \
                                                                                          \
@@ -500,13 +502,13 @@ Array_##id *array_new_fromArray_##id(t const *arr, unsigned size) {             
     }                                                                                    \
     a->size = 0;                                                                         \
     a->capacity = 8;                                                                     \
-    if (arr) array_insert_fromArray_##id(a, 0, arr, size);                               \
+    if (arr && size) array_insert_fromArray_##id(a, 0, arr, size);                       \
     return a;                                                                            \
 }                                                                                        \
                                                                                          \
 Array_##id *array_new_repeatingValue_##id(unsigned n, t const value) {                   \
     Array_##id *a = array_new(id);                                                       \
-    if (a) array_insert_repeatingValue_##id(a, 0, n, value);                             \
+    if (a && n) array_insert_repeatingValue_##id(a, 0, n, value);                        \
     return a;                                                                            \
 }                                                                                        \
                                                                                          \

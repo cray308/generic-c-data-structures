@@ -86,17 +86,25 @@ DataType* __htable_iter_next_##id(TableType *this) {                            
     return this->it.curr ? &this->it.curr->data : NULL;                                  \
 }                                                                                        \
                                                                                          \
+static struct EntryType *__htable_find_entry_##id(TableType const *this,                 \
+                                                  unsigned *index,                       \
+                                                  kt const key) {                        \
+    /* get index and entry at this index */                                              \
+    struct EntryType *e;                                                                 \
+    *index = murmurhash(addrOfKey(key),                                                  \
+                        (int) sizeOfKey(key), this->seed) % this->cap;                   \
+    for (e = this->buckets[*index]; e; e = e->next) {                                    \
+        if (cmp_eq(entry_get_key(e), key)) break;                                        \
+    }                                                                                    \
+    return e;                                                                            \
+}                                                                                        \
+                                                                                         \
 static DataType* __htable_insert_nocheck_##id(TableType *this,                           \
                                               DataType const data,                       \
                                               int *inserted) {                           \
-    /* get index and entry at this index */                                              \
-    struct EntryType *e;                                                                 \
-    unsigned index = murmurhash(addrOfKey(data_get_key(data)),                           \
-                                (int) sizeOfKey(data_get_key(data)),                     \
-                                this->seed) % this->cap;                                 \
-    for (e = this->buckets[index]; e; e = e->next) {                                     \
-        if (cmp_eq(entry_get_key(e), data_get_key(data))) break;                         \
-    }                                                                                    \
+    unsigned index;                                                                      \
+    struct EntryType *e = __htable_find_entry_##id(this, &index,                         \
+                                                   data_get_key(data));                  \
                                                                                          \
     if (e) {                                                                             \
         deleteValue(e->data.second);                                                     \
@@ -156,9 +164,11 @@ DataType* __htable_insert_##id(TableType *this,                                 
                                                                                          \
 unsigned char __htable_insert_fromArray_##id(TableType *this,                            \
                                              DataType const *arr, unsigned n) {          \
-    unsigned i;                                                                          \
-    if (this->size + n >= this->threshold) {                                             \
-        __htable_rehash_##id(this, this->cap + n);                                       \
+    unsigned i, newSize = this->size + n;                                                \
+    if (newSize >= this->threshold || newSize < this->size) {                            \
+        unsigned newCap = this->cap + n;                                                 \
+        if (newCap < this->cap) newCap = DS_HTABLE_MAX_SIZE;                             \
+        __htable_rehash_##id(this, newCap);                                              \
     }                                                                                    \
     for (i = 0; i < n; ++i) {                                                            \
         if (!__htable_insert_nocheck_##id(this, arr[i], NULL)) return 0;                 \
@@ -245,13 +255,9 @@ void __htable_clear_##id(TableType *this) {                                     
 }                                                                                        \
                                                                                          \
 DataType* __htable_find_##id(TableType const *this, kt const key) {                      \
-    unsigned index = murmurhash(addrOfKey(key), (int) sizeOfKey(key),                    \
-                                this->seed) % this->cap;                                 \
-    struct EntryType *e;                                                                 \
-    for (e = this->buckets[index]; e; e = e->next) {                                     \
-        if (cmp_eq(entry_get_key(e), key)) return &e->data;                              \
-    }                                                                                    \
-    return NULL;                                                                         \
+    unsigned i;                                                                          \
+    struct EntryType *e = __htable_find_entry_##id(this, &i, key);                       \
+    return e ? &e->data : NULL;                                                          \
 }                                                                                        \
                                                                                          \
 unsigned char __htable_set_load_factor_##id(TableType *this, unsigned lf) {              \

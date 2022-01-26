@@ -345,6 +345,7 @@ void test_insert_fromList(void) {
     assert(streq(list_insert_fromList(str, ls, NULL, p3, p3->next)->data, "010"));
     p1 = p1->next;
     p3 = p3->next;
+    assert(p1 && p3 && p1->next && p3->next);
     assert(list_insert_fromList(int, li, li->front, p1, p1->next->next)->data == 0);
     assert(streq(list_insert_fromList(str, ls, ls->front, p3, p3->next->next)->data, "000"));
     p1 = p1->next->next;
@@ -369,6 +370,7 @@ void test_remove_element(void) {
     List_int *li = list_new_fromArray(int, ints, 5);
     List_str *ls = list_new_fromArray(str, strs, 5);
 
+    assert(li->front && li->back && ls->front && ls->back);
     list_remove(int, li, li->back->next);
     list_remove(int, li, li->front);
     list_remove(str, ls, ls->front);

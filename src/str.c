@@ -21,8 +21,8 @@ static unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
 unsigned char string_reserve(String *this, unsigned n) {
     unsigned ncap = this->cap;
     char *tmp;
-    if (n <= ncap) return 1;
-    else if (ncap == DS_STR_MAX_SIZE) return 0;
+    if (n == UINT_MAX || ncap == DS_STR_MAX_SIZE) return 0;
+    else if (++n <= ncap) return 1;
 
     if (n < DS_STR_SHIFT_THRESHOLD) {
         while (ncap < n) ncap <<= 1;
@@ -36,63 +36,72 @@ unsigned char string_reserve(String *this, unsigned n) {
     return 1;
 }
 
-unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace,
-                             char const *s, unsigned len) {
-    unsigned end, n = this->size - pos;
-    if (!(*s && len) || pos > this->size) return 1;
+static unsigned char string_check_replace(String *this, unsigned pos,
+                                          unsigned nToReplace, unsigned len) {
+    unsigned size = this->size;
+    unsigned end, n = size - pos, newSize = size;
 
-    if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(s);
     if (nToReplace != DS_ARG_NOT_APPLICABLE) n = min(n, nToReplace);
-    end = pos + n;
 
-    if (!string_reserve(this, this->size + len + 1)) return 0;
-    if (end < this->size) {
-        memmove(&this->s[pos + len], &this->s[end], this->size - end);
+    if (pos > size) return 0;
+    else if (!len) {
+        string_erase(this, pos, n);
+        return 2;
     }
-    memcpy(&this->s[pos], s, len);
 
     if (len < n) {
-        this->size -= (n - len);
+        newSize -= (n - len);
     } else {
-        this->size += (len - n);
+        newSize += (len - n);
+        if (newSize < size || 
+            (newSize > size && !string_reserve(this, newSize))) return 0;
     }
-    this->s[this->size] = 0;
+
+    end = pos + n;
+    if (end < size)
+        memmove(&this->s[pos + len], &this->s[end], size - end);
+    this->size = newSize;
     return 1;
+}
+
+unsigned char string_replace(String *this, unsigned pos, unsigned nToReplace,
+                             char const *s, unsigned len) {
+    unsigned char rv;
+    if (!(*s)) len = 0;
+    else if (len == DS_ARG_NOT_APPLICABLE) len = (unsigned) strlen(s);
+    if ((rv = string_check_replace(this, pos, nToReplace, len)) == 1) {
+        memcpy(&this->s[pos], s, len);
+        this->s[this->size] = 0;
+    }
+    return rv;
 }
 
 unsigned char string_replace_fromString(String *this, unsigned pos,
                                         unsigned nToReplace,
                                         String const *other,
                                         unsigned subpos, unsigned len) {
+    unsigned char rv;
     unsigned l = other->size - subpos;
-    if (subpos >= other->size || !len) return 1;
+    if (subpos >= other->size) return 0;
 
     if (len != DS_ARG_NOT_APPLICABLE) l = min(l, len);
-    return string_replace(this, pos, nToReplace, &other->s[subpos], l);
+    if ((rv = string_check_replace(this, pos, nToReplace, l)) == 1) {
+        memcpy(&this->s[pos], &other->s[subpos], l);
+        this->s[this->size] = 0;
+    }
+    return rv;
 }
 
 unsigned char string_replace_repeatingChar(String *this, unsigned pos,
                                            unsigned nToReplace,
                                            unsigned n, char c) {
-    unsigned end, n2r = this->size - pos;
-    if (!n || pos > this->size) return 1;
-
-    if (nToReplace != DS_ARG_NOT_APPLICABLE) n2r = min(n2r, nToReplace);
-    end = pos + n2r;
-
-    if (!string_reserve(this, this->size + n + 1)) return 0;
-    if (end < this->size) {
-        memmove(&this->s[pos + n], &this->s[end], this->size - end);
+    unsigned char rv;
+    if (!n) return 0;
+    if ((rv = string_check_replace(this, pos, nToReplace, n)) == 1) {
+        memset(&this->s[pos], c, n);
+        this->s[this->size] = 0;
     }
-    memset(&this->s[pos], c, n);
-
-    if (n < n2r) {
-        this->size -= (n2r - n);
-    } else {
-        this->size += (n - n2r);
-    }
-    this->s[this->size] = 0;
-    return 1;
+    return rv;
 }
 
 String *string_new_fromCStr(char const *s, unsigned n) {
@@ -108,25 +117,25 @@ String *string_new_fromCStr(char const *s, unsigned n) {
     t->size = 0;
     t->cap = 64;
     t->s[0] = 0;
-    if (s) string_append(t, s, n);
+    if (s && n) string_append(t, s, n);
     return t;
 }
 
 String *string_new_fromString(String const *other, unsigned pos, unsigned n) {
     String *s = string_new();
-    if (s) string_append_fromString(s, other, pos, n);
+    if (s && n) string_append_fromString(s, other, pos, n);
     return s;
 }
 
 String *string_new_repeatingChar(unsigned n, char c) {
     String *s = string_new();
-    if (s) string_append_repeatingChar(s, n, c);
+    if (s && n) string_append_repeatingChar(s, n, c);
     return s;
 }
 
 unsigned char string_resize_usingChar(String *this, unsigned n, char c) {
     if (n > this->size) {
-        if (!string_reserve(this, n + 1)) return 0;
+        if (!string_reserve(this, n)) return 0;
         memset(&this->s[this->size], c, n - this->size);
     }
     this->s[n] = 0;
@@ -136,12 +145,12 @@ unsigned char string_resize_usingChar(String *this, unsigned n, char c) {
 
 void string_erase(String *this, unsigned start, unsigned n) {
     unsigned end, n2d = this->size - start;
-    if (start >= this->size || !n) return;
+    if (start >= this->size) return;
 
     if (n != DS_ARG_NOT_APPLICABLE) n2d = min(n2d, n);
     end = start + n2d;
 
-    if (end < this->size) {
+    if (end < this->size && start != end) {
         memmove(&this->s[start], &this->s[end], this->size - end);
     }
     this->size -= n2d;

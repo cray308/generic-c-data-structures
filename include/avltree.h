@@ -89,15 +89,11 @@ EntryType *__avl_inorder_predecessor_##id(EntryType const *x) {                 
                                                                                          \
 void __avlEntry_advance_##id(EntryType **p1, long n) {                                   \
     long count = 0;                                                                      \
-    EntryType *curr = *p1;                                                               \
     if (n >= 0) {                                                                        \
-        for (; count++ < n && curr;                                                      \
-                curr = __avl_inorder_successor_##id(curr));                              \
+        for (; count++ < n && *p1; *p1 = __avl_inorder_successor_##id(*p1));             \
     } else {                                                                             \
-        for (; count-- > n && curr;                                                      \
-                curr = __avl_inorder_predecessor_##id(curr));                            \
+        for (; count-- > n && *p1; *p1 = __avl_inorder_predecessor_##id(*p1));           \
     }                                                                                    \
-    *p1 = curr;                                                                          \
 }                                                                                        \
                                                                                          \
 long __avlEntry_distance_##id(EntryType const *p1, EntryType const *p2) {                \
@@ -172,14 +168,13 @@ EntryType *__avltree_insert_##id(TreeType *this,                                
                                  DataType const data, int *inserted) {                   \
     EntryType *curr = __avltree_find_key_##id(this, data_get_key(data), 1);              \
     EntryType *new, *parent;                                                             \
-    if (this->size == UINT_MAX) return NULL;                                             \
-    else if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr),                              \
-                               data_get_key(data))) {                                    \
+    if (curr && ds_cmp_eq(cmp_lt, entry_get_key(curr), data_get_key(data))) {            \
         deleteValue(curr->data.second);                                                  \
         copyValue(curr->data.second, data.second);                                       \
         if (inserted) *inserted = 0;                                                     \
         return curr;                                                                     \
-    } else if (!(new = calloc(1, sizeof(EntryType)))) return NULL;                       \
+    } else if (this->size == UINT_MAX || !(new = calloc(1, sizeof(EntryType))))          \
+        return NULL;                                                                     \
                                                                                          \
     copyKey(entry_get_key(new), data_get_key(data));                                     \
     copyValue(new->data.second, data.second);                                            \
@@ -289,7 +284,7 @@ unsigned char __avltree_insert_fromTree_##id(TreeType *this,                    
 TreeType *__avltree_new_fromArray_##id(DataType const *arr, unsigned n) {                \
     TreeType *t = calloc(1, sizeof(TreeType));                                           \
     customAssert(t)                                                                      \
-    if (t && arr) __avltree_insert_fromArray_##id(t, arr, n);                            \
+    if (t && arr && n) __avltree_insert_fromArray_##id(t, arr, n);                       \
     return t;                                                                            \
 }                                                                                        \
                                                                                          \
