@@ -303,7 +303,7 @@ EntryType * __avltree_remove_entry_##id(TreeType *this, EntryType *v) {         
                                                                                          \
     if (v->left && v->right) {                                                           \
         EntryType *temp = rv;                                                            \
-        customAssert(temp)                                                               \
+        customAssert(temp && temp != ((void *) -1))                                      \
         deleteData = 0;                                                                  \
         deleteKey(entry_get_key(v));                                                     \
         deleteValue(v->data.second);                                                     \
@@ -394,6 +394,7 @@ EntryType * __avltree_remove_entry_##id(TreeType *this, EntryType *v) {         
         deleteKey(entry_get_key(v));                                                     \
         deleteValue(v->data.second);                                                     \
     }                                                                                    \
+    customAssert(v != ((void *) -1))                                                     \
     free(v);                                                                             \
     --this->size;                                                                        \
     return rv;                                                                           \

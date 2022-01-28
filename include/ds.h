@@ -11,7 +11,7 @@
 #ifndef __CDS_SCAN
 #include <assert.h>
 #endif /* __CDS_SCAN */
-#define customAssert(x) assert((x));
+#define customAssert(x) assert(x);
 #else
 #define customAssert(x)
 #endif /* DEBUG */
