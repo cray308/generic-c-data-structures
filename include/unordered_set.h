@@ -137,6 +137,8 @@
  * it exists.
  *
  * @param  value  @c t : Value to be deleted.
+ *
+ * @return        @c bool : Whether an element was found and deleted.
  */
 #define uset_remove(id, this, value) __htable_erase_##id(this, value)
 

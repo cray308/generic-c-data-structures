@@ -247,6 +247,11 @@
  * @param  end    @c SetEntry* : Entry after the last entry to be deleted. If
  *                 this is NULL, all elements from @c begin through the
  *                 greatest element in the set will be removed.
+ *
+ * @return        @c SetEntry* : If successful, returns an entry
+ *                corresponding to the element after the last deleted element;
+ *                if the last deleted element was the last element in the
+ *                set, this is @c SET_END . If an error occurred, returns NULL.
  */
 #define set_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -255,6 +260,11 @@
  * Removes a single item whose value is equal to @c value , if it exists.
  *
  * @param  value  @c t : Value to be deleted.
+ *
+ * @return        @c SetEntry* : If successful, returns the entry after the
+ *                entry corresponding to @c value ; if @c value was the last
+ *                element in the set, this is @c SET_END . If an error
+ *                occurred, returns NULL.
  */
 #define set_remove_value(id, this, value)                                                \
         __avltree_remove_entry_##id(this,                                                \
@@ -265,6 +275,10 @@
  * Removes @c entry from the set.
  *
  * @param  entry  @c SetEntry* : Entry to remove.
+ *
+ * @return        @c SetEntry* : If successful, returns the entry after
+ *                @c entry ; if @c entry was the last element in the set, this
+ *                is @c SET_END . If an error occurred, returns NULL.
  */
 #define set_remove_entry(id, this, entry)                                                \
         __avltree_remove_entry_##id(this, entry)

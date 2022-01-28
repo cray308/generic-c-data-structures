@@ -152,6 +152,8 @@
  * Removes a single pair from the map whose key is equal to @c k .
  *
  * @param  k  @c kt : Key to be deleted.
+ *
+ * @return    @c bool : Whether an entry was found and deleted.
  */
 #define umap_remove_key(id, this, k) __htable_erase_##id(this, k)
 

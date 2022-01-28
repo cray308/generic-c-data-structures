@@ -247,6 +247,11 @@
  * @param  end    @c MapEntry* : Entry after the last entry to be deleted. If
  *                 this is NULL, all keys from @c begin through the greatest
  *                 key in the map will be removed.
+ *
+ * @return        @c MapEntry* : If successful, returns an entry corresponding
+ *                to the entry after the last deleted entry; if the last
+ *                deleted entry was the last entry in the map, this is
+ *                @c MAP_END . If an error occurred, returns NULL.
  */
 #define map_erase(id, this, begin, end) __avltree_erase_##id(this, begin, end)
 
@@ -255,6 +260,10 @@
  * Removes a single pair from the map whose key is equal to @c key .
  *
  * @param  key  @c kt : Key to be deleted.
+ *
+ * @return      @c MapEntry* : If successful, returns the entry after the entry
+ *              corresponding to @c key ; if @c key was the last key in the
+ *              map, this is @c MAP_END . If an error occurred, returns NULL.
  */
 #define map_remove_key(id, this, key)                                                    \
         __avltree_remove_entry_##id(this,                                                \
@@ -265,6 +274,10 @@
  * Removes @c entry from the map.
  *
  * @param  entry  @c MapEntry* : Entry to remove.
+ *
+ * @return        @c MapEntry* : If successful, returns the entry after
+ *                @c entry ; if @c entry was the last entry in the map, this is
+ *                @c MAP_END . If an error occurred, returns NULL.
  */
 #define map_remove_entry(id, this, entry)                                                \
         __avltree_remove_entry_##id(this, entry)
