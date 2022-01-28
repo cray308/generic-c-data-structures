@@ -340,19 +340,37 @@ void test_insert_fromMap(void) {
 
 void test_remove_key(void) {
     unsigned char removed[] = {0, 0, 0, 0, 1, 1, 1, 0};
+    int nextInts[] = {-1,-1,-1,-1,50,20,-1,-1};
     int c1[] = {20,30}, removedInts[] = {0,60,39,41,40,10,50,40}, i;
     char *c2[] = {"020","030"}, *removedStrs[] = {"000","060","039","041","040","010","050","040"};
+    char *nextStrs[] = {"","","","","050","020","",""};
     Pair_int_str arrInt[5] = {{50,"050"},{40,"040"},{30,"030"},{20,"020"},{10,"010"}};
     Pair_strv_int arrStr1[5] = {{"050",50},{"040",40},{"030",30},{"020",20},{"010",10}};
     Pair_strp_int arrStr2[5] = {{"050",50},{"040",40},{"030",30},{"020",20},{"010",10}};
     Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 5);
     Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr1, 5);
     Map_strp_int *m3 = map_new_fromArray(strp_int, arrStr2, 5);
+    MapEntry_int_str *p1; MapEntry_strv_int *p2; MapEntry_strp_int *p3;
 
     for (i = 0; i < 8; ++i) {
-        assert(map_remove_key(int_str, m1, removedInts[i]) == removed[i]);
-        assert(map_remove_key(strv_int, m2, removedStrs[i]) == removed[i]);
-        assert(map_remove_key(strp_int, m3, removedStrs[i]) == removed[i]);
+        p1 = map_remove_key(int_str, m1, removedInts[i]);
+        p2 = map_remove_key(strv_int, m2, removedStrs[i]);
+        p3 = map_remove_key(strp_int, m3, removedStrs[i]);
+        if (removed[i]) {
+            assert(p1 && p2 && p3);
+            if (nextInts[i] >= 0) {
+                assert(p1->data.first == nextInts[i]);
+                assert(streq(p1->data.second, nextStrs[i]));
+                assert(streq(p2->data.first, nextStrs[i]));
+                assert(p2->data.second == nextInts[i]);
+                assert(streq(p3->data.first, nextStrs[i]));
+                assert(p3->data.second == nextInts[i]);
+            } else {
+                assert(p1 == MAP_END && p2 == MAP_END && p3 == MAP_END);
+            }
+        } else {
+            assert(!p1 && !p2 && !p3);
+        }
     }
     compare_int_str(m1, c1, c2, 2);
     compare_strv_int(m2, c2, c1, 2);
@@ -371,20 +389,30 @@ void test_remove_entry(void) {
     Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 5);
     Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr1, 5);
     Map_strp_int *m3 = map_new_fromArray(strp_int, arrStr2, 5);
+    MapEntry_int_str *p1; MapEntry_strv_int *p2; MapEntry_strp_int *p3;
 
     assert(!map_remove_entry(int_str, m1, NULL));
     assert(m1->root->left && m1->root->right);
-    assert(map_remove_entry(int_str, m1, m1->root));
+    p1 = map_remove_entry(int_str, m1, m1->root);
+    assert(p1 && p1->data.first == 50 && streq(p1->data.second, "050"));
     assert(m2->root->left && m2->root->right);
-    assert(map_remove_entry(strv_int, m2, m2->root));
+    p2 = map_remove_entry(strv_int, m2, m2->root);
+    assert(p2 && streq(p2->data.first, "050") && p2->data.second == 50);
     assert(m3->root->left && m3->root->right);
-    assert(map_remove_entry(strp_int, m3, m3->root));
-    assert(map_remove_entry(int_str, m1, map_iterator_begin(int_str, m1)));
-    assert(map_remove_entry(strv_int, m2, map_iterator_begin(strv_int, m2)));
-    assert(map_remove_entry(strp_int, m3, map_iterator_begin(strp_int, m3)));
-    assert(map_remove_entry(int_str, m1, map_iterator_rbegin(int_str, m1)));
-    assert(map_remove_entry(strv_int, m2, map_iterator_rbegin(strv_int, m2)));
-    assert(map_remove_entry(strp_int, m3, map_iterator_rbegin(strp_int, m3)));
+    p3 = map_remove_entry(strp_int, m3, m3->root);
+    assert(p3 && streq(p3->data.first, "050") && p3->data.second == 50);
+    p1 = map_remove_entry(int_str, m1, map_iterator_begin(int_str, m1));
+    assert(p1 && p1->data.first == 20 && streq(p1->data.second, "020"));
+    p2 = map_remove_entry(strv_int, m2, map_iterator_begin(strv_int, m2));
+    assert(p2 && streq(p2->data.first, "020") && p2->data.second == 20);
+    p3 = map_remove_entry(strp_int, m3, map_iterator_begin(strp_int, m3));
+    assert(p3 && streq(p3->data.first, "020") && p3->data.second == 20);
+    p1 = map_remove_entry(int_str, m1, map_iterator_rbegin(int_str, m1));
+    assert(p1 == MAP_END);
+    p2 = map_remove_entry(strv_int, m2, map_iterator_rbegin(strv_int, m2));
+    assert(p2 == MAP_END);
+    p3 = map_remove_entry(strp_int, m3, map_iterator_rbegin(strp_int, m3));
+    assert(p3 == MAP_END);
     compare_int_str(m1, c1, c2, 2);
     compare_strv_int(m2, c2, c1, 2);
     compare_strp_int(m3, c2, c1, 2);
@@ -402,9 +430,9 @@ void test_erase_entries(void) {
     Map_int_str *m1 = map_new_fromArray(int_str, arrInt, 10);
     Map_strv_int *m2 = map_new_fromArray(strv_int, arrStr1, 10);
     Map_strp_int *m3 = map_new_fromArray(strp_int, arrStr2, 10);
-    MapEntry_int_str *p1 = m1->root, *p2 = m1->root;
-    MapEntry_strv_int *p3 = m2->root, *p4 = m2->root;
-    MapEntry_strp_int *p5 = m3->root, *p6 = m3->root;
+    MapEntry_int_str *p1 = m1->root, *p2 = m1->root, *r1;
+    MapEntry_strv_int *p3 = m2->root, *p4 = m2->root, *r2;
+    MapEntry_strp_int *p5 = m3->root, *p6 = m3->root, *r3;
 
     mapEntry_advance(int_str, &p1, -1);
     mapEntry_advance(int_str, &p2, 1);
@@ -412,20 +440,26 @@ void test_erase_entries(void) {
     mapEntry_advance(strv_int, &p4, 1);
     mapEntry_advance(strp_int, &p5, -1);
     mapEntry_advance(strp_int, &p6, 1);
-    map_erase(int_str, m1, NULL, p2);
-    map_erase(int_str, m1, p1, p1);
-    map_erase(int_str, m1, p1, p2);
-    map_erase(strv_int, m2, p3, p4);
-    map_erase(strp_int, m3, p5, p6);
+    assert(!map_erase(int_str, m1, NULL, p2));
+    assert(!map_erase(int_str, m1, p1, p1));
+    r1 = map_erase(int_str, m1, p1, p2);
+    assert(r1 && r1->data.first == 80 && streq(r1->data.second, "080"));
+    r2 = map_erase(strv_int, m2, p3, p4);
+    assert(r2 && streq(r2->data.first, "080") && r2->data.second == 80);
+    r3 = map_erase(strp_int, m3, p5, p6);
+    assert(r3 && streq(r3->data.first, "080") && r3->data.second == 80);
     p1 = map_iterator_rbegin(int_str, m1);
     mapEntry_advance(int_str, &p1, -1);
     p3 = map_iterator_rbegin(strv_int, m2);
     mapEntry_advance(strv_int, &p3, -1);
     p5 = map_iterator_rbegin(strp_int, m3);
     mapEntry_advance(strp_int, &p5, -1);
-    map_erase(int_str, m1, p1, NULL);
-    map_erase(strv_int, m2, p3, NULL);
-    map_erase(strp_int, m3, p5, NULL);
+    r1 = map_erase(int_str, m1, p1, NULL);
+    assert(r1 == MAP_END);
+    r2 = map_erase(strv_int, m2, p3, NULL);
+    assert(r2 == MAP_END);
+    r3 = map_erase(strp_int, m3, p5, NULL);
+    assert(r3 == MAP_END);
     p1 = map_iterator_begin(int_str, m1);
     p2 = p1;
     mapEntry_advance(int_str, &p2, 2);
@@ -435,9 +469,12 @@ void test_erase_entries(void) {
     p5 = map_iterator_begin(strp_int, m3);
     p6 = p5;
     mapEntry_advance(strp_int, &p6, 2);
-    map_erase(int_str, m1, p1, p2);
-    map_erase(strv_int, m2, p3, p4);
-    map_erase(strp_int, m3, p5, p6);
+    r1 = map_erase(int_str, m1, p1, p2);
+    assert(r1 && r1->data.first == 30 && streq(r1->data.second, "030"));
+    r2 = map_erase(strv_int, m2, p3, p4);
+    assert(r2 && streq(r2->data.first, "030") && r2->data.second == 30);
+    r3 = map_erase(strp_int, m3, p5, p6);
+    assert(r3 && streq(r3->data.first, "030") && r3->data.second == 30);
     compare_int_str(m1, c1, c2, 4);
     compare_strv_int(m2, c2, c1, 4);
     compare_strp_int(m3, c2, c1, 4);

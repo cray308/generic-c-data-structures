@@ -105,7 +105,8 @@ void test_increasing_ints(void) {
     assert(t->root->right->right);
     assert(t->root->right->right->data == 7);
 
-    tree_remove_entry(int, t, t->root); /* remove node 4 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 4 */
+    assert(node && node->data == 5);
     assert(t->root != NULL);
     assert(t->size == 6);
     assert(t->root->data == 5);
@@ -117,7 +118,8 @@ void test_increasing_ints(void) {
 
     node = tree_find(int, t, 2);
     assert(node->left && node->right);
-    tree_remove_entry(int, t, node); /* remove node 2 */
+    node = tree_remove_entry(int, t, node); /* remove node 2 */
+    assert(node && node->data == 3);
     assert(t->root != NULL);
     assert(t->size == 5);
     assert(t->root->data == 5);
@@ -132,10 +134,11 @@ void test_increasing_ints(void) {
     assert(t->root->right->right);
     assert(t->root->right->right->data == 7);
 
-    tree_remove_value(int, t, 2);
+    assert(!tree_remove_value(int, t, 2));
     assert(t->size == 5);
 
-    tree_remove_entry(int, t, t->root->left->left); /* remove node 1 */
+    node = tree_remove_entry(int, t, t->root->left->left); /* remove node 1 */
+    assert(node && node->data == 3);
     assert(t->root != NULL);
     assert(t->size == 4);
     assert(t->root->data == 5);
@@ -149,7 +152,8 @@ void test_increasing_ints(void) {
     assert(t->root->right->right);
     assert(t->root->right->right->data == 7);
 
-    tree_remove_entry(int, t, t->root->left); /* remove node 3 */
+    node = tree_remove_entry(int, t, t->root->left); /* remove node 3 */
+    assert(node && node->data == 5);
     assert(t->root != NULL);
     assert(t->size == 3);
     assert(t->root->data == 6);
@@ -158,7 +162,8 @@ void test_increasing_ints(void) {
     assert(t->root->right);
     assert(t->root->right->data == 7);
 
-    tree_remove_entry(int, t, t->root); /* remove node 6 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 6 */
+    assert(node && node->data == 7);
     assert(t->root != NULL);
     assert(t->size == 2);
     assert(t->root->data == 7);
@@ -166,14 +171,16 @@ void test_increasing_ints(void) {
     assert(t->root->left->data == 5);
     assert(t->root->right == NULL);
 
-    tree_remove_entry(int, t, t->root); /* remove node 7 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 7 */
+    assert(node == ((void *) -1));
     assert(t->root != NULL);
     assert(t->size == 1);
     assert(t->root->data == 5);
     assert(t->root->left == NULL);
     assert(t->root->right == NULL);
 
-    tree_remove_entry(int, t, t->root); /* remove node 5 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 5 */
+    assert(node == ((void *) -1));
     assert(t->root == NULL);
     assert(t->size == 0);
 
@@ -181,6 +188,7 @@ void test_increasing_ints(void) {
 }
 
 void test_decreasing_ints(void) {
+    AVLNode_int *node;
     AVLTree_int *t = tree_new(int);
     assert(t->size == 0);
     assert(t->root == NULL);
@@ -324,7 +332,8 @@ void test_decreasing_ints(void) {
     assert(t->root->left->left->left);
     assert(t->root->left->left->left->data == 1);
 
-    tree_remove_entry(int, t, t->root); /* remove node 7 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 7 */
+    assert(node && node->data == 8);
     assert(t->root != NULL);
     assert(t->size == 9);
     assert(t->root->data == 8);
@@ -337,7 +346,8 @@ void test_decreasing_ints(void) {
     assert(t->root->left->data == 3);
 
     assert(t->root->left->left && t->root->left->right);
-    tree_remove_entry(int, t, t->root->left); /* remove node 3 */
+    node = tree_remove_entry(int, t, t->root->left); /* remove node 3 */
+    assert(node && node->data == 4);
     assert(t->root != NULL);
     assert(t->size == 8);
     assert(t->root->data == 8);
@@ -353,7 +363,8 @@ void test_decreasing_ints(void) {
     assert(t->root->left->right->right);
     assert(t->root->left->right->right->data == 6);
 #endif
-    tree_remove_entry(int, t, t->root->right->right); /* remove node 10 */
+    node = tree_remove_entry(int, t, t->root->right->right); /* remove node 10 */
+    assert(node == ((void *) -1));
     assert(t->root != NULL);
     assert(t->size == 7);
     assert(t->root->data == 4);
@@ -370,7 +381,8 @@ void test_decreasing_ints(void) {
     assert(t->root->right->left->right);
     assert(t->root->right->left->right->data == 6);
 
-    tree_remove_entry(int, t, t->root->left); /* remove node 2 */
+    node = tree_remove_entry(int, t, t->root->left); /* remove node 2 */
+    assert(node && node->data == 4);
     assert(t->root != NULL);
     assert(t->size == 6);
     assert(t->root->data == 5);
@@ -385,7 +397,8 @@ void test_decreasing_ints(void) {
     assert(t->root->right->left);
     assert(t->root->right->left->data == 6);
 
-    tree_remove_entry(int, t, t->root->right); /* remove node 8 */
+    node = tree_remove_entry(int, t, t->root->right); /* remove node 8 */
+    assert(node && node->data == 9);
     assert(t->root != NULL);
     assert(t->size == 5);
     assert(t->root->data == 5);
@@ -399,7 +412,8 @@ void test_decreasing_ints(void) {
     assert(t->root->right->left);
     assert(t->root->right->left->data == 6);
 
-    tree_remove_entry(int, t, t->root); /* remove node 5 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 5 */
+    assert(node && node->data == 6);
     assert(t->root != NULL);
     assert(t->size == 4);
     assert(t->root->data == 6);
@@ -412,7 +426,8 @@ void test_decreasing_ints(void) {
     assert(t->root->right->right == NULL);
     assert(t->root->right->left == NULL);
 
-    tree_remove_entry(int, t, t->root->left->left); /* remove node 1 */
+    node = tree_remove_entry(int, t, t->root->left->left); /* remove node 1 */
+    assert(node && node->data == 4);
     assert(t->root != NULL);
     assert(t->size == 3);
     assert(t->root->data == 6);
@@ -421,7 +436,8 @@ void test_decreasing_ints(void) {
     assert(t->root->right);
     assert(t->root->right->data == 9);
 
-    tree_remove_entry(int, t, t->root); /* remove node 6 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 6 */
+    assert(node && node->data == 9);
     assert(t->root != NULL);
     assert(t->size == 2);
     assert(t->root->data == 9);
@@ -429,14 +445,16 @@ void test_decreasing_ints(void) {
     assert(t->root->left->data == 4);
     assert(t->root->right == NULL);
 
-    tree_remove_entry(int, t, t->root); /* remove node 9 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 9 */
+    assert(node == ((void *) -1));
     assert(t->root != NULL);
     assert(t->size == 1);
     assert(t->root->data == 4);
     assert(t->root->left == NULL);
     assert(t->root->right == NULL);
 
-    tree_remove_entry(int, t, t->root); /* remove node 4 */
+    node = tree_remove_entry(int, t, t->root); /* remove node 4 */
+    assert(node == ((void *) -1));
     assert(t->root == NULL);
     assert(t->size == 0);
     tree_remove_value(int, t, 10);
@@ -608,7 +626,8 @@ void test_erase(void) {
     last = __avl_predecessor_str(t->root);
     __avlEntry_advance_str(&last, -1);
 
-    __avltree_erase_str(t, first, last);
+    first = __avltree_erase_str(t, first, last);
+    assert(first && streq(first->data, comparison[2]));
     assert(t->size == 4);
 
     i = 0;

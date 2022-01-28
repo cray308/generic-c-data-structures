@@ -43,10 +43,10 @@ unsigned char __avltree_insert_fromTree_##id(TreeType *this,                    
 TreeType *__avltree_new_fromArray_##id(DataType const *arr, unsigned n);                 \
 TreeType *__avltree_createCopy_##id(TreeType const *other)                               \
   __attribute__((nonnull));                                                              \
-unsigned char __avltree_remove_entry_##id(TreeType *this, EntryType *v)                  \
+EntryType * __avltree_remove_entry_##id(TreeType *this, EntryType *v)                    \
   __attribute__((nonnull (1)));                                                          \
-void __avltree_erase_##id(TreeType *this,                                                \
-                          EntryType *begin, EntryType const *end)                        \
+EntryType *__avltree_erase_##id(TreeType *this,                                          \
+                                EntryType *begin, EntryType const *end)                  \
   __attribute__((nonnull (1)));                                                          \
 
 #define __setup_avltree_source(id, kt, TreeType, DataType, EntryType, cmp_lt,            \
@@ -295,18 +295,20 @@ TreeType *__avltree_createCopy_##id(TreeType const *other) {                    
     return t;                                                                            \
 }                                                                                        \
                                                                                          \
-unsigned char __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                \
+EntryType * __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                  \
     char deleteData = 1;                                                                 \
-    EntryType *curr, *parent, *child;                                                    \
-    if (!v) return 0;                                                                    \
+    EntryType *curr, *parent, *child, *rv;                                               \
+    if (!v) return NULL;                                                                 \
+    else if (!(rv = __avl_inorder_successor_##id(v))) rv = (void *) -1;                  \
                                                                                          \
     if (v->left && v->right) {                                                           \
-        EntryType *temp = __avl_inorder_successor_##id(v);                               \
+        EntryType *temp = rv;                                                            \
         customAssert(temp)                                                               \
         deleteData = 0;                                                                  \
         deleteKey(entry_get_key(v));                                                     \
         deleteValue(v->data.second);                                                     \
         v->data = temp->data;                                                            \
+        rv = v;                                                                          \
         v = temp;                                                                        \
     }                                                                                    \
                                                                                          \
@@ -394,43 +396,26 @@ unsigned char __avltree_remove_entry_##id(TreeType *this, EntryType *v) {       
     }                                                                                    \
     free(v);                                                                             \
     --this->size;                                                                        \
-    return 1;                                                                            \
+    return rv;                                                                           \
 }                                                                                        \
                                                                                          \
-void __avltree_erase_##id(TreeType *this,                                                \
-                          EntryType *begin, EntryType const *end) {                      \
-    char getNext = 1, eraseToEnd;                                                        \
-    kt nextKey; kt lastKey = (kt) 0;                                                     \
-    static kt keys[256];                                                                 \
-    if (!begin) return;                                                                  \
+EntryType *__avltree_erase_##id(TreeType *this,                                          \
+                                EntryType *begin, EntryType const *end) {                \
+    if (!begin || begin == end) return NULL;                                             \
                                                                                          \
-    eraseToEnd = !end;                                                                   \
-    if (!eraseToEnd) lastKey = entry_get_key(end);                                       \
-    nextKey = entry_get_key(begin);                                                      \
-                                                                                         \
-    while (getNext) {                                                                    \
-        int i, count = 0;                                                                \
-        begin = __avltree_find_key_##id(this, nextKey, 0);                               \
-        for (; begin != end && count < 256;                                              \
-                begin = __avl_inorder_successor_##id(begin)) {                           \
-            customAssert(begin)                                                          \
-            keys[count++] = entry_get_key(begin);                                        \
+    if (end) {                                                                           \
+        kt lastKey = entry_get_key(end);                                                 \
+        begin = __avltree_remove_entry_##id(this, begin);                                \
+        while (cmp_lt(entry_get_key(begin), lastKey)) {                                  \
+            begin = __avltree_remove_entry_##id(this, begin);                            \
         }                                                                                \
-                                                                                         \
-        if (begin == end) getNext = 0;                                                   \
-        else {                                                                           \
-            customAssert(begin)                                                          \
-            nextKey = entry_get_key(begin);                                              \
+        return __avltree_find_key_##id(this, lastKey, 0);                                \
+    } else {                                                                             \
+        begin = __avltree_remove_entry_##id(this, begin);                                \
+        while (begin != ((void *)-1)) {                                                  \
+            begin = __avltree_remove_entry_##id(this, begin);                            \
         }                                                                                \
-                                                                                         \
-        for (i = 0; i < count; ++i) {                                                    \
-            EntryType *e = __avltree_find_key_##id(this, keys[i], 0);                    \
-            __avltree_remove_entry_##id(this, e);                                        \
-        }                                                                                \
-                                                                                         \
-        if (!eraseToEnd) {                                                               \
-            end = __avltree_find_key_##id(this, lastKey, 0);                             \
-        }                                                                                \
+        return ((void *) -1);                                                            \
     }                                                                                    \
 }                                                                                        \
 

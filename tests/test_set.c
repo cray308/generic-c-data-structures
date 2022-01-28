@@ -209,13 +209,27 @@ void test_insert_fromSet(void) {
 void test_remove_value(void) {
     unsigned char removed[] = {0, 0, 0, 0, 1, 1, 1, 0};
     int a1[] = {50,40,30,20,10}, c1[] = {20,30}, removedInts[] = {0,60,39,41,40,10,50,40}, i;
+    int nextInts[] = {-1,-1,-1,-1,50,20,-1,-1};
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"020","030"}, *removedStrs[] = {"000","060","039","041","040","010","050","040"};
+    char *nextStrs[] = {"","","","","050","020","",""};
     Set_int *si = set_new_fromArray(int, a1, 5);
     Set_str *ss = set_new_fromArray(str, a2, 5);
+    SetEntry_int *p1; SetEntry_str *p2;
 
     for (i = 0; i < 8; ++i) {
-        assert(set_remove_value(int, si, removedInts[i]) == removed[i]);
-        assert(set_remove_value(str, ss, removedStrs[i]) == removed[i]);
+        p1 = set_remove_value(int, si, removedInts[i]);
+        p2 = set_remove_value(str, ss, removedStrs[i]);
+        if (removed[i]) {
+            assert(p1 && p2);
+            if (nextInts[i] >= 0) {
+                assert(p1->data == nextInts[i]);
+                assert(streq(p2->data, nextStrs[i]));
+            } else {
+                assert(p1 == SET_END && p2 == SET_END);
+            }
+        } else {
+            assert(!p1 && !p2);
+        }
     }
     compare_ints(si, c1, 2);
     compare_strs(ss, c2, 2);
@@ -228,16 +242,23 @@ void test_remove_entry(void) {
     char *a2[] = {"050","040","030","020","010"}, *c2[] = {"020","030"};
     Set_int *si = set_new_fromArray(int, a1, 5);
     Set_str *ss = set_new_fromArray(str, a2, 5);
+    SetEntry_int *p1; SetEntry_str *p2;
 
     assert(!set_remove_entry(int, si, NULL));
     assert(si->root->left && si->root->right);
-    assert(set_remove_entry(int, si, si->root));
+    p1 = set_remove_entry(int, si, si->root);
+    assert(p1 && p1->data == 50);
     assert(ss->root->left && ss->root->right);
-    assert(set_remove_entry(str, ss, ss->root));
-    assert(set_remove_entry(int, si, set_iterator_begin(int, si)));
-    assert(set_remove_entry(str, ss, set_iterator_begin(str, ss)));
-    assert(set_remove_entry(int, si, set_iterator_rbegin(int, si)));
-    assert(set_remove_entry(str, ss, set_iterator_rbegin(str, ss)));
+    p2 = set_remove_entry(str, ss, ss->root);
+    assert(p2 && streq(p2->data, "050"));
+    p1 = set_remove_entry(int, si, set_iterator_begin(int, si));
+    assert(p1 && p1->data == 20);
+    p2 = set_remove_entry(str, ss, set_iterator_begin(str, ss));
+    assert(p2 && streq(p2->data, "020"));
+    p1 = set_remove_entry(int, si, set_iterator_rbegin(int, si));
+    assert(p1 == SET_END);
+    p2 = set_remove_entry(str, ss, set_iterator_rbegin(str, ss));
+    assert(p2 == SET_END);
     compare_ints(si, c1, 2);
     compare_strs(ss, c2, 2);
     set_free(int, si);
@@ -249,31 +270,37 @@ void test_erase_entries(void) {
     char *a2[] = {"100","090","080","070","060","050","040","030","020","010"}, *c2[] = {"030","040","050","080"};
     Set_int *si = set_new_fromArray(int, a1, 10);
     Set_str *ss = set_new_fromArray(str, a2, 10);
-    SetEntry_int *p1 = si->root, *p2 = si->root;
-    SetEntry_str *p3 = ss->root, *p4 = ss->root;
+    SetEntry_int *p1 = si->root, *p2 = si->root, *r1;
+    SetEntry_str *p3 = ss->root, *p4 = ss->root, *r2;
 
     setEntry_advance(int, &p1, -1);
     setEntry_advance(int, &p2, 1);
     setEntry_advance(str, &p3, -1);
     setEntry_advance(str, &p4, 1);
-    set_erase(int, si, NULL, p2);
-    set_erase(int, si, p1, p1);
-    set_erase(int, si, p1, p2);
-    set_erase(str, ss, p3, p4);
+    assert(!set_erase(int, si, NULL, p2));
+    assert(!set_erase(int, si, p1, p1));
+    r1 = set_erase(int, si, p1, p2);
+    assert(r1 && r1->data == 80);
+    r2 = set_erase(str, ss, p3, p4);
+    assert(r2 && streq(r2->data, "080"));
     p1 = set_iterator_rbegin(int, si);
     setEntry_advance(int, &p1, -1);
     p3 = set_iterator_rbegin(str, ss);
     setEntry_advance(str, &p3, -1);
-    set_erase(int, si, p1, NULL);
-    set_erase(str, ss, p3, NULL);
+    r1 = set_erase(int, si, p1, NULL);
+    assert(r1 == SET_END);
+    r2 = set_erase(str, ss, p3, NULL);
+    assert(r2 == SET_END);
     p1 = set_iterator_begin(int, si);
     p2 = p1;
     setEntry_advance(int, &p2, 2);
     p3 = set_iterator_begin(str, ss);
     p4 = p3;
     setEntry_advance(str, &p4, 2);
-    set_erase(int, si, p1, p2);
-    set_erase(str, ss, p3, p4);
+    r1 = set_erase(int, si, p1, p2);
+    assert(r1 && r1->data == 30);
+    r2 = set_erase(str, ss, p3, p4);
+    assert(r2 && streq(r2->data, "030"));
     compare_ints(si, c1, 4);
     compare_strs(ss, c2, 4);
     set_free(int, si);
