@@ -1,5 +1,5 @@
 OPTIMIZE = 2
-CVERS=c89
+CVERS=c99
 
 CFLAGS = -std=$(CVERS) -Iinclude -O$(OPTIMIZE) \
  -Wall -Wextra -Werror -Wpedantic -Wconversion -Wstrict-prototypes
@@ -22,11 +22,11 @@ BENCHMARK_BINARIES = bin/c/benchmark_c_ds bin/cpp/benchmark_cpp_ds
 all: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 debug: OPTIMIZE = 0
+debug: CVERS=c89
 debug: CFLAGS += -g -DDEBUG
 debug: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
 scan: OPTIMIZE = 0
-scan: CVERS=c99
 scan: CFLAGS += -c -g -fanalyzer
 scan: $(SCAN_OBJS)
 
@@ -37,11 +37,11 @@ benchmark: $(BENCHMARK_BINARIES)
 	@python3 bin/run_benchmarks.py
 
 src/scan/str_imp.c: src/str.c include/str.h
-	gcc -E -P -Iinclude -DDEBUG -D__CDS_SCAN $< -o $@
+	gcc -E -P -Iinclude -DDEBUG -D__CDS_SCAN -D__clang_analyzer__ $< -o $@
 	@bash bin/expand_macros.sh $@
 
 src/scan/%.c: tests/test_%.c include/%.h
-	gcc -E -P -Iinclude -DDEBUG -D__CDS_SCAN $< -o $@
+	gcc -E -P -Iinclude -DDEBUG -D__CDS_SCAN -D__clang_analyzer__ $< -o $@
 	@bash bin/expand_macros.sh $@
 
 src/scan/%.o: src/scan/%.c

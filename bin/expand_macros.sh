@@ -21,6 +21,7 @@ includeStr="#include <stdint.h>\n\
 #define DS_STR_SHIFT_THRESHOLD 0x7ffffffe\n\
 #define STRING_NPOS 0xfffffffe\n\
 #define STRING_ERROR 0xffffffff\n\
+#define __DSSTR_MAX_RESERVE 0xfffffffc\n\
 #elif UINT_MAX == 0xffff\n\
 #define DS_HTABLE_MAX_SIZE 655\n\
 #define DS_HTABLE_SHIFT_THRESHOLD 327\n\
@@ -33,6 +34,7 @@ includeStr="#include <stdint.h>\n\
 #define DS_STR_SHIFT_THRESHOLD 0x7ffe\n\
 #define STRING_NPOS 0xfffe\n\
 #define STRING_ERROR 0xffff\n\
+#define __DSSTR_MAX_RESERVE 0xfffc\n\
 #endif\n\n"
 
 sed -i "1s|^|${includeStr}|" $@

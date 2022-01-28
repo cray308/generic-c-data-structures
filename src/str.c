@@ -1,5 +1,11 @@
 #include "str.h"
 
+#if UINT_MAX == 0xffffffff
+#define __DSSTR_MAX_RESERVE 0xfffffffc
+#elif UINT_MAX == 0xffff
+#define __DSSTR_MAX_RESERVE 0xfffc
+#endif
+
 static unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
     unsigned i = 1, j = 0;
     unsigned *table = malloc(sizeof(unsigned) * len);
@@ -21,7 +27,7 @@ static unsigned *str_gen_prefix_table(char const *needle, unsigned len) {
 unsigned char string_reserve(String *this, unsigned n) {
     unsigned ncap = this->cap;
     char *tmp;
-    if (n == UINT_MAX || ncap == DS_STR_MAX_SIZE) return 0;
+    if (n > __DSSTR_MAX_RESERVE) return 0;
     else if (++n <= ncap) return 1;
 
     if (n < DS_STR_SHIFT_THRESHOLD) {

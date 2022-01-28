@@ -159,6 +159,18 @@ void test_create_copy(void) {
     array_free(str, c);
 }
 
+void test_reserve(void) {
+    Array_str *as = array_new(str);
+    assert(array_capacity(as) == 8);
+    assert(array_reserve(str, as, 4));
+    assert(array_capacity(as) == 8);
+    assert(array_reserve(str, as, 9));
+    assert(array_capacity(as) == 16);
+    assert(!array_reserve(str, as, UINT_MAX));
+    assert(as->capacity == 16);
+    array_free(str, as);
+}
+
 void test_push_back(void) {
     int i;
     Array_int *ai = array_new(int);
@@ -201,38 +213,29 @@ void test_resize(void) {
     Array_int *ai = array_new_fromArray(int, ints, 3);
     Array_str *as = array_new_fromArray(str, strs, 3);
     while (!array_empty(ai)) {
-        array_resize(int, ai, i);
+        assert(array_resize(int, ai, i));
         compare_ints(ai, ints, i--);
     }
-    array_resize(int, ai, 0);
+    assert(array_resize(int, ai, 0));
     i = 2;
     while (!array_empty(as)) {
-        array_resize(str, as, i);
+        assert(array_resize(str, as, i));
         compare_strs(as, strs, i--);
     }
-    array_resize(str, as, 0);
+    assert(array_resize(str, as, 0));
     compare_ints(ai, ints, 0);
     compare_strs(as, strs, 0);
 
-    array_resize_usingValue(int, ai, 3, 15);
-    array_resize_usingValue(str, as, 3, "015");
-    array_resize_usingValue(int, ai, 5, 20);
-    array_resize_usingValue(str, as, 5, "020");
-    array_resize(int, ai, 5);
-    array_resize(str, as, 5);
+    assert(array_resize_usingValue(int, ai, 3, 15));
+    assert(array_resize_usingValue(str, as, 3, "015"));
+    assert(array_resize_usingValue(int, ai, 5, 20));
+    assert(array_resize_usingValue(str, as, 5, "020"));
+    assert(array_resize(int, ai, 5));
+    assert(array_resize(str, as, 5));
+    assert(!array_resize_usingValue(int, ai, UINT_MAX, 50));
     compare_ints(ai, c1, 5);
     compare_strs(as, c2, 5);
     array_free(int, ai);
-    array_free(str, as);
-}
-
-void test_reserve(void) {
-    Array_str *as = array_new(str);
-    assert(array_capacity(as) == 8);
-    array_reserve(str, as, 4);
-    assert(array_capacity(as) == 8);
-    array_reserve(str, as, 9);
-    assert(array_capacity(as) == 16);
     array_free(str, as);
 }
 
@@ -283,6 +286,7 @@ void test_insert_repeatedValue(void) {
     assert(array_insert_repeatingValue(str, as, as->size - 1, 2, "005") == 2);
     assert(array_insert_repeatingValue(int, ai, array_size(ai), 2, 15) == 5);
     assert(array_insert_repeatingValue(str, as, array_size(as), 2, "015") == 5);
+    assert(array_insert_repeatingValue(int, ai, ai->size, UINT_MAX - 3, 50) == ARRAY_ERROR);
     compare_ints(ai, c1, 7);
     compare_strs(as, c2, 7);
     array_free(int, ai);
@@ -306,6 +310,7 @@ void test_insert_fromArray(void) {
     assert(array_insert_fromArray(str, as, as->size - 1, arr2[2], 2) == 2);
     assert(array_insert_fromArray(int, ai, array_size(ai), arr1[3], 2) == 5);
     assert(array_insert_fromArray(str, as, array_size(as), arr2[3], 2) == 5);
+    assert(array_insert_fromArray(int, ai, array_size(ai), c1, UINT_MAX - 3) == ARRAY_ERROR);
     compare_ints(ai, c1, 7);
     compare_strs(as, c2, 7);
     array_free(int, ai);
@@ -581,10 +586,10 @@ int main(void) {
     test_init_repeatingValue();
     test_init_fromArray();
     test_create_copy();
+    test_reserve();
     test_push_back();
     test_pop_back();
     test_resize();
-    test_reserve();
     test_shrink();
     test_insert_element();
     test_insert_repeatedValue();

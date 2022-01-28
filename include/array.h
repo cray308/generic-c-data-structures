@@ -400,11 +400,11 @@ unsigned char array_reserve_##id(Array_##id *this, unsigned n) {                
     unsigned ncap = this->capacity;                                                      \
     t* tmp;                                                                              \
     if (n <= ncap) return 1;                                                             \
-    else if (ncap == DS_ARRAY_MAX_SIZE) return 0;                                        \
                                                                                          \
     if (n < DS_ARRAY_SHIFT_THRESHOLD) {                                                  \
         while (ncap < n) ncap <<= 1;                                                     \
     } else {                                                                             \
+        if (n == UINT_MAX) return 0;                                                     \
         ncap = DS_ARRAY_MAX_SIZE;                                                        \
     }                                                                                    \
                                                                                          \

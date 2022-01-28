@@ -293,6 +293,7 @@ void test_insert_repeatedValue(void) {
     assert(streq(list_insert_repeatingValue(str, ls, ls->back, 2, "005")->data, "005"));
     assert(list_insert_repeatingValue(int, li, NULL, 2, 15)->data == 15);
     assert(streq(list_insert_repeatingValue(str, ls, NULL, 2, "015")->data, "015"));
+    assert(list_insert_repeatingValue(int, li, NULL, UINT_MAX - 3, 50) == NULL);
     compare_ints(li, c1, 7);
     compare_strs(ls, c2, 7);
     list_free(int, li);
@@ -316,6 +317,7 @@ void test_insert_fromArray(void) {
     assert(streq(list_insert_fromArray(str, ls, ls->back, arr2[2], 2)->data, "005"));
     assert(list_insert_fromArray(int, li, NULL, arr1[3], 2)->data == 15);
     assert(streq(list_insert_fromArray(str, ls, NULL, arr2[3], 2)->data, "015"));
+    assert(list_insert_fromArray(int, li, NULL, c1, UINT_MAX - 3) == NULL);
     compare_ints(li, c1, 7);
     compare_strs(ls, c2, 7);
     list_free(int, li);

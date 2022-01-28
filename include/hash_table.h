@@ -127,11 +127,11 @@ unsigned char __htable_rehash_##id(TableType *this, unsigned nbuckets) {        
     unsigned ncap = this->cap, i;                                                        \
     struct EntryType **new, *e, *next;                                                   \
     if (nbuckets <= ncap) return 1;                                                      \
-    else if (ncap == DS_HTABLE_MAX_SIZE) return 0;                                       \
                                                                                          \
     if (nbuckets < DS_HTABLE_SHIFT_THRESHOLD) {                                          \
         while (ncap < nbuckets) ncap <<= 1;                                              \
     } else {                                                                             \
+        if (nbuckets > DS_HTABLE_MAX_SIZE) return 0;                                     \
         ncap = DS_HTABLE_MAX_SIZE;                                                       \
     }                                                                                    \
                                                                                          \

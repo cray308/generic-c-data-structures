@@ -103,6 +103,20 @@ void test_init_fromString(void) {
     string_free(b);
 }
 
+void test_reserve(void) {
+    String *s = string_new();
+    assert(string_capacity(s) == 64);
+    assert(string_reserve(s, 63));
+    assert(string_capacity(s) == 64);
+    assert(string_reserve(s, 64)); /* increase capacity because of the nul terminator */
+    assert(string_capacity(s) == 128);
+    assert(!string_reserve(s, 0xfffffffd));
+    assert(!string_reserve(s, 0xfffffffe));
+    assert(!string_reserve(s, 0xffffffff));
+    assert(string_capacity(s) == 128);
+    string_free(s);
+}
+
 void test_push_back(void) {
     int i;
     String *s = string_new();
@@ -130,25 +144,16 @@ void test_resize(void) {
     unsigned i = 2;
     String *s = string_new_fromCStr(testStr, 3);
     while (!string_empty(s)) {
-        string_resize(s, i);
+        (string_resize(s, i));
         compareStrs(s, testStr, i--);
     }
-    string_resize(s, 0);
+    (string_resize(s, 0));
     compareStrs(s, testStr, 0);
-    string_resize_usingChar(s, 3, 'a');
-    string_resize_usingChar(s, 5, 'b');
-    string_resize(s, 7);
+    assert(string_resize_usingChar(s, 3, 'a'));
+    assert(string_resize_usingChar(s, 5, 'b'));
+    assert(string_resize(s, 7));
+    assert(!string_resize(s, 0xfffffffd));
     compareStrs(s, c, 7);
-    string_free(s);
-}
-
-void test_reserve(void) {
-    String *s = string_new();
-    assert(string_capacity(s) == 64);
-    string_reserve(s, 63);
-    assert(string_capacity(s) == 64);
-    string_reserve(s, 64); /* increase capacity because of the nul terminator */
-    assert(string_capacity(s) == 128);
     string_free(s);
 }
 
@@ -178,47 +183,51 @@ void test_cstr(void) {
 
 void test_insert_cStr(void) {
     String *s = string_new();
-    string_insert(s, 0, "", 64);
-    string_insert(s, 0, testStr, 0);
-    string_insert(s, s->size - 1, testStr, 64);
-    string_insert(s, 10, testStr, 64);
+    assert(string_insert(s, 0, "", 64));
+    assert(string_insert(s, 0, testStr, 0));
+    assert(!string_insert(s, s->size - 1, testStr, 64));
+    assert(!string_insert(s, 10, testStr, 64));
     compareStrs(s, testStr, 0);
-    string_insert(s, 0, "c", DS_ARG_NOT_APPLICABLE);
-    string_insert(s, 0, "aaa", 2);
-    string_insert(s, s->size - 1, "bc", DS_ARG_NOT_APPLICABLE);
-    string_insert(s, string_len(s), "d", 1);
+    assert(string_insert(s, 0, "c", DS_ARG_NOT_APPLICABLE));
+    assert(string_insert(s, 0, "aaa", 2));
+    assert(string_insert(s, s->size - 1, "bc", DS_ARG_NOT_APPLICABLE));
+    assert(string_insert(s, string_len(s), "d", 1));
+    assert(!string_insert(s, string_len(s), "d", UINT_MAX - 3));
     compareStrs(s, "aabccd", 6);
     string_free(s);
 }
 
 void test_insert_repeatedChar(void) {
     String *s = string_new();
-    string_insert_repeatingChar(s, 0, 0, 'x');
-    string_insert_repeatingChar(s, s->size - 1, 5, 'x');
-    string_insert_repeatingChar(s, 10, 5, 'x');
+    assert(!string_insert_repeatingChar(s, 0, 0, 'x'));
+    assert(!string_insert_repeatingChar(s, s->size - 1, 5, 'x'));
+    assert(!string_insert_repeatingChar(s, 10, 5, 'x'));
     compareStrs(s, testStr, 0);
-    string_insert_repeatingChar(s, 0, 1, 'c');
-    string_insert_repeatingChar(s, 0, 2, 'a');
-    string_insert_repeatingChar(s, s->size - 1, 2, 'b');
-    string_insert_repeatingChar(s, string_len(s), 2, 'd');
+    assert(string_insert_repeatingChar(s, 0, 1, 'c'));
+    assert(string_insert_repeatingChar(s, 0, 2, 'a'));
+    assert(string_insert_repeatingChar(s, s->size - 1, 2, 'b'));
+    assert(string_insert_repeatingChar(s, string_len(s), 2, 'd'));
+    assert(!string_insert_repeatingChar(s, string_len(s), UINT_MAX - 3, 'd'));
     compareStrs(s, "aabbcdd", 7);
     string_free(s);
 }
 
 void test_insert_fromString(void) {
     String *s = string_new(), *b = string_new_fromCStr(testStr, 0), *d = string_new_fromCStr("dd", 2), *a = string_new_fromCStr("aa", 2);
-    string_insert_fromString(s, 0, b, 0, 0);
-    string_insert_fromString(s, 0, b, 10, 64);
-    string_insert_fromString(s, 0, b, b->size - 1, 5);
+    assert(!string_insert_fromString(s, 0, b, 0, 0));
+    assert(!string_insert_fromString(s, 0, b, 10, 64));
+    assert(!string_insert_fromString(s, 0, b, b->size - 1, 5));
     string_insert(b, 0, "bbc", 3);
-    string_insert_fromString(s, s->size - 1, b, 0, 1);
-    string_insert_fromString(s, 10, b, 0, 1);
+    assert(!string_insert_fromString(s, s->size - 1, b, 0, 1));
+    assert(!string_insert_fromString(s, 10, b, 0, 1));
     compareStrs(s, testStr, 0);
-    string_insert_fromString(s, 0, b, 2, 30);
-    string_insert_fromString(s, 0, a, 0, DS_ARG_NOT_APPLICABLE);
-    string_insert_fromString(s, s->size - 1, b, 0, 2);
-    string_insert_fromString(s, string_len(s), d, 0, 3);
+    assert(string_insert_fromString(s, 0, b, 2, 30));
+    assert(string_insert_fromString(s, 0, a, 0, DS_ARG_NOT_APPLICABLE));
+    assert(string_insert_fromString(s, s->size - 1, b, 0, 2));
+    assert(string_insert_fromString(s, string_len(s), d, 0, 3));
     compareStrs(s, "aabbcdd", 7);
+    assert(string_insert_fromString(s, string_len(s), d, 0, UINT_MAX - 3));
+    compareStrs(s, "aabbcdddd", 9);
     string_free(s);
     string_free(a);
     string_free(b);
@@ -227,89 +236,95 @@ void test_insert_fromString(void) {
 
 void test_append_cStr(void) {
     String *s = string_new();
-    string_append(s, "", 64);
-    string_append(s, testStr, 0);
+    assert(string_append(s, "", 64));
+    assert(string_append(s, testStr, 0));
     compareStrs(s, testStr, 0);
-    string_append(s, "aaa", 2);
-    string_append(s, "bc", DS_ARG_NOT_APPLICABLE);
-    string_append(s, "c", DS_ARG_NOT_APPLICABLE);
-    string_append(s, "d", 1);
+    assert(string_append(s, "aaa", 2));
+    assert(string_append(s, "bc", DS_ARG_NOT_APPLICABLE));
+    assert(string_append(s, "c", DS_ARG_NOT_APPLICABLE));
+    assert(string_append(s, "d", 1));
+    assert(!string_append(s, "d", UINT_MAX - 3));
     compareStrs(s, "aabccd", 6);
     string_free(s);
 }
 
 void test_append_fromString(void) {
     String *s = string_new(), *b = string_new_fromCStr(testStr, 0);
-    string_append_fromString(s, b, 0, 0);
-    string_append_fromString(s, b, 10, 64);
-    string_append_fromString(s, b, b->size - 1, 5);
+    assert(!string_append_fromString(s, b, 0, 0));
+    assert(!string_append_fromString(s, b, 10, 64));
+    assert(!string_append_fromString(s, b, b->size - 1, 5));
     compareStrs(s, testStr, 0);
     string_append(b, "aabbccdd", 8);
-    string_append_fromString(s, b, 0, 2);
-    string_append_fromString(s, b, 2, 2);
-    string_append_fromString(s, b, b->size - 4, 1);
-    string_append_fromString(s, b, b->size - 2, 50);
+    assert(string_append_fromString(s, b, 0, 2));
+    assert(string_append_fromString(s, b, 2, 2));
+    assert(string_append_fromString(s, b, b->size - 4, 1));
+    assert(string_append_fromString(s, b, b->size - 2, 50));
     compareStrs(s, "aabbcdd", 7);
+    assert(string_append_fromString(s, b, 0, DS_ARG_NOT_APPLICABLE));
+    compareStrs(s, "aabbcddaabbccdd", 15);
     string_free(s);
     string_free(b);
 }
 
 void test_append_repeatingChar(void) {
     String *s = string_new();
-    string_append_repeatingChar(s, 0, 'x');
+    assert(!string_append_repeatingChar(s, 0, 'x'));
     compareStrs(s, testStr, 0);
-    string_append_repeatingChar(s, 2, 'a');
-    string_append_repeatingChar(s, 2, 'b');
-    string_append_repeatingChar(s, 1, 'c');
-    string_append_repeatingChar(s, 2, 'd');
+    assert(string_append_repeatingChar(s, 2, 'a'));
+    assert(string_append_repeatingChar(s, 2, 'b'));
+    assert(string_append_repeatingChar(s, 1, 'c'));
+    assert(string_append_repeatingChar(s, 2, 'd'));
+    assert(!string_append_repeatingChar(s, UINT_MAX - 3, 'z'));
     compareStrs(s, "aabbcdd", 7);
     string_free(s);
 }
 
 void test_replace_cStr(void) {
     String *s = string_new();
-    string_replace(s, 0, 0, "", 64);
-    string_replace(s, 0, 0, testStr, 0);
-    string_replace(s, s->size - 1, 0, testStr, 64);
-    string_replace(s, 10, 0, testStr, 64);
+    assert(string_replace(s, 0, 0, "", 64));
+    assert(string_replace(s, 0, 0, testStr, 0));
+    assert(!string_replace(s, s->size - 1, 0, testStr, 64));
+    assert(!string_replace(s, 10, 0, testStr, 64));
     compareStrs(s, testStr, 0);
-    string_replace(s, 0, 0, "xxxxx", 5);
-    string_replace(s, 0, 1, "abc", 3);
-    string_replace(s, string_len(s), 50, "hello", DS_ARG_NOT_APPLICABLE);
-    string_replace(s, s->size - 5, 20, "y", 1);
-    string_replace(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "longString", 7);
+    assert(string_replace(s, 0, 0, "xxxxx", 5));
+    assert(string_replace(s, 0, 1, "abc", 3));
+    assert(string_replace(s, string_len(s), 50, "hello", DS_ARG_NOT_APPLICABLE));
+    assert(string_replace(s, s->size - 5, 20, "y", 1));
+    assert(string_replace(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "longString", 7));
     compareStrs(s, "abclongStr", 10);
-    string_replace(s, 7, DS_ARG_NOT_APPLICABLE, "", 1);
+    assert(string_replace(s, 7, DS_ARG_NOT_APPLICABLE, "", 1));
     compareStrs(s, "abclong", 7);
     assert(!string_replace(s, 6, 0, "xxxxx", UINT_MAX - 3));
-    string_replace(s, 0, 3, "x", 0);
+    assert(string_replace(s, 0, 3, "x", 0));
     compareStrs(s, "long", 4);
-    string_replace(s, 0, DS_ARG_NOT_APPLICABLE, "x", 0);
+    assert(string_replace(s, 0, DS_ARG_NOT_APPLICABLE, "x", 0));
     compareStrs(s, testStr, 0);
     string_free(s);
 }
 
 void test_replace_fromString(void) {
     String *s = string_new(), *b = string_new_fromCStr(testStr, 0);
-    string_replace_fromString(s, 0, 0, b, 0, 0);
-    string_replace_fromString(s, 0, 0, b, 10, 64);
-    string_replace_fromString(s, 0, 0, b, b->size - 1, 5);
+    assert(!string_replace_fromString(s, 0, 0, b, 0, 0));
+    assert(!string_replace_fromString(s, 0, 0, b, 10, 64));
+    assert(!string_replace_fromString(s, 0, 0, b, b->size - 1, 5));
     string_append(b, "y.abclongStringhelloxxxxx", 25);
-    string_replace_fromString(s, s->size - 1, 0, b, 0, 1);
-    string_replace_fromString(s, 10, 0, b, 0, 1);
+    assert(!string_replace_fromString(s, s->size - 1, 0, b, 0, 1));
+    assert(!string_replace_fromString(s, 10, 0, b, 0, 1));
     compareStrs(s, testStr, 0);
-    string_replace_fromString(s, 0, 0, b, b->size - 5, 50);
-    string_replace_fromString(s, 0, 1, b, 2, 3);
-    string_replace_fromString(s, string_len(s), 50, b, b->size - 10, 5);
-    string_replace_fromString(s, s->size - 5, 20, b, 0, 1);
-    string_replace_fromString(s, s->size - 5, DS_ARG_NOT_APPLICABLE, b, 5, 7);
+    assert(string_replace_fromString(s, 0, 0, b, b->size - 5, 50));
+    assert(string_replace_fromString(s, 0, 1, b, 2, 3));
+    assert(string_replace_fromString(s, string_len(s), 50, b, b->size - 10, 5));
+    assert(string_replace_fromString(s, s->size - 5, 20, b, 0, 1));
+    assert(string_replace_fromString(s, s->size - 5, DS_ARG_NOT_APPLICABLE, b, 5, 7));
     compareStrs(s, "abclongStr", 10);
-    string_replace_fromString(s, 3, DS_ARG_NOT_APPLICABLE, b, 1, 0);
+    assert(string_replace_fromString(s, 3, DS_ARG_NOT_APPLICABLE, b, 1, 0));
     compareStrs(s, "abc", 3);
     b->s[3] = 0;
     assert(string_replace_fromString(s, 2, DS_ARG_NOT_APPLICABLE, b, 3, 6));
     compareStrs(s, "ab\0clong", 8);
-    string_replace_fromString(s, 0, DS_ARG_NOT_APPLICABLE, b, 0, 0);
+    assert(string_replace_fromString(s, s->size - 1, 1, b, 0, UINT_MAX - 3));
+    compareStrs(s, "ab\0clony.a\0clongStringhelloxxxxx", 32);
+    assert(string_replace_fromString(s, 0, DS_ARG_NOT_APPLICABLE, b, 0, 0));
     compareStrs(s, testStr, 0);
     string_free(s);
     string_free(b);
@@ -317,19 +332,20 @@ void test_replace_fromString(void) {
 
 void test_replace_repeatingChar(void) {
     String *s = string_new();
-    string_replace_repeatingChar(s, 0, 0, 0, 'x');
-    string_replace_repeatingChar(s, s->size - 1, 0, 5, 'x');
-    string_replace_repeatingChar(s, 10, 0, 5, 'x');
+    assert(!string_replace_repeatingChar(s, 0, 0, 0, 'x'));
+    assert(!string_replace_repeatingChar(s, s->size - 1, 0, 5, 'x'));
+    assert(!string_replace_repeatingChar(s, 10, 0, 5, 'x'));
     compareStrs(s, testStr, 0);
-    string_replace_repeatingChar(s, 0, 0, 5, 'x');
-    string_replace_repeatingChar(s, 0, 1, 3, 'a');
-    string_replace_repeatingChar(s, string_len(s), 50, 5, 'h');
-    string_replace_repeatingChar(s, s->size - 5, 20, 1, 'y');
-    string_replace_repeatingChar(s, s->size - 5, DS_ARG_NOT_APPLICABLE, 7, 'l');
+    assert(string_replace_repeatingChar(s, 0, 0, 5, 'x'));
+    assert(string_replace_repeatingChar(s, 0, 1, 3, 'a'));
+    assert(string_replace_repeatingChar(s, string_len(s), 50, 5, 'h'));
+    assert(string_replace_repeatingChar(s, s->size - 5, 20, 1, 'y'));
+    assert(string_replace_repeatingChar(s, s->size - 5, DS_ARG_NOT_APPLICABLE, 7, 'l'));
     compareStrs(s, "aaalllllll", 10);
     assert(string_replace_repeatingChar(s, 3, 0, 2, '\0'));
     compareStrs(s, "aaa\0\0lllllll", 12);
     assert(!string_replace_repeatingChar(s, 0, DS_ARG_NOT_APPLICABLE, 0, '.'));
+    assert(!string_replace_repeatingChar(s, s->size, 0, UINT_MAX - 3, 'z'));
     assert(string_replace_repeatingChar(s, 0, DS_ARG_NOT_APPLICABLE, 1, '.'));
     compareStrs(s, ".", 1);
     string_free(s);
@@ -553,11 +569,11 @@ void test_format(void) {
     /* insert */
     {
         String *s = string_new();
-        string_insert_withFormat(s, s->size - 1, "%c", 'x');
-        string_insert_withFormat(s, 0, "%c", 'c');
-        string_insert_withFormat(s, 0, "%s", "aa");
-        string_insert_withFormat(s, s->size - 1, "%s", "bc");
-        string_insert_withFormat(s, string_len(s), "%c", 'd');
+        assert(!string_insert_withFormat(s, s->size - 1, "%c", 'x'));
+        assert(string_insert_withFormat(s, 0, "%c", 'c'));
+        assert(string_insert_withFormat(s, 0, "%s", "aa"));
+        assert(string_insert_withFormat(s, s->size - 1, "%s", "bc"));
+        assert(string_insert_withFormat(s, string_len(s), "%c", 'd'));
         compareStrs(s, "aabccd", 6);
         string_free(s);
     }
@@ -565,10 +581,10 @@ void test_format(void) {
     /* append */
     {
         String *s = string_new();
-        string_append_withFormat(s, "%s", "aa");
-        string_append_withFormat(s, "%s", "bc");
-        string_append_withFormat(s, "%c", 'c');
-        string_append_withFormat(s, "%c", 0x64);
+        assert(string_append_withFormat(s, "%s", "aa"));
+        assert(string_append_withFormat(s, "%s", "bc"));
+        assert(string_append_withFormat(s, "%c", 'c'));
+        assert(string_append_withFormat(s, "%c", 0x64));
         compareStrs(s, "aabccd", 6);
         string_free(s);
     }
@@ -576,14 +592,14 @@ void test_format(void) {
     /* replace */
     {   
         String *s = string_new();
-        string_replace_withFormat(s, s->size - 1, 0, "%s", "xxxxx");
-        string_replace_withFormat(s, 0, 0, "%s", "xxxxx");
-        string_replace_withFormat(s, 0, 1, "%c%c%c", 0x61, 0x62, 0x63);
-        string_replace_withFormat(s, string_len(s), 50, "%c%d", 'h', 3110);
-        string_replace_withFormat(s, s->size - 5, 20, "%s", "y");
-        string_replace_withFormat(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "%s", "longStr\0\0\0");
+        assert(!string_replace_withFormat(s, s->size - 1, 0, "%s", "xxxxx"));
+        assert(string_replace_withFormat(s, 0, 0, "%s", "xxxxx"));
+        assert(string_replace_withFormat(s, 0, 1, "%c%c%c", 0x61, 0x62, 0x63));
+        assert(string_replace_withFormat(s, string_len(s), 50, "%c%d", 'h', 3110));
+        assert(string_replace_withFormat(s, s->size - 5, 20, "%s", "y"));
+        assert(string_replace_withFormat(s, s->size - 5, DS_ARG_NOT_APPLICABLE, "%s", "longStr\0\0\0"));
         compareStrs(s, "abclongStr", 10);
-        string_replace_withFormat(s, 0, DS_ARG_NOT_APPLICABLE, "%c", 46);
+        assert(string_replace_withFormat(s, 0, DS_ARG_NOT_APPLICABLE, "%c", 46));
         compareStrs(s, ".", 1);
         string_free(s);
     }
@@ -596,10 +612,10 @@ int main(void) {
     test_init_fromCStr();
     test_create_copy();
     test_init_fromString();
+    test_reserve();
     test_push_back();
     test_pop_back();
     test_resize();
-    test_reserve();
     test_shrink();
     test_cstr();
     test_insert_cStr();

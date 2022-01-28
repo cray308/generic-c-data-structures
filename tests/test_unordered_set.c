@@ -325,12 +325,12 @@ void test_rehash(void) {
     }
     assert(uset_bucket_count(si) == 32);
     assert(uset_bucket_count(ss) == 32);
-    uset_rehash(int, si, 16);
-    uset_rehash(str, ss, 16);
+    assert(uset_rehash(int, si, 16));
+    assert(uset_rehash(str, ss, 16));
     assert(uset_bucket_count(si) == 32);
     assert(uset_bucket_count(ss) == 32);
-    uset_rehash(int, si, 33);
-    uset_rehash(str, ss, 33);
+    assert(uset_rehash(int, si, 33));
+    assert(uset_rehash(str, ss, 33));
     assert(uset_bucket_count(si) == 64);
     assert(uset_bucket_count(ss) == 64);
 
@@ -338,10 +338,11 @@ void test_rehash(void) {
     uset_insert_fromArray(str, ss, strs, 50);
     assert(uset_bucket_count(si) == 128);
     assert(uset_bucket_count(ss) == 128);
-    uset_rehash(int, si, 1024);
-    uset_rehash(str, ss, 1024);
+    assert(uset_rehash(int, si, 1024));
+    assert(uset_rehash(str, ss, 1024));
     assert(uset_bucket_count(si) == 1024);
     assert(uset_bucket_count(ss) == 1024);
+    assert(!uset_rehash(str, ss, UINT_MAX));
     compare_ints(si, c1, 50);
     compare_strs(ss, c2, 50);
     uset_free(int, si);
