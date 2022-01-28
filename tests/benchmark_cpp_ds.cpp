@@ -9,38 +9,43 @@
 const char *ProgName = NULL;
 unsigned n = 10000;
 
-#define runTest(append, sort) {                                                                              \
-    clock_t before, after;                                                                                   \
-    for (unsigned i = 0; i < n; ++i) {                                                                       \
-        append;                                                                                              \
-    }                                                                                                        \
-    before = clock();                                                                                        \
-    sort;                                                                                                    \
-    after = clock();                                                                                         \
-    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;                                    \
-    std::cout << std::fixed << elapsed << '\n';                                                              \
-}
-
 enum DSTest {
     TEST_ARRAY,
     TEST_LIST
 };
 
-#define usage()                                                                                              \
-    std::cerr << "Usage: " << ProgName << '\n';                                                              \
-    std::cerr << "    -d DATA_STRUTURE    One of [ARRAY,LIST]  \n";                                          \
-    std::cerr << "    -n NELEM            Number of elements to sort\n";                                     \
-    exit(1);
+static int usage(void) {
+    std::cerr << "Usage: " << ProgName << '\n';
+    std::cerr << "    -d DATA_STRUTURE    One of [ARRAY,LIST]  \n";
+    std::cerr << "    -n NELEM            Number of elements to sort\n";
+    return 1;
+}
 
 void test_list(void) {
     std::list<unsigned> *l = new std::list<unsigned>;
-    runTest(l->push_back(rand() % UINT_MAX), l->sort())
+    clock_t before, after;
+    for (unsigned i = 0; i < n; ++i) {
+        l->push_back(((unsigned) rand()) % UINT_MAX);
+    }
+    before = clock();
+    l->sort();
+    after = clock();
+    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+    std::cout << std::fixed << elapsed << '\n';
     delete l;
 }
 
 void test_arr(void) {
     std::vector<unsigned> *a = new std::vector<unsigned>;
-    runTest(a->push_back(rand() % UINT_MAX), std::sort(a->begin(), a->end()))
+    clock_t before, after;
+    for (unsigned i = 0; i < n; ++i) {
+        a->push_back(((unsigned) rand()) % UINT_MAX);
+    }
+    before = clock();
+    std::sort(a->begin(), a->end());
+    after = clock();
+    double elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+    std::cout << std::fixed << elapsed << '\n';
     delete a;
 }
 
@@ -59,17 +64,17 @@ int main(int argc, char *argv[]) {
                 } else if (strcmp(temp, "ARRAY") == 0) {
                     type = TEST_ARRAY;
                 } else {
-                    usage();
+                    return usage();
                 }
                 break;
             case 'n':
                 n = (unsigned) atoi(argv[argind++]);
                 break;
             default:
-                usage();
+                return usage();
         }
     }
-    srand(time(NULL));
+    srand((unsigned) time(NULL));
 
     switch (type) {
         case TEST_ARRAY:

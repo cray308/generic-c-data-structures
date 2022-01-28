@@ -40,37 +40,6 @@ int search_str(const void *a, const void *b) {
     return strcmp(((DictData *) a)->s, ((DictData *) b)->s);
 }
 
-#define __compare_str_int_body(id)                                                                           \
-    unsigned i = 0;                                                                                          \
-    int *at;                                                                                                 \
-    Pair_##id *it;                                                                                           \
-    DictData data, *found;                                                                                   \
-    assert(umap_size(m) == size);                                                                            \
-    if (size) {                                                                                              \
-        assert(!umap_empty(m));                                                                              \
-    } else {                                                                                                 \
-        assert(umap_empty(m));                                                                               \
-    }                                                                                                        \
-    for (i = 0; i < size; ++i) {                                                                             \
-        comparison[i].found = 0;                                                                             \
-    }                                                                                                        \
-    i = 0;                                                                                                   \
-    umap_iter(id, m, it) {                                                                                   \
-        data.s = it->first;                                                                                  \
-        found = bsearch(&data, comparison, (size_t) size, sizeof(DictData), search_str);                     \
-        assert(found && streq(found->s, it->first));                                                         \
-        assert(found->found == 0);                                                                           \
-        at = umap_at(id, m, it->first);                                                                      \
-        assert(at && *at == found->i);                                                                       \
-        assert(it->second == found->i);                                                                      \
-        found->found = 1;                                                                                    \
-        ++i;                                                                                                 \
-    }                                                                                                        \
-    assert(i == size);                                                                                       \
-    for (i = 0; i < size; ++i) {                                                                             \
-        assert(comparison[i].found);                                                                         \
-    }
-
 void compare_int_str(UMap_int_str *m, DictData *comparison, unsigned size) {
     unsigned i = 0;
     char **at;
@@ -104,11 +73,67 @@ void compare_int_str(UMap_int_str *m, DictData *comparison, unsigned size) {
 }
 
 void compare_strv_int(UMap_strv_int *m, DictData *comparison, unsigned size) {
-    __compare_str_int_body(strv_int)
+    unsigned i = 0;
+    int *at;
+    Pair_strv_int *it;
+    DictData data, *found;
+    assert(umap_size(m) == size);
+    if (size) {
+        assert(!umap_empty(m));
+    } else {
+        assert(umap_empty(m));
+    }
+    for (i = 0; i < size; ++i) {
+        comparison[i].found = 0;
+    }
+    i = 0;
+    umap_iter(strv_int, m, it) {
+        data.s = it->first;
+        found = bsearch(&data, comparison, (size_t) size, sizeof(DictData), search_str);
+        assert(found && streq(found->s, it->first));
+        assert(found->found == 0);
+        at = umap_at(strv_int, m, it->first);
+        assert(at && *at == found->i);
+        assert(it->second == found->i);
+        found->found = 1;
+        ++i;
+    }
+    assert(i == size);
+    for (i = 0; i < size; ++i) {
+        assert(comparison[i].found);
+    }
 }
 
 void compare_strp_int(UMap_strp_int *m, DictData *comparison, unsigned size) {
-    __compare_str_int_body(strp_int)
+    unsigned i = 0;
+    int *at;
+    Pair_strp_int *it;
+    DictData data, *found;
+    assert(umap_size(m) == size);
+    if (size) {
+        assert(!umap_empty(m));
+    } else {
+        assert(umap_empty(m));
+    }
+    for (i = 0; i < size; ++i) {
+        comparison[i].found = 0;
+    }
+    i = 0;
+    umap_iter(strp_int, m, it) {
+        data.s = it->first;
+        found = bsearch(&data, comparison, (size_t) size, sizeof(DictData), search_str);
+        assert(found && streq(found->s, it->first));
+        assert(found->found == 0);
+        at = umap_at(strp_int, m, it->first);
+        assert(at && *at == found->i);
+        assert(it->second == found->i);
+        found->found = 1;
+        ++i;
+    }
+    assert(i == size);
+    for (i = 0; i < size; ++i) {
+        assert(comparison[i].found);
+    }
 }
 
 void test_empty_init(void) {

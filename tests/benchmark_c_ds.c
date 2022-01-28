@@ -12,43 +12,49 @@ gen_list_source_withAlg(unsigned, unsigned, ds_cmp_num_lt, DSDefault_shallowCopy
 char *ProgName = NULL;
 unsigned n = 10000;
 
-#define runTest(append, sort) {                                                                              \
-    unsigned i = 0;                                                                                          \
-    double elapsed;                                                                                          \
-    clock_t before, after;                                                                                   \
-    for (; i < n; ++i) {                                                                                     \
-        append;                                                                                              \
-    }                                                                                                        \
-    before = clock();                                                                                        \
-    sort;                                                                                                    \
-    after = clock();                                                                                         \
-    elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;                                           \
-    printf("%.6f\n", elapsed);                                                                               \
-}
-
 typedef enum {
     TEST_QSORT,
     TEST_ARRAY,
     TEST_LIST
 } DSTest;
 
-void usage(void) {
+static int usage(void) {
     char *s = "Usage: %s\n"
     "    -d DATA_STRUTURE    One of [ARRAY,LIST,QSORT]\n"
-    "    -n NELEM            Number of elements to sort";
+    "    -n NELEM            Number of elements to sort\n";
     fprintf(stderr, s, ProgName);
-    exit(1);
+    return 1;
 }
 
 void test_list(void) {
     List_unsigned *l = list_new(unsigned);
-    runTest(list_push_back(unsigned, l, ((unsigned) rand()) % UINT_MAX), list_sort(unsigned, l))
+    unsigned i = 0;
+    double elapsed;
+    clock_t before, after;
+    for (; i < n; ++i) {
+        list_push_back(unsigned, l, ((unsigned) rand()) % UINT_MAX);
+    }
+    before = clock();
+    list_sort(unsigned, l);
+    after = clock();
+    elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+    printf("%.6f\n", elapsed);
     list_free(unsigned, l);
 }
 
 void test_arr(void) {
     Array_unsigned *a = array_new(unsigned);
-    runTest(array_push_back(unsigned, a, ((unsigned) rand()) % UINT_MAX), array_sort(unsigned, a))
+    unsigned i = 0;
+    double elapsed;
+    clock_t before, after;
+    for (; i < n; ++i) {
+        array_push_back(unsigned, a, ((unsigned) rand()) % UINT_MAX);
+    }
+    before = clock();
+    array_sort(unsigned, a);
+    after = clock();
+    elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+    printf("%.6f\n", elapsed);
     array_free(unsigned, a);
 }
 
@@ -58,7 +64,17 @@ int sort_compare(const void *a, const void *b) {
 
 void test_qsort(void) {
     unsigned *a = malloc(sizeof(unsigned) * n);
-    runTest(a[i] = ((unsigned) rand()) % UINT_MAX, qsort(a, n, sizeof(unsigned), sort_compare))
+    unsigned i = 0;
+    double elapsed;
+    clock_t before, after;
+    for (; i < n; ++i) {
+        a[i] = ((unsigned) rand()) % UINT_MAX;
+    }
+    before = clock();
+    qsort(a, n, sizeof(unsigned), sort_compare);
+    after = clock();
+    elapsed = ((double) (after - before) / CLOCKS_PER_SEC) * 1000;
+    printf("%.6f\n", elapsed);
     free(a);
 }
 
@@ -79,15 +95,14 @@ int main(int argc, char *argv[]) {
                 } else if (streq(temp, "QSORT")) {
                     type = TEST_QSORT;
                 } else {
-                    usage();
+                    return usage();
                 }
                 break;
             case 'n':
                 n = (unsigned) atoi(argv[argind++]);
                 break;
             default:
-                usage();
-                break;
+                return usage();
         }
     }
     srand((unsigned) time(NULL));

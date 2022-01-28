@@ -28,32 +28,6 @@ char *strs[] = {"000","005","010","015","020","025","030","035","040","045","050
 "150","155","160","165","170","175","180","185","190","195","200","205","210","215","220","225","230",
 "235","240","245"};
 
-#define __compare_str_int_body(id)                                                                           \
-    unsigned i = 0;                                                                                          \
-    int *at;                                                                                                 \
-    MapEntry_##id *it;                                                                                       \
-    assert(map_size(m) == size);                                                                             \
-    if (size) {                                                                                              \
-        assert(!map_empty(m));                                                                               \
-    } else {                                                                                                 \
-        assert(map_empty(m));                                                                                \
-    }                                                                                                        \
-    map_iter(id, m, it) {                                                                                    \
-        assert(streq(it->data.first, keys[i]));                                                              \
-        at = map_at(id, m, it->data.first);                                                                  \
-        assert(at && *at == values[i]);                                                                      \
-        assert(it->data.second == values[i++]);                                                              \
-    }                                                                                                        \
-    assert(i == size);                                                                                       \
-    i = size - 1;                                                                                            \
-    map_riter(id, m, it) {                                                                                   \
-        assert(streq(it->data.first, keys[i]));                                                              \
-        at = map_at(id, m, it->data.first);                                                                  \
-        assert(at && *at == values[i]);                                                                      \
-        assert(it->data.second == values[i--]);                                                              \
-    }                                                                                                        \
-    assert(i == UINT_MAX);
-
 void compare_int_str(Map_int_str *m, int *keys, char **values, unsigned size) {
     unsigned i = 0;
     char **at;
@@ -82,11 +56,57 @@ void compare_int_str(Map_int_str *m, int *keys, char **values, unsigned size) {
 }
 
 void compare_strv_int(Map_strv_int *m, char **keys, int *values, unsigned size) {
-    __compare_str_int_body(strv_int)
+    unsigned i = 0;
+    int *at;
+    MapEntry_strv_int *it;
+    assert(map_size(m) == size);
+    if (size) {
+        assert(!map_empty(m));
+    } else {
+        assert(map_empty(m));
+    }
+    map_iter(strv_int, m, it) {
+        assert(streq(it->data.first, keys[i]));
+        at = map_at(strv_int, m, it->data.first);
+        assert(at && *at == values[i]);
+        assert(it->data.second == values[i++]);
+    }
+    assert(i == size);
+    i = size - 1;
+    map_riter(strv_int, m, it) {
+        assert(streq(it->data.first, keys[i]));
+        at = map_at(strv_int, m, it->data.first);
+        assert(at && *at == values[i]);
+        assert(it->data.second == values[i--]);
+    }
+    assert(i == UINT_MAX);
 }
 
 void compare_strp_int(Map_strp_int *m, char **keys, int *values, unsigned size) {
-    __compare_str_int_body(strp_int)
+    unsigned i = 0;
+    int *at;
+    MapEntry_strp_int *it;
+    assert(map_size(m) == size);
+    if (size) {
+        assert(!map_empty(m));
+    } else {
+        assert(map_empty(m));
+    }
+    map_iter(strp_int, m, it) {
+        assert(streq(it->data.first, keys[i]));
+        at = map_at(strp_int, m, it->data.first);
+        assert(at && *at == values[i]);
+        assert(it->data.second == values[i++]);
+    }
+    assert(i == size);
+    i = size - 1;
+    map_riter(strp_int, m, it) {
+        assert(streq(it->data.first, keys[i]));
+        at = map_at(strp_int, m, it->data.first);
+        assert(at && *at == values[i]);
+        assert(it->data.second == values[i--]);
+    }
+    assert(i == UINT_MAX);
 }
 
 void test_empty_init(void) {
