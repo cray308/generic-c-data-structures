@@ -296,7 +296,7 @@ TreeType *__avltree_createCopy_##id(TreeType const *other) {                    
 }                                                                                        \
                                                                                          \
 EntryType * __avltree_remove_entry_##id(TreeType *this, EntryType *v) {                  \
-    char deleteData = 1;                                                                 \
+    unsigned char deleteData = 1;                                                        \
     EntryType *curr, *parent, *child, *rv;                                               \
     if (!v) return NULL;                                                                 \
     else if (!(rv = __avl_inorder_successor_##id(v))) rv = (void *) -1;                  \
@@ -407,6 +407,7 @@ EntryType *__avltree_erase_##id(TreeType *this,                                 
     if (end) {                                                                           \
         kt lastKey = entry_get_key(end);                                                 \
         begin = __avltree_remove_entry_##id(this, begin);                                \
+        customAssert(begin)                                                              \
         while (cmp_lt(entry_get_key(begin), lastKey)) {                                  \
             begin = __avltree_remove_entry_##id(this, begin);                            \
         }                                                                                \

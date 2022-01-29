@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#else
+#define UINT_MAX 0xffffffff
 #endif /* __CDS_SCAN */
 
 #if DEBUG

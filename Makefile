@@ -1,14 +1,14 @@
 OPTIMIZE = 2
 CVERS=c99
 
-CFLAGS = -std=$(CVERS) -Iinclude -O$(OPTIMIZE) \
- -Wall -Wextra -Werror -Wpedantic -Wconversion -Wstrict-prototypes
+COMMON_FLAGS = -Wall -Wextra -Werror -Wpedantic -Wconversion
+CFLAGS = -std=$(CVERS) -Iinclude -O$(OPTIMIZE) $(COMMON_FLAGS) -Wstrict-prototypes
 
 SCAN_FILES = src/scan/deque.c src/scan/stack.c src/scan/queue.c \
- src/scan/array.c src/scan/str.c src/scan/str_imp.c src/scan/list.c \
+ src/scan/array.c src/scan/list.c \
  src/scan/avltree.c src/scan/set.c src/scan/map.c \
  src/scan/unordered_set.c src/scan/unordered_map.c
-SCAN_OBJS = $(SCAN_FILES:.c=.o)
+SCAN_OBJS = $(SCAN_FILES:.c=.o) src/scan/str_out
 
 TEST_BINARIES = bin/c/test_deque bin/c/test_stack bin/c/test_queue \
  bin/c/test_array bin/c/test_str bin/c/test_list \
@@ -26,8 +26,7 @@ debug: CVERS=c89
 debug: CFLAGS += -g -DDEBUG
 debug: $(TEST_BINARIES) $(BENCHMARK_BINARIES)
 
-scan: OPTIMIZE = 0
-scan: CFLAGS += -c -g -fanalyzer
+scan: CFLAGS += -g -fanalyzer
 scan: $(SCAN_OBJS)
 
 test: $(TEST_BINARIES)
@@ -36,16 +35,15 @@ test: $(TEST_BINARIES)
 benchmark: $(BENCHMARK_BINARIES)
 	@python3 bin/run_benchmarks.py
 
-src/scan/str_imp.c: src/str.c include/str.h
-	gcc -E -P -Iinclude -DDEBUG -D__CDS_SCAN -D__clang_analyzer__ $< -o $@
-	@bash bin/expand_macros.sh $@
-
 src/scan/%.c: tests/test_%.c include/%.h
 	gcc -E -P -Iinclude -DDEBUG -D__CDS_SCAN -D__clang_analyzer__ $< -o $@
 	@bash bin/expand_macros.sh $@
 
+src/scan/str_out: tests/test_str.c include/str.h src/str.c
+	gcc $(CFLAGS) -DDEBUG $< src/str.c -o $@
+
 src/scan/%.o: src/scan/%.c
-	gcc $(CFLAGS) $< -o $@
+	gcc -c $(CFLAGS) $< -o $@
 
 bin/c/test_unordered_%: tests/test_unordered_%.c include/unordered_%.h
 	gcc $(CFLAGS) -o $@ $< src/hash.c
@@ -60,7 +58,7 @@ bin/c/benchmark_%: tests/benchmark_%.c include/array.h include/list.h
 	gcc $(CFLAGS) -o $@ $<
 
 bin/cpp/%: tests/%.cpp
-	g++ -std=c++11 -O2 -Wall -Wextra -Werror -o $@ $<
+	g++ -std=c++11 -O2 $(COMMON_FLAGS) -o $@ $<
 
 
 clean:
