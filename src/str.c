@@ -165,10 +165,14 @@ void string_erase(String *this, unsigned start, unsigned n) {
 
 void string_shrink_to_fit(String *this) {
     char *tmp;
-    if (!this->size || this->cap <= 64 || this->size + 1 == this->cap ||
-            !(tmp = realloc(this->s, this->size + 1))) return;
-    this->cap = this->size + 1;
-    this->s = tmp;
+    unsigned newCap = this->size + 1;
+    if (this->cap != 64 && newCap != this->cap) {
+        if (newCap == 1) newCap = 64;
+        if ((tmp = realloc(this->s, newCap))) {
+            this->cap = newCap;
+            this->s = tmp;
+        }
+    }
 }
 
 unsigned string_find_first_of(String const *this, unsigned pos,

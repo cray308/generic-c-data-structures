@@ -168,6 +168,9 @@ void test_shrink(void) {
     assert(string_capacity(s) == 128);
     string_shrink_to_fit(s);
     assert(string_capacity(s) == 65);
+    string_clear(s);
+    string_shrink_to_fit(s);
+    assert(string_capacity(s) == 64);
     string_free(s);
 }
 

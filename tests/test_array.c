@@ -250,6 +250,9 @@ void test_shrink(void) {
     assert(array_capacity(a) == 16);
     array_shrink_to_fit(str, a);
     assert(array_capacity(a) == 9);
+    array_clear(str, a);
+    array_shrink_to_fit(str, a);
+    assert(array_capacity(a) == 8);
     array_free(str, a);
 }
 

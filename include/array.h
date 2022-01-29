@@ -514,10 +514,14 @@ Array_##id *array_new_repeatingValue_##id(unsigned n, t const value) {          
                                                                                          \
 void array_shrink_to_fit_##id(Array_##id *this) {                                        \
     t* tmp;                                                                              \
-    if (this->capacity == 8 || this->size == this->capacity || !this->size ||            \
-            !(tmp = realloc(this->arr, this->size * sizeof(t)))) return;                 \
-    this->capacity = this->size;                                                         \
-    this->arr = tmp;                                                                     \
+    unsigned newCap = this->size;                                                        \
+    if (this->capacity != 8 && newCap != this->capacity) {                               \
+        if (!newCap) newCap = 8;                                                         \
+        if ((tmp = realloc(this->arr, newCap * sizeof(t)))) {                            \
+            this->capacity = newCap;                                                     \
+            this->arr = tmp;                                                             \
+        }                                                                                \
+    }                                                                                    \
 }                                                                                        \
                                                                                          \
 Array_##id *array_subarr_##id(Array_##id *this, unsigned start,                          \
